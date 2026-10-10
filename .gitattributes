@@ -1,3 +1,7 @@
 * text=auto eol=lf
 *.glb binary
 *.stl binary
+*.bin binary
+*.png binary
+# Preserve the downloaded source JSON byte-for-byte for its recorded SHA256.
+assets/source/dundee/scene.gltf -text

@@ -25,7 +25,7 @@ function studioEnvironment(renderer) {
   const room = new THREE.Scene();
   const walls = new THREE.Mesh(
     new THREE.BoxGeometry(24, 24, 24),
-    new THREE.MeshBasicMaterial({ color: new THREE.Color().setScalar(0.17), side: THREE.BackSide }),
+    new THREE.MeshBasicMaterial({ color: new THREE.Color().setScalar(0.10), side: THREE.BackSide }),
   );
   room.add(walls);
 
@@ -38,13 +38,15 @@ function studioEnvironment(renderer) {
     light.lookAt(0, 0, 0);
     room.add(light);
   };
-  panel(5, 9, [-6, 5, 6], 4.5, 0xfff6ec);
-  panel(4, 7, [7, 2, 4], 2.5, 0xf0f5ff);
-  panel(7, 5, [0, 9, -2], 3.5);
-  panel(2, 7, [-3, 1, -7], 2.8);
+  // Large neutral cards produce broad reflections instead of point-light glints.
+  // Dark spaces between them preserve curvature and readable enamel highlights.
+  panel(6, 9, [-6, 5, 6], 5.0, 0xfffcf7);
+  panel(5, 7, [7, 2, 4], 1.65, 0xf5f8ff);
+  panel(7, 6, [0, 9, -2], 3.8);
+  panel(2.5, 7, [-3, 1, -7], 2.2);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const result = pmrem.fromScene(room, 0.04);
+  const result = pmrem.fromScene(room, 0.025);
   room.traverse((object) => {
     object.geometry?.dispose();
     object.material?.dispose();
@@ -53,12 +55,130 @@ function studioEnvironment(renderer) {
   return result;
 }
 
+// Capture the actual geometry from the floor, then blur the distance-weighted
+// silhouette. This is a one-time GPU bake: orbiting never reruns these passes.
+function bakeContactShadow(renderer, model, groundY, extent) {
+  const resolution = window.matchMedia('(max-width: 600px)').matches ? 512 : 1024;
+  const options = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false, stencilBuffer: false };
+  const capture = new THREE.WebGLRenderTarget(resolution, resolution, { ...options, depthBuffer: true });
+  const horizontal = new THREE.WebGLRenderTarget(resolution, resolution, options);
+  const blurred = new THREE.WebGLRenderTarget(resolution, resolution, options);
+  const previousTarget = renderer.getRenderTarget();
+  const previousClear = renderer.getClearColor(new THREE.Color());
+  const previousAlpha = renderer.getClearAlpha();
+  const previousShadows = renderer.shadowMap.enabled;
+
+  const depthScene = new THREE.Scene();
+  depthScene.add(model.clone(true));
+  const depthMaterial = new THREE.ShaderMaterial({
+    uniforms: { floorY: { value: groundY } },
+    vertexShader: `
+      uniform float floorY;
+      varying float vHeight;
+      void main() {
+        vec4 world = modelMatrix * vec4(position, 1.0);
+        vHeight = max(0.0, world.y - floorY);
+        gl_Position = projectionMatrix * viewMatrix * world;
+      }
+    `,
+    fragmentShader: `
+      varying float vHeight;
+      void main() {
+        float contact = exp(-vHeight * 1.8);
+        gl_FragColor = vec4(vec3(contact), 1.0);
+      }
+    `,
+    toneMapped: false,
+  });
+  depthScene.overrideMaterial = depthMaterial;
+  const depthCamera = new THREE.OrthographicCamera(-extent / 2, extent / 2, extent / 2, -extent / 2, 0.005, 6);
+  depthCamera.position.set(0, groundY, 0);
+  depthCamera.up.set(0, 0, -1);
+  depthCamera.lookAt(0, groundY + 1, 0);
+
+  const blurMaterial = new THREE.ShaderMaterial({
+    uniforms: { source: { value: null }, direction: { value: new THREE.Vector2() } },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = vec4(position.xy, 0.0, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D source;
+      uniform vec2 direction;
+      varying vec2 vUv;
+      void main() {
+        vec4 sum = texture2D(source, vUv) * 0.2270270270;
+        sum += texture2D(source, vUv + direction * 1.3846153846) * 0.3162162162;
+        sum += texture2D(source, vUv - direction * 1.3846153846) * 0.3162162162;
+        sum += texture2D(source, vUv + direction * 3.2307692308) * 0.0702702703;
+        sum += texture2D(source, vUv - direction * 3.2307692308) * 0.0702702703;
+        gl_FragColor = sum;
+      }
+    `,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const blurScene = new THREE.Scene();
+  const quadGeometry = new THREE.PlaneGeometry(2, 2);
+  blurScene.add(new THREE.Mesh(quadGeometry, blurMaterial));
+  const blurCamera = new THREE.Camera();
+
+  try {
+    renderer.shadowMap.enabled = false;
+    renderer.setClearColor(0x000000, 0);
+    renderer.setRenderTarget(capture);
+    renderer.render(depthScene, depthCamera);
+    // The kernel is specified in world units, keeping its softness consistent
+    // across mobile and desktop resolutions. Two passes retain root contours.
+    blurMaterial.uniforms.source.value = capture.texture;
+    blurMaterial.uniforms.direction.value.set(0.035 / extent, 0);
+    renderer.setRenderTarget(horizontal);
+    renderer.render(blurScene, blurCamera);
+    blurMaterial.uniforms.source.value = horizontal.texture;
+    blurMaterial.uniforms.direction.value.set(0, 0.035 / extent);
+    renderer.setRenderTarget(blurred);
+    renderer.render(blurScene, blurCamera);
+  } finally {
+    renderer.setRenderTarget(previousTarget);
+    renderer.setClearColor(previousClear, previousAlpha);
+    renderer.shadowMap.enabled = previousShadows;
+    capture.dispose();
+    horizontal.dispose();
+    depthMaterial.dispose();
+    blurMaterial.dispose();
+    quadGeometry.dispose();
+  }
+
+  const contact = new THREE.Mesh(
+    new THREE.PlaneGeometry(extent, extent),
+    new THREE.MeshBasicMaterial({
+      color: 0x514d47,
+      alphaMap: blurred.texture,
+      opacity: 0.30,
+      transparent: true,
+      depthWrite: false,
+      toneMapped: false,
+    }),
+  );
+  contact.rotation.x = -Math.PI / 2;
+  // An upward-looking capture with up=-Z reverses X relative to this plane.
+  contact.material.alphaMap.repeat.x = -1;
+  contact.material.alphaMap.offset.x = 1;
+  contact.position.y = groundY;
+  contact.name = 'Baked geometry contact shadow';
+  return contact;
+}
+
 async function start() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.95;
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
 
@@ -66,9 +186,9 @@ async function start() {
   scene.background = new THREE.Color(0xffffff);
   const environment = studioEnvironment(renderer);
   scene.environment = environment.texture;
-  scene.environmentIntensity = 0.7;
+  scene.environmentIntensity = 0.8;
 
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.05, 100);
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.01, 100);
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   controls.dampingFactor = 0.08;
@@ -80,29 +200,31 @@ async function start() {
   controls.touches.ONE = THREE.TOUCH.ROTATE;
   controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
 
-  const key = new THREE.DirectionalLight(0xfff6e9, 1.9);
+  const key = new THREE.DirectionalLight(0xfffcf7, 1.0);
   key.position.set(-3.8, 8.8, 5.5);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.left = key.shadow.camera.bottom = -4;
-  key.shadow.camera.right = key.shadow.camera.top = 4;
+  key.shadow.camera.left = key.shadow.camera.bottom = -3;
+  key.shadow.camera.right = key.shadow.camera.top = 3;
   key.shadow.camera.near = 0.1;
   key.shadow.camera.far = 24;
-  key.shadow.normalBias = 0.02;
+  key.shadow.normalBias = 0.006;
   key.shadow.bias = -0.0001;
-  key.shadow.radius = 4;
+  key.shadow.radius = 2;
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xedf3ff, 0.65);
+  const fill = new THREE.DirectionalLight(0xf5f8ff, 0.28);
   fill.position.set(4, 1.5, 4);
   scene.add(fill);
-  const rim = new THREE.DirectionalLight(0xffffff, 1.2);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.45);
   rim.position.set(2, 4, -4);
   scene.add(rim);
 
   let ready = false;
   let frame = 0;
   let homeDistance = 8;
+  let minimumDistance = 2.2;
+  let homeProjection = new Float32Array(0);
   const homeDirection = new THREE.Vector3(0.44, 0.50, 1).normalize();
   const modelHeight = 3.8;
   const target = new THREE.Vector3(0, 0.05, 0);
@@ -126,19 +248,35 @@ async function start() {
   controls.addEventListener('change', requestRender);
 
   function fitDistance() {
-    const vertical = THREE.MathUtils.degToRad(camera.fov);
-    const horizontal = 2 * Math.atan(Math.tan(vertical / 2) * camera.aspect);
-    // Leave room around the silhouette, including the three-quarter root spread.
-    return Math.max((modelHeight * 0.5) / Math.tan(vertical / 2), (modelHeight * 0.38) / Math.tan(horizontal / 2)) * 1.34;
+    const tangentY = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+    const tangentX = tangentY * camera.aspect;
+    // The actual tooth silhouette fills roughly 75% of the limiting dimension.
+    // Include each vertex's depth; a flat width/height estimate underestimates
+    // the nearer cusps and overestimates empty corners around the roots.
+    let distance = minimumDistance;
+    for (let index = 0; index < homeProjection.length; index += 3) {
+      const depth = homeProjection[index + 2];
+      distance = Math.max(
+        distance,
+        depth + homeProjection[index] * 1.31 / tangentX,
+        depth + homeProjection[index + 1] * 1.27 / tangentY,
+      );
+    }
+    return distance;
   }
 
   function resetView() {
     homeDistance = fitDistance();
+    // Flush any remaining drag damping before restoring the exact home pose.
+    const damping = controls.enableDamping;
+    controls.enableDamping = false;
+    controls.update();
     controls.target.copy(target);
     camera.position.copy(target).addScaledVector(homeDirection, homeDistance);
-    controls.minDistance = homeDistance * 0.42;
+    controls.minDistance = minimumDistance;
     controls.maxDistance = homeDistance * 2.5;
     controls.update();
+    controls.enableDamping = damping;
     controls.saveState();
     requestRender();
   }
@@ -154,8 +292,9 @@ async function start() {
     if (ready) {
       homeDistance = fitDistance();
       const offset = camera.position.clone().sub(controls.target);
-      camera.position.copy(controls.target).add(offset.multiplyScalar(homeDistance / previousHome));
-      controls.minDistance = homeDistance * 0.42;
+      const nextDistance = Math.max(minimumDistance, offset.length() * homeDistance / previousHome);
+      camera.position.copy(controls.target).add(offset.setLength(nextDistance));
+      controls.minDistance = minimumDistance;
       controls.maxDistance = homeDistance * 2.5;
     }
     requestRender();
@@ -193,36 +332,38 @@ async function start() {
   });
   if (!meshes) throw new Error('The GLB does not contain any mesh.');
   scene.add(normalization);
-
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(200, 200),
-    new THREE.ShadowMaterial({ opacity: 0.025, depthWrite: false }),
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -modelHeight / 2 - 0.045;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // Broad, feathered ambient contact complements the restrained direct shadow.
-  const shadowCanvas = document.createElement('canvas');
-  shadowCanvas.width = shadowCanvas.height = 128;
-  const shadowContext = shadowCanvas.getContext('2d');
-  const gradient = shadowContext.createRadialGradient(64, 64, 3, 64, 64, 63);
-  gradient.addColorStop(0, 'rgba(52,43,29,0.17)');
-  gradient.addColorStop(0.38, 'rgba(52,43,29,0.09)');
-  gradient.addColorStop(0.72, 'rgba(52,43,29,0.025)');
-  gradient.addColorStop(1, 'rgba(52,43,29,0)');
-  shadowContext.fillStyle = gradient;
-  shadowContext.fillRect(0, 0, 128, 128);
-  const contactTexture = new THREE.CanvasTexture(shadowCanvas);
-  contactTexture.colorSpace = THREE.SRGBColorSpace;
-  const contact = new THREE.Mesh(
-    new THREE.PlaneGeometry(3.8, 2.6),
-    new THREE.MeshBasicMaterial({ map: contactTexture, transparent: true, depthWrite: false, toneMapped: false }),
-  );
-  contact.rotation.x = -Math.PI / 2;
-  contact.position.set(0.2, ground.position.y + 0.005, 0);
-  scene.add(contact);
+  normalization.updateMatrixWorld(true);
+  const normalizedBounds = new THREE.Box3().setFromObject(normalization);
+  const normalizedSize = normalizedBounds.getSize(new THREE.Vector3());
+  const homeRight = new THREE.Vector3().crossVectors(camera.up, homeDirection).normalize();
+  const homeUp = new THREE.Vector3().crossVectors(homeDirection, homeRight);
+  let vertexCount = 0;
+  normalization.traverse((object) => {
+    if (object.isMesh) vertexCount += object.geometry.attributes.position.count;
+  });
+  homeProjection = new Float32Array(vertexCount * 3);
+  const point = new THREE.Vector3();
+  let projectionIndex = 0;
+  // Project once after all authored transforms and normalization are applied.
+  // Resizing only evaluates these scalar coordinates; it preserves the orbit.
+  normalization.traverse((object) => {
+    if (!object.isMesh) return;
+    const positions = object.geometry.attributes.position;
+    for (let index = 0; index < positions.count; index++) {
+      point.fromBufferAttribute(positions, index).applyMatrix4(object.matrixWorld).sub(target);
+      homeProjection[projectionIndex++] = Math.abs(point.dot(homeRight));
+      homeProjection[projectionIndex++] = Math.abs(point.dot(homeUp));
+      homeProjection[projectionIndex++] = point.dot(homeDirection);
+    }
+  });
+  // Use the actual model envelope, not screen width, to allow the same close
+  // inspection on a phone while keeping the camera outside the tooth.
+  minimumDistance = normalizedBounds.getBoundingSphere(new THREE.Sphere()).radius * 1.03 + 0.08;
+  const shadowExtent = Math.max(normalizedSize.x, normalizedSize.z) + 1.6;
+  scene.add(bakeContactShadow(renderer, normalization, normalizedBounds.min.y - 0.025, shadowExtent));
+  // Geometry and lighting are static: self shadows need only one update.
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
 
   function zoom(factor) {
     const offset = camera.position.clone().sub(controls.target);

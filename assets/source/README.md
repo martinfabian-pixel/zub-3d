@@ -1,14 +1,16 @@
-# Original source
+# Original anatomy asset
 
-`D46.stl` is the unchanged mandibular right first molar from:
+This directory contains the unchanged source files for **Maxillary First Molar** by the University of Dundee, School of Dentistry: a permanent upper LEFT first molar (FDI 26 / UL6), created in ZBrush using CT data.
 
-DIAZ, CRISTIAN; Ferro Sanchez, Carlos andres; Campo, Oscar (2024),
-*Data of 3D models of human jaw with teeth, ligaments, and bone structures*,
-Mendeley Data, V1. https://doi.org/10.17632/97c3pf8h2h.1
+- Creator: Emily McDougall
+- Content expert: Dr. Andrew Mason
+- Initial 3D preparation: Mark Roughley
+- [Original model](https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984)
+- [CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/)
+- [Public VAMO/inVisu redistribution](https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html)
 
-License: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+`dundee/scene.gltf`, `dundee/scene.bin` and both `dundee/textures/` images remain unchanged. Their original URLs and SHA-256 hashes are in `dundee/source-provenance.json`.
 
-SHA256: `652e2b364a3b17334d1f1bfd5769600768cee99322ae52febab257a72a2ae809`
+The adapted `public/models/molar.glb` retains the original mesh arrays, UVs, normals, tangents, vertex colors and normal-map bytes. Changes are limited to a rigid orientation, nominal presentation scale, texture padding outside the UV island, modest root color grading and subtle crown color variation, and authored optical settings. Exact changes and limits are recorded in `public/models/provenance.json`.
 
-The adapted GLB and its processing record are in `public/models/`.
-See [../../ATTRIBUTION.md](../../ATTRIBUTION.md) for full credits and changes.
+This is a CT-informed educational reconstruction, not an untouched high-resolution micro-CT scan or a clinically validated tissue segmentation.

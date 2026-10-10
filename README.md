@@ -2,45 +2,50 @@
 
 [Otvoriť 3D demo](https://martinfabian-pixel.github.io/zub-3d/)
 
-Jeden ľudský molár bez ďasien, biele pozadie a štúdiové osvetlenie. Three.js načítava samostatný GLB model. Ťahanie myšou alebo jedným prstom otáča pohľad; koliesko, gesto dvoma prstami alebo tlačidlá +/− menia priblíženie. Tlačidlo so šípkou obnoví pohľad. Pre klávesnicu: šípky, +/− a Home.
+**Horná ľavá prvá trvalá stolička, FDI 26, s tromi pôvodnými koreňmi.** Jeden zub bez ďasien, biele pozadie a štúdiové osvetlenie. Three.js načítava samostatný GLB. Ťahanie myšou alebo jedným prstom otáča pohľad; koliesko, gesto dvoma prstami alebo tlačidlá +/− menia priblíženie. Tlačidlo so šípkou obnoví pohľad. Klávesnica: šípky, +/− a Home.
 
 ## Model a licencia
 
-Použitý je **D46, prvá dolná pravá stolička**, zo skenových dát publikovaných Cristianom Diazom, Carlosom Andresom Ferro Sanchezom a Oscarom Campom (2024): [Mendeley Data, V1, DOI 10.17632/97c3pf8h2h.1](https://data.mendeley.com/datasets/97c3pf8h2h/1).
+Základ: **[Maxillary First Molar](https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984)** od University of Dundee, School of Dentistry. Emily McDougall vytvorila model v ZBrush podľa CT dát; odborný obsah Dr. Andrew Mason, počiatočná 3D príprava Mark Roughley. Súbory boli získané z verejnej vzdelávacej distribúcie [VAMO / inVisu](https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html), ktorá zachováva pôvod a licenciu.
 
-Model a jeho upravená verzia: **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**. Kód prehliadača: MIT. Podrobnosti v [ATTRIBUTION.md](ATTRIBUTION.md), údaje o exporte vedľa modelu v `public/models/`.
+Model a upravená verzia: **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**. Kód: MIT. Podrobnosti v [ATTRIBUTION.md](ATTRIBUTION.md), údaje o úpravách v `public/models/provenance.json`. Nepoužívame platené assety.
+
+## Zmena oproti prvému demu
+
+Pôvodný dolný molár D46 bol nahradený samostatným modelom hornej šestky. Jeho tvar nebol deformovaný ani doplnený tretím koreňom. Nový zdroj má štyri hlavné hrbolčeky, šikmý hrebeň, žuvacie ryhy a tri odlišné korene. Zachovali sme pôvodných 57 008 trojuholníkov, normály, UV súradnice a nezmenenú 4096 × 4096 mapu povrchového detailu. Pôvodná 4K farebná mapa dostala jemné farebné úpravy; svetlejšie korene a malé teplé/studené odchýlky skloviny. Geometria sa nevyhladzuje interpoláciou.
+
+Lesklejšia sklovina má jemné presvitanie a farebné odchýlky; korene majú teplejší, drsnejší povrch. Veľké štúdiové svetelné plochy vytvárajú mäkké odlesky. Kontaktný tieň vychádza zo skutočného tvaru modelu. Priblíženie používa rozmery zuba, aby mobil umožnil rovnakú detailnú kontrolu ako počítač.
 
 ## Kvalita a hranice tejto verzie
 
-Tvar vychádza z reálneho skenovania, s prirodzenou asymetriou a dvoma koreňmi. Pôvodný povrch bol autormi datasetu remeshovaný pri 0,25 mm. Farebnosť, drsnosť, lesk, priesvitnosť a rozhranie skloviny a koreňov sú výtvarne vytvorené; zdroj ich nemeral.
+Toto je anatomická vzdelávacia rekonštrukcia podľa CT, **nie neupravený mikro-CT sken ani klinicky overený digitálny odtlačok**. Pôvodné 4K mapy sú výtvarne vytvorené. Drsnosť, farebné doplnenia a priesvitnosť sú vizuálne úpravy; zdroj neposkytuje meranú optiku ani oddelené vrstvy skloviny a dentínu. Jednotná mierka v GLB predstavuje ilustratívnu výšku 21 mm, nie meranie pôvodného zuba.
 
-**Táto verzia ešte nie je finálna profesionálna fotorealistická medicínska vizualizácia.** Limity sú najmä rozlíšenie fisúr, drobné rekonštrukčné nerovnosti korunky a chýbajúce fotografické PBR textúry. Vyhladenie nedokáže obnoviť detaily, ktoré zdroj neobsahuje. Pre vyššiu kvalitu odporúčame detailnejší mikro-CT alebo povrchový sken, kontrolu anatómie stomatológom a úpravu v Blenderi: retopológiu, anatomicky presné rozhranie skloviny, UV mapy a textúry vytvorené podľa fotografií. Materiálové presvitanie vo WebGL je aproximácia.
+**Zatiaľ ju nepovažujeme za finálnu profesionálnu fotorealistickú medicínsku vizualizáciu.** Pri extrémnom zoome zostáva viditeľné zjednodušenie jemných fisúr a mikropovrchu. Na vyššiu úroveň treba detailnejší povrchový alebo mikro-CT sken hornej šestky, fotografické referencie pre PBR textúry, samostatnú vrstvu skloviny nad dentínom a kontrolu anatómie stomatológom. Presvitanie jedného povrchu vo WebGL zostáva aproximáciou.
 
 ## Lokálne spustenie
 
-Vyžaduje Node.js 22.12+ a pnpm 10.
+Node.js 22.12+ a pnpm 10:
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Produkčný zostavovací príkaz: `pnpm build`. Náhľad zostavy: `pnpm preview`. Výstup je v `dist/`; všetky zdroje prehliadača a GLB sa poskytujú z rovnakej domény, bez CDN a bez analytiky.
-
-GitHub Actions pri zmene vetvy `main` zostaví a publikuje demo na GitHub Pages. Model je uložený v repozitári; bežný build nepotrebuje Blender ani Python.
+Produkčná zostava: `pnpm build`. Náhľad: `pnpm preview`. Všetky zdroje aj GLB sú z rovnakej domény, bez CDN a analytiky. GitHub Actions pri zmene vetvy `main` publikuje demo na GitHub Pages; bežný build nepotrebuje Blender ani Python.
 
 ## Reprodukcia modelu a kontrola
 
-GLB obsahuje 183 296 trojuholníkov, štyri vložené textúry 1024 × 1024 a má približne 7,7 MB. Dve iterácie interpolácie Loop vyhladzujú pôvodných 11 456 trojuholníkov; nezvyšujú rozlíšenie merania. Neupravený zdroj a kontrolný súčet zostávajú v repozitári.
+Neupravené zdrojové glTF, binárny buffer a textúry spolu s kontrolnými súčtami sú v `assets/source/`. Výsledný GLB má približne 5,7 MB a vloží textúry a materiály do jedného súboru. Presné nastavenia a zmeny zaznamenáva `public/models/provenance.json`.
 
 ```sh
 python -m pip install -r scripts/requirements-model.txt
 python scripts/prepare_model.py
 node scripts/validate-model.mjs
+pnpm build
 ```
 
-Khronos glTF Validator: 0 chýb, 0 varovaní. V prehliadači boli overené načítanie, rotácia myšou a klávesnicou, zoom, reset a rozloženie 390 × 844 bez vodorovného pretečenia. Mobilný rozmer bol emulovaný na desktope; fyzický telefón nebol testovaný.
+Khronos glTF Validator: 0 chýb, 0 varovaní. Produkčná zostava prešla. V prehliadači sme overili načítanie, detail žuvacej plochy, tri korene, rotáciu myšou a klávesnicou, zoom, presný reset pohľadu a rozloženie 390 × 844 bez vodorovného pretečenia. WebGL kontrola nehlási chyby. Mobilný rozmer je emulovaný na počítači; fyzický telefón nebol testovaný.
 
 ## Rozsah
 
-Len fáza 1: jeden molár a prehliadač. Ďalšie fázy sa začnú až po hodnotení používateľa.
+Len fáza 1: jeden molár a prehliadač. Ďalšia práca sa začne až po hodnotení vzhľadu používateľom.

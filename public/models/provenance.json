@@ -1,74 +1,113 @@
 {
-  "model": "D46, mandibular right first molar (FDI 46)",
+  "model": "Permanent maxillary LEFT FIRST molar, FDI 26 / UL6, three native roots",
   "source": {
-    "url": "https://data.mendeley.com/datasets/97c3pf8h2h/1",
-    "dataset": "Data of 3D models of human jaw with teeth, ligaments, and bone structures",
-    "doi": "10.17632/97c3pf8h2h.1",
-    "authors": [
-      "CRISTIAN DIAZ",
-      "Carlos andres Ferro Sanchez",
-      "Oscar Campo"
-    ],
-    "year": 2024,
-    "version": 1,
-    "file": "D46.stl",
-    "sha256": "652e2b364a3b17334d1f1bfd5769600768cee99322ae52febab257a72a2ae809",
-    "license": "CC BY 4.0",
+    "title": "Maxillary First Molar",
+    "author": "University of Dundee, School of Dentistry",
+    "creator_credit_in_preview": "Created by: Emily McDougall; Content expert: Dr. Andrew Mason; Initial 3D preparation: Mark Roughley",
+    "author_url": "https://sketchfab.com/DundeeDental",
+    "original_source_url": "https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984",
+    "primary_metadata_api": "https://api.sketchfab.com/v3/models/e719a474ef7e4bd7abec508f85f1e984",
+    "primary_metadata_path": "dundee-api-metadata.json",
+    "published_date": "2015-10-06",
+    "retrieved_utc": "2026-10-10T22:04:38.2689172Z",
+    "license": "Creative Commons Attribution 4.0 International",
+    "license_spdx": "CC-BY-4.0",
     "license_url": "https://creativecommons.org/licenses/by/4.0/",
-    "vertices": 5730,
-    "triangles": 11456,
-    "bounds_mm": [
-      [
-        -271.38848876953125,
-        -260.59332275390625,
-        -3.362959623336792
-      ],
-      [
-        -260.5097961425781,
-        -244.44068908691406,
-        15.835165977478027
-      ]
+    "commercial_use_per_primary_api": "Author must be credited. Commercial use is allowed.",
+    "anatomy": "Permanent maxillary LEFT FIRST molar, FDI 26, UL6",
+    "source_description": "Maxillary First Molar (Left). Created by the University of Dundee, School of Dentistry. Created in ZBrush using CT Data.",
+    "mesh_node_source_name": "UL6sketch_1.OBJ.cleaner",
+    "redistribution_source_page": "https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html",
+    "redistribution_provider": "inVisu inc., VAMO educational viewer",
+    "redistribution_page_saved": "vamo.html",
+    "redistribution_config_saved": "vamo-config.js",
+    "license_evidence": [
+      "Primary Sketchfab metadata confirms CC Attribution, direct link to CC BY 4.0, commercial use allowed.",
+      "glTF asset.extras contains same author, original source URL, license, and model title.",
+      "Public VAMO HTML includes full Dundee attribution and CC BY 4.0.",
+      "No authentication or access restriction bypass used; fetched publicly served viewer resources."
     ],
-    "watertight": true
+    "original_assets": [
+      {
+        "local_path": "research-models\\upper-molar\\dundee-scene.gltf",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/scene.gltf",
+        "bytes": 4751,
+        "sha256": "005955f29f2f7818d851e3718f70e21ddcb825712db3bf1ce8330ffd3878682c"
+      },
+      {
+        "local_path": "research-models\\upper-molar\\scene.bin",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/scene.bin",
+        "bytes": 2532096,
+        "sha256": "1ed41a21643d9978ba942884f9317432e885399b2095f5e1fcaae7a3ac5dfe97"
+      },
+      {
+        "local_path": "research-models\\upper-molar\\textures\\defaultMat_baseColor.png",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/textures/defaultMat_baseColor.png",
+        "bytes": 1054818,
+        "sha256": "a49db24b5bdda9a70855142263106ceb846e5e0efc56586893ee0cbc8e6a5427"
+      },
+      {
+        "local_path": "research-models\\upper-molar\\textures\\defaultMat_normal.png",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/textures/defaultMat_normal.png",
+        "bytes": 924786,
+        "sha256": "50f5e989652eb2a5e4450bd35982d7417dc7b885f72e4da58ef8059940c5dde1"
+      }
+    ],
+    "quality": {
+      "source_face_count_api": 28504,
+      "source_vertex_count_api": 28506,
+      "triangulated_gltf_face_count": 57008,
+      "gltf_vertex_count_with_uv_seams": 28875,
+      "texture_maps": [
+        "defaultMat_baseColor.png",
+        "defaultMat_normal.png"
+      ],
+      "attributes": [
+        "POSITION",
+        "NORMAL",
+        "TANGENT",
+        "COLOR_0",
+        "TEXCOORD_0"
+      ],
+      "native_material": "Base color PNG + vertex color, baked normal map, metallic 0, roughness 0.2",
+      "visual_observation": "Original published preview clearly shows 3 distinct root tips and white enamel/tan roots. Occlusal anatomy and closeup detail require inspecting the interactive mesh; thumbnail does not show occlusal surface.",
+      "limits": [
+        "Anatomical educational reconstruction created in ZBrush from CT data; do not call this an untouched raw microCT scan.",
+        "Not individual enamel/dentin/cementum segmented volumes.",
+        "Materials and skin color are author visualization; no measured optical properties provided.",
+        "Viewer material adjustments, normalization, repacking, or smoothing must be disclosed as modifications."
+      ],
+      "texture_dimensions": "4096 x 4096 pixels each: base color and normal"
+    },
+    "recommended_attribution": "Maxillary First Molar by University of Dundee, School of Dentistry (created by Emily McDougall; content expert Dr. Andrew Mason; initial 3D preparation Mark Roughley), licensed CC BY 4.0. Source: https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984. Retrieved from the public VAMO/inVisu educational redistribution. Modifications: [describe actual changes]."
   },
   "processing": [
-    "Weld coincident STL vertices and orient outward normals.",
-    "Apply two Loop surface-subdivision passes; interpolation adds no measured detail.",
-    "Rotate (X,Y,Z) to (Y,Z,X), placing crown +Y and roots -Y; no mirroring.",
-    "Center bounding box and convert source millimetres to glTF metres.",
-    "Calculate smooth normals and UV tangent frames; duplicate cylindrical UV seam only.",
-    "Add synthetic ivory-to-root vertex color and embedded roughness, micro-normal, polish and transmission textures.",
-    "Apply a very subtle synthetic tint to existing upward-facing concave crown grooves.",
-    "Place a softly blended, visually estimated cervical material boundary at source Z approximately 8 mm."
+    "Preserve original binary mesh arrays byte-for-byte: positions, normals, tangents, UVs, vertex colors and triangle indices.",
+    "No subdivision, simplification, smoothing, root grafting or anatomy deformation.",
+    "Add rigid crown-up orientation, center and uniform nominal 21 mm presentation scale; this is not a specimen measurement.",
+    "Preserve original 4096x4096 normal-map bytes.",
+    "Extend border colors into unused UV regions and enable linear mipmapped filtering.",
+    "Lighten/desaturate source root colors modestly and add very subtle slow warm/cool crown variation; this grading is artistic, not measured texture.",
+    "Derive a soft crown/root mask from original artist-painted colors; add a 2048x2048 roughness map, restrained enamel polish and mild transmission.",
+    "Set literature-informed approximate enamel IOR 1.62."
   ],
   "output": {
-    "vertices_including_uv_seam": 91930,
-    "triangles": 183296,
-    "bounds_metres": [
-      [
-        -0.008069179952144623,
-        -0.009595958516001701,
-        -0.005411491263657808
-      ],
-      [
-        0.008069179952144623,
-        0.009595958516001701,
-        0.005411491263657808
-      ]
-    ],
-    "texture_resolution": [
-      1024,
-      1024
-    ],
-    "textures": 4,
-    "bytes": 7697188,
-    "sha256": "ed48e6d21cda374d057eafa8daf941609da0e65fcfb6dfab96943c9620883108"
+    "bytes": 5707052,
+    "sha256": "23e7afb51cd7d230a0c10cd5c30fd7256cf4f19ba46f13e56612218922edddad",
+    "vertices": 28875,
+    "triangles": 57008,
+    "original_geometry_buffer_sha256": "1ed41a21643d9978ba942884f9317432e885399b2095f5e1fcaae7a3ac5dfe97",
+    "original_geometry_buffer_unchanged": true,
+    "normal_map_unchanged": true,
+    "textures_embedded": 3,
+    "nominal_height_metres": 0.021
   },
   "limitations": [
-    "Source anatomy is a combined clinical reconstruction, remeshed at approximately 0.25 mm, not a high-resolution micro-CT tooth.",
-    "The source contains softened fissures and local reconstruction irregularities.",
-    "Subdivision only interpolates the existing surface.",
-    "No measured enamel/root color, enamel thickness, or tissue segmentation is available.",
-    "Optical appearance and cervical boundary are illustrative; no clinical validation is claimed."
-  ]
+    "CT-informed educational reconstruction, not an untouched high-resolution microCT scan.",
+    "Native roots and occlusal anatomy preserved; clinical accuracy not independently validated.",
+    "No segmented enamel shell/dentine core or measured thickness supplied.",
+    "Source-authored colors and synthetic PBR visualization settings.",
+    "Mild transmission approximates translucency, not volumetric subsurface scattering."
+  ],
+  "optical_reference": "https://pubmed.ncbi.nlm.nih.gov/19566303/"
 }

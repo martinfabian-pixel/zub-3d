@@ -1,24 +1,36 @@
 PROJEKT ZUB — pôvod 3D modelu
 
-Prvá dolná pravá stolička (FDI 46), upravená zo súboru D46.stl.
+Horná ľavá PRVÁ stolička (FDI 26 / UL6) s tromi pôvodnými koreňmi.
 
-DIAZ, CRISTIAN; Ferro Sanchez, Carlos andres; Campo, Oscar (2024),
-Data of 3D models of human jaw with teeth, ligaments, and bone structures,
-Mendeley Data, V1. DOI: 10.17632/97c3pf8h2h.1.
+Maxillary First Molar
+University of Dundee, School of Dentistry
+Autor modelu: Emily McDougall
+Odborný obsah: Dr. Andrew Mason
+Počiatočná 3D príprava: Mark Roughley
 
-Zdroj: https://data.mendeley.com/datasets/97c3pf8h2h/1
-Licencia modelu a jeho upravenej verzie: CC BY 4.0
+Pôvodný model:
+https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984
+
+Licencia modelu a upravenej verzie: CC BY 4.0
 https://creativecommons.org/licenses/by/4.0/
 
-Úpravy: orientácia, centrovanie, interpolácia povrchu, GLB export,
-výtvarne vytvorené farebné a PBR povrchové materiály a osvetlenie.
-Presný záznam exportu: provenance.json v rovnakom priečinku.
+Získané z verejnej vzdelávacej redistribúcie VAMO/inVisu:
+https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html
 
-Farby, priesvitnosť, mikroštruktúra a hranica medzi sklovinou a koreňmi
-sú vizuálne aproximácie. Zdroj neobsahuje fotografické textúry ani
-segmentáciu týchto tkanív. Nie je naznačované schválenie autormi zdroja.
+Zdroj je anatomický vzdelávací model vytvorený v ZBrush pomocou CT dát.
+Nie je to neupravovaný mikroskopický CT sken.
 
-Podrobná dokumentácia a zdrojový kód:
+Úpravy v projekte ZUB: orientácia, centrovanie, jednotná prezentačná
+mierka, GLB balenie, výplň nevyužitých okrajov UV textúry, jemná úprava
+farebnosti a PBR materiály skloviny a koreňov. Pôvodná sieť, korene,
+fisúry, normály, UV súradnice a normálová mapa sú zachované; nepridali
+sme korene ani nepretvárali anatómiu. Presný záznam: provenance.json.
+
+Farby a optické vlastnosti sú vizuálne aproximácie. Zdroj neposkytuje
+samostatnú segmentovanú sklovinu, dentín ani meranú hrúbku skloviny.
+Nejde o klinicky validovaný model ani o schválenie projektu autormi zdroja.
+
+Zdrojový kód a dokumentácia:
 https://github.com/martinfabian-pixel/zub-3d
 
 Kód prehliadača: MIT. Three.js: MIT.

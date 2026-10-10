@@ -1,0 +1,81 @@
+{
+  "title": "Maxillary First Molar",
+  "author": "University of Dundee, School of Dentistry",
+  "creator_credit_in_preview": "Created by: Emily McDougall; Content expert: Dr. Andrew Mason; Initial 3D preparation: Mark Roughley",
+  "author_url": "https://sketchfab.com/DundeeDental",
+  "original_source_url": "https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984",
+  "primary_metadata_api": "https://api.sketchfab.com/v3/models/e719a474ef7e4bd7abec508f85f1e984",
+  "primary_metadata_path": "dundee-api-metadata.json",
+  "published_date": "2015-10-06",
+  "retrieved_utc": "2026-10-10T22:04:38.2689172Z",
+  "license": "Creative Commons Attribution 4.0 International",
+  "license_spdx": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "commercial_use_per_primary_api": "Author must be credited. Commercial use is allowed.",
+  "anatomy": "Permanent maxillary LEFT FIRST molar, FDI 26, UL6",
+  "source_description": "Maxillary First Molar (Left). Created by the University of Dundee, School of Dentistry. Created in ZBrush using CT Data.",
+  "mesh_node_source_name": "UL6sketch_1.OBJ.cleaner",
+  "redistribution_source_page": "https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html",
+  "redistribution_provider": "inVisu inc., VAMO educational viewer",
+  "redistribution_page_saved": "vamo.html",
+  "redistribution_config_saved": "vamo-config.js",
+  "license_evidence": [
+    "Primary Sketchfab metadata confirms CC Attribution, direct link to CC BY 4.0, commercial use allowed.",
+    "glTF asset.extras contains same author, original source URL, license, and model title.",
+    "Public VAMO HTML includes full Dundee attribution and CC BY 4.0.",
+    "No authentication or access restriction bypass used; fetched publicly served viewer resources."
+  ],
+  "original_assets": [
+    {
+      "local_path": "research-models\\upper-molar\\dundee-scene.gltf",
+      "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/scene.gltf",
+      "bytes": 4751,
+      "sha256": "005955f29f2f7818d851e3718f70e21ddcb825712db3bf1ce8330ffd3878682c"
+    },
+    {
+      "local_path": "research-models\\upper-molar\\scene.bin",
+      "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/scene.bin",
+      "bytes": 2532096,
+      "sha256": "1ed41a21643d9978ba942884f9317432e885399b2095f5e1fcaae7a3ac5dfe97"
+    },
+    {
+      "local_path": "research-models\\upper-molar\\textures\\defaultMat_baseColor.png",
+      "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/textures/defaultMat_baseColor.png",
+      "bytes": 1054818,
+      "sha256": "a49db24b5bdda9a70855142263106ceb846e5e0efc56586893ee0cbc8e6a5427"
+    },
+    {
+      "local_path": "research-models\\upper-molar\\textures\\defaultMat_normal.png",
+      "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/textures/defaultMat_normal.png",
+      "bytes": 924786,
+      "sha256": "50f5e989652eb2a5e4450bd35982d7417dc7b885f72e4da58ef8059940c5dde1"
+    }
+  ],
+  "quality": {
+    "source_face_count_api": 28504,
+    "source_vertex_count_api": 28506,
+    "triangulated_gltf_face_count": 57008,
+    "gltf_vertex_count_with_uv_seams": 28875,
+    "texture_maps": [
+      "defaultMat_baseColor.png",
+      "defaultMat_normal.png"
+    ],
+    "attributes": [
+      "POSITION",
+      "NORMAL",
+      "TANGENT",
+      "COLOR_0",
+      "TEXCOORD_0"
+    ],
+    "native_material": "Base color PNG + vertex color, baked normal map, metallic 0, roughness 0.2",
+    "visual_observation": "Original published preview clearly shows 3 distinct root tips and white enamel/tan roots. Occlusal anatomy and closeup detail require inspecting the interactive mesh; thumbnail does not show occlusal surface.",
+    "limits": [
+      "Anatomical educational reconstruction created in ZBrush from CT data; do not call this an untouched raw microCT scan.",
+      "Not individual enamel/dentin/cementum segmented volumes.",
+      "Materials and skin color are author visualization; no measured optical properties provided.",
+      "Viewer material adjustments, normalization, repacking, or smoothing must be disclosed as modifications."
+    ],
+    "texture_dimensions": "4096 x 4096 pixels each: base color and normal"
+  },
+  "recommended_attribution": "Maxillary First Molar by University of Dundee, School of Dentistry (created by Emily McDougall; content expert Dr. Andrew Mason; initial 3D preparation Mark Roughley), licensed CC BY 4.0. Source: https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984. Retrieved from the public VAMO/inVisu educational redistribution. Modifications: [describe actual changes]."
+}
