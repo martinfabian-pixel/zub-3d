@@ -82,32 +82,67 @@
     "recommended_attribution": "Maxillary First Molar by University of Dundee, School of Dentistry (created by Emily McDougall; content expert Dr. Andrew Mason; initial 3D preparation Mark Roughley), licensed CC BY 4.0. Source: https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984. Retrieved from the public VAMO/inVisu educational redistribution. Modifications: [describe actual changes]."
   },
   "processing": [
-    "Preserve original binary mesh arrays byte-for-byte: positions, normals, tangents, UVs, vertex colors and triangle indices.",
-    "No subdivision, simplification, smoothing, root grafting or anatomy deformation.",
-    "Add rigid crown-up orientation, center and uniform nominal 21 mm presentation scale; this is not a specimen measurement.",
+    "Preserve original positions, normals, tangents, UVs and triangle indices byte-for-byte.",
+    "Preserve existing node transforms and scene orientation/nominal 21 mm presentation scale exactly.",
+    "No subdivision, simplification, smoothing, root grafting, added shell geometry or anatomy deformation.",
+    "Disable the native COLOR_0 material multiplier to prevent double-darkening; its original bytes remain in the source buffer.",
     "Preserve original 4096x4096 normal-map bytes.",
-    "Extend border colors into unused UV regions and enable linear mipmapped filtering.",
-    "Lighten/desaturate source root colors modestly and add very subtle slow warm/cool crown variation; this grading is artistic, not measured texture.",
-    "Derive a soft crown/root mask from original artist-painted colors; add a 2048x2048 roughness map, restrained enamel polish and mild transmission.",
-    "Set literature-informed approximate enamel IOR 1.62."
+    "Derive and soften the crown/root mask from original painted colors, then author a calibrated off-white/cream color texture with slow subtle variation and restrained native color relief.",
+    "Add a 2048x2048 tissue-dependent roughness/polish/transmission mask.",
+    "Use IOR 1.62, restrained enamel transmission and an explicitly illustrative single-surface volume thickness; no measured tissue optics are claimed."
   ],
   "output": {
-    "bytes": 5707052,
-    "sha256": "23e7afb51cd7d230a0c10cd5c30fd7256cf4f19ba46f13e56612218922edddad",
+    "bytes": 5039440,
+    "sha256": "f882cfb916a87414ee3d5bd1a407eaa2f5ff413dc3a0ac6ae055fdb71bcbad33",
     "vertices": 28875,
     "triangles": 57008,
+    "geometry_attribute_sha256": {
+      "NORMAL": "c81d66bf22b7bf7149b34cd096e4df2ee595ac43a66e3374101381f697c31a83",
+      "POSITION": "e60fe9260021cfbaa644dad2d6ddc9badf0e98ae8318feb5839904d6a8d9dfd7",
+      "TANGENT": "74b34bcd702c860bfff024cd3b76c49be7d81b01680d62890c50006b0c84f9c7",
+      "TEXCOORD_0": "a43edfdffa408e022c1a57d9781d2a9e0fb1cea96fef5b9225233fcee44e2cf8",
+      "INDICES": "0397d30bb914247e33a07b0542ff273059d6e7ac9d257e0631397da686626ae8"
+    },
+    "node_transform_sha256": "ab0f8b4d858baa04a2c81745e7ccc99741f6942642ad8d3abd74ce2bcd840833",
+    "scene_graph_sha256": "684b57510bf6cb62b04386d358686d9bfff1c4a3dae7866d71198fcf1704b9f3",
     "original_geometry_buffer_sha256": "1ed41a21643d9978ba942884f9317432e885399b2095f5e1fcaae7a3ac5dfe97",
     "original_geometry_buffer_unchanged": true,
     "normal_map_unchanged": true,
+    "vertex_color_multiplier_enabled": false,
     "textures_embedded": 3,
     "nominal_height_metres": 0.021
+  },
+  "material": {
+    "enamel_srgb": [
+      0.954,
+      0.939,
+      0.9
+    ],
+    "root_srgb": [
+      0.902,
+      0.874,
+      0.818
+    ],
+    "enamel_roughness": 0.235,
+    "root_roughness": 0.445,
+    "clearcoat": 0.04,
+    "enamel_transmission": 0.12,
+    "ior": 1.62,
+    "illustrative_thickness_native_units": 0.035,
+    "illustrative_thickness_metres": 0.0004117830014025246,
+    "attenuation_distance_metres": 0.0035,
+    "attenuation_color": [
+      0.96,
+      0.9,
+      0.78
+    ]
   },
   "limitations": [
     "CT-informed educational reconstruction, not an untouched high-resolution microCT scan.",
     "Native roots and occlusal anatomy preserved; clinical accuracy not independently validated.",
     "No segmented enamel shell/dentine core or measured thickness supplied.",
-    "Source-authored colors and synthetic PBR visualization settings.",
-    "Mild transmission approximates translucency, not volumetric subsurface scattering."
+    "Calibrated color and PBR settings are artistic visualization approximations, not photographic or measured surface color.",
+    "Single-surface transmission/volume approximates translucency, not full volumetric subsurface scattering."
   ],
   "optical_reference": "https://pubmed.ncbi.nlm.nih.gov/19566303/"
 }

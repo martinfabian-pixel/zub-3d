@@ -11,6 +11,6 @@ This directory contains the unchanged source files for **Maxillary First Molar**
 
 `dundee/scene.gltf`, `dundee/scene.bin` and both `dundee/textures/` images remain unchanged. Their original URLs and SHA-256 hashes are in `dundee/source-provenance.json`.
 
-The adapted `public/models/molar.glb` retains the original mesh arrays, UVs, normals, tangents, vertex colors and normal-map bytes. Changes are limited to a rigid orientation, nominal presentation scale, texture padding outside the UV island, modest root color grading and subtle crown color variation, and authored optical settings. Exact changes and limits are recorded in `public/models/provenance.json`.
+The adapted `public/models/molar.glb` retains the original positions, indices, UVs, normals, tangents and normal-map bytes. The current material update also preserves every existing node transform and scene. Original vertex-color bytes remain in the buffer, but their material multiplier is disabled to avoid double-darkening. Authored calibrated color and PBR maps create warm off-white enamel, pale cream roots and a soft cervical transition without any geometry changes. Exact settings, geometry hashes and limits are recorded in `public/models/provenance.json`.
 
 This is a CT-informed educational reconstruction, not an untouched high-resolution micro-CT scan or a clinically validated tissue segmentation.

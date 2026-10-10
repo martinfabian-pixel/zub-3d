@@ -12,15 +12,21 @@ Model a upravená verzia: **[CC BY 4.0](https://creativecommons.org/licenses/by/
 
 ## Zmena oproti prvému demu
 
-Pôvodný dolný molár D46 bol nahradený samostatným modelom hornej šestky. Jeho tvar nebol deformovaný ani doplnený tretím koreňom. Nový zdroj má štyri hlavné hrbolčeky, šikmý hrebeň, žuvacie ryhy a tri odlišné korene. Zachovali sme pôvodných 57 008 trojuholníkov, normály, UV súradnice a nezmenenú 4096 × 4096 mapu povrchového detailu. Pôvodná 4K farebná mapa dostala jemné farebné úpravy; svetlejšie korene a malé teplé/studené odchýlky skloviny. Geometria sa nevyhladzuje interpoláciou.
+Pôvodný dolný molár D46 bol nahradený samostatným modelom hornej šestky. Jeho tvar nebol deformovaný ani doplnený tretím koreňom. Nový zdroj má štyri hlavné hrbolčeky, šikmý hrebeň, žuvacie ryhy a tri odlišné korene. Zachovali sme pôvodných 57 008 trojuholníkov, normály, UV súradnice a nezmenenú 4096 × 4096 mapu povrchového detailu. Geometria sa nevyhladzuje interpoláciou.
 
-Lesklejšia sklovina má jemné presvitanie a farebné odchýlky; korene majú teplejší, drsnejší povrch. Veľké štúdiové svetelné plochy vytvárajú mäkké odlesky. Kontaktný tieň vychádza zo skutočného tvaru modelu. Priblíženie používa rozmery zuba, aby mobil umožnil rovnakú detailnú kontrolu ako počítač.
+## Aktuálna úprava materiálov a svetla
+
+Anatómia, všetky transformácie a ovládanie zostali nezmenené. Odstránili sme dvojité stmavenie násobením farebnej textúry a farieb vrcholov. Nová 4K farebná mapa používa jemne teplú bielu sklovinu, svetlé krémové korene a mäkký prechod pri krčku. Vychádza z pôvodných UV, farebného rozhrania a jemného farebného reliéfu; nejde o fotograficky meranú textúru ani čisto biely materiál.
+
+PBR materiál používa index lomu 1,62, drsnosť skloviny približne 0,235 a koreňov 0,445. Slabá priesvitnosť a absorpcia s ilustratívnou optickou hrúbkou dodávajú sklovine jemnú hĺbku bez pridávania geometrie. Absorpčná vzdialenosť sa prepočítava na mierku prehliadača.
+
+Lokálne generované HDR prostredie má široké difúzne svetelné plochy aj predné a spodné odrazové plochy. Nižšie špičky svetla, Neutral tone mapping a expozícia 0,98 zachovávajú teplý odtieň a detaily svetlých hrbolčekov. Kontaktný tieň naďalej vychádza zo skutočného tvaru zuba. Biele pozadie, rotácia a priblíženie sú zachované.
 
 ## Kvalita a hranice tejto verzie
 
 Toto je anatomická vzdelávacia rekonštrukcia podľa CT, **nie neupravený mikro-CT sken ani klinicky overený digitálny odtlačok**. Pôvodné 4K mapy sú výtvarne vytvorené. Drsnosť, farebné doplnenia a priesvitnosť sú vizuálne úpravy; zdroj neposkytuje meranú optiku ani oddelené vrstvy skloviny a dentínu. Jednotná mierka v GLB predstavuje ilustratívnu výšku 21 mm, nie meranie pôvodného zuba.
 
-**Zatiaľ ju nepovažujeme za finálnu profesionálnu fotorealistickú medicínsku vizualizáciu.** Pri extrémnom zoome zostáva viditeľné zjednodušenie jemných fisúr a mikropovrchu. Na vyššiu úroveň treba detailnejší povrchový alebo mikro-CT sken hornej šestky, fotografické referencie pre PBR textúry, samostatnú vrstvu skloviny nad dentínom a kontrolu anatómie stomatológom. Presvitanie jedného povrchu vo WebGL zostáva aproximáciou.
+Priesvitnosť na existujúcom vonkajšom povrchu zostáva aproximáciou: `KHR_materials_volume` simuluje lom a absorpciu, nie úplný podpovrchový rozptyl svetla ani samostatnú sklovinu nad dentínom. Pri extrémnom zoome sú hranicou detail pôvodnej geometrie a výtvarne vytvorené mapy. Aktuálna úprava rieši materiály a osvetlenie; nemení anatómiu.
 
 ## Lokálne spustenie
 
@@ -35,7 +41,7 @@ Produkčná zostava: `pnpm build`. Náhľad: `pnpm preview`. Všetky zdroje aj G
 
 ## Reprodukcia modelu a kontrola
 
-Neupravené zdrojové glTF, binárny buffer a textúry spolu s kontrolnými súčtami sú v `assets/source/`. Výsledný GLB má približne 5,7 MB a vloží textúry a materiály do jedného súboru. Presné nastavenia a zmeny zaznamenáva `public/models/provenance.json`.
+Neupravené zdrojové glTF, binárny buffer a textúry spolu s kontrolnými súčtami sú v `assets/source/`. Výsledný GLB má približne 5,04 MB a vloží textúry a materiály do jedného súboru. Presné nastavenia a zmeny zaznamenáva `public/models/provenance.json`.
 
 ```sh
 python -m pip install -r scripts/requirements-model.txt
@@ -44,7 +50,7 @@ node scripts/validate-model.mjs
 pnpm build
 ```
 
-Khronos glTF Validator: 0 chýb, 0 varovaní. Produkčná zostava prešla. V prehliadači sme overili načítanie, detail žuvacej plochy, tri korene, rotáciu myšou a klávesnicou, zoom, presný reset pohľadu a rozloženie 390 × 844 bez vodorovného pretečenia. WebGL kontrola nehlási chyby. Mobilný rozmer je emulovaný na počítači; fyzický telefón nebol testovaný.
+Khronos glTF Validator: 0 chýb, 0 varovaní. Produkčná zostava prešla. Porovnanie s predchádzajúcim GLB potvrdilo identické bajty pozícií, normál, tangentov, UV a indexov aj identické uzly a scény. V prehliadači sme overili načítanie, detail žuvacej plochy, tri korene, rotáciu, zoom, reset pohľadu a rozloženie 390 × 844 bez vodorovného pretečenia. WebGL kontrola nehlási chyby. Mobilný rozmer je emulovaný na počítači; fyzický telefón nebol testovaný.
 
 ## Rozsah
 

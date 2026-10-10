@@ -21,13 +21,17 @@ Zdroj je anatomický vzdelávací model vytvorený v ZBrush pomocou CT dát.
 Nie je to neupravovaný mikroskopický CT sken.
 
 Úpravy v projekte ZUB: orientácia, centrovanie, jednotná prezentačná
-mierka, GLB balenie, výplň nevyužitých okrajov UV textúry, jemná úprava
-farebnosti a PBR materiály skloviny a koreňov. Pôvodná sieť, korene,
-fisúry, normály, UV súradnice a normálová mapa sú zachované; nepridali
-sme korene ani nepretvárali anatómiu. Presný záznam: provenance.json.
+mierka a GLB balenie. Aktuálna úprava materiálov zachováva všetky tieto
+transformácie aj pôvodnú sieť, korene, fisúry, normály, UV a normálovú
+mapu. Nová kalibrovaná farebná mapa a PBR materiály vytvárajú teplú
+bielu sklovinu, svetlé krémové korene a mäkký prechod. Vypnutie
+násobenia farbami vrcholov odstránilo dvojité stmavenie. Geometria
+sa nezmenila. Presný záznam: provenance.json.
 
 Farby a optické vlastnosti sú vizuálne aproximácie. Zdroj neposkytuje
 samostatnú segmentovanú sklovinu, dentín ani meranú hrúbku skloviny.
+Priesvitnosť a absorpcia jedného povrchu nenahrádzajú úplnú simuláciu
+podpovrchového rozptylu svetla.
 Nejde o klinicky validovaný model ani o schválenie projektu autormi zdroja.
 
 Zdrojový kód a dokumentácia:

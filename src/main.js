@@ -20,33 +20,68 @@ function showError(message, error) {
   controlsElement.hidden = true;
 }
 
-// A neutral studio light rig is generated locally; no remote HDR dependency.
+// A macro photography surround is generated in linear light. Broad diffusers
+// and white bounce cards illuminate enamel from a finite range of directions.
+// The visible background stays white; the reflection environment stays tonal.
 function studioEnvironment(renderer) {
   const room = new THREE.Scene();
+  const surround = new THREE.Color().setScalar(0.34);
   const walls = new THREE.Mesh(
     new THREE.BoxGeometry(24, 24, 24),
-    new THREE.MeshBasicMaterial({ color: new THREE.Color().setScalar(0.10), side: THREE.BackSide }),
+    new THREE.MeshBasicMaterial({ color: surround, side: THREE.BackSide }),
   );
   room.add(walls);
 
-  const panel = (width, height, position, intensity, tint = 0xffffff) => {
+  const panel = (width, height, position, intensity, tint = 0xffffff, diffuse = true) => {
     const light = new THREE.Mesh(
       new THREE.PlaneGeometry(width, height),
-      new THREE.MeshBasicMaterial({ color: new THREE.Color(tint).multiplyScalar(intensity), side: THREE.DoubleSide }),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          radiance: { value: new THREE.Color(tint).multiplyScalar(intensity) },
+          surround: { value: surround },
+          edgeWidth: { value: diffuse ? 0.18 : 0.08 },
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 radiance;
+          uniform vec3 surround;
+          uniform float edgeWidth;
+          varying vec2 vUv;
+          void main() {
+            vec2 edge = min(vUv, 1.0 - vUv);
+            float diffusion = smoothstep(0.0, edgeWidth, edge.x)
+              * smoothstep(0.0, edgeWidth, edge.y);
+            gl_FragColor = vec4(mix(surround, radiance, diffusion), 1.0);
+          }
+        `,
+        side: THREE.DoubleSide,
+        toneMapped: false,
+      }),
     );
     light.position.set(...position);
     light.lookAt(0, 0, 0);
     room.add(light);
   };
-  // Large neutral cards produce broad reflections instead of point-light glints.
-  // Dark spaces between them preserve curvature and readable enamel highlights.
-  panel(6, 9, [-6, 5, 6], 5.0, 0xfffcf7);
-  panel(5, 7, [7, 2, 4], 1.65, 0xf5f8ff);
-  panel(7, 6, [0, 9, -2], 3.8);
-  panel(2.5, 7, [-3, 1, -7], 2.2);
+  // A broad key and overhead diffuser shape the cusps. The right and lower
+  // reflectors prevent the roots and curved enamel from reflecting a black room.
+  // Source radiances are lower than in the previous high-contrast four-card rig.
+  panel(8, 10, [-6, 5, 6], 2.8, 0xfffcf7);
+  panel(7, 10, [8, 1, 3], 1.35);
+  panel(8, 7, [0, 9, -1], 2.15, 0xfffdf9);
+  panel(10, 8, [0, -6, 4], 0.95, 0xfffdf9);
+  panel(9, 10, [0, 1, 10], 0.76);
+  // A restrained rear strip keeps the crown edge legible without a blown rim.
+  panel(3, 8, [-3, 1, -8], 1.55, 0xffffff, false);
+  panel(7, 9, [7, 0, -6], 0.52);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const result = pmrem.fromScene(room, 0.025);
+  const result = pmrem.fromScene(room, 0.035);
   room.traverse((object) => {
     object.geometry?.dispose();
     object.material?.dispose();
@@ -177,8 +212,11 @@ async function start() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  // Neutral preserves the ivory shade; AgX flattened this bright macro setup.
   renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  // Preserve the warm body colour and highlight roll-off of the authored PBR
+  // maps. Exposure is restrained; the surround, not albedo, supplies the fill.
+  renderer.toneMappingExposure = 0.98;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
 
@@ -186,7 +224,7 @@ async function start() {
   scene.background = new THREE.Color(0xffffff);
   const environment = studioEnvironment(renderer);
   scene.environment = environment.texture;
-  scene.environmentIntensity = 0.8;
+  scene.environmentIntensity = 0.82;
 
   const camera = new THREE.PerspectiveCamera(32, 1, 0.01, 100);
   const controls = new OrbitControls(camera, canvas);
@@ -200,7 +238,9 @@ async function start() {
   controls.touches.ONE = THREE.TOUCH.ROTATE;
   controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
 
-  const key = new THREE.DirectionalLight(0xfffcf7, 1.0);
+  // Low-power direct light supplies only small-scale self shadows. The large
+  // reflected sources above provide the dominant illumination and highlights.
+  const key = new THREE.DirectionalLight(0xfffcf7, 0.62);
   key.position.set(-3.8, 8.8, 5.5);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -213,10 +253,10 @@ async function start() {
   key.shadow.radius = 2;
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xf5f8ff, 0.28);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.20);
   fill.position.set(4, 1.5, 4);
   scene.add(fill);
-  const rim = new THREE.DirectionalLight(0xffffff, 0.45);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.30);
   rim.position.set(2, 4, -4);
   scene.add(rim);
 
@@ -320,6 +360,7 @@ async function start() {
   normalization.add(model);
 
   let meshes = 0;
+  const normalizedVolumeMaterials = new Set();
   model.traverse((object) => {
     if (!object.isMesh) return;
     meshes++;
@@ -328,6 +369,15 @@ async function start() {
     // The asset owns anatomical segmentation, textures and enamel/root materials.
     for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
       if (material.map) material.map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      if (!normalizedVolumeMaterials.has(material)) {
+        // glTF absorption distance is in asset-world metres. Presentation scaling
+        // changes those units; Three scales local thickness via modelMatrix but
+        // does not scale attenuationDistance. Preserve the same optical density.
+        if (material.thickness > 0 && Number.isFinite(material.attenuationDistance) && material.attenuationDistance > 0) {
+          material.attenuationDistance *= normalization.scale.x;
+        }
+        normalizedVolumeMaterials.add(material);
+      }
     }
   });
   if (!meshes) throw new Error('The GLB does not contain any mesh.');
