@@ -1,0 +1,74 @@
+{
+  "model": "D46, mandibular right first molar (FDI 46)",
+  "source": {
+    "url": "https://data.mendeley.com/datasets/97c3pf8h2h/1",
+    "dataset": "Data of 3D models of human jaw with teeth, ligaments, and bone structures",
+    "doi": "10.17632/97c3pf8h2h.1",
+    "authors": [
+      "CRISTIAN DIAZ",
+      "Carlos andres Ferro Sanchez",
+      "Oscar Campo"
+    ],
+    "year": 2024,
+    "version": 1,
+    "file": "D46.stl",
+    "sha256": "652e2b364a3b17334d1f1bfd5769600768cee99322ae52febab257a72a2ae809",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "vertices": 5730,
+    "triangles": 11456,
+    "bounds_mm": [
+      [
+        -271.38848876953125,
+        -260.59332275390625,
+        -3.362959623336792
+      ],
+      [
+        -260.5097961425781,
+        -244.44068908691406,
+        15.835165977478027
+      ]
+    ],
+    "watertight": true
+  },
+  "processing": [
+    "Weld coincident STL vertices and orient outward normals.",
+    "Apply two Loop surface-subdivision passes; interpolation adds no measured detail.",
+    "Rotate (X,Y,Z) to (Y,Z,X), placing crown +Y and roots -Y; no mirroring.",
+    "Center bounding box and convert source millimetres to glTF metres.",
+    "Calculate smooth normals and UV tangent frames; duplicate cylindrical UV seam only.",
+    "Add synthetic ivory-to-root vertex color and embedded roughness, micro-normal, polish and transmission textures.",
+    "Apply a very subtle synthetic tint to existing upward-facing concave crown grooves.",
+    "Place a softly blended, visually estimated cervical material boundary at source Z approximately 8 mm."
+  ],
+  "output": {
+    "vertices_including_uv_seam": 91930,
+    "triangles": 183296,
+    "bounds_metres": [
+      [
+        -0.008069179952144623,
+        -0.009595958516001701,
+        -0.005411491263657808
+      ],
+      [
+        0.008069179952144623,
+        0.009595958516001701,
+        0.005411491263657808
+      ]
+    ],
+    "texture_resolution": [
+      1024,
+      1024
+    ],
+    "textures": 4,
+    "bytes": 7697188,
+    "sha256": "ed48e6d21cda374d057eafa8daf941609da0e65fcfb6dfab96943c9620883108"
+  },
+  "limitations": [
+    "Source anatomy is a combined clinical reconstruction, remeshed at approximately 0.25 mm, not a high-resolution micro-CT tooth.",
+    "The source contains softened fissures and local reconstruction irregularities.",
+    "Subdivision only interpolates the existing surface.",
+    "No measured enamel/root color, enamel thickness, or tissue segmentation is available.",
+    "Optical appearance and cervical boundary are illustrative; no clinical validation is claimed."
+  ]
+}
