@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { prepareToothMaterials } from './tooth-material.js';
 import './style.css';
 
 const canvas = document.querySelector('#tooth-canvas');
@@ -25,7 +28,7 @@ function showError(message, error) {
 // The visible background stays white; the reflection environment stays tonal.
 function studioEnvironment(renderer) {
   const room = new THREE.Scene();
-  const surround = new THREE.Color().setScalar(0.34);
+  const surround = new THREE.Color().setScalar(0.19);
   const walls = new THREE.Mesh(
     new THREE.BoxGeometry(24, 24, 24),
     new THREE.MeshBasicMaterial({ color: surround, side: THREE.BackSide }),
@@ -68,26 +71,51 @@ function studioEnvironment(renderer) {
     light.lookAt(0, 0, 0);
     room.add(light);
   };
-  // A broad key and overhead diffuser shape the cusps. The right and lower
-  // reflectors prevent the roots and curved enamel from reflecting a black room.
-  // Source radiances are lower than in the previous high-contrast four-card rig.
-  panel(8, 10, [-6, 5, 6], 2.8, 0xfffcf7);
-  panel(7, 10, [8, 1, 3], 1.35);
-  panel(8, 7, [0, 9, -1], 2.15, 0xfffdf9);
-  panel(10, 8, [0, -6, 4], 0.95, 0xfffdf9);
-  panel(9, 10, [0, 1, 10], 0.76);
-  // A restrained rear strip keeps the crown edge legible without a blown rim.
-  panel(3, 8, [-3, 1, -8], 1.55, 0xffffff, false);
-  panel(7, 9, [7, 0, -6], 0.52);
+  // One dominant graded key describes the enamel curvature. An overhead strip
+  // reveals occlusal relief; modest white reflectors keep cementum readable.
+  panel(5.5, 8, [-5, 5, 6], 4.0, 0xfffcf7);
+  panel(6, 3, [0, 8, -2], 1.9, 0xfffdf9);
+  panel(9, 7, [0, -6, 4], 0.65, 0xfffdf9);
+  panel(8, 9, [0, 1, 10], 0.45);
+  panel(2.4, 7, [5, 3, -7], 1.7, 0xffffff, false);
+  // Negative fill is part of the reflection environment, never the white page.
+  // Its narrow tonal band separates polished enamel from diffuse ivory body.
+  panel(5, 9, [8, 1, 2], 0.055);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const result = pmrem.fromScene(room, 0.035);
+  const result = pmrem.fromScene(room, 0.025);
   room.traverse((object) => {
     object.geometry?.dispose();
     object.material?.dispose();
   });
   pmrem.dispose();
   return result;
+}
+
+async function loadStudioEnvironment(renderer) {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  let hdr;
+  try {
+    // Local, unmodified Poly Haven Studio Small 09, Sergej Majboroda, CC0.
+    // This capture supplies real softbox gradients, white cyc bounce and flags.
+    hdr = await new HDRLoader().loadAsync(`${import.meta.env.BASE_URL}environment/studio-small-09-1k.hdr?v=${__ASSET_REVISION__}`);
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    return {
+      target: pmrem.fromEquirectangular(hdr),
+      label: 'Poly Haven Studio Small 09 — HDR, CC0',
+      // Measured solid-angle mean luminance is 0.855, with ~520 peak texels.
+      // Keep this exposure range; do not normalize away the softbox highlights.
+      intensity: 0.62,
+      rotationY: 0.9,
+    };
+  } catch (error) {
+    console.warn('Studio HDR could not be loaded; using the local generated studio.', error);
+    return { target: studioEnvironment(renderer), label: 'Generated studio fallback', intensity: 0.90, rotationY: 0 };
+  } finally {
+    hdr?.dispose();
+    pmrem.dispose();
+  }
 }
 
 // Capture the actual geometry from the floor, then blur the distance-weighted
@@ -209,22 +237,25 @@ function bakeContactShadow(renderer, model, groundY, extent) {
 }
 
 async function start() {
+  const compact = window.matchMedia('(max-width: 600px), (pointer: coarse) and (max-width: 1100px)').matches;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, compact ? 1.75 : 2));
+  renderer.transmissionResolutionScale = compact ? 0.75 : 1;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   // Neutral preserves the ivory shade; AgX flattened this bright macro setup.
   renderer.toneMapping = THREE.NeutralToneMapping;
   // Preserve the warm body colour and highlight roll-off of the authored PBR
   // maps. Exposure is restrained; the surround, not albedo, supplies the fill.
-  renderer.toneMappingExposure = 0.98;
+  renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
-  const environment = studioEnvironment(renderer);
-  scene.environment = environment.texture;
-  scene.environmentIntensity = 0.82;
+  RectAreaLightUniformsLib.init();
+  // Start HDR and model loading independently; the white loading state covers
+  // the scene until both the optical environment and model are ready.
+  const environmentPromise = loadStudioEnvironment(renderer);
 
   const camera = new THREE.PerspectiveCamera(32, 1, 0.01, 100);
   const controls = new OrbitControls(camera, canvas);
@@ -240,7 +271,7 @@ async function start() {
 
   // Low-power direct light supplies only small-scale self shadows. The large
   // reflected sources above provide the dominant illumination and highlights.
-  const key = new THREE.DirectionalLight(0xfffcf7, 0.62);
+  const key = new THREE.DirectionalLight(0xfffcf7, 0.60);
   key.position.set(-3.8, 8.8, 5.5);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -253,27 +284,74 @@ async function start() {
   key.shadow.radius = 2;
   scene.add(key);
 
-  const fill = new THREE.DirectionalLight(0xffffff, 0.20);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.08);
   fill.position.set(4, 1.5, 4);
   scene.add(fill);
-  const rim = new THREE.DirectionalLight(0xffffff, 0.30);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.10);
   rim.position.set(2, 4, -4);
   scene.add(rim);
+
+  // Finite frontal softboxes illuminate the diffuse core and cementum without
+  // raising the whole HDR surround. Dimensions match the normalized 3.8-high
+  // tooth. The existing directional map/contact bake retain self/contact shade;
+  // Three's LTC area lights do not create shadow maps themselves.
+  const macroKey = new THREE.RectAreaLight(0xffffff, 3.0, 4.8, 6.5);
+  macroKey.position.set(-5.0, 4.0, 5.0);
+  macroKey.lookAt(0, 0.35, 0);
+  macroKey.name = 'Frontal macro softbox';
+  scene.add(macroKey);
+  const macroFill = new THREE.RectAreaLight(0xffffff, 0.65, 3.4, 5.2);
+  macroFill.position.set(4.1, 0.7, 5.0);
+  macroFill.lookAt(0, 0.1, 0);
+  macroFill.name = 'Opposite white reflector';
+  scene.add(macroFill);
+  // A weaker rear diffuser keeps the palatal view readable during a full orbit.
+  const rearFill = new THREE.RectAreaLight(0xffffff, 1.2, 4.5, 5.5);
+  rearFill.position.set(1.5, 3.0, -5.5);
+  rearFill.lookAt(0, 0.25, 0);
+  rearFill.name = 'Rear macro reflector';
+  scene.add(rearFill);
+  canvas.dataset.areaLights = 'key:3.0;fill:0.65;rear:1.2';
 
   let ready = false;
   let frame = 0;
   let homeDistance = 8;
   let minimumDistance = 2.2;
+  let framingHeightRatio = 1;
   let homeProjection = new Float32Array(0);
-  const homeDirection = new THREE.Vector3(0.44, 0.50, 1).normalize();
+  const homeDirection = new THREE.Vector3(0.50, 0.70, 1).normalize();
   const modelHeight = 3.8;
   const target = new THREE.Vector3(0, 0.05, 0);
+
+  function recordRenderDiagnostics() {
+    // Explicitly reset before each complete view render. These counters include
+    // its transmission capture and any requested one-time shadow-map update.
+    canvas.dataset.drawCalls = String(renderer.info.render.calls);
+    canvas.dataset.renderTriangles = String(renderer.info.render.triangles);
+    canvas.dataset.triangles = String(renderer.info.render.triangles);
+    canvas.dataset.renderCountScope = 'Complete view render with transmission and optional shadow update; excludes startup bakes.';
+    canvas.dataset.gpuTextures = String(renderer.info.memory.textures);
+    canvas.dataset.gpuGeometries = String(renderer.info.memory.geometries);
+    canvas.dataset.shaderPrograms = String(renderer.info.programs?.length ?? 0);
+    canvas.dataset.shaderErrors = String(renderer.info.programs?.filter((program) => program.diagnostics?.runnable === false).length ?? 0);
+    canvas.dataset.bufferSize = `${canvas.width}x${canvas.height}`;
+    canvas.dataset.pixelRatio = String(renderer.getPixelRatio());
+    canvas.dataset.transmissionScale = String(renderer.transmissionResolutionScale);
+  }
+
+  function drawScene() {
+    renderer.info.reset();
+    const updatesShadows = renderer.shadowMap.autoUpdate || renderer.shadowMap.needsUpdate;
+    renderer.render(scene, camera);
+    canvas.dataset.shadowUpdate = String(updatesShadows);
+    recordRenderDiagnostics();
+  }
 
   function render() {
     frame = 0;
     const changing = controls.update();
     try {
-      renderer.render(scene, camera);
+      drawScene();
     } catch (error) {
       showError('3D zobrazenie sa nepodarilo vykresliť. Skúste prehliadač obnoviť.', error);
       return;
@@ -288,9 +366,11 @@ async function start() {
   controls.addEventListener('change', requestRender);
 
   function fitDistance() {
-    const tangentY = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-    const tangentX = tangentY * camera.aspect;
-    // The actual tooth silhouette fills roughly 75% of the limiting dimension.
+    const fullTangentY = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+    const tangentY = fullTangentY * framingHeightRatio;
+    const tangentX = fullTangentY * camera.aspect;
+    // The actual tooth fills about 85–90% of the available limiting dimension.
+    // A mobile footer reserve keeps root tips clear of the existing controls.
     // Include each vertex's depth; a flat width/height estimate underestimates
     // the nearer cusps and overestimates empty corners around the roots.
     let distance = minimumDistance;
@@ -298,8 +378,8 @@ async function start() {
       const depth = homeProjection[index + 2];
       distance = Math.max(
         distance,
-        depth + homeProjection[index] * 1.31 / tangentX,
-        depth + homeProjection[index + 1] * 1.27 / tangentY,
+        depth + homeProjection[index] * 1.12 / tangentX,
+        depth + homeProjection[index + 1] * 1.12 / tangentY,
       );
     }
     return distance;
@@ -327,6 +407,10 @@ async function start() {
     if (!width || !height) return;
     const previousHome = homeDistance;
     camera.aspect = width / height;
+    const footerReserve = width <= 600 ? Math.min(74, height * 0.12) : 0;
+    framingHeightRatio = (height - footerReserve) / height;
+    if (footerReserve) camera.setViewOffset(width, height, 0, footerReserve / 2, width, height);
+    else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
     if (ready) {
@@ -344,9 +428,28 @@ async function start() {
   resize();
 
   const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/molar.glb`, (event) => {
+  const progress = (event) => {
     if (event.lengthComputable) statusMessage.textContent = `Načítavam 3D model… ${Math.round(event.loaded / event.total * 100)} %`;
-  });
+  };
+  const variant = compact ? 'molar-mobile.glb' : 'molar.glb';
+  let loadedVariant = variant;
+  const modelPromise = (async () => {
+    try {
+      return await loader.loadAsync(`${import.meta.env.BASE_URL}models/${variant}?v=${__ASSET_REVISION__}`, progress);
+    } catch (error) {
+      if (!compact) throw error;
+      // A full-quality fallback also keeps a partially cached deployment usable.
+      loadedVariant = 'molar.glb';
+      return loader.loadAsync(`${import.meta.env.BASE_URL}models/molar.glb?v=${__ASSET_REVISION__}`, progress);
+    }
+  })();
+  const [gltf, environment] = await Promise.all([modelPromise, environmentPromise]);
+  scene.environment = environment.target.texture;
+  scene.environmentIntensity = environment.intensity;
+  scene.environmentRotation.y = environment.rotationY;
+  canvas.dataset.environment = environment.label;
+  canvas.dataset.environmentIntensity = String(environment.intensity);
+  canvas.dataset.environmentRotation = String(environment.rotationY);
 
   const model = gltf.scene;
   model.updateMatrixWorld(true);
@@ -359,27 +462,7 @@ async function start() {
   model.position.sub(center);
   normalization.add(model);
 
-  let meshes = 0;
-  const normalizedVolumeMaterials = new Set();
-  model.traverse((object) => {
-    if (!object.isMesh) return;
-    meshes++;
-    object.castShadow = true;
-    object.receiveShadow = true;
-    // The asset owns anatomical segmentation, textures and enamel/root materials.
-    for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-      if (material.map) material.map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-      if (!normalizedVolumeMaterials.has(material)) {
-        // glTF absorption distance is in asset-world metres. Presentation scaling
-        // changes those units; Three scales local thickness via modelMatrix but
-        // does not scale attenuationDistance. Preserve the same optical density.
-        if (material.thickness > 0 && Number.isFinite(material.attenuationDistance) && material.attenuationDistance > 0) {
-          material.attenuationDistance *= normalization.scale.x;
-        }
-        normalizedVolumeMaterials.add(material);
-      }
-    }
-  });
+  const { meshes, tissueCounts, assetTriangles, assetTextureBytes } = prepareToothMaterials(model, normalization.scale.x, renderer, compact);
   if (!meshes) throw new Error('The GLB does not contain any mesh.');
   scene.add(normalization);
   normalization.updateMatrixWorld(true);
@@ -411,6 +494,9 @@ async function start() {
   minimumDistance = normalizedBounds.getBoundingSphere(new THREE.Sphere()).radius * 1.03 + 0.08;
   const shadowExtent = Math.max(normalizedSize.x, normalizedSize.z) + 1.6;
   scene.add(bakeContactShadow(renderer, normalization, normalizedBounds.min.y - 0.025, shadowExtent));
+  // Startup environment/contact bakes are complete. Own the frame counter
+  // boundary so every subsequent render records all of its internal passes.
+  renderer.info.autoReset = false;
   // Geometry and lighting are static: self shadows need only one update.
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
@@ -454,14 +540,19 @@ async function start() {
 
   ready = true;
   resetView();
-  renderer.render(scene, camera);
+  drawScene();
   status.hidden = true;
   controlsElement.hidden = false;
   // DOM diagnostics support read-only loading, rotation and zoom smoke checks.
   canvas.dataset.ready = 'true';
   canvas.dataset.meshes = String(meshes);
-  canvas.dataset.triangles = String(renderer.info.render.triangles);
   canvas.dataset.threeRevision = THREE.REVISION;
+  canvas.dataset.modelVariant = loadedVariant;
+  canvas.dataset.assetRevision = __ASSET_REVISION__;
+  canvas.dataset.tissues = JSON.stringify(tissueCounts);
+  canvas.dataset.assetTriangles = String(assetTriangles);
+  canvas.dataset.assetTextureEstimateMib = (assetTextureBytes / 1048576).toFixed(1);
+  canvas.dataset.textureEstimateScope = 'Decoded material RGBA images and mipmaps; excludes render targets and driver overhead.';
 }
 
 start().catch((error) => {

@@ -1,0 +1,15 @@
+{
+  "method": "Blender Cycles Ambient Occlusion node, emission bake",
+  "blender": "4.5.14 LTS",
+  "device": "GPU",
+  "resolution": 2048,
+  "samples": 32,
+  "node_samples": 32,
+  "radius_metres": 0.00065,
+  "bake_margin_pixels": 12,
+  "occluder": "Combined Enamel exterior plus Cementum; internal tissues and cervical bridge excluded",
+  "channel": "R of shared occlusion/roughness texture; roughness unchanged in G; B=0",
+  "strength_remap": "0.35 + 0.65 * measured surface visibility",
+  "note": "Local geometric ambient occlusion, not measured stains or subsurface scattering",
+  "source_npz_sha256": "583322369b0c8f598b22e16e647a99b56589242a7bf43b140293c9f028c33383"
+}

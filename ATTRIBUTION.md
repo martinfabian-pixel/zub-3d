@@ -1,36 +1,47 @@
-# Model attribution
+# Model and asset attribution
 
-The displayed tooth is adapted from **Maxillary First Molar (Left)**, an anatomical model of the permanent upper left first molar (FDI 26 / UL6), by **University of Dundee, School of Dentistry**.
+The displayed tooth is adapted from **Maxillary First Molar (Left)**, the permanent upper left first molar **FDI 26 / UL6**, by **University of Dundee, School of Dentistry**.
 
 - Created by **Emily McDougall**, in ZBrush using CT data.
 - Content expert: **Dr. Andrew Mason**.
 - Initial 3D preparation: **Mark Roughley**.
-- Original source: https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984
+- Original: https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984
 - Author: https://sketchfab.com/DundeeDental
-- License: **Creative Commons Attribution 4.0 International (CC BY 4.0)**, https://creativecommons.org/licenses/by/4.0/
-- Obtained through public educational redistribution by **VAMO / inVisu inc.**: https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html
-- Source resource directory: https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/
+- Source and displayed adaptation: **CC BY 4.0**, https://creativecommons.org/licenses/by/4.0/
+- Acquired through **VAMO / inVisu** public educational redistribution: https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html
 
-The source glTF embeds the same author, source URL and license in its asset metadata. Primary Sketchfab metadata independently confirms the model's identity and CC BY 4.0 license. Exact downloaded files and SHA256 checksums are recorded in `assets/source/` and `public/models/provenance.json`. The displayed adaptation is also provided under CC BY 4.0. No endorsement is implied.
+The original glTF contains matching author, source and license metadata. The untouched source files and checksums are retained in `assets/source/dundee/`. The displayed adaptation retains its attribution in the GLB copyright metadata and the viewer credit link. No endorsement by Dundee or clinical validation is implied.
 
 ## Adaptation
 
-The original upper molar replaces the earlier mandibular D46 model entirely. Its three roots are native to the source. The original mesh positions, normals, UVs, tangents, and anatomical proportions are preserved; only a rigid orientation and uniform presentation scale are applied. There is no root addition, deformation, subdivision, or topology smoothing. Nominal GLB height of 21 mm is an illustrative presentation scale, not a specimen measurement.
+The source has three native roots; none was added to a mandibular tooth. Its anatomical silhouette, cusp arrangement and oblique ridge remain the basis of this adaptation. The new pipeline integrates a small amount of native normal-map relief and deepens existing occlusal concavities by a bounded maximum of 0.14 mm. It does not introduce a generic cross-shaped groove or replace the tooth with procedural primitives. Linear subdivision provides samples for this refinement; it is not evidence of new scan resolution.
 
-The native 4096 × 4096 normal-map bytes remain unchanged. An authored 4K calibrated color texture uses the original UVs, painted crown/root boundary and restrained native color relief. It gives the enamel a warm off-white shade, the roots a pale cream shade and softens the cervical color transition. The native vertex-color multiplier is disabled to avoid double-darkening; its original bytes remain in the buffer. Tissue-dependent PBR maps supply roughness, restrained clearcoat, enamel transmission and illustrative optical thickness. Exact generated parameters, processing and geometry hashes are documented in the preparation script and provenance file.
+The exterior is partitioned at its source crown/root boundary. A closed enamel shell and an inset dentin core supply separate optical surfaces. Cementum represents the outer root surface. The variable enamel thickness, dentin geometry and cervical boundary are **authored visualization approximations**, not measured histological segmentation. The source contains no measured enamel/dentin interface. Nominal total height of 21 mm is illustrative, not a calibrated specimen measurement.
 
-The studio reflection environment is generated in linear light with broad graded diffusers and front/lower bounce cards. Neutral tone mapping and restrained exposure preserve the ivory shade and bright surface detail. No external photographic references or HDR images are redistributed. Optical reference: https://pubmed.ncbi.nlm.nih.gov/19566303/. The volume approximation follows https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_volume.
+Authored color, roughness and thickness maps use the source UV coordinates and restrained native variation. The source normal map is retained or downsampled for the relevant web variant. Local geometric occlusion is baked in Cycles from the exterior only and packed with roughness. PBR optics use transmission, refraction and absorption over the dentin core; the web dentin shader wraps 18% of punctual/directional diffuse lighting. Area-light LTC and IBL contributions remain unchanged. This is not a full volumetric subsurface scattering simulation or a photographic measurement of tooth appearance. Exact parameters, geometry changes and export hashes are recorded in `public/models/provenance.json` and `scripts/professional_model.py`.
 
-This is an educational CT-informed reconstruction, not a raw microCT scan. The source is an outer surface without measured enamel/dentin segmentation or photographic PBR measurements. Added colors and optical properties are visualization approximations. Single-surface transmission and absorption do not reproduce full subsurface scattering or separate enamel/dentin layers. No additional geometry was introduced in the material update. Clinical validation is not claimed.
+The editable Blender scene and its tissue maps are in `assets/source/professional/`. The adapted model and tissue textures are distributed under CC BY 4.0. Processing and viewer code are MIT.
 
-## Software and other assets
+## Studio environment
 
-- Viewer code and original processing scripts: MIT, see `LICENSE`.
+**Studio Small 09**, by **Sergej Majboroda**, from **Poly Haven**:
+
+- Asset: https://polyhaven.com/a/studio_small_09
+- License: **CC0**, https://polyhaven.com/license
+- Original 1K HDR: https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_09_1k.hdr
+- Local unmodified file: `public/environment/studio-small-09-1k.hdr`
+- SHA256: `e7cfda5f4e98e623db12b8bfd0184e048488e4855d9c83e2751fb44a32e80c45`
+
+This local HDR supplies the reflection environment. Supplementary area lights, fallback environment and contact shadow are generated in viewer code. The visible background stays white. No paid asset or service is used.
+
+## References and software
+
+The comparison and primary anatomical/optical references are listed in [docs/MODEL_REVIEW.md](docs/MODEL_REVIEW.md). Book pages, research papers, third-party photographs and candidate preview images were consulted for review only; they are not included as deployed textures or redistributed in this repository. No Melbourne, Aichi, UFSC or ToothFairy mesh is incorporated.
+
+- Viewer and processing scripts: MIT, see `LICENSE`.
 - Three.js: MIT, https://github.com/mrdoob/three.js/blob/dev/LICENSE
 - Vite: MIT, https://github.com/vitejs/vite/blob/main/LICENSE
-- Khronos glTF Validator (development validation only): Apache-2.0, https://github.com/KhronosGroup/glTF-Validator
-- Studio environment and shadow passes are generated in code; no external HDRI or paid assets.
+- Khronos glTF Validator: Apache-2.0, https://github.com/KhronosGroup/glTF-Validator
+- Blender 4.5 LTS, used as an external modeling/export tool: GPL, https://www.blender.org/about/license/
 
-The earlier D46/Diaz et al. model remains credited in Git history. It is no longer displayed or included in the current deployed model.
-
-Reuse on another website must retain appropriate author credit, the CC BY 4.0 link, and a description of modifications.
+The earlier D46/Diaz et al. model remains credited in Git history and is not included in the current deployed tooth. Reuse must retain appropriate credit, the CC BY 4.0 link and a description of modifications.

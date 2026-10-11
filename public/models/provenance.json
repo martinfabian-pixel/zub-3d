@@ -82,67 +82,370 @@
     "recommended_attribution": "Maxillary First Molar by University of Dundee, School of Dentistry (created by Emily McDougall; content expert Dr. Andrew Mason; initial 3D preparation Mark Roughley), licensed CC BY 4.0. Source: https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984. Retrieved from the public VAMO/inVisu educational redistribution. Modifications: [describe actual changes]."
   },
   "processing": [
-    "Preserve original positions, normals, tangents, UVs and triangle indices byte-for-byte.",
-    "Preserve existing node transforms and scene orientation/nominal 21 mm presentation scale exactly.",
-    "No subdivision, simplification, smoothing, root grafting, added shell geometry or anatomy deformation.",
-    "Disable the native COLOR_0 material multiplier to prevent double-darkening; its original bytes remain in the source buffer.",
-    "Preserve original 4096x4096 normal-map bytes.",
-    "Derive and soften the crown/root mask from original painted colors, then author a calibrated off-white/cream color texture with slow subtle variation and restrained native color relief.",
-    "Add a 2048x2048 tissue-dependent roughness/polish/transmission mask.",
-    "Use IOR 1.62, restrained enamel transmission and an explicitly illustrative single-surface volume thickness; no measured tissue optics are claimed."
+    "Read immutable Dundee glTF, preserve native crown/root anatomy and native UV atlas; discard original display vertex colors.",
+    "Orient crown +Y, recenter, normalize full tooth height to an illustrative 21 mm, then bake metre-space coordinates with identity node transforms.",
+    "Weld seam duplicates only for physical normal, boundary and offset calculations. Preserve UV coordinates on render vertices.",
+    "Use angle-weighted shading normals from the continuous combined enamel/cementum exterior. Compute inner-interface and dentin normals independently, excluding the artificial cervical rim from exterior normal averaging.",
+    "Linearly subdivide native triangles once for HD displacement sampling. The mobile exterior retains native face density.",
+    "Integrate the native baked normal tangent slopes using a screened surface Poisson solve; no claim of recovering measured microCT geometry.",
+    "Estimate and smooth concavity from native geometric normal changes. Deepen only existing upward-facing occlusal concavities by at most 0.14 mm. No new fissure path is drawn across ridges.",
+    "Infer the crown-root contour from source painted color. Clip along that contour; create exterior, reversed inner cap and closed cervical rim for enamel.",
+    "Author a varying inward dentin interface and taper it near the cervical contour. Adaptively reduce intersecting offsets and their two neighbor rings using a welded Blender BVH check.",
+    "Locally reduce exterior relief where needed to maintain a positive shell gap after the safe inward offsets are determined.",
+    "Create a closed dentin core separated by 8 micrometres from the enamel inner interface; root cementum is an opaque exterior cap, not a separately closed biological volume.",
+    "Author pale enamel, cream cementum, muted dentin colors and restrained source-valley/cusp coloration. Add explicitly synthetic low-amplitude gloss variation, not claimed as measured detail.",
+    "Use source baked normal detail at reduced residual strength. Export normal at 2048 pixels for HD; root maps at1024, enamel maps at2048. All mobile textures1024.",
+    "Bake restrained short-range geometric ambient visibility from the combined exterior only; pack it in R alongside roughness G. This is occlusion, not painted stains.",
+    "Export uncompressed standard GLB with embedded textures, normals, tangents, UVs and CC BY4 attribution; save an editable packed Blender file."
   ],
-  "output": {
-    "bytes": 5039440,
-    "sha256": "f882cfb916a87414ee3d5bd1a407eaa2f5ff413dc3a0ac6ae055fdb71bcbad33",
-    "vertices": 28875,
-    "triangles": 57008,
-    "geometry_attribute_sha256": {
-      "NORMAL": "c81d66bf22b7bf7149b34cd096e4df2ee595ac43a66e3374101381f697c31a83",
-      "POSITION": "e60fe9260021cfbaa644dad2d6ddc9badf0e98ae8318feb5839904d6a8d9dfd7",
-      "TANGENT": "74b34bcd702c860bfff024cd3b76c49be7d81b01680d62890c50006b0c84f9c7",
-      "TEXCOORD_0": "a43edfdffa408e022c1a57d9781d2a9e0fb1cea96fef5b9225233fcee44e2cf8",
-      "INDICES": "0397d30bb914247e33a07b0542ff273059d6e7ac9d257e0631397da686626ae8"
+  "nominal_height_metres": 0.021,
+  "layer_diagnostics": {
+    "source": "Dundee UL6; CT-informed educational sculpture",
+    "authored_fissure_depth_limit_mm": 0.14,
+    "actual_displacement_mm_percentiles": [
+      -0.16054601527531603,
+      -0.14182024809572757,
+      -3.74805308553709e-05,
+      0.009134519497294855,
+      0.032287288822136134
+    ],
+    "native_normal_integrated_detail_mm_percentiles": [
+      -0.02173012894587902,
+      -0.008935378520108424,
+      -2.2944939989047245e-05,
+      0.009172845492371854,
+      0.032287288822136134
+    ],
+    "illustrative_layer_thickness_mm_percentiles": [
+      0.03,
+      0.03,
+      0.03,
+      0.03,
+      0.5112131349284792,
+      1.1731126307610242,
+      1.3790187991548064
+    ],
+    "core_face_flips": 0,
+    "global_inset_repair_iterations": 3,
+    "lods": {
+      "high": {
+        "Enamel": {
+          "triangles": 201652,
+          "vertices": 101004,
+          "watertight_after_uv_weld": true,
+          "consistent_winding": true,
+          "degenerate_triangles": 0
+        },
+        "Cementum": {
+          "triangles": 129372,
+          "vertices": 65701,
+          "watertight_after_uv_weld": false,
+          "consistent_winding": true,
+          "degenerate_triangles": 0
+        },
+        "Dentin": {
+          "triangles": 57008,
+          "vertices": 28875,
+          "watertight_after_uv_weld": true,
+          "consistent_winding": true,
+          "degenerate_triangles": 0
+        }
+      },
+      "mobile": {
+        "Enamel": {
+          "triangles": 51168,
+          "vertices": 25674,
+          "watertight_after_uv_weld": true,
+          "consistent_winding": true,
+          "degenerate_triangles": 0
+        },
+        "Cementum": {
+          "triangles": 32516,
+          "vertices": 16768,
+          "watertight_after_uv_weld": false,
+          "consistent_winding": true,
+          "degenerate_triangles": 0
+        },
+        "Dentin": {
+          "triangles": 57008,
+          "vertices": 28875,
+          "watertight_after_uv_weld": true,
+          "consistent_winding": true,
+          "degenerate_triangles": 0
+        }
+      }
     },
-    "node_transform_sha256": "ab0f8b4d858baa04a2c81745e7ccc99741f6942642ad8d3abd74ce2bcd840833",
-    "scene_graph_sha256": "684b57510bf6cb62b04386d358686d9bfff1c4a3dae7866d71198fcf1704b9f3",
-    "original_geometry_buffer_sha256": "1ed41a21643d9978ba942884f9317432e885399b2095f5e1fcaae7a3ac5dfe97",
-    "original_geometry_buffer_unchanged": true,
-    "normal_map_unchanged": true,
-    "vertex_color_multiplier_enabled": false,
-    "textures_embedded": 3,
-    "nominal_height_metres": 0.021
+    "outer_samples_with_reduced_relief_to_preserve_shell_gap": 389
   },
-  "material": {
-    "enamel_srgb": [
-      0.954,
-      0.939,
-      0.9
+  "enamel_shell_gap_mm_percentiles": {
+    "percentiles": [
+      0,
+      1,
+      10,
+      50,
+      90,
+      99,
+      100
     ],
-    "root_srgb": [
-      0.902,
-      0.874,
-      0.818
-    ],
-    "enamel_roughness": 0.235,
-    "root_roughness": 0.445,
-    "clearcoat": 0.04,
-    "enamel_transmission": 0.12,
-    "ior": 1.62,
-    "illustrative_thickness_native_units": 0.035,
-    "illustrative_thickness_metres": 0.0004117830014025246,
-    "attenuation_distance_metres": 0.0035,
-    "attenuation_color": [
-      0.96,
-      0.9,
-      0.78
+    "values": [
+      0.02797659855115149,
+      0.040000000000000126,
+      0.23859711129602362,
+      0.566358272886444,
+      0.9783628308221304,
+      1.2493711126121483,
+      1.3753484256891764
     ]
   },
+  "materials": {
+    "Enamel": {
+      "ior": 1.62,
+      "transmission": 0.3,
+      "clearcoat": 0.025,
+      "roughness_cusp_side_valley_targets": [
+        0.24,
+        0.28,
+        0.31
+      ],
+      "thickness_factor_metres": 0.0016,
+      "thickness_texture_channel": "G",
+      "attenuation_distance_metres": 0.0035,
+      "attenuation_color_linear": [
+        0.96,
+        0.92,
+        0.78
+      ]
+    },
+    "EnamelInner": {
+      "ior": 1.62,
+      "transmission": 0.3,
+      "roughness": 0.25,
+      "closed_inner_interface": true
+    },
+    "Dentin": {
+      "base_color_srgb": [
+        0.948,
+        0.9,
+        0.797
+      ],
+      "roughness": 0.39,
+      "cycles_subsurface_weight": 0.13,
+      "subsurface_exported_in_gltf": false,
+      "web_scattering_approximation": {
+        "wrapped_diffuse_fraction": 0.18,
+        "applies_to": "Punctual and directional direct lighting only",
+        "does_not_modify": [
+          "RectArea LTC lighting",
+          "image-based lighting"
+        ],
+        "full_volumetric_sss": false
+      }
+    },
+    "Cementum": {
+      "base_color_srgb": [
+        0.925,
+        0.89,
+        0.816
+      ],
+      "roughness_mean": 0.45
+    },
+    "scale_contract": "Positions are nominal metres. Three.js viewer rescales attenuationDistance once by its presentation normalization; the world matrix already rescales thicknessFactor."
+  },
+  "outputs": {
+    "molar.glb": {
+      "bytes": 17573752,
+      "sha256": "45675707277663d56e52c4c5b95b064c5ce56cf93298605359362a4f57803679",
+      "triangles": 388032,
+      "primitive_vertices_with_seams": 196303,
+      "embedded_textures": [
+        {
+          "name": "defaultMat_normal",
+          "width": 2048,
+          "height": 2048,
+          "embedded_bytes": 674317
+        },
+        {
+          "name": "cementum-roughness",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 861615
+        },
+        {
+          "name": "cementum-color",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 263403
+        },
+        {
+          "name": "enamel-thickness",
+          "width": 2048,
+          "height": 2048,
+          "embedded_bytes": 282243
+        },
+        {
+          "name": "enamel-roughness",
+          "width": 2048,
+          "height": 2048,
+          "embedded_bytes": 2814418
+        },
+        {
+          "name": "enamel-color",
+          "width": 2048,
+          "height": 2048,
+          "embedded_bytes": 141876
+        }
+      ],
+      "rgba8_texture_memory_mib": 72.0,
+      "rgba8_texture_memory_with_mips_mib": 96.0,
+      "gltf_extensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_transmission",
+        "KHR_materials_ior",
+        "KHR_materials_volume"
+      ],
+      "identity_mesh_transforms": true,
+      "geometry_attribute_sha256": {
+        "Dentin_high:0": {
+          "POSITION": "87968877ce4dd658e092f76999bd6e275de2efd8a9a242d8d29ee437a64a8918",
+          "NORMAL": "85750752186b622d00b7cb196c730d35c2dac4a699b9db5f74ed9a1a28ba263b",
+          "TEXCOORD_0": "9de9e7ab8a16cfdb7f17be3924e2d658dcc69434012c72e6981df9dd7b4cea31",
+          "TANGENT": "a8ea1f42c16214b9cbe78708f18c30ed00cf2d4ee8478efa01c0e56f365ab015",
+          "INDICES": "95260f2be3d704821b9605d26f0c2a4d8b6c109f17b89f99bab7a49edeb7cf3b"
+        },
+        "Cementum_high:0": {
+          "POSITION": "add239edb7543b4492b4d6ea22c61e181de0f08b8ff94e8c5963d5110a6746e7",
+          "NORMAL": "8e8d740a7e7026221f77dcc1b707e520e1c3059191336c588a75e4852e3a9d5a",
+          "TEXCOORD_0": "968e29ca25f3001e5c87c0158dcd525f579ec9538522dea693cb037fcdc50058",
+          "TANGENT": "33f6ad4bbf055df94a35809e55d4065df3cc0679c3846d5ba33645ceab8063c2",
+          "INDICES": "c195d18c8c2349e5a49dd30212e570a9c11b7370118553468639905f6a006512"
+        },
+        "Enamel_high:0": {
+          "POSITION": "3bc99885c75fb6602c68349ead91f9804302c3dd9614f3613ae38a20f0f41955",
+          "NORMAL": "4d1714be8d3ce20f7b769a918c54627c342d98ce7d769692c07f100bc61db343",
+          "TEXCOORD_0": "3233e2e879c2b4a4dbd32ecf0fb84f8da4164fb7d0f494c91df093eddd240a9d",
+          "TANGENT": "eea44cdf29834052399713dd2fa8fe8243addf85952efff22c52202016540936",
+          "INDICES": "d7860ca4369e9be8bf4d5f4f164bece5d77f599fde9568c439548db9d7261176"
+        },
+        "Enamel_high:1": {
+          "POSITION": "3d0bd7f3ee815eabc584c43692de887caa4b6b47502720cda212684c89ebf6bb",
+          "NORMAL": "693bad768b38cdde68047805a3b64a3fb6b7ff07f2a428b27c681ea43d9bae94",
+          "TEXCOORD_0": "28f30f33b93b1dd9d959ac7a940574011ede1712700fa1ff281dcc0e5edac30a",
+          "TANGENT": "d9b65ec712550bcce8fe373ba120290eba754a46dca200eb7905518d3fda6b84",
+          "INDICES": "3f3941fec4b911123f255bd95a437c3c48bed994698e2fbe66b6fd729e622d66"
+        }
+      }
+    },
+    "molar-mobile.glb": {
+      "bytes": 6869956,
+      "sha256": "ed7bb4eb198ae8e4284d3b7d3d94457260a67b16dea42b67d04312edfaad221e",
+      "triangles": 140692,
+      "primitive_vertices_with_seams": 71682,
+      "embedded_textures": [
+        {
+          "name": "defaultMat_normal",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 260538
+        },
+        {
+          "name": "cementum-roughness",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 861615
+        },
+        {
+          "name": "cementum-color",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 263403
+        },
+        {
+          "name": "enamel-thickness",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 202059
+        },
+        {
+          "name": "enamel-roughness",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 887589
+        },
+        {
+          "name": "enamel-color",
+          "width": 1024,
+          "height": 1024,
+          "embedded_bytes": 100955
+        }
+      ],
+      "rgba8_texture_memory_mib": 24.0,
+      "rgba8_texture_memory_with_mips_mib": 32.0,
+      "gltf_extensions": [
+        "KHR_materials_clearcoat",
+        "KHR_materials_transmission",
+        "KHR_materials_ior",
+        "KHR_materials_volume"
+      ],
+      "identity_mesh_transforms": true,
+      "geometry_attribute_sha256": {
+        "Dentin_mobile:0": {
+          "POSITION": "87968877ce4dd658e092f76999bd6e275de2efd8a9a242d8d29ee437a64a8918",
+          "NORMAL": "85750752186b622d00b7cb196c730d35c2dac4a699b9db5f74ed9a1a28ba263b",
+          "TEXCOORD_0": "9de9e7ab8a16cfdb7f17be3924e2d658dcc69434012c72e6981df9dd7b4cea31",
+          "TANGENT": "14bb2c99c312cc7f390e9c63e1ab32018254f2b3829953b611658809b34d5d29",
+          "INDICES": "95260f2be3d704821b9605d26f0c2a4d8b6c109f17b89f99bab7a49edeb7cf3b"
+        },
+        "Cementum_mobile:0": {
+          "POSITION": "1eca2ce755a1d508852089476632437be2f3782ccd6f64aaeb7fea95bedd5127",
+          "NORMAL": "55ebfc8eddbee8c860a662e674680b99b41a517aedd140ddbe57227d18d4cbe4",
+          "TEXCOORD_0": "54d0d9367a0c18614fe9c7c5dfa848479ef665660ece4b8776b7818445cc13c1",
+          "TANGENT": "e399a217c4c27e49edf933ba514378ac905f4d7dae7c7ee5071626e329415469",
+          "INDICES": "e14fc9061acf7f8e6eccadaf770897d51f0f0e9fe8d116cb28b09cbc1d9c6df2"
+        },
+        "Enamel_mobile:0": {
+          "POSITION": "7265663d499ebcc4f30b9408f245a5e472ebf1456c040f8fdf6b6e72a32b018e",
+          "NORMAL": "c23495777f1e11653dacd321dddecfca5da6da21368007f816b26b1577cc43f2",
+          "TEXCOORD_0": "ff898cb8b0f889d63c18238b684dcb62c5d204cf70034d6d0c86b9746131302e",
+          "TANGENT": "057ccee80fd1b6777531cb3bfb2c3bec0467c1d407ba0e752e4df5782fb8186e",
+          "INDICES": "ca10ab0d6aeec28d354083f0bc99c24c4cd0995799897a11319c7f2eee8231f6"
+        },
+        "Enamel_mobile:1": {
+          "POSITION": "7fc65edf7922f9a4edd3665be75dd1850d961d8588934e86cbb39400c5e1ce00",
+          "NORMAL": "e2139ade5bf06e86196fd07c6686d181de76998117ea715aa0764430fdd915a2",
+          "TEXCOORD_0": "79b5f1c12b911603ef5e28348c9d41176caa607cc2ae1ec2b9e35697119691c2",
+          "TANGENT": "a0910e3ac78a158b7957ee2e3ac7cb774a553e717ff7443a7c03ff97d12615eb",
+          "INDICES": "7aca9a677e47b38f66040dbe1db1d34d6d6f55ff45a49f5f5becf55dff12dfb1"
+        }
+      }
+    }
+  },
+  "editable_blender": {
+    "path": "assets/source/professional/molar-professional.blend",
+    "bytes": 24601276,
+    "sha256": "b5c79208f1140c26ba29b1595ef1f898045f197c7e3f7451fca4db51d8a7bb72",
+    "blender_version": "4.5.14 LTS"
+  },
   "limitations": [
-    "CT-informed educational reconstruction, not an untouched high-resolution microCT scan.",
-    "Native roots and occlusal anatomy preserved; clinical accuracy not independently validated.",
-    "No segmented enamel shell/dentine core or measured thickness supplied.",
-    "Calibrated color and PBR settings are artistic visualization approximations, not photographic or measured surface color.",
-    "Single-surface transmission/volume approximates translucency, not full volumetric subsurface scattering."
+    "CT-informed ZBrush educational source, not a raw high-resolution microCT specimen.",
+    "Dentin and enamel segmentation, enamel thickness and source scale are authored illustrations, not patient measurements.",
+    "No clinical validation; not suitable for diagnosis or treatment planning.",
+    "Three.js screen-space transmission is approximate. The web Dentin shader blends 18 percent wrapped diffuse only into punctual/directional direct lighting; RectArea LTC and image-based lighting are unchanged. This is not full volumetric subsurface scattering. The Blender Cycles source has a separate subsurface dentin material.",
+    "Web texture LODs reduce source normal resolution. Fine fissure anatomy remains limited by the original reconstruction.",
+    "Global intersection audits exclude pairs sharing a welded vertex and do not certify medical validity."
   ],
-  "optical_reference": "https://pubmed.ncbi.nlm.nih.gov/19566303/"
+  "ambient_occlusion_bake": {
+    "method": "Blender Cycles Ambient Occlusion node, emission bake",
+    "blender": "4.5.14 LTS",
+    "device": "GPU",
+    "resolution": 2048,
+    "samples": 32,
+    "node_samples": 32,
+    "radius_metres": 0.00065,
+    "bake_margin_pixels": 12,
+    "occluder": "Combined Enamel exterior plus Cementum; internal tissues and cervical bridge excluded",
+    "channel": "R of shared occlusion/roughness texture; roughness unchanged in G; B=0",
+    "strength_remap": "0.35 + 0.65 * measured surface visibility",
+    "note": "Local geometric ambient occlusion, not measured stains or subsurface scattering",
+    "source_npz_sha256": "583322369b0c8f598b22e16e647a99b56589242a7bf43b140293c9f028c33383"
+  }
 }

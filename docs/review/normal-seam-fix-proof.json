@@ -1,0 +1,60 @@
+{
+  "molar.glb": {
+    "position_indices_uv_byte_identical_to_prior_export": true,
+    "normals": [
+      {
+        "primitive": "Dentin_high:0",
+        "seam_normal_max_angle_degrees": 0.009823697373318499,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      },
+      {
+        "primitive": "Cementum_high:0",
+        "seam_normal_max_angle_degrees": 0.04654164468303241,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      },
+      {
+        "primitive": "Enamel_high:0",
+        "seam_normal_max_angle_degrees": 0.008026551324181204,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      },
+      {
+        "primitive": "Enamel_high:1",
+        "seam_normal_max_angle_degrees": 0.009922364342972648,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      }
+    ]
+  },
+  "molar-mobile.glb": {
+    "position_indices_uv_byte_identical_to_prior_export": true,
+    "normals": [
+      {
+        "primitive": "Dentin_mobile:0",
+        "seam_normal_max_angle_degrees": 0.009823697373318499,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      },
+      {
+        "primitive": "Cementum_mobile:0",
+        "seam_normal_max_angle_degrees": 0.012796084070572002,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      },
+      {
+        "primitive": "Enamel_mobile:0",
+        "seam_normal_max_angle_degrees": 0.008053570828857106,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      },
+      {
+        "primitive": "Enamel_mobile:1",
+        "seam_normal_max_angle_degrees": 0.009922364342972648,
+        "normal_max_length_error": 1.1920928955078125e-07,
+        "finite": true
+      }
+    ]
+  }
+}

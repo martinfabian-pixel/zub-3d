@@ -1,0 +1,40 @@
+{
+  "data": {
+    "areaLights": "key:3.0;fill:0.65;rear:1.2",
+    "assetRevision": "195052d8a1bb",
+    "assetTextureEstimateMib": "32.0",
+    "assetTriangles": "140692",
+    "bufferSize": "390x844",
+    "camera": "3.3855,4.7898,6.7711",
+    "distance": "8.9317",
+    "drawCalls": "7",
+    "engine": "three.js r186",
+    "environment": "Poly Haven Studio Small 09 — HDR, CC0",
+    "environmentIntensity": "0.62",
+    "environmentRotation": "0.9",
+    "gpuGeometries": "5",
+    "gpuTextures": "14",
+    "meshes": "4",
+    "modelVariant": "molar-mobile.glb",
+    "pixelRatio": "1",
+    "ready": "true",
+    "renderCountScope": "Complete view render with transmission and optional shadow update; excludes startup bakes.",
+    "renderTriangles": "230218",
+    "shaderErrors": "0",
+    "shaderPrograms": "8",
+    "shadowUpdate": "false",
+    "textureEstimateScope": "Decoded material RGBA images and mipmaps; excludes render targets and driver overhead.",
+    "threeRevision": "186",
+    "tissues": "{\"enamel\":2,\"dentin\":1,\"cementum\":1}",
+    "transmissionScale": "0.75",
+    "triangles": "230218"
+  },
+  "page": [
+    390,
+    844
+  ],
+  "viewport": [
+    390,
+    844
+  ]
+}

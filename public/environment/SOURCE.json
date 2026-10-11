@@ -1,0 +1,17 @@
+{
+  "title": "Studio Small 09",
+  "author": "Sergej Majboroda",
+  "provider": "Poly Haven",
+  "source_url": "https://polyhaven.com/a/studio_small_09",
+  "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_09_1k.hdr",
+  "license": "CC0 1.0 Universal",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "provider_license_url": "https://polyhaven.com/license",
+  "retrieved_date": "2026-10-11",
+  "file": "studio-small-09-1k.hdr",
+  "bytes": 1615248,
+  "sha256": "e7cfda5f4e98e623db12b8bfd0184e048488e4855d9c83e2751fb44a32e80c45",
+  "md5_as_published_by_provider": "d5d7eb9d26d341d6aa4d11c1a54fd97c",
+  "modifications": "Original 1K Radiance HDR bytes unchanged. Runtime PMREM filtering, rotation and intensity calibration only.",
+  "use": "Reflection and indirect-light environment only; the visible page background remains white. Self hosted with the demo."
+}

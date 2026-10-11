@@ -1,0 +1,78 @@
+{
+  "source": "Dundee UL6; CT-informed educational sculpture",
+  "authored_fissure_depth_limit_mm": 0.14,
+  "actual_displacement_mm_percentiles": [
+    -0.16054601527531603,
+    -0.14182024809572757,
+    -3.74805308553709e-05,
+    0.009134519497294855,
+    0.032287288822136134
+  ],
+  "native_normal_integrated_detail_mm_percentiles": [
+    -0.02173012894587902,
+    -0.008935378520108424,
+    -2.2944939989047245e-05,
+    0.009172845492371854,
+    0.032287288822136134
+  ],
+  "illustrative_layer_thickness_mm_percentiles": [
+    0.03,
+    0.03,
+    0.03,
+    0.03,
+    0.5112131349284792,
+    1.1731126307610242,
+    1.3790187991548064
+  ],
+  "core_face_flips": 0,
+  "global_inset_repair_iterations": 3,
+  "lods": {
+    "high": {
+      "Enamel": {
+        "triangles": 201652,
+        "vertices": 101004,
+        "watertight_after_uv_weld": true,
+        "consistent_winding": true,
+        "degenerate_triangles": 0
+      },
+      "Cementum": {
+        "triangles": 129372,
+        "vertices": 65701,
+        "watertight_after_uv_weld": false,
+        "consistent_winding": true,
+        "degenerate_triangles": 0
+      },
+      "Dentin": {
+        "triangles": 57008,
+        "vertices": 28875,
+        "watertight_after_uv_weld": true,
+        "consistent_winding": true,
+        "degenerate_triangles": 0
+      }
+    },
+    "mobile": {
+      "Enamel": {
+        "triangles": 51168,
+        "vertices": 25674,
+        "watertight_after_uv_weld": true,
+        "consistent_winding": true,
+        "degenerate_triangles": 0
+      },
+      "Cementum": {
+        "triangles": 32516,
+        "vertices": 16768,
+        "watertight_after_uv_weld": false,
+        "consistent_winding": true,
+        "degenerate_triangles": 0
+      },
+      "Dentin": {
+        "triangles": 57008,
+        "vertices": 28875,
+        "watertight_after_uv_weld": true,
+        "consistent_winding": true,
+        "degenerate_triangles": 0
+      }
+    }
+  },
+  "outer_samples_with_reduced_relief_to_preserve_shell_gap": 389
+}

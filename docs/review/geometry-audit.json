@@ -1,0 +1,417 @@
+{
+  "method": {
+    "units": "mm",
+    "positional_weld_decimal_places": 7,
+    "bvh_epsilon_mm": 0,
+    "self_intersection_exclusion": "Any shared welded vertex; unique unordered face pairs",
+    "percentile_order": [
+      0,
+      1,
+      5,
+      50,
+      95,
+      99,
+      100
+    ]
+  },
+  "source_bin_sha256": "1ed41a21643d9978ba942884f9317432e885399b2095f5e1fcaae7a3ac5dfe97",
+  "source": {
+    "welded_vertices": 28506,
+    "triangles": 57008,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "inconsistent_manifold_edges": 0,
+    "degenerate_faces_area_below_1e-12_mm2": 0,
+    "signed_volume_mm3": 1161.3474772107286,
+    "bounds_mm": [
+      [
+        -5.843652173913044,
+        -10.5,
+        -6.114429172510519
+      ],
+      [
+        5.843652173913044,
+        10.5,
+        6.114429172510519
+      ]
+    ],
+    "self_intersections": {
+      "nonadjacent_triangle_pairs": 0,
+      "first_pairs": []
+    }
+  },
+  "high": {
+    "npz_sha256": "583322369b0c8f598b22e16e647a99b56589242a7bf43b140293c9f028c33383",
+    "combined_outer": {
+      "welded_vertices": 114740,
+      "triangles": 229476,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 1159.3789142848775,
+      "bounds_mm": [
+        [
+          -5.843888169340541,
+          -10.499838622504834,
+          -6.114240076445912
+        ],
+        [
+          5.843632012067003,
+          10.525169417902267,
+          6.114656675547603
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      }
+    },
+    "enamel": {
+      "welded_vertices": 100828,
+      "triangles": 201652,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 178.29969074396362,
+      "bounds_mm": [
+        [
+          -5.843888169340541,
+          1.6446370390181868,
+          -6.114240076445912
+        ],
+        [
+          5.843632012067003,
+          10.525169417902267,
+          5.675172199521098
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      }
+    },
+    "npz_dentin": {
+      "welded_vertices": 28506,
+      "triangles": 57008,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 963.9241305148075,
+      "bounds_mm": [
+        [
+          -5.1434921278080274,
+          -10.462044969805769,
+          -5.53897437745709
+        ],
+        [
+          5.496696919758721,
+          10.275084701938765,
+          6.07642958262435
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      },
+      "source_topology_preserved": true,
+      "inset_mm_percentiles": [
+        0.0379999999999984,
+        0.03799999999999931,
+        0.03799999999999959,
+        0.03800000000000034,
+        0.9725360616502249,
+        1.1811126307610238,
+        1.3870187991548057
+      ],
+      "conflicting_vertex_inset_mm_percentiles": [],
+      "conflicting_source_vertex_ids": []
+    },
+    "outer_source_distance_mm_percentiles": [
+      0.0,
+      8.24895512778312e-06,
+      4.348007496446371e-05,
+      0.0005234909476712346,
+      0.013567975070327486,
+      0.14171412706375122,
+      0.16054585576057434
+    ],
+    "outer_signed_source_distance_mm_percentiles": [
+      -0.15934283893935952,
+      -0.14122638966268738,
+      -0.008694092565180288,
+      -4.557734303328872e-05,
+      0.0035414419320165358,
+      0.009066993497475338,
+      0.03166292554041403
+    ],
+    "outer_root_below_y_2p7_distance_mm_percentiles": [
+      0.0,
+      6.629258268731064e-06,
+      3.4720160329015926e-05,
+      0.00038280573789961636,
+      0.001919603266287595,
+      0.0035339210880920174,
+      0.009900156408548355
+    ],
+    "glb_sha256": "08a509b991fb274890ae5c1fd6702caaaf72489fbf8fa9b462fc6d8368214c82",
+    "glb_dentin": {
+      "welded_vertices": 28506,
+      "triangles": 57008,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 963.9241308097393,
+      "bounds_mm": [
+        [
+          -5.143492016941309,
+          -10.46204473823309,
+          -5.5389744229614735
+        ],
+        [
+          5.496697034686804,
+          10.275084525346756,
+          6.076429504901171
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      },
+      "matches_npz_float32_position_set": true,
+      "original_seam_gap_mm_percentiles": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "core_vs_outer_intersection_pairs": 0,
+    "core_vs_enamel_inner_intersection_pairs": 0,
+    "glb_enamel": {
+      "welded_vertices": 100828,
+      "triangles": 201652,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 178.29969093885663,
+      "bounds_mm": [
+        [
+          -5.843888036906719,
+          1.6446370864287019,
+          -6.1142402701079845
+        ],
+        [
+          5.8436319231987,
+          10.525169782340527,
+          5.675171967595816
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      },
+      "matches_npz_float32_position_set": true
+    },
+    "glb_core_vs_glb_outer_intersection_pairs": 0,
+    "glb_core_vs_glb_enamel_inner_intersection_pairs": 0
+  },
+  "mobile": {
+    "npz_sha256": "7fa8ea10ea3f6d6a9375967b347673370d079136dec8cc83d9cc91d63dcf2edd",
+    "combined_outer": {
+      "welded_vertices": 28870,
+      "triangles": 57736,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 1159.3936389825828,
+      "bounds_mm": [
+        [
+          -5.843888169340541,
+          -10.499838622504834,
+          -6.114240076445912
+        ],
+        [
+          5.843632012067003,
+          10.525169417902267,
+          6.114656675547603
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      }
+    },
+    "enamel": {
+      "welded_vertices": 25586,
+      "triangles": 51168,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 178.3142652134023,
+      "bounds_mm": [
+        [
+          -5.843888169340541,
+          1.6446309734501126,
+          -6.114240076445912
+        ],
+        [
+          5.843632012067003,
+          10.525169417902267,
+          5.675172199521098
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      }
+    },
+    "npz_dentin": {
+      "welded_vertices": 28506,
+      "triangles": 57008,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 963.9241305148075,
+      "bounds_mm": [
+        [
+          -5.1434921278080274,
+          -10.462044969805769,
+          -5.53897437745709
+        ],
+        [
+          5.496696919758721,
+          10.275084701938765,
+          6.07642958262435
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      },
+      "source_topology_preserved": true,
+      "inset_mm_percentiles": [
+        0.0379999999999984,
+        0.03799999999999931,
+        0.03799999999999959,
+        0.03800000000000034,
+        0.9725360616502249,
+        1.1811126307610238,
+        1.3870187991548057
+      ],
+      "conflicting_vertex_inset_mm_percentiles": [],
+      "conflicting_source_vertex_ids": []
+    },
+    "outer_source_distance_mm_percentiles": [
+      0.0,
+      8.452939255221281e-06,
+      4.4947182323085146e-05,
+      0.0005313184228725731,
+      0.01138711143285036,
+      0.1424399262666702,
+      0.16054585576057434
+    ],
+    "outer_signed_source_distance_mm_percentiles": [
+      -0.15933088455919603,
+      -0.1417928939478585,
+      -0.006598417687667661,
+      -5.2695811094354105e-05,
+      0.003515685564778913,
+      0.00898698188085138,
+      0.03166292554041403
+    ],
+    "outer_root_below_y_2p7_distance_mm_percentiles": [
+      0.0,
+      6.789011149521685e-06,
+      3.61501079169102e-05,
+      0.0003947154909837991,
+      0.001938475645147264,
+      0.003539956454187634,
+      0.009886644780635834
+    ],
+    "glb_sha256": "e941d60f8a2ed71ab53c480e7ed2f34d8ad79b87be0236a74778ea1b69ec56d2",
+    "glb_dentin": {
+      "welded_vertices": 28506,
+      "triangles": 57008,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 963.9241308097393,
+      "bounds_mm": [
+        [
+          -5.143492016941309,
+          -10.46204473823309,
+          -5.5389744229614735
+        ],
+        [
+          5.496697034686804,
+          10.275084525346756,
+          6.076429504901171
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      },
+      "matches_npz_float32_position_set": true,
+      "original_seam_gap_mm_percentiles": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "core_vs_outer_intersection_pairs": 0,
+    "core_vs_enamel_inner_intersection_pairs": 0,
+    "glb_enamel": {
+      "welded_vertices": 25586,
+      "triangles": 51168,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "inconsistent_manifold_edges": 0,
+      "degenerate_faces_area_below_1e-12_mm2": 0,
+      "signed_volume_mm3": 178.31426464939116,
+      "bounds_mm": [
+        [
+          -5.843888036906719,
+          1.644630916416645,
+          -6.1142402701079845
+        ],
+        [
+          5.8436319231987,
+          10.525169782340527,
+          5.675171967595816
+        ]
+      ],
+      "self_intersections": {
+        "nonadjacent_triangle_pairs": 0,
+        "first_pairs": []
+      },
+      "matches_npz_float32_position_set": true
+    },
+    "glb_core_vs_glb_outer_intersection_pairs": 0,
+    "glb_core_vs_glb_enamel_inner_intersection_pairs": 0
+  },
+  "shading_only_reexport": {
+    "note": "After the full collision audit, only shading normals/tangents were regenerated. POSITION, INDICES and TEXCOORD_0 bytes for every primitive are unchanged; the geometric audit remains applicable.",
+    "proof": "normal-seam-fix-proof.json",
+    "final_glb_sha256": {
+      "molar.glb": "45675707277663d56e52c4c5b95b064c5ce56cf93298605359362a4f57803679",
+      "molar-mobile.glb": "ed7bb4eb198ae8e4284d3b7d3d94457260a67b16dea42b67d04312edfaad221e"
+    }
+  }
+}

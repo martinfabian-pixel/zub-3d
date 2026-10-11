@@ -1,0 +1,30 @@
+{
+  "model": "public\\models\\molar.glb",
+  "blender": "4.5.14 LTS",
+  "engine": "CYCLES",
+  "device": "GPU",
+  "samples": 96,
+  "size": 800,
+  "clay": false,
+  "color_management": "AgX Medium High Contrast",
+  "renders": [
+    {
+      "view": "front",
+      "file": "docs/review/cycles-front.png"
+    },
+    {
+      "view": "side",
+      "file": "docs/review/cycles-side.png"
+    },
+    {
+      "view": "back",
+      "file": "docs/review/cycles-back.png"
+    },
+    {
+      "view": "top",
+      "file": "docs/review/cycles-top.png"
+    }
+  ],
+  "note": "Independent offline control renders; the interactive demo uses Three.js.",
+  "model_sha256": "45675707277663d56e52c4c5b95b064c5ce56cf93298605359362a4f57803679"
+}
