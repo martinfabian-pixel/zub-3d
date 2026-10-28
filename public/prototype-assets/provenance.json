@@ -1,0 +1,184 @@
+{
+  "model": "Permanent maxillary left first molar, FDI26 / UL6; three native roots",
+  "source": {
+    "title": "Maxillary First Molar",
+    "author": "University of Dundee, School of Dentistry",
+    "creator_credit_in_preview": "Created by: Emily McDougall; Content expert: Dr. Andrew Mason; Initial 3D preparation: Mark Roughley",
+    "author_url": "https://sketchfab.com/DundeeDental",
+    "original_source_url": "https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984",
+    "primary_metadata_api": "https://api.sketchfab.com/v3/models/e719a474ef7e4bd7abec508f85f1e984",
+    "primary_metadata_path": "dundee-api-metadata.json",
+    "published_date": "2015-10-06",
+    "retrieved_utc": "2026-10-10T22:04:38.2689172Z",
+    "license": "Creative Commons Attribution 4.0 International",
+    "license_spdx": "CC-BY-4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "commercial_use_per_primary_api": "Author must be credited. Commercial use is allowed.",
+    "anatomy": "Permanent maxillary LEFT FIRST molar, FDI 26, UL6",
+    "source_description": "Maxillary First Molar (Left). Created by the University of Dundee, School of Dentistry. Created in ZBrush using CT Data.",
+    "mesh_node_source_name": "UL6sketch_1.OBJ.cleaner",
+    "redistribution_source_page": "https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html",
+    "redistribution_provider": "inVisu inc., VAMO educational viewer",
+    "redistribution_page_saved": "vamo.html",
+    "redistribution_config_saved": "vamo-config.js",
+    "license_evidence": [
+      "Primary Sketchfab metadata confirms CC Attribution, direct link to CC BY 4.0, commercial use allowed.",
+      "glTF asset.extras contains same author, original source URL, license, and model title.",
+      "Public VAMO HTML includes full Dundee attribution and CC BY 4.0.",
+      "No authentication or access restriction bypass used; fetched publicly served viewer resources."
+    ],
+    "original_assets": [
+      {
+        "local_path": "research-models\\upper-molar\\dundee-scene.gltf",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/scene.gltf",
+        "bytes": 4751,
+        "sha256": "005955f29f2f7818d851e3718f70e21ddcb825712db3bf1ce8330ffd3878682c"
+      },
+      {
+        "local_path": "research-models\\upper-molar\\scene.bin",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/scene.bin",
+        "bytes": 2532096,
+        "sha256": "1ed41a21643d9978ba942884f9317432e885399b2095f5e1fcaae7a3ac5dfe97"
+      },
+      {
+        "local_path": "research-models\\upper-molar\\textures\\defaultMat_baseColor.png",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/textures/defaultMat_baseColor.png",
+        "bytes": 1054818,
+        "sha256": "a49db24b5bdda9a70855142263106ceb846e5e0efc56586893ee0cbc8e6a5427"
+      },
+      {
+        "local_path": "research-models\\upper-molar\\textures\\defaultMat_normal.png",
+        "download_url": "https://vamo.invisu.ca/vamo/objets3D/sketchfab/maxillary_first_molar/textures/defaultMat_normal.png",
+        "bytes": 924786,
+        "sha256": "50f5e989652eb2a5e4450bd35982d7417dc7b885f72e4da58ef8059940c5dde1"
+      }
+    ],
+    "quality": {
+      "source_face_count_api": 28504,
+      "source_vertex_count_api": 28506,
+      "triangulated_gltf_face_count": 57008,
+      "gltf_vertex_count_with_uv_seams": 28875,
+      "texture_maps": [
+        "defaultMat_baseColor.png",
+        "defaultMat_normal.png"
+      ],
+      "attributes": [
+        "POSITION",
+        "NORMAL",
+        "TANGENT",
+        "COLOR_0",
+        "TEXCOORD_0"
+      ],
+      "native_material": "Base color PNG + vertex color, baked normal map, metallic 0, roughness 0.2",
+      "visual_observation": "Original published preview clearly shows 3 distinct root tips and white enamel/tan roots. Occlusal anatomy and closeup detail require inspecting the interactive mesh; thumbnail does not show occlusal surface.",
+      "limits": [
+        "Anatomical educational reconstruction created in ZBrush from CT data; do not call this an untouched raw microCT scan.",
+        "Not individual enamel/dentin/cementum segmented volumes.",
+        "Materials and skin color are author visualization; no measured optical properties provided.",
+        "Viewer material adjustments, normalization, repacking, or smoothing must be disclosed as modifications."
+      ],
+      "texture_dimensions": "4096 x 4096 pixels each: base color and normal"
+    },
+    "recommended_attribution": "Maxillary First Molar by University of Dundee, School of Dentistry (created by Emily McDougall; content expert Dr. Andrew Mason; initial 3D preparation Mark Roughley), licensed CC BY 4.0. Source: https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984. Retrieved from the public VAMO/inVisu educational redistribution. Modifications: [describe actual changes]."
+  },
+  "processing": [
+    "Original continuous exterior, triangles and UVs retained; no subdivision, simplification, concavity deepening, surface displacement, tissue layer, root graft or closure rim.",
+    "Original authored normals retained and transformed into presentation axes; tangents re-orthogonalized for numeric precision.",
+    "Crown oriented +Y; native arbitrary units scaled to illustrative21mm total height, positions stored in metres.",
+    "Native source normal map downsampled, renormalized and UV-island padded at2K/1K.",
+    "Native painted colors inform an approximate cervical contour and subtle tone variation, not the final tooth palette.",
+    "Deterministic local cosine-hemisphere visibility rays on the original exterior; no cores or artificial occluders.",
+    "One material, one primitive, embedded normal plus RGBA parameter map. No original vertex color or base-color texture multiplier."
+  ],
+  "parameters": {
+    "color_space": "linear data / Three.NoColorSpace",
+    "flipY": false,
+    "uv": "Original glTF TEXCOORD_0",
+    "R": "Enamel mask0root→1crown; inferred CEJ transition−0.10…+0.10mm geodesic distance.",
+    "G": "Absolute roughness: enamel~0.265–0.315, root~0.49. Set material.roughness=1 before multiplication.",
+    "B": "Source-derived local tone variation centered0.5. Suggested signed value=(B−0.5)*2 and color amplitude~0.02.",
+    "A": "Local ambient visibility;40deterministic cosine hemisphere rays/vertex,0.65mm maximum distance,2µm surface offset,remap0.4+0.6visibility."
+  },
+  "geometry": {
+    "watertight_after_uv_weld": true,
+    "consistent_winding": true,
+    "welded_vertices": 28506,
+    "components": 1,
+    "nominal_height_metres": 0.021,
+    "physical_displacement_mm": 0,
+    "native_roots": 3
+  },
+  "outputs": {
+    "molar.glb": {
+      "bytes": 3510564,
+      "sha256": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+      "triangles": 57008,
+      "vertices": 28875,
+      "geometry_sha256": {
+        "positions": "1a8c15d8b8eacc2bc182ffcab8f2d2c0adc25cdb049f55aaa96e6ee282e21354",
+        "normals": "73b3f45aaf9fa10fe73ab019b94bde44561949afddece8fa8455174f8408c5b1",
+        "tangents": "0f8c3e36d33a02c47632625840cb3b31ffcf610e31c3d762e85a753db8191151",
+        "uv": "a43edfdffa408e022c1a57d9781d2a9e0fb1cea96fef5b9225233fcee44e2cf8",
+        "indices": "0397d30bb914247e33a07b0542ff273059d6e7ac9d257e0631397da686626ae8"
+      },
+      "texture_size": 2048,
+      "rgba8_texture_memory_with_mips_mib": 42.666666666666664,
+      "binary_geometry_and_textures_unchanged": true
+    },
+    "molar-mobile.glb": {
+      "bytes": 2716748,
+      "sha256": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+      "triangles": 57008,
+      "vertices": 28875,
+      "geometry_sha256": {
+        "positions": "1a8c15d8b8eacc2bc182ffcab8f2d2c0adc25cdb049f55aaa96e6ee282e21354",
+        "normals": "73b3f45aaf9fa10fe73ab019b94bde44561949afddece8fa8455174f8408c5b1",
+        "tangents": "0f8c3e36d33a02c47632625840cb3b31ffcf610e31c3d762e85a753db8191151",
+        "uv": "a43edfdffa408e022c1a57d9781d2a9e0fb1cea96fef5b9225233fcee44e2cf8",
+        "indices": "0397d30bb914247e33a07b0542ff273059d6e7ac9d257e0631397da686626ae8"
+      },
+      "texture_size": 1024,
+      "rgba8_texture_memory_with_mips_mib": 10.666666666666666,
+      "binary_geometry_and_textures_unchanged": true
+    }
+  },
+  "limitations": [
+    "CT-informed ZBrush educational reconstruction, not a raw microCT surface.",
+    "Source crown has broad smoothed fissures and limited secondary anatomy; preserving it avoids procedural jagged grooves but does not recover missing scan detail.",
+    "Cervical mask, material roughness and color variation are visual approximations, not measured tissue or optical data.",
+    "Single outer surface optical model; no true dentin/enamel segmented volumes or physically complete subsurface transport.",
+    "Nominal21mm scale is illustrative, not an original specimen measurement."
+  ],
+  "production_assets_sha256_before": {
+    "C:\\Users\\marti\\Documents\\Codex\\2026-10-10\\projekt-zub-f-za-1-realistick\\zub-3d\\public\\models\\molar.glb": "45675707277663d56e52c4c5b95b064c5ce56cf93298605359362a4f57803679",
+    "C:\\Users\\marti\\Documents\\Codex\\2026-10-10\\projekt-zub-f-za-1-realistick\\zub-3d\\public\\models\\molar-mobile.glb": "ed7bb4eb198ae8e4284d3b7d3d94457260a67b16dea42b67d04312edfaad221e",
+    "C:\\Users\\marti\\Documents\\Codex\\2026-10-10\\projekt-zub-f-za-1-realistick\\zub-3d\\public\\models\\provenance.json": "0c0357e427d3e8c71d0bcb2df41ae23fa1a3364c001d5db88290c6efdf9e7c52"
+  },
+  "production_assets_unchanged": true,
+  "material_export": {
+    "alpha_mode": "OPAQUE",
+    "transmission": 0,
+    "extensions": [
+      "KHR_materials_ior"
+    ],
+    "web_scattering_note": "The web viewer adds a restrained 6.5 percent direct-light wrapped-diffuse approximation; this is not transmitted light or volumetric subsurface scattering."
+  },
+  "validation": {
+    "validator": "Khronos glTF Validator",
+    "scope": "Prototype GLBs only",
+    "reports": [
+      {
+        "file": "molar.glb",
+        "errors": 0,
+        "warnings": 0,
+        "messages": []
+      },
+      {
+        "file": "molar-mobile.glb",
+        "errors": 0,
+        "warnings": 0,
+        "messages": []
+      }
+    ]
+  }
+}

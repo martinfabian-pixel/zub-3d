@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 // Model URLs must change with their contents: Pages/CDN caches must never pair
 // new optical shaders with an earlier generation of the anatomical asset.
@@ -11,9 +12,27 @@ for (const path of ['models/molar.glb', 'models/molar-mobile.glb', 'environment/
   if (existsSync(file)) assetHash.update(readFileSync(file));
 }
 
+const prototypeHash = createHash('sha256');
+for (const path of ['molar.glb', 'molar-mobile.glb']) {
+  const file = new URL(`./public/prototype-assets/${path}`, import.meta.url);
+  prototypeHash.update(path);
+  if (existsSync(file)) prototypeHash.update(readFileSync(file));
+}
+
 export default defineConfig({
   // Works both at /zub-3d/ on GitHub Pages and in a local preview.
   base: './',
-  define: { __ASSET_REVISION__: JSON.stringify(assetHash.digest('hex').slice(0, 12)) },
-  build: { target: 'es2022' },
+  define: {
+    __ASSET_REVISION__: JSON.stringify(assetHash.digest('hex').slice(0, 12)),
+    __PROTOTYPE_ASSET_REVISION__: JSON.stringify(prototypeHash.digest('hex').slice(0, 12)),
+  },
+  build: {
+    target: 'es2022',
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        prototype: fileURLToPath(new URL('./prototype/index.html', import.meta.url)),
+      },
+    },
+  },
 });

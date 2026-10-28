@@ -1,0 +1,39 @@
+ZUB-3D — izolovaný realistický prototyp
+
+Maxillary First Molar — University of Dundee, School of Dentistry.
+Horná ľavá prvá trvalá stolička FDI 26 / UL6, tri pôvodné korene.
+Autorka modelu: Emily McDougall; odborný obsah: Dr. Andrew Mason;
+počiatočná 3D príprava: Mark Roughley.
+https://sketchfab.com/3d-models/maxillary-first-molar-e719a474ef7e4bd7abec508f85f1e984
+Zdrojový model a odvodené modely/mapy: CC BY 4.0.
+https://creativecommons.org/licenses/by/4.0/
+Získané cez verejný vzdelávací prehliadač VAMO / inVisu:
+https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html
+
+Úpravy v tomto prototype: orientácia a ilustračná výška 21 mm,
+zabalenie do GLB, zmenšenie a okrajové doplnenie pôvodnej normálovej
+mapy. Pôvodný súvislý vonkajší povrch a jeho anatomické tvary zostávajú
+zachované; bez procedurálneho prehlbovania fisúr a bez vnútorných obrúb.
+Maska skloviny, mapa drsnosti a jemná tónová variácia sú odvodené
+z pôvodného UV mapovania, zdrojových farieb a geometrie. Lokálna
+ambientná viditeľnosť je vypočítaná z vonkajšieho povrchu. Nejde
+o merané optické vlastnosti, skutočné pigmenty alebo segmentáciu tkanív.
+
+Farebná paleta a procedurálny shader jemných povrchových detailov sú
+pôvodné práce pre tento prototyp; ich kód má licenciu MIT repozitára.
+Nepriehľadný webový materiál používa jemnú aproximáciu priameho
+rozptýleného svetla, nie úplnú objemovú simuláciu podpovrchového rozptylu.
+Zdroj je vzdelávacia rekonštrukcia vytvorená v ZBrush podľa CT dát,
+nie nespracovaný mikroCT sken. Klinické overenie ani schválenie
+prototypu autormi zdroja sa netvrdia. Podrobnosti: provenance.json.
+
+Znovu použité HDR osvetlenie Studio Small 09 — Sergej Majboroda /
+Poly Haven, CC0. Súbor zostáva spoločný s pôvodným demom.
+https://polyhaven.com/a/studio_small_09
+https://polyhaven.com/license
+
+Kód a dokumentácia: https://github.com/martinfabian-pixel/zub-3d
+Kód prehliadača: MIT. Three.js: MIT.
+https://github.com/mrdoob/three.js/blob/dev/LICENSE
+Pri ďalšom použití modelu alebo odvodených máp zachovajte atribúciu,
+odkaz na CC BY 4.0 a opis vykonaných úprav.

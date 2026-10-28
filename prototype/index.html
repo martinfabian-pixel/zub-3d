@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Samostatný interaktívny prototyp jednej hornej prvej stoličky." />
+    <link rel="icon" href="data:," />
+    <title>ZUB — štúdia povrchu</title>
+  </head>
+  <body>
+    <main id="prototype" aria-label="Jeden horný ľavý prvý molár, FDI 26">
+      <canvas id="prototype-canvas" tabindex="0" aria-label="Interaktívny 3D zub. Ťahaním otáčate, kolieskom alebo dvoma prstami približujete. Šípky otáčajú, plus a mínus približujú, Home obnoví pohľad." aria-describedby="help"></canvas>
+      <p id="help" class="sr-only">Jeden prst otáča model, dva prsty približujú. Pan je vypnutý.</p>
+      <div id="prototype-status" class="status" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="prototype-message">Pripravujem 3D zub…</span>
+        <button id="prototype-retry" type="button" hidden>Skúsiť znova</button>
+      </div>
+      <div id="prototype-controls" class="controls" role="group" aria-label="Ovládanie zuba" hidden>
+        <button id="prototype-zoom-in" type="button" aria-label="Priblížiť" title="Priblížiť"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
+        <button id="prototype-zoom-out" type="button" aria-label="Oddialiť" title="Oddialiť"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg></button>
+        <button id="prototype-crown" type="button" aria-label="Detail žuvacej plochy" title="Žuvacia plocha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 9 7-4 7 4-7 4-7-4Zm0 6 7 4 7-4M5 12l7 4 7-4" /></svg></button>
+        <span class="divider" aria-hidden="true"></span>
+        <button id="prototype-reset" type="button" aria-label="Obnoviť pohľad" title="Obnoviť pohľad"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9a8 8 0 1 1 .2 6.5M4.5 4.5V9H9" /></svg></button>
+      </div>
+      <a class="credit" href="../prototype-assets/credits.txt" target="_blank" rel="noopener" title="Pôvod a licencia modelu a materiálov">Dundee · CC BY 4.0</a>
+      <noscript><p class="status">Na interaktívne zobrazenie zuba je potrebný JavaScript.</p></noscript>
+    </main>
+    <script type="module" src="/src/prototype/main.js"></script>
+  </body>
+</html>
