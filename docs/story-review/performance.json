@@ -1,0 +1,174 @@
+{
+  "date": "2026-11-04T09:25:48.393Z",
+  "browser": "156.0.8078.80",
+  "site": "http://127.0.0.1:4173/",
+  "scope": "Fresh local headless Chrome. Screenshots are real WebGL frames; touch and phone viewports are emulated on the desktop GPU. No soft tissue or clinical validation.",
+  "checks": [
+    {
+      "name": "desktop-1280x900 native scroll produced draws during both timing windows",
+      "passed": true
+    },
+    {
+      "name": "emulated-390x844 native scroll produced draws during both timing windows",
+      "passed": true
+    },
+    {
+      "name": "Companion morph audit covers actual protected meshes and no new triangle crossings",
+      "passed": true
+    },
+    {
+      "name": "Documented wire diameter is within the conservative hard-tooth path bound",
+      "passed": true
+    },
+    {
+      "name": "No unexpected WebGL or JavaScript errors",
+      "passed": true
+    },
+    {
+      "name": "No unexpected 404/network failures/external requests",
+      "passed": true
+    }
+  ],
+  "issues": [],
+  "errors": [],
+  "warnings": [
+    "THREE.WebGLProgram: Program Info Log: (210,86-138): warning X4122: sum of 0.996094 and -2.98545e-017 cannot be represented accurately in double precision\n(209,39-65): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(210,87-113): warning X4122: sum of 1 and -1.49272e-017 cannot be represented accurately in double precision\n(209,39-65): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision\n(210,87-113): warning X4122: sum of 1 and -1.66644e-018 cannot be represented accurately in double precision"
+  ],
+  "failedRequests": [],
+  "views": [],
+  "navigation": [],
+  "scenarios": [
+    {
+      "name": "isolated desktop timing",
+      "completed": true
+    },
+    {
+      "name": "isolated emulated mobile timing",
+      "completed": true
+    }
+  ],
+  "performance": [
+    {
+      "label": "desktop-1280x900",
+      "measuredBuild": {
+        "modules": [
+          "/assets/RectAreaLightUniformsLib-DzJbO6wv.js",
+          "/assets/quality-CpXSDM7p.js",
+          "/assets/main-DyDA6a-O.js"
+        ],
+        "styles": [
+          "/assets/main-CeQb4Gdb.css"
+        ],
+        "assetRevision": "1f8077464b58"
+      },
+      "scope": "Native scroll and requestAnimationFrame intervals on this desktop. Not a GPU timer query or physical mobile FPS.",
+      "runs": [
+        {
+          "name": "whole story",
+          "samples": 120,
+          "p50FrameIntervalMs": 16.699999999999818,
+          "p95FrameIntervalMs": 16.900000000000546,
+          "slowIntervalsOver33ms": 0,
+          "renderedFrames": 128,
+          "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+        },
+        {
+          "name": "brush working passes",
+          "samples": 120,
+          "p50FrameIntervalMs": 16.699999999999818,
+          "p95FrameIntervalMs": 16.899999999999636,
+          "slowIntervalsOver33ms": 0,
+          "renderedFrames": 131,
+          "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+        }
+      ]
+    },
+    {
+      "label": "emulated-390x844",
+      "measuredBuild": {
+        "modules": [
+          "/assets/RectAreaLightUniformsLib-DzJbO6wv.js",
+          "/assets/quality-CpXSDM7p.js",
+          "/assets/main-DyDA6a-O.js"
+        ],
+        "styles": [
+          "/assets/main-CeQb4Gdb.css"
+        ],
+        "assetRevision": "1f8077464b58"
+      },
+      "scope": "Native scroll and requestAnimationFrame intervals on this desktop. Not a GPU timer query or physical mobile FPS.",
+      "runs": [
+        {
+          "name": "whole story",
+          "samples": 120,
+          "p50FrameIntervalMs": 16.699999999999818,
+          "p95FrameIntervalMs": 17,
+          "slowIntervalsOver33ms": 0,
+          "renderedFrames": 128,
+          "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+        },
+        {
+          "name": "brush working passes",
+          "samples": 120,
+          "p50FrameIntervalMs": 16.699999999999818,
+          "p95FrameIntervalMs": 16.90000000000009,
+          "slowIntervalsOver33ms": 0,
+          "renderedFrames": 131,
+          "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+        }
+      ]
+    }
+  ],
+  "offlineEvidence": {
+    "morphAudit": "docs/proximal-story-review/morph-geometry-audit.json",
+    "summary": {
+      "sampledInfluences": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ],
+      "bothLodsSameFdi36AccessorHashes": true,
+      "interToothPairTestsAcrossStagesAndLods": 3780,
+      "interToothIntersectionPairsAcrossTests": 0,
+      "maxNonAdjacentSelfIntersectingPairsAtAnySample": 0,
+      "maxFlippedFacesAtAnySample": 0,
+      "maxDegenerateFacesAtAnySample": 0,
+      "matureMaximumDepressionMm": 0.6409349863255488,
+      "matureRemovedVolumeMm3": 0.3341810443189388,
+      "deepestFloorVertexVisibleAtEveryStageAndLod": true,
+      "matureFloorVisibility": {
+        "testedFaceCentroids": 27,
+        "visibleFaceCentroids": 27,
+        "visibleAreaFractionFromCentroidSamples": 1,
+        "hiddenCentroidsByOccluder": {}
+      },
+      "matureBroaderChalkMarginVisibility": {
+        "testedFaceCentroids": 183,
+        "visibleFaceCentroids": 170,
+        "visibleAreaFractionFromCentroidSamples": 0.9439053955902289,
+        "hiddenCentroidsByOccluder": {
+          "37": 13
+        }
+      },
+      "mature41TrackedFootprintSamplesVisible": 41,
+      "immutableGlbsAndManifestByteIdentical": true
+    },
+    "rigidEnvelope": {
+      "minimumSampledRadiusMm": 0.4437614232301712,
+      "limitingArcMm": 7.019727474608823,
+      "limitingTooth": 37,
+      "limitingLod": "mobile",
+      "denseStepMm": 0.00899965060847285,
+      "continuousLowerBoundRadiusMm": 0.43896159792593475,
+      "maximumDiameterSafeByThisBoundMm": 0.8779231958518695,
+      "minimumObservedDiameterMm": 0.8875228464603424,
+      "certificate": "Distance to a closed surface is 1-Lipschitz. All points on the straight segment lie within at most half one dense sample spacing, subtract that from sampled minimum plus 0.0003mm numerical reserve. This certifies a conservative swept capsule radius against BOTH hard-tooth mesh LODs. It is not a soft tissue safety certificate.",
+      "illustrativeWireDiameterMm": 0.18,
+      "wireRadialMarginLowerBoundMm": 0.34896159792593473
+    },
+    "note": "Precomputed hard-tooth surface/path checks only; no gingiva is modelled. This run does not validate clinical fit."
+  },
+  "passed": true
+}

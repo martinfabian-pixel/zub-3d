@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { prepareJourneyMaterial } from './materials.js';
 import { disposeObject } from './scene.js';
+import { sampleDentalStory } from './dental-story.js';
 
 const smooth = (a,b,value) => { const t=THREE.MathUtils.clamp((value-a)/(b-a),0,1); return t*t*(3-2*t); };
 
@@ -25,6 +26,9 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const object = new THREE.Group(); object.name='28 permanent teeth — author-arranged dentition';
   const teeth = new Map(), mirror = new THREE.Matrix4().makeScale(-1,1,1);
   const mirrored = new Map();
+  // The live teeth borrow GLTF geometries and texture images. Take ownership
+  // before attaching, including partial failures, and release the union once.
+  const sourceObjects=new Set([hero.object]);
   const proxies = [];
   let disposed=false, assetsReady=false, visibleCount=1;
   for (const entry of manifest.teeth) {
@@ -61,6 +65,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
 
   function attachAtlas(atlas, upperMolar) {
     if (disposed) { disposeObject(atlas.object); return; }
+    sourceObjects.add(atlas.object);sourceObjects.add(upperMolar.object);
     sources.set(26,upperMolar.meshes.get('ToothExterior')??[...upperMolar.meshes.values()][0]);
     for(const [name,mesh] of atlas.meshes) {
       const source=Number(name.replace('FDI_',''));
@@ -74,29 +79,24 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     }
     assetsReady=true; object.updateMatrixWorld(true);
   }
-  function setProgress(p) {
+  const sampled={brushPose:{}};
+  function setState(state) {
     visibleCount=0;
     for (const [fdi,item] of teeth) {
       let reveal=0;
       if(fdi===config.anatomy.hero) reveal=1;
-      else if(config.anatomy.neighbors.includes(fdi)) reveal=smooth(config.reveal.neighbors.start,config.reveal.neighbors.end,p);
+      else if(config.anatomy.neighbors.includes(fdi)) reveal=state.neighborsReveal;
       else if(item.upper===(config.anatomy.hero<30)) {
-        // Distance in the same arch from the hero: nearby crowns emerge first.
-        const heroPosition=teeth.get(config.anatomy.hero).matrix.elements;
-        const e=item.matrix.elements;
-        const distance=Math.hypot(e[12]-heroPosition[12],e[14]-heroPosition[14]);
-        const lag=THREE.MathUtils.clamp(distance/6.5,0,1)*config.reveal.arch.stagger;
-        reveal=smooth(config.reveal.arch.start+lag,config.reveal.arch.end,p);
+        reveal=state.lowerReveal;
       } else {
-        const index=(fdi%10)-1;
-        const lag=index/6*config.reveal.opposite.stagger;
-        reveal=smooth(config.reveal.opposite.start+lag,config.reveal.opposite.end,p);
+        reveal=state.upperReveal;
       }
       item.reveal=reveal;
       item.finish?.setReveal(reveal);
       if(item.mesh&&reveal>.00001)visibleCount++;
     }
   }
+  function setProgress(p){setState(sampleDentalStory(p,sampled));}
   const selection=(filter)=>[...teeth.values()].filter(filter).map((i)=>i.entry.fdi===config.anatomy.hero?i.mesh:i.proxy);
   const landmarks={
     hero:()=>teeth.get(config.anatomy.hero).mesh,
@@ -110,9 +110,10 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   function dispose() {
     if(disposed)return; disposed=true;
     for(const item of teeth.values())item.finish?.dispose();
-    disposeObject(object);
+    const owned=new THREE.Group();owned.add(object,...sourceObjects);
+    disposeObject(owned);sourceObjects.clear();
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
     mirrored.clear(); teeth.clear();
   }
-  return { object,teeth,landmarks,attachAtlas,setProgress,report,dispose,get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
+  return { object,teeth,landmarks,attachAtlas,setState,setProgress,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

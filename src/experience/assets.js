@@ -8,6 +8,13 @@ export function assetURL(config, path) {
   return url.href;
 }
 
+export async function loadStoryData(config,path,signal) {
+  const url=new URL(assetURL(config,path));url.searchParams.set('v',config.storyRevision);
+  const response=await fetch(url.href,{signal});
+  if(!response.ok)throw new Error(`Story asset HTTP ${response.status}: ${path}`);
+  return response.json();
+}
+
 export async function loadManifest(config, signal) {
   const response = await fetch(assetURL(config, config.assets.manifest), { signal });
   if (!response.ok) throw new Error(`Dentition manifest HTTP ${response.status}`);

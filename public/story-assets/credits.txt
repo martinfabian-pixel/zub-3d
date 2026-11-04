@@ -1,0 +1,31 @@
+ZUB-3D — modelový príbeh na susedných zuboch FDI 36 a 37
+
+Pôvodné zuby: University of Dundee, School of Dentistry.
+Vytvorenie: Emily McDougall; odborný obsah: Dr. Andrew Mason;
+počiatočná 3D príprava: Mark Roughley.
+Mandibular First Molar:
+https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6
+Mandibular Second Molar:
+https://sketchfab.com/3d-models/mandibular-second-molar-b77dcbc5052e4740b87cdb1964649742
+Pôvod zostavy a polôh: Permanent Dentition, rovnaká škola a prispievatelia.
+https://sketchfab.com/3d-models/permanent-dentition-2f69d7b59c3e4a6a8bcae041bd8e591b
+Licencia pôvodnej geometrie a odvodených geometrických údajov: CC BY 4.0.
+https://creativecommons.org/licenses/by/4.0/
+
+Úpravy pre tento príbeh: výber konkrétnych povrchových trojuholníkov,
+meranie priestoru medzi pevne umiestnenými zubami, ilustračné masky
+povlaku a nekavitovanej zmeny, miestna geometrická priehlbina na 36.
+Ide o novú autorskú ilustráciu hypotetickej lézie. Pôvodný Dundee model
+nezobrazuje túto meranú chorobu; zdravé súbory ani jeho zrkadlený zub 46
+sa neupravili. Úbytok tkaniva je prezentovaný v ilustračnej mierke.
+
+Kefka a jej nástrojové rozmery ilustrujú mechaniku v tejto jednej scéne;
+nejde o kópiu konkrétneho predávaného výrobku. V dátach je overený iba
+odstup od tvrdých povrchov. Nie sú v nich ďasná, papila ani meranie sily.
+Z tejto scény nemožno predpísať veľkosť kefky, hĺbku zasunutia ani
+klinickú bezpečnosť pre konkrétne ústa. Kefka neobnovuje chýbajúce tkanivo.
+
+Kredity ostatných zubov a HDR: ../dentition-assets/credits.txt.
+Detailný zdravý dolný molár: ../dentition-assets/hero-36-credits.txt.
+Kód prehliadača a pôvodné procedurálne materiály: MIT.
+Pri ďalšom použití zachovajte pôvod, licenciu a opis úprav.

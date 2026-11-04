@@ -25,6 +25,11 @@ for (const path of ['manifest.json', 'dentition.glb', 'dentition-mobile.glb', 'h
   dentitionHash.update(path);
   if (existsSync(file)) dentitionHash.update(readFileSync(file));
 }
+const storyHash=createHash('sha256');
+for(const path of ['site.json','caries-36.json']){
+  const file=new URL(`./public/story-assets/${path}`,import.meta.url);storyHash.update(path);
+  if(existsSync(file))storyHash.update(readFileSync(file));
+}
 
 export default defineConfig({
   // Works both at /zub-3d/ on GitHub Pages and in a local preview.
@@ -33,6 +38,7 @@ export default defineConfig({
     __ASSET_REVISION__: JSON.stringify(assetHash.digest('hex').slice(0, 12)),
     __PROTOTYPE_ASSET_REVISION__: JSON.stringify(prototypeHash.digest('hex').slice(0, 12)),
     __DENTITION_ASSET_REVISION__: JSON.stringify(dentitionHash.digest('hex').slice(0, 12)),
+    __STORY_ASSET_REVISION__:JSON.stringify(storyHash.digest('hex').slice(0,12)),
   },
   build: {
     target: 'es2022',

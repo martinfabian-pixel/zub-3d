@@ -32,6 +32,10 @@ jobs:
       - run: node scripts/validate-dentition.mjs
       - run: node scripts/validate-lower-hero.mjs
       - run: node scripts/test-journey.mjs
+      - run: node scripts/validate-proximal-site.mjs
+      - run: node scripts/test-dental-story.mjs
+      - run: node scripts/test-cleaning-path.mjs
+      - run: node scripts/test-inspection-return.mjs
       - run: pnpm build
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3

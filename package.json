@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Interactive permanent dentition — lower first molar to 28 teeth, Three.js.",
+  "description": "Interactive dental education — plaque, persistent cavity and interdental brushing, Three.js.",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",

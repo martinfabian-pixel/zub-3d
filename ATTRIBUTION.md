@@ -1,5 +1,7 @@
 # Model and asset attribution
 
+The current main page and `/experience/` use the native lower molar FDI 36 and the complete Dundee dentition described below. The opening upper-molar attribution in this document applies to the preserved `/prototype/` and `/legacy/` viewers.
+
 The displayed tooth is adapted from **Maxillary First Molar (Left)**, the permanent upper left first molar **FDI 26 / UL6**, by **University of Dundee, School of Dentistry**.
 
 - Created by **Emily McDougall**, in ZBrush using CT data.
@@ -55,3 +57,9 @@ Presné originály, odkazy na licenciu, redistribúcie a popis úprav: [DENTITIO
 ## Aktuálny úvodný detail: dolná šestka
 
 Na hlavnej stránke a `/experience/` sa používa samostatný detailný **Mandibular First Molar, FDI 36**, University of Dundee, tí istí traja menovaní prispievatelia, **CC BY 4.0**. Zachovaná je pôvodná geometria s dvoma koreňmi. [Originál](https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6), [úpravy a obmedzenia](docs/LOWER_HERO.md), [doplnené kredity](public/dentition-assets/hero-36-credits.txt). Horná šestka zostáva súčasťou celého chrupu aj samostatného schváleného prototypu. Pôvodný hlavný prehliadač je presunutý na `/legacy/`.
+
+## Povlak, ilustračný kaz a medzizubná kefka
+
+Nový príbeh používa lokálne výrezy pôvodných povrchov 36 a 37 a riedky geometrický morph iba na 36. Tieto odvodené anatomické údaje sú **CC BY 4.0**, s pôvodnými autormi a opisom nových úprav v [kreditoch príbehu](public/story-assets/credits.txt). Nejde o kaz zachytený zdrojovým modelom ani o pacientsku léziu. Zdravé GLB sa nemenia a zub 46 nemá túto úpravu. Pozri [priestorový audit](docs/PROXIMAL_SITE.md).
+
+Neznačková fialová kefka, jej instancované nylonové vlákna a procedurálne materiály sú vytvorené pre tento projekt; autorský kód a vlastný nástrojový model sú **MIT**. Žiadny produktový model, obrázok ani video výrobcu sa nepreberá. [NIDCR, NHS a návody TePe](docs/DENTAL_STORY_SOURCES.md) sú odborné referencie k textu a technike, nie zdroj redistribuovaných assetov. Fialová neoznačuje univerzálnu veľkosť kefky.

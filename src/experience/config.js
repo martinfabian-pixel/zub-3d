@@ -1,3 +1,4 @@
+import { DENTAL_CHAPTERS } from './story-config.js';
 import { toothConfig } from '../prototype/config.js';
 
 // The approved single-tooth viewer is imported read-only. Nothing in its
@@ -5,6 +6,7 @@ import { toothConfig } from '../prototype/config.js';
 export const experienceConfig = {
   ...structuredClone(toothConfig),
   revision: typeof __DENTITION_ASSET_REVISION__ === 'string' ? __DENTITION_ASSET_REVISION__ : 'development',
+  storyRevision:typeof __STORY_ASSET_REVISION__==='string'?__STORY_ASSET_REVISION__:'development',
   // Authoring endpoints, not a public UI switch. Reversing these later reverses
   // the same camera/reveal architecture without reassembling another scene.
   story: { startProgress: 0, endProgress: 1 },
@@ -54,12 +56,8 @@ export const experienceConfig = {
     ...structuredClone(toothConfig.interaction),
     minimumDistanceFraction: 0.68, maximumDistanceFraction: 1.7,
   },
-  presentation: {
-    steps: [
-      { key: 'hero', at: 0, from: 0, label: 'Jeden zub', eyebrow: 'DETAIL ZUBA', title: 'Dolná šestka.\nZblízka.', mobileTitle: 'Dolná šestka.', mobileDescription: 'Prvá dolná stolička s dvoma koreňmi. Od nej odhalíte celý chrup.', description: 'Prvá dolná stolička má dva korene. Od nej postupne odhalíte všetkých 28 zubov.', meta: 'FDI 36 · dolná ľavá · 2 korene', next: 'Odhaľte susedov', subject: 'Dolná ľavá prvá stolička' },
-      { key: 'neighbors', at: 0.34, from: 0.12, label: 'Susedia', eyebrow: 'SUSEDNÉ ZUBY', title: 'Každý zub má\nsvoje miesto.', mobileTitle: 'Susedné zuby.', mobileDescription: 'Pred šestkou je druhý črenový zub, za ňou druhá stolička.', description: 'Pred šestkou je druhý črenový zub, za ňou druhá stolička. Ich korunky tvoria súvislý rad.', meta: 'FDI 35–37 · 3 zuby', next: 'Zobraziť dolný oblúk', subject: 'Tri susedné dolné zuby' },
-      { key: 'arch', at: 0.64, from: 0.35, label: 'Dolný oblúk', eyebrow: 'DOLNÁ ČEĽUSŤ', title: 'Jeden celok.\nŠtrnásť zubov.', mobileTitle: 'Dolný oblúk.', mobileDescription: 'Štrnásť zubov od stredných rezákov po druhé stoličky.', description: 'Od stredných rezákov po druhé stoličky. Preskúmajte celý dolný oblúk aj jeho žuvacie plochy.', meta: '14 dolných zubov · bez osmičiek', next: 'Odhaliť celý chrup', subject: 'Dolný zubný oblúk' },
-      { key: 'full', at: 0.94, from: 0.66, label: 'Celý chrup', eyebrow: 'ÚPLNÁ ZOSTAVA', title: 'Celý chrup.\nNová perspektíva.', mobileTitle: 'Celý chrup.', mobileDescription: 'Horný a dolný oblúk spolu. Otočte si všetkých 28 zubov.', description: 'Horný a dolný oblúk spolu. Otočte si zostavu a pozrite sa, ako jednotlivé typy zubov zapadajú do celku.', meta: '28 trvalých zubov · 2 oblúky', next: 'Späť na začiatok', subject: 'Úplný stály chrup bez osmičiek' },
-    ],
-  },
+  storyCamera: {detailRadiusCm:.12,detailDistanceCm:2.15,resultDistanceCm:2.15,cleaningDistanceCm:3.1,cleaningBuccalShiftMm:1.7,cleaningOcclusalShiftMm:-.3,neighborDirection:[1,.65,.35]},
+  caries: {chalk:'#f8f2df',floor:'#927157',margin:'#c5ad84'},
+  assetsStory: {site:'story-assets/site.json',caries:'story-assets/caries-36.json'},
+  presentation: { steps:DENTAL_CHAPTERS.map((ch,i)=>({...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,meta:i===0?'FDI 36 · dolná ľavá · 2 korene':i===6?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',next:i===6?'Späť na ukážku čistenia':'Pokračovať',subject:i===0?'Dolná ľavá prvá stolička':i===6?'Starostlivosť o celý chrup':'Medzizubný priestor 36–37'})) },
 };

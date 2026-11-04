@@ -1,7 +1,7 @@
 import { Box3, MathUtils, Matrix4, Vector3 } from 'three';
 
-export const JOURNEY_STAGES = Object.freeze(['hero', 'neighbors', 'arch', 'full']);
 export const DEFAULT_STOPS = Object.freeze({ hero: 0.07, neighbors: 0.36, arch: 0.65, full: 0.88 });
+export const JOURNEY_STAGES = Object.freeze(Object.keys(DEFAULT_STOPS));
 const directions = {
   hero: [0.75, 0.8, 1], neighbors: [0.65, 0.85, 1], arch: [0.32, 1.1, 1], full: [0.58, 0.1, 1],
 };
@@ -14,7 +14,8 @@ const unit = (value) => MathUtils.clamp(Number.isFinite(value) ? value : 0, 0, 1
 export function getStage(progress, stops = DEFAULT_STOPS, out = {}) {
   const p = unit(progress);
   let from = 0;
-  for (const stage of JOURNEY_STAGES) {
+  const stages=Object.keys(stops);
+  for (const stage of stages) {
     const to = stops[stage];
     if (p <= to) {
       out.stage = stage;
@@ -23,7 +24,7 @@ export function getStage(progress, stops = DEFAULT_STOPS, out = {}) {
     }
     from = to;
   }
-  out.stage = 'full';
+  out.stage = stages.at(-1);
   out.localProgress = 1;
   return out;
 }
@@ -124,16 +125,20 @@ function track(values, knots) {
  * A selection can also be a callback; refreshLandmarks() re-reads all four.
  */
 export function createTimeline({ landmarks, cameraOptions = {} }) {
-  const stops = Object.freeze({ ...DEFAULT_STOPS, ...cameraOptions.stops });
-  const knots = JOURNEY_STAGES.map((name) => stops[name]);
+  const frames=cameraOptions.keyframes??Object.entries(cameraOptions.stops??DEFAULT_STOPS).map(([key,at])=>({key,at,landmark:key}));
+  const names=frames.map(frame=>frame.key);
+  const stops=Object.freeze(Object.fromEntries(frames.map(frame=>[frame.key,frame.at])));
+  const knots = frames.map(frame=>frame.at);
+  if(frames.length<2||new Set(names).size!==frames.length)throw new RangeError('Camera needs distinct named keyframes.');
   if (knots.some((v, i) => !Number.isFinite(v) || v < 0 || v > 1 || (i > 0 && v <= knots[i - 1]))) {
     throw new RangeError('Camera stops must be strictly increasing in [0, 1].');
   }
   const fov = cameraOptions.fov ?? 32, near = cameraOptions.near ?? 0.012, far = cameraOptions.far ?? 100;
   if (!(fov > 0 && fov < 180 && near > 0 && far > near)) throw new RangeError('Invalid perspective camera configuration.');
   const tanY = Math.tan(MathUtils.degToRad(fov / 2));
-  const dirs = JOURNEY_STAGES.map((name) => {
-    const value = new Vector3().fromArray(cameraOptions.directions?.[name] ?? directions[name]).normalize();
+  const dirs = frames.map((frame) => {
+    const name=frame.key;
+    const value = new Vector3().fromArray(frame.direction??cameraOptions.directions?.[name]??directions[frame.landmark??name]??directions.hero).normalize();
     if (!(value.lengthSq() > 0) || Math.abs(value.y) >= 1 - 1e-8) {
       throw new Error('Camera directions must be finite, nonzero and not parallel to up: ' + name);
     }
@@ -152,7 +157,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
   let measured, xyz, logDistance, lastAspect;
 
   function refreshLandmarks() {
-    measured = JOURNEY_STAGES.map((name, i) => measure(landmarks[name], name, dirs[i], cameraOptions.targetOffsets?.[name] ?? [0, 0, 0]));
+    measured = frames.map((frame,i)=>measure(landmarks[frame.landmark??frame.key],frame.precise===false?'bounds':frame.landmark??frame.key,dirs[i],frame.targetOffset??cameraOptions.targetOffsets?.[frame.key]??[0,0,0]));
     lastAspect = undefined;
   }
 
@@ -160,11 +165,11 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
     if (lastAspect === aspect) return;
     const targets = [];
     const distances = measured.map(({ projected, target, offset, right, vertical, direction }, index) => {
-      const name = JOURNEY_STAGES[index];
+      const frame=frames[index],name=frame.key;
       // Blend the framing margins through square aspect rather than popping
       // to a separate camera composition at an arbitrary device breakpoint.
-      const desktop = cameraOptions.padding?.[name] ?? padding[name];
-      const portrait = cameraOptions.portraitPadding?.[name] ?? portraitPadding[name];
+      const desktop = frame.padding??cameraOptions.padding?.[name]??padding[frame.landmark??name]??1.1;
+      const portrait = frame.portraitPadding??cameraOptions.portraitPadding?.[name]??portraitPadding[frame.landmark??name]??1.08;
       const margin = MathUtils.lerp(portrait, desktop, MathUtils.smoothstep(aspect, 0.65, 1.35));
       if (!(margin >= 1)) throw new RangeError('Camera padding must be at least one: ' + name);
       const kx = tanY * aspect / margin, ky = tanY / margin;
@@ -190,6 +195,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
             Math.abs(projected[i] - ox) / kx, Math.abs(projected[i + 1] - oy) / ky));
         }
       }
+      if(frame.distance)distance=Math.max(distance,frame.distance);
       return Math.log(distance);
     });
     xyz = ['x', 'y', 'z'].map((axis) => track(targets.map((target) => target[axis]), knots));
@@ -203,7 +209,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
     const p = unit(progress);
     let sceneProgress = p;
     if (reducedMotion) {
-      // Four still compositions, with no continuous zoom or camera sweep.
+      // Arbitrary configured still compositions, without a camera sweep.
       // Use fixed midpoint thresholds so returning to a scroll position gives
       // exactly the same image in either direction.
       let nearest = 0;

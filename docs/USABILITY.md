@@ -1,5 +1,7 @@
 # Interaktívna prehliadka od dolnej šestky po celý chrup
 
+> Archív funkčnej verzie `333c359` pred rozšírením na sedem edukačných kapitol. Aktuálnu hlavnú stránku a alias `/experience/` opisuje [DENTAL_STORY.md](DENTAL_STORY.md). Nasledujúce počty krokov a výsledky testov sa vzťahujú na túto staršiu verziu.
+
 [Hlavná stránka](https://martinfabian-pixel.github.io/zub-3d/) začína detailom **dolnej ľavej prvej stoličky FDI 36**. Tlačidlá umožňujú prejsť priamo na ľubovoľný krok; bežné posúvanie stránky zachováva plynulý pohyb kamery. Rovnaká prezentácia je dostupná aj na [`/experience/`](https://martinfabian-pixel.github.io/zub-3d/experience/). Predchádzajúci hlavný prehliadač je na [`/legacy/`](https://martinfabian-pixel.github.io/zub-3d/legacy/); jeho pôvodné modely zostávajú zachované. [Samostatný prototyp](https://martinfabian-pixel.github.io/zub-3d/prototype/) sa nezmenil.
 
 | Krok | Čo návštevník vidí |

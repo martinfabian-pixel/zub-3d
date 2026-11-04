@@ -1,0 +1,823 @@
+{
+  "method": "Read exact committed-source GLB accessor arrays and actual public sparse morph JSON independently of any preparation code. Only FDI36 gets relative POSITION/NORMAL deltas. The mirrored 46 instance stays healthy. Five discrete shape samples; no assertion of mathematical collision certification at every real-valued morph influence. Mesh BVH epsilon zero. Same-arch and cross-arch tests include all 28 actual LOD-specific geometry instances and their final poses. No brush/plaque, shadows or soft tissue included.",
+  "currentSourceFiles": {
+    "caries-36.json": "12ab8966f034cf12bf62b2760ae4d7e7bf6da652b7c4d33342cd482f102be90a",
+    "site.json": "a8b8a8d3549c5f8365c977dd2f614c5b1d2242d2b3e7fe1228026d1dc92add27"
+  },
+  "immutableAssets": {
+    "baselineCommit": "333c35932a4a779b47ae2ace3a08deefcd79bf97",
+    "protectedPaths": [
+      "public/dentition-assets",
+      "public/prototype-assets",
+      "public/models",
+      "assets/source/dentition",
+      "assets/source/dundee"
+    ],
+    "gitDifferencesAgainstBaseline": [],
+    "untrackedWithinProtectedPaths": [],
+    "deliveredMeshAndManifestComparisons": {
+      "public/dentition-assets/manifest.json": {
+        "worktreeSha256": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+        "baselineSha256": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+        "byteIdentical": true
+      },
+      "public/dentition-assets/dentition-mobile.glb": {
+        "worktreeSha256": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+        "baselineSha256": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+        "byteIdentical": true
+      },
+      "public/dentition-assets/dentition.glb": {
+        "worktreeSha256": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+        "baselineSha256": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+        "byteIdentical": true
+      },
+      "public/dentition-assets/hero-36-mobile.glb": {
+        "worktreeSha256": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2",
+        "baselineSha256": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2",
+        "byteIdentical": true
+      },
+      "public/dentition-assets/hero-36.glb": {
+        "worktreeSha256": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+        "baselineSha256": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+        "byteIdentical": true
+      },
+      "public/prototype-assets/molar-mobile.glb": {
+        "worktreeSha256": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+        "baselineSha256": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+        "byteIdentical": true
+      },
+      "public/prototype-assets/molar.glb": {
+        "worktreeSha256": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+        "baselineSha256": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+        "byteIdentical": true
+      }
+    },
+    "eachComparedGlbAndManifestByteIdentical": true
+  },
+  "geometry": {
+    "vertexCount": 27741,
+    "triangles": 55184,
+    "sparseVertexIds": 113,
+    "nonzeroDisplacedVertices": 39,
+    "displacedOver5Microns": 38,
+    "verifiedHealthyGeometryHashes": {
+      "POSITION": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+      "NORMAL": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+      "TANGENT": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+      "TEXCOORD_0": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+      "INDICES": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+    },
+    "unchangedMeshIndicesAndUVs": true,
+    "preserved46HealthyInstance": true
+  },
+  "lods": {
+    "desktop": {
+      "assetHashes": {
+        "dentition.glb": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+        "molar.glb": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+        "hero-36.glb": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74"
+      },
+      "healthySurfaceTopology": {
+        "welded_vertices": 27594,
+        "triangles": 55184,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_manifold_edges": 0
+      },
+      "stages": {
+        "0.0": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 1.0,
+            "maximumGeometricNormalChangeDeg": 1.2074182697257333e-06,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.9999999527852477,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.3890606033324,
+            "volumeChangeRelativeHealthyMm3": 0.0,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.0,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9328913773554881,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2488016306559477,
+                -0.6708072365554456,
+                -1.0151557966333793
+              ],
+              "depthMm": 0.0,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.8436787318296947,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "0.25": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.9170221532023423,
+            "maximumGeometricNormalChangeDeg": 28.269622871107597,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.8955849245815212,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.2994086383785,
+            "volumeChangeRelativeHealthyMm3": -0.08965196495387318,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.16023351191334467,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9334293564045657,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2376806148647788,
+                -0.6737230479970999,
+                -1.0039947556958086
+              ],
+              "depthMm": 0.16023351191334467,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.7990854437714349,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "0.5": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.8484780424671202,
+            "maximumGeometricNormalChangeDeg": 47.54264193456263,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.8579606394898159,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.2138834414593,
+            "volumeChangeRelativeHealthyMm3": -0.17517716187307997,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.32046743130480676,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9362174185360533,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2265595846662096,
+                -0.6766388657838104,
+                -0.9928336722720138
+              ],
+              "depthMm": 0.32046743130480676,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.7487752886037834,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "0.75": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.7774555249314964,
+            "maximumGeometricNormalChangeDeg": 59.43393325996101,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.8955849076832171,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.1324016296178,
+            "volumeChangeRelativeHealthyMm3": -0.25665897371459323,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.48070137617314984,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9399873609638645,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.215438556540948,
+                -0.6795547284331009,
+                -0.9816725948450948
+              ],
+              "depthMm": 0.48070137617314984,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.6936601534274569,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "1.0": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.7097800750119609,
+            "maximumGeometricNormalChangeDeg": 66.81952625226009,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.9999999527852477,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.0548795590134,
+            "volumeChangeRelativeHealthyMm3": -0.3341810443189388,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.6409349863255488,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9439053955902289,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2043175192961053,
+                -0.6824705398933786,
+                -0.9705115611854089
+              ],
+              "depthMm": 0.6409349863255488,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.6349486494228926,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        }
+      }
+    },
+    "mobile": {
+      "assetHashes": {
+        "dentition-mobile.glb": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+        "molar-mobile.glb": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+        "hero-36-mobile.glb": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2"
+      },
+      "healthySurfaceTopology": {
+        "welded_vertices": 27594,
+        "triangles": 55184,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "inconsistent_manifold_edges": 0
+      },
+      "stages": {
+        "0.0": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 1.0,
+            "maximumGeometricNormalChangeDeg": 1.2074182697257333e-06,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.9999999527852477,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.3890606033324,
+            "volumeChangeRelativeHealthyMm3": 0.0,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.0,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9328913773554881,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2488016306559477,
+                -0.6708072365554456,
+                -1.0151557966333793
+              ],
+              "depthMm": 0.0,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.8436787318296947,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "0.25": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.9170221532023423,
+            "maximumGeometricNormalChangeDeg": 28.269622871107597,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.8955849245815212,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.2994086383785,
+            "volumeChangeRelativeHealthyMm3": -0.08965196495387318,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.16023351191334467,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9334293564045657,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2376806148647788,
+                -0.6737230479970999,
+                -1.0039947556958086
+              ],
+              "depthMm": 0.16023351191334467,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.7990854437714349,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "0.5": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.8484780424671202,
+            "maximumGeometricNormalChangeDeg": 47.54264193456263,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.8579606394898159,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.2138834414593,
+            "volumeChangeRelativeHealthyMm3": -0.17517716187307997,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.32046743130480676,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9362174185360533,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2265595846662096,
+                -0.6766388657838104,
+                -0.9928336722720138
+              ],
+              "depthMm": 0.32046743130480676,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.7487752886037834,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "0.75": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.7774555249314964,
+            "maximumGeometricNormalChangeDeg": 59.43393325996101,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.8955849076832171,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.1324016296178,
+            "volumeChangeRelativeHealthyMm3": -0.25665897371459323,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.48070137617314984,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9399873609638645,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.215438556540948,
+                -0.6795547284331009,
+                -0.9816725948450948
+              ],
+              "depthMm": 0.48070137617314984,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.6936601534274569,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        },
+        "1.0": {
+          "orientation": {
+            "flippedFacesAgainstHealthy": 0,
+            "degenerateFacesBelow1eMinus12Mm2": 0,
+            "minimumAreaMm2": 0.00032217363581286246,
+            "minimumFaceAreaRatio": 0.7097800750119609,
+            "maximumGeometricNormalChangeDeg": 66.81952625226009,
+            "minimumInterpolatedShadingVectorLengthBeforeNormalize": 0.9999999527852477,
+            "maximumUVSeamPositionDifferenceMm": 0.0,
+            "signedVolumeMm3": 1285.0548795590134,
+            "volumeChangeRelativeHealthyMm3": -0.3341810443189388,
+            "maxDepthMeasuredFromCorrespondingHealthyVertexMm": 0.6409349863255488,
+            "positionChangesOutsideSparseIds": 0
+          },
+          "selfIntersection": {
+            "nonadjacent_intersecting_triangle_pairs": 0,
+            "first_pairs": []
+          },
+          "all28PairsTested": {
+            "sameArch": 182,
+            "opposingArch": 196
+          },
+          "interToothIntersections": [],
+          "macroVisibility": {
+            "allDisplacedSurfaceTriangles": {
+              "testedFaceCentroids": 100,
+              "visibleFaceCentroids": 100,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "matureFloorRegion": {
+              "testedFaceCentroids": 27,
+              "visibleFaceCentroids": 27,
+              "visibleAreaFractionFromCentroidSamples": 1.0,
+              "hiddenCentroidsByOccluder": {}
+            },
+            "chalkAndMarginRegion": {
+              "testedFaceCentroids": 183,
+              "visibleFaceCentroids": 170,
+              "visibleAreaFractionFromCentroidSamples": 0.9439053955902289,
+              "hiddenCentroidsByOccluder": {
+                "37": 13
+              }
+            },
+            "prior41PointFootprintReboundToMorph": {
+              "tested": 41,
+              "visible": 41,
+              "otherToothOccluded": 0,
+              "selfOccluded": 0
+            },
+            "deepestCorrespondingFloorVertex": {
+              "sourceVertexId": 17721,
+              "worldCm": [
+                3.2043175192961053,
+                -0.6824705398933786,
+                -0.9705115611854089
+              ],
+              "depthMm": 0.6409349863255488,
+              "surroundingFaceCentroids": 6,
+              "visibleSurroundingFaceCentroids": 6,
+              "visible": true,
+              "geometricNormalDotView": 0.6349486494228926,
+              "closestOccludingFdi": null,
+              "hitDistanceFromSurfaceMm": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "cameraWorldCm": [
+    6.1608148853595175,
+    0.1414132041503655,
+    -1.6407013403712492
+  ],
+  "lookAtWorldCm": [
+    3.233289957046509,
+    -0.6747127771377563,
+    -1.0295252799987793
+  ],
+  "visibilityMethod": "From actual morphed surface sampled points, ray to site macro perspective camera at 31mm with 0.0001mm outward origin offset. Check all 28 teeth for occluders and require positive geometric face dot camera. For vertex use native interpolated shading normal at that vertex; also test interior centroids/floor areas. No wide claim of universal visibility; adjacent hidden walls can be legitimate self-occlusion of a real concavity.",
+  "selfIntersectionMethod": "All FDI36 exterior triangles tested by global Blender BVHTree.overlap with positional UV seams welded first. Discard each identical or adjacent face pair (share any welded vertex); report distinct unordered pairs only. Same exclusions as previous reference audit.",
+  "summary": {
+    "sampledInfluences": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "bothLodsSameFdi36AccessorHashes": true,
+    "interToothPairTestsAcrossStagesAndLods": 3780,
+    "interToothIntersectionPairsAcrossTests": 0,
+    "maxNonAdjacentSelfIntersectingPairsAtAnySample": 0,
+    "maxFlippedFacesAtAnySample": 0,
+    "maxDegenerateFacesAtAnySample": 0,
+    "matureMaximumDepressionMm": 0.6409349863255488,
+    "matureRemovedVolumeMm3": 0.3341810443189388,
+    "deepestFloorVertexVisibleAtEveryStageAndLod": true,
+    "matureFloorVisibility": {
+      "testedFaceCentroids": 27,
+      "visibleFaceCentroids": 27,
+      "visibleAreaFractionFromCentroidSamples": 1.0,
+      "hiddenCentroidsByOccluder": {}
+    },
+    "matureBroaderChalkMarginVisibility": {
+      "testedFaceCentroids": 183,
+      "visibleFaceCentroids": 170,
+      "visibleAreaFractionFromCentroidSamples": 0.9439053955902289,
+      "hiddenCentroidsByOccluder": {
+        "37": 13
+      }
+    },
+    "mature41TrackedFootprintSamplesVisible": 41,
+    "immutableGlbsAndManifestByteIdentical": true
+  }
+}

@@ -1,6 +1,6 @@
 # Súvislý scrollový zážitok s 28 zubami
 
-**Archív predchádzajúcej verzie s úvodnou hornou šestkou**, zodpovedajúci commitu `7b3c789`. Aktuálna hlavná stránka začína **dolnou šestkou FDI 36**, má navigáciu, opisy a priebežné ovládanie: [aktuálne rozhranie a spustenie](USABILITY.md). Nižšie uvedené rozmery zostavy, trasa kamery a snímky opisujú starší stav; jeho kód zostáva v Git histórii.
+**Archív predchádzajúcej verzie s úvodnou hornou šestkou**, zodpovedajúci commitu `7b3c789`. Aktuálna hlavná stránka začína **dolnou šestkou FDI 36** a vysvetľuje povlak, kaz a medzizubné čistenie: [aktuálny príbeh a spustenie](DENTAL_STORY.md). Nižšie uvedené rozmery zostavy, trasa kamery a snímky opisujú starší stav; jeho kód zostáva v Git histórii.
 
 [Publikovaná stránka](https://martinfabian-pixel.github.io/zub-3d/experience/) · [Samostatný schválený zub](https://martinfabian-pixel.github.io/zub-3d/prototype/) · [Pôvodná prezentácia](https://martinfabian-pixel.github.io/zub-3d/)
 
