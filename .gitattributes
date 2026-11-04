@@ -10,5 +10,5 @@
 # Preserve the downloaded source JSON byte-for-byte for its recorded SHA256.
 assets/source/dundee/scene.gltf -text
 # Preserve the exact publication payloads recorded in contact/render QA hashes.
-public/dentition-assets/manifest.json -text
-public/dentition-assets/credits.txt -text
+public/dentition-assets/manifest.json -text whitespace=trailing-space,space-before-tab,cr-at-eol
+public/dentition-assets/credits.txt -text whitespace=trailing-space,space-before-tab,cr-at-eol
