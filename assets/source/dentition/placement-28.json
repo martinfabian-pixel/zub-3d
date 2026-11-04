@@ -1,0 +1,5149 @@
+{
+  "source": "https://sketchfab.com/3d-models/permanent-dentition-2f69d7b59c3e4a6a8bcae041bd8e591b",
+  "source_license": "CC BY 4.0; University of Dundee, School of Dentistry; original CT-informed ZBrush Permanent Dentition. This file derives target placement from source geometry.",
+  "ready_fit_count": 28,
+  "convention": "4x4 matrices are JSON rows and multiply COLUMN vectors, translation in last column. Use Three.js Matrix4.set(...rows.flat()) (NOT fromArray on those rows). Assembled-native axes: +X patient LEFT, +Y POSTERIOR, +Z SUPERIOR. Raw units from the source including all hierarchy under the outermost Sketchfab_model node. Source-pre-Sketchfab coordinates specifically include all subnode/OBJ transformations but exclude only the outermost Sketchfab_model transform. Apply just ONE appropriate stored matrix to your actual source coordinate basis.",
+  "translation_and_scaling": "No mesh reshaping: each fit is one uniform similarity. Source right-side is a reflected left source, independently posed to that actual right reference tooth. To bake a matrix with det<0 into vertex positions, reverse triangle winding and update normals/tangent handedness. Avoid duplicated mirroring in runtime. Do not separately recenter either arch because that destroys supplied natural occlusion.",
+  "reference_pre_sketchfab_to_gltf_world": [
+    [
+      0.3689972162246704,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      8.19338410950433e-17,
+      0.3689972162246704,
+      0.0
+    ],
+    [
+      0.0,
+      -0.3689972162246704,
+      8.19338410950433e-17,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "reference_gltf_world_to_pre_sketchfab": [
+    [
+      2.710047545158532,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      -0.0,
+      6.017514364927772e-16,
+      -2.710047545158532,
+      -0.0
+    ],
+    [
+      0.0,
+      2.710047545158532,
+      6.017514364927772e-16,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "illustrative_mm_per_native_unit": 11.491830847869014,
+  "illustrative_mm_per_reference_gltf_unit": 31.143407978644518,
+  "scale_note": "UL6 reference world Y span nominally 21 mm; these are not measured specimen units. Use one shared scale for all 28 to preserve arch dimensions.",
+  "landmark_method": "BBox centers for full exterior; crown landmark = mean of topmost 12% of uniformly area-sampled surface in crownward vertical height; apical landmark = opposite 8%. Mesial/buccal fields follow local arch centerline and are advisory, not clinically annotated anatomical landmarks. Transformed full-reference geometry/registered matrices carry the actual pose.",
+  "normalization_note": "If canonical mesh is C @ source_pre_sketchfab, use runtime N @ inverse(C) @ canonical for assembled placement; never apply N directly to individually centered/normalized meshes. Same guidance for mesh-local basis and model-wide centered mesh.",
+  "lower_incisor_crossfit_rms_mm": {
+    "31:mandibular_left_lateral_incisor": 0.06333580449523686,
+    "31:mandibular_left_central_incisor": 0.23145313959385116,
+    "32:mandibular_left_lateral_incisor": 0.205234442763037,
+    "32:mandibular_left_central_incisor": 0.06062450551923791
+  },
+  "teeth": {
+    "11": {
+      "fdi": 11,
+      "source_asset": "research-models\\dentition-28\\maxillary_left_central_incisor.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 17,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "UL1seam_1:ZBrushPolyMesh3D",
+        "polySurface2",
+        "polySurface2_UL1_0"
+      ],
+      "target_exterior_faces": 1504,
+      "target_bounds_native": [
+        [
+          -0.920812684,
+          -8.062030384,
+          2.930192998
+        ],
+        [
+          -0.140649036,
+          -7.160445127,
+          5.053193762
+        ]
+      ],
+      "target_bbox_center_native": [
+        -0.53073086,
+        -7.611237756,
+        3.99169338
+      ],
+      "target_crown_landmark_native": [
+        -0.524500919,
+        -7.859463137,
+        3.063017713
+      ],
+      "target_apical_landmark_native": [
+        -0.55368375,
+        -7.357801608,
+        4.821324025
+      ],
+      "target_crownward_axis_native": [
+        0.015958207,
+        -0.274326314,
+        -0.961504243
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.984613111,
+        -0.173715397,
+        -0.018973188
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.173746673,
+        -0.984790381,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -1.0873025074298615,
+          -0.004740561088713441,
+          -0.009836298901211722,
+          -0.4531395511647657
+        ],
+        [
+          -0.0048654068378072846,
+          1.0872585984673626,
+          0.01382158579403746,
+          0.8338911055549896
+        ],
+        [
+          -0.009775147661922381,
+          -0.013864901662960057,
+          1.0872249902153834,
+          -0.6214581325589307
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -1.0873025074298615,
+          -0.004740561088713441,
+          -0.009836298901211722,
+          -0.4531395511647657
+        ],
+        [
+          -0.0048654068378072846,
+          1.0872585984673626,
+          0.01382158579403746,
+          0.8338911055549896
+        ],
+        [
+          -0.009775147661922381,
+          -0.013864901662960057,
+          1.0872249902153834,
+          -0.6214581325589307
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.430921905210549,
+          -0.021991372503752344,
+          0.010598645468759429,
+          -0.4531395511647657
+        ],
+        [
+          -0.010877767667200812,
+          0.030901423883307442,
+          -2.4308237363403,
+          0.8338911055549896
+        ],
+        [
+          -0.021854654445894996,
+          2.430748597144562,
+          0.030998266752598775,
+          -0.6214581325589307
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          7.318857049617972e-33,
+          0.0
+        ],
+        [
+          0.0,
+          7.318857049617972e-33,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.073653042,
+        -7.819047928,
+        4.144893527
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -0.536926426,
+        -7.610505336,
+        3.992664053
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL1sketch1_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.08735733241597,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.07242640106556601,
+      "symmetric_distance_p95_nominal_mm": 0.1220799738818468
+    },
+    "12": {
+      "fdi": 12,
+      "source_asset": "research-models\\dentition-28\\maxillary_lateral_incisor.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 18,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "UL2_seam_1:ZBrushPolyMesh3D",
+        "polySurface4",
+        "polySurface4_blinn14_0"
+      ],
+      "target_exterior_faces": 1470,
+      "target_bounds_native": [
+        [
+          -1.517663977,
+          -7.777155167,
+          2.958554448
+        ],
+        [
+          -0.864628263,
+          -7.011886683,
+          4.901401975
+        ]
+      ],
+      "target_bbox_center_native": [
+        -1.19114612,
+        -7.394520925,
+        3.929978211
+      ],
+      "target_crown_landmark_native": [
+        -1.194053015,
+        -7.561398241,
+        3.090644065
+      ],
+      "target_apical_landmark_native": [
+        -1.103503221,
+        -7.186317463,
+        4.732356221
+      ],
+      "target_crownward_axis_native": [
+        -0.05369264,
+        -0.222408867,
+        -0.973473881
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.850030479,
+        -0.522069102,
+        -0.069943105
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.523350798,
+        -0.852117329,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -1.1060674586084553,
+          0.22954060851462713,
+          -0.09282157693733158,
+          1.7671662117006408
+        ],
+        [
+          0.23008826530619572,
+          1.1098385069450014,
+          0.002799600942425169,
+          1.0516941363603867
+        ],
+        [
+          -0.09145559726328856,
+          0.01611076161406105,
+          1.129631035420144,
+          -0.44362718011305197
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -1.1060674586084553,
+          0.22954060851462713,
+          -0.09282157693733158,
+          1.7671662117006408
+        ],
+        [
+          0.23008826530619572,
+          1.1098385069450014,
+          0.002799600942425169,
+          1.0516941363603867
+        ],
+        [
+          -0.09145559726328856,
+          0.01611076161406105,
+          1.129631035420144,
+          -0.44362718011305197
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.12395781137114,
+          -0.17824329959753635,
+          -0.44078194750878474,
+          1.7671662117006408
+        ],
+        [
+          0.4418336011953203,
+          0.005376014133773929,
+          -2.1311992752702245,
+          1.0516941363603867
+        ],
+        [
+          -0.17562023788798395,
+          2.1692064466541954,
+          -0.030937152802934083,
+          -0.44362718011305197
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -9.336845834089856e-33,
+          0.0
+        ],
+        [
+          0.0,
+          -9.336845834089856e-33,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.752161145,
+        -7.746404886,
+        4.035805225
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -1.217499051,
+        -7.3612022,
+        3.921753826
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL2sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.1334416434448493,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.06495225291828917,
+      "symmetric_distance_p95_nominal_mm": 0.10949572787395259
+    },
+    "13": {
+      "fdi": 13,
+      "source_asset": "research-models\\dentition-28\\maxillary_canine.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 19,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "UL3seam_2:ZBrushPolyMesh3D",
+        "polySurface6",
+        "polySurface6_blinn15_0"
+      ],
+      "target_exterior_faces": 1396,
+      "target_bounds_native": [
+        [
+          -1.981669417,
+          -7.37655844,
+          2.985300942
+        ],
+        [
+          -1.223255741,
+          -6.444232149,
+          4.959887431
+        ]
+      ],
+      "target_bbox_center_native": [
+        -1.602462579,
+        -6.910395295,
+        3.972594187
+      ],
+      "target_crown_landmark_native": [
+        -1.739668223,
+        -7.113135424,
+        3.163005392
+      ],
+      "target_apical_landmark_native": [
+        -1.377600576,
+        -6.593291748,
+        4.76715863
+      ],
+      "target_crownward_axis_native": [
+        -0.209929106,
+        -0.301408643,
+        -0.930098167
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.563757659,
+        -0.825673919,
+        -0.020973337
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.825855578,
+        -0.563881693,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -1.0176718510194287,
+          0.20168975525026725,
+          0.20255662122194312,
+          0.376677145201265
+        ],
+        [
+          0.22628016954293206,
+          1.0261107924441448,
+          0.11514271743970278,
+          -0.07866144130196065
+        ],
+        [
+          0.17465746098161897,
+          -0.15421349523530567,
+          1.0310562000568662,
+          -1.6918006155255993
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -1.0176718510194287,
+          0.2016897552502673,
+          0.2025566212219431,
+          0.376677145201265
+        ],
+        [
+          0.22628016954293206,
+          1.026110792444145,
+          0.11514271743970275,
+          -0.07866144130196065
+        ],
+        [
+          0.17465746098161897,
+          -0.1542134952353057,
+          1.031056200056866,
+          -1.6918006155255993
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.2429449200718814,
+          0.4689229182065167,
+          -0.42073240076714424,
+          0.376677145201265
+        ],
+        [
+          0.49872063993998994,
+          0.37091182154853936,
+          -2.245308111303271,
+          -0.07866144130196065
+        ],
+        [
+          0.3849443850382142,
+          2.2517198067626225,
+          0.4574736090872653,
+          -1.6918006155255993
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0000000000000002,
+          -1.1347024589726025e-17,
+          0.0
+        ],
+        [
+          0.0,
+          -6.159569750967818e-18,
+          0.9999999999999999,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.264641821,
+        -7.422532797,
+        4.175623298
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -1.561561915,
+        -6.928046472,
+        3.97903553
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL3sketch1_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.05705436250525,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.06958128685539454,
+      "symmetric_distance_p95_nominal_mm": 0.11758947282004044
+    },
+    "14": {
+      "fdi": 14,
+      "source_asset": "research-models\\dentition-28\\maxillary_first_premolar.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 30,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "ZBrushPolyMesh3D8",
+        "ZBrushPolyMesh3D8_blinn16_0"
+      ],
+      "target_exterior_faces": 2220,
+      "target_bounds_native": [
+        [
+          -2.414813724,
+          -6.758727812,
+          2.984241529
+        ],
+        [
+          -1.520632548,
+          -5.970845401,
+          5.011295835
+        ]
+      ],
+      "target_bbox_center_native": [
+        -1.967723136,
+        -6.364786606,
+        3.997768682
+      ],
+      "target_crown_landmark_native": [
+        -2.005556797,
+        -6.372877788,
+        3.120834241
+      ],
+      "target_apical_landmark_native": [
+        -1.95179639,
+        -6.365514288,
+        4.779174406
+      ],
+      "target_crownward_axis_native": [
+        -0.032400862,
+        -0.004437908,
+        -0.999465102
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.417538415,
+        -0.908180187,
+        0.029502867
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.908575694,
+        -0.41772025,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -1.1004454330685918,
+          -0.2384110359970795,
+          0.063685771549827,
+          -2.1267024932312646
+        ],
+        [
+          -0.2408899770993319,
+          1.1009924236184363,
+          -0.04078667444767475,
+          1.7595872301893405
+        ],
+        [
+          0.05355108324002611,
+          0.05340142127525258,
+          1.1252361620718616,
+          -0.46502194296203214
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -1.1004454330685918,
+          -0.2384110359970795,
+          0.063685771549827,
+          -1.4494299796897043
+        ],
+        [
+          -0.2408899770993319,
+          1.1009924236184363,
+          -0.04078667444767475,
+          -6.620982613964062
+        ],
+        [
+          0.05355108324002611,
+          0.05340142127525258,
+          1.1252361620718616,
+          2.925483904110384
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.302345788607945,
+          0.1332430155242894,
+          0.4988022378855376,
+          -2.1267024932312646
+        ],
+        [
+          -0.5039886646137244,
+          -0.08533365246841232,
+          -2.303490199181154,
+          1.7595872301893405
+        ],
+        [
+          0.11203927724909069,
+          2.3542128133617672,
+          -0.11172615532231704,
+          -0.46502194296203214
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.1440260410308838
+        ],
+        [
+          0.0,
+          1.0,
+          -3.166699496510685e-33,
+          -7.239193439483643
+        ],
+        [
+          0.0,
+          -3.166699496510685e-33,
+          1.0,
+          3.3022625446319585
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.557643473,
+        -6.908618897,
+        4.204445243
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -1.925949812,
+        -6.393455873,
+        3.980455313
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL4sketch_1.OBJ.cleaner.gles",
+        "Object_2",
+        "Object_3"
+      ],
+      "uniform_scale_native": 1.1277747340424924,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.07703094149419645,
+      "symmetric_distance_p95_nominal_mm": 0.12966494304513973
+    },
+    "15": {
+      "fdi": 15,
+      "source_asset": "research-models\\dentition-28\\maxillary_second_premolar.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 31,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "ZBrushPolyMesh3D9",
+        "ZBrushPolyMesh3D9_blinn17_0"
+      ],
+      "target_exterior_faces": 1526,
+      "target_bounds_native": [
+        [
+          -2.718688308,
+          -6.129309857,
+          3.015430349
+        ],
+        [
+          -1.904466182,
+          -5.455623325,
+          4.815360828
+        ]
+      ],
+      "target_bbox_center_native": [
+        -2.311577245,
+        -5.792466591,
+        3.915395588
+      ],
+      "target_crown_landmark_native": [
+        -2.338961216,
+        -5.809624172,
+        3.12065992
+      ],
+      "target_apical_landmark_native": [
+        -2.320572184,
+        -5.798154306,
+        4.612133612
+      ],
+      "target_crownward_axis_native": [
+        -0.012328136,
+        -0.007689479,
+        -0.999894439
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.345121128,
+        -0.929197351,
+        -0.132225901
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.93742834,
+        -0.34817827,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -1.0422500057781288,
+          -0.008596396351232514,
+          0.17937322609582457,
+          -1.061271215568305
+        ],
+        [
+          -0.03512351996146598,
+          1.0457503546741937,
+          -0.15396837616562653,
+          1.4288010123392896
+        ],
+        [
+          0.17611073395954094,
+          0.15768964608792904,
+          1.030850479805709,
+          0.2435992970489174
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -1.0422500057781288,
+          -0.008596396351232514,
+          0.17937322609582457,
+          -1.061271215568305
+        ],
+        [
+          -0.03512351996146598,
+          1.0457503546741937,
+          -0.15396837616562653,
+          1.4288010123392896
+        ],
+        [
+          0.17611073395954094,
+          0.15768964608792904,
+          1.030850479805709,
+          0.2435992970489174
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.0490552441628194,
+          0.3526463397039256,
+          0.016900447039330517,
+          -1.061271215568305
+        ],
+        [
+          -0.06905256164212496,
+          -0.30270060625413014,
+          -2.0559369023274807,
+          1.4288010123392896
+        ],
+        [
+          0.34623230604229854,
+          2.0266438665228472,
+          -0.31001659340401416,
+          0.2435992970489174
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          5.572757169755407e-33,
+          0.0
+        ],
+        [
+          0.0,
+          5.572757169755407e-33,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.892878771,
+        -6.312402248,
+        4.158374548
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -2.233959156,
+        -5.87913862,
+        3.868217488
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL5sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.0576075485806462,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.06735981757823799,
+      "symmetric_distance_p95_nominal_mm": 0.11295323476622957
+    },
+    "16": {
+      "fdi": 16,
+      "source_asset": "zub-3d\\assets\\source\\dundee\\scene.gltf",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 21,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "UL6seam1_1:ZBrushPolyMesh3D",
+        "polySurface8",
+        "polySurface8_blinn18_0"
+      ],
+      "target_exterior_faces": 2962,
+      "target_bounds_native": [
+        [
+          -2.998481611,
+          -5.674516115,
+          3.203159176
+        ],
+        [
+          -1.871723805,
+          -4.488615355,
+          5.030916357
+        ]
+      ],
+      "target_bbox_center_native": [
+        -2.435102708,
+        -5.081565735,
+        4.117037767
+      ],
+      "target_crown_landmark_native": [
+        -2.484610946,
+        -5.083081802,
+        3.304373762
+      ],
+      "target_apical_landmark_native": [
+        -2.406538397,
+        -5.16974105,
+        4.854734043
+      ],
+      "target_crownward_axis_native": [
+        -0.050215764,
+        0.055738674,
+        -0.997181818
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.328668228,
+        -0.916696247,
+        -0.227255775
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.941325941,
+        -0.33749885,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -1.0411533550084207,
+          -0.005449330541675725,
+          0.18726877070361467,
+          -0.9767874943391511
+        ],
+        [
+          -0.0324941837056465,
+          1.0466534893816668,
+          -0.15020052436649733,
+          1.4353646275590934
+        ],
+        [
+          0.1845085789590809,
+          0.15357856064996092,
+          1.0302765678829522,
+          0.23584351554673227
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -1.0411533550084207,
+          -0.005449330541675725,
+          0.18726877070361467,
+          -0.9767874943391511
+        ],
+        [
+          -0.0324941837056465,
+          1.0466534893816668,
+          -0.15020052436649733,
+          1.4353646275590934
+        ],
+        [
+          0.1845085789590809,
+          0.15357856064996092,
+          1.0302765678829522,
+          0.23584351554673227
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.3874793349862444,
+          0.42942792048107203,
+          0.012495915222455451,
+          -0.9767874943391511
+        ],
+        [
+          -0.07451274274945818,
+          -0.3444263482455084,
+          -2.4000917489909677,
+          1.4353646275590934
+        ],
+        [
+          0.42309849675211453,
+          2.362537663936363,
+          -0.35217255756309523,
+          0.23584351554673227
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.2703643856469265e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -1.2703643856469265e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.167386293,
+        -5.574500084,
+        4.201561928
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -2.416170375,
+        -5.10070959,
+        4.108391984
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL6sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.0578750381446227,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.0924167061697257,
+      "symmetric_distance_p95_nominal_mm": 0.15558072943506807
+    },
+    "17": {
+      "fdi": 17,
+      "source_asset": "research-models\\dentition-28\\maxillary_second_molar.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 24,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "UL7seam_1:ZBrushPolyMesh3D",
+        "polySurface10",
+        "polySurface10_blinn19_0"
+      ],
+      "target_exterior_faces": 2260,
+      "target_bounds_native": [
+        [
+          -3.289208121,
+          -4.693106696,
+          3.345361291
+        ],
+        [
+          -2.391932375,
+          -3.861456497,
+          4.887483199
+        ]
+      ],
+      "target_bbox_center_native": [
+        -2.840570248,
+        -4.277281596,
+        4.116422245
+      ],
+      "target_crown_landmark_native": [
+        -2.848624755,
+        -4.388109665,
+        3.473063873
+      ],
+      "target_apical_landmark_native": [
+        -2.925509084,
+        -4.405683369,
+        4.752987997
+      ],
+      "target_crownward_axis_native": [
+        0.059955728,
+        0.013704278,
+        -0.99810696
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.453620039,
+        -0.866047605,
+        -0.210215143
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.885841602,
+        -0.463987776,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -0.9535747917081576,
+          0.007978533163401715,
+          -0.09518953431087637,
+          -0.13217694102218586
+        ],
+        [
+          0.020511630427032992,
+          0.949824457568895,
+          -0.12586643967394212,
+          0.2180797730941214
+        ],
+        [
+          -0.09329510946982064,
+          0.12727698388762093,
+          0.9452651372691708,
+          0.8800483361567712
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -0.9535747917081576,
+          0.007978533163401715,
+          -0.09518953431087637,
+          -0.13217694102218586
+        ],
+        [
+          0.020511630427032992,
+          0.949824457568895,
+          -0.12586643967394212,
+          0.2180797730941214
+        ],
+        [
+          -0.09329510946982064,
+          0.12727698388762093,
+          0.9452651372691708,
+          0.8800483361567712
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -0.9535747917081576,
+          -0.09518953431087637,
+          -0.007978533163401736,
+          -0.13217694102218586
+        ],
+        [
+          0.020511630427032992,
+          -0.1258664396739419,
+          -0.949824457568895,
+          0.2180797730941214
+        ],
+        [
+          -0.09329510946982064,
+          0.9452651372691708,
+          -0.1272769838876207,
+          0.8800483361567712
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.406500876,
+        -4.279670954,
+        4.262858391
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -2.866880514,
+        -4.334045921,
+        4.140361384
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL7sketch_1.OBJ.cleaner.gles",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9583473210767677,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.0742631600793074,
+      "symmetric_distance_p95_nominal_mm": 0.12490259199483766
+    },
+    "21": {
+      "fdi": 21,
+      "source_asset": "research-models\\dentition-28\\maxillary_left_central_incisor.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 16,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "UL1seam_1:ZBrushPolyMesh3D",
+        "polySurface1",
+        "polySurface1_UL1_0"
+      ],
+      "target_exterior_faces": 1504,
+      "target_bounds_native": [
+        [
+          -0.141333396,
+          -8.016964583,
+          2.93019323
+        ],
+        [
+          0.638830575,
+          -7.115380036,
+          5.053193458
+        ]
+      ],
+      "target_bbox_center_native": [
+        0.24874859,
+        -7.56617231,
+        3.991693344
+      ],
+      "target_crown_landmark_native": [
+        0.242972365,
+        -7.814932784,
+        3.062953033
+      ],
+      "target_apical_landmark_native": [
+        0.271428472,
+        -7.313058507,
+        4.821206558
+      ],
+      "target_crownward_axis_native": [
+        -0.015560841,
+        -0.274443227,
+        -0.961477392
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.976756471,
+        -0.212585784,
+        -0.02746054
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.212665983,
+        -0.977124956,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          1.0876675816748165,
+          0.0019487535133043143,
+          0.010300992593446842,
+          0.14767510426081076
+        ],
+        [
+          -0.002076281553098435,
+          1.0876326896559878,
+          0.01347211051037368,
+          0.8829001366932783
+        ],
+        [
+          -0.010276047079404296,
+          -0.013491147706393694,
+          1.087585889989846,
+          -0.6203777862028957
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          1.0876675816748165,
+          0.0019487535133043143,
+          0.010300992593446842,
+          0.14767510426081076
+        ],
+        [
+          -0.002076281553098435,
+          1.0876326896559878,
+          0.01347211051037368,
+          0.8829001366932783
+        ],
+        [
+          -0.010276047079404296,
+          -0.013491147706393694,
+          1.087585889989846,
+          -0.6203777862028957
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.431738115026148,
+          0.02303030515400229,
+          -0.004356899364230571,
+          0.14767510426081076
+        ],
+        [
+          -0.0046420184579011,
+          0.03012008923486991,
+          -2.4316601056660034,
+          0.8829001366932783
+        ],
+        [
+          -0.02297453355768168,
+          2.431555473944102,
+          0.03016265138891868,
+          -0.6203777862028957
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          7.318857049617972e-33,
+          0.0
+        ],
+        [
+          0.0,
+          7.318857049617972e-33,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.073653042,
+        -7.819047928,
+        4.144893527
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        0.255244251,
+        -7.565664452,
+        3.992280998
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL1sketch1_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.0877181051701827,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.07216803618125778,
+      "symmetric_distance_p95_nominal_mm": 0.12230462092006279
+    },
+    "22": {
+      "fdi": 22,
+      "source_asset": "research-models\\dentition-28\\maxillary_lateral_incisor.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 22,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "ZBrushPolyMesh3D1",
+        "ZBrushPolyMesh3D1_blinn14_0"
+      ],
+      "target_exterior_faces": 1470,
+      "target_bounds_native": [
+        [
+          0.610060482,
+          -7.756666272,
+          2.972279341
+        ],
+        [
+          1.262175464,
+          -6.956858237,
+          4.90197653
+        ]
+      ],
+      "target_bbox_center_native": [
+        0.936117973,
+        -7.356762255,
+        3.937127935
+      ],
+      "target_crown_landmark_native": [
+        0.941285848,
+        -7.540442544,
+        3.104226856
+      ],
+      "target_apical_landmark_native": [
+        0.861776788,
+        -7.124849045,
+        4.735176256
+      ],
+      "target_crownward_axis_native": [
+        0.04718796,
+        -0.246651253,
+        -0.96795478
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.875520216,
+        -0.483056136,
+        -0.011005465
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.483085393,
+        -0.875573243,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          1.1061128478206388,
+          -0.22634037277666855,
+          0.10316487114302246,
+          -2.0338997133799395
+        ],
+        [
+          0.22400513516419843,
+          1.1108235807398528,
+          0.035373139426486115,
+          0.9729685948433193
+        ],
+        [
+          -0.1081418254271168,
+          -0.014127817387455388,
+          1.1284787713863678,
+          -0.6527597182094544
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          1.1061128478206388,
+          -0.22634037277666855,
+          0.10316487114302246,
+          -2.0338997133799395
+        ],
+        [
+          0.22400513516419843,
+          1.1108235807398528,
+          0.035373139426486115,
+          0.9729685948433193
+        ],
+        [
+          -0.1081418254271168,
+          -0.014127817387455388,
+          1.1284787713863678,
+          -0.6527597182094544
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.12404497130973,
+          0.19810530742762464,
+          0.43463660289986034,
+          -2.0338997133799395
+        ],
+        [
+          0.4301522957901893,
+          0.06792628714719501,
+          -2.133090891522983,
+          0.9729685948433193
+        ],
+        [
+          -0.20766244686452529,
+          2.1669937785422704,
+          0.0271293471877955,
+          -0.6527597182094544
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -9.336845834089856e-33,
+          0.0
+        ],
+        [
+          0.0,
+          -9.336845834089856e-33,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.752161145,
+        -7.746404886,
+        4.035805225
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        0.967752889,
+        -7.320673559,
+        3.929660518
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL2sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.1337365598323645,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.06491552629777247,
+      "symmetric_distance_p95_nominal_mm": 0.10936927307098106
+    },
+    "23": {
+      "fdi": 23,
+      "source_asset": "research-models\\dentition-28\\maxillary_canine.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 27,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "ZBrushPolyMesh3D2",
+        "ZBrushPolyMesh3D2_blinn15_0"
+      ],
+      "target_exterior_faces": 1396,
+      "target_bounds_native": [
+        [
+          1.118965844,
+          -7.35447779,
+          2.895783326
+        ],
+        [
+          1.823425533,
+          -6.520406516,
+          4.935256127
+        ]
+      ],
+      "target_bbox_center_native": [
+        1.471195689,
+        -6.937442153,
+        3.915519727
+      ],
+      "target_crown_landmark_native": [
+        1.566746695,
+        -7.084558657,
+        3.079593143
+      ],
+      "target_apical_landmark_native": [
+        1.279449898,
+        -6.654896138,
+        4.732855902
+      ],
+      "target_crownward_axis_native": [
+        0.165859077,
+        -0.248048116,
+        -0.954443764
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.679616755,
+        -0.733555482,
+        -0.004173936
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.733561872,
+        -0.679622675,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          1.0298844409721706,
+          -0.1842077934865559,
+          -0.15397446850422583,
+          -0.6026110659599118
+        ],
+        [
+          0.19259615715034484,
+          1.0388198086914493,
+          0.045417119858735214,
+          0.3351094440393486
+        ],
+        [
+          0.14334353677079198,
+          -0.07227366466186017,
+          1.0452424297679266,
+          -1.1660939089515066
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          1.0298844409721706,
+          -0.18420779348655592,
+          -0.1539744685042258,
+          -0.6026110659599118
+        ],
+        [
+          0.19259615715034484,
+          1.0388198086914495,
+          0.0454171198587352,
+          0.3351094440393486
+        ],
+        [
+          0.14334353677079198,
+          -0.07227366466186018,
+          1.0452424297679264,
+          -1.1660939089515066
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.2698614222508344,
+          -0.359991078100643,
+          0.3878164582349318,
+          -0.6026110659599118
+        ],
+        [
+          0.42448120371316495,
+          0.2188994175267163,
+          -2.2812638625361172,
+          0.3351094440393486
+        ],
+        [
+          0.3159286142218812,
+          2.2923253535453756,
+          0.27874655517411634,
+          -1.1660939089515066
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0000000000000002,
+          -1.1347024589726025e-17,
+          0.0
+        ],
+        [
+          0.0,
+          -6.159569750967818e-18,
+          0.9999999999999999,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.264641821,
+        -7.422532797,
+        4.175623298
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        1.42417288,
+        -6.942354717,
+        3.91617661
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL3sketch1_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.057498272412893,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.06954360804950878,
+      "symmetric_distance_p95_nominal_mm": 0.117214016729858
+    },
+    "24": {
+      "fdi": 24,
+      "source_asset": "research-models\\dentition-28\\maxillary_first_premolar.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 25,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "ZBrushPolyMesh3D3",
+        "ZBrushPolyMesh3D3_blinn16_0"
+      ],
+      "target_exterior_faces": 2220,
+      "target_bounds_native": [
+        [
+          1.501184578,
+          -6.832027644,
+          2.972419738
+        ],
+        [
+          2.352287431,
+          -6.007469809,
+          5.000801253
+        ]
+      ],
+      "target_bbox_center_native": [
+        1.926736004,
+        -6.419748726,
+        3.986610496
+      ],
+      "target_crown_landmark_native": [
+        1.954446891,
+        -6.446870568,
+        3.110449288
+      ],
+      "target_apical_landmark_native": [
+        1.90794511,
+        -6.430925446,
+        4.769486212
+      ],
+      "target_crownward_axis_native": [
+        0.028017086,
+        -0.009606855,
+        -0.999561279
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.580561115,
+        -0.807914069,
+        -0.101112058
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.812075923,
+        -0.583551793,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          1.0313064140669463,
+          0.4520869865209724,
+          -0.06486788995961831,
+          3.6638321782509133
+        ],
+        [
+          -0.4542599662763944,
+          1.03195411515078,
+          -0.03003320640548505,
+          1.5106955481995499
+        ],
+        [
+          0.04731141054754481,
+          0.053586071574706,
+          1.125643624594503,
+          -0.46613643633987256
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          1.0313064140669463,
+          0.4520869865209724,
+          -0.06486788995961831,
+          1.356717621964171
+        ],
+        [
+          -0.4542599662763944,
+          1.03195411515078,
+          -0.03003320640548505,
+          -6.578682675474164
+        ],
+        [
+          0.04731141054754481,
+          0.053586071574706,
+          1.125643624594503,
+          2.917239891675294
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.1576935192236792,
+          -0.13571623705861804,
+          -0.9458538681001004,
+          3.6638321782509133
+        ],
+        [
+          -0.9504001642073735,
+          -0.06283530669325896,
+          -2.1590486358135887,
+          1.5106955481995499
+        ],
+        [
+          0.09898466889312064,
+          2.355065304175785,
+          -0.11211247964748262,
+          -0.46613643633987256
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          1.1440260410308838
+        ],
+        [
+          0.0,
+          1.0,
+          -3.166699496510685e-33,
+          -7.239193439483643
+        ],
+        [
+          0.0,
+          -3.166699496510685e-33,
+          1.0,
+          3.3022625446319585
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.557643473,
+        -6.908618897,
+        4.204445243
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        1.874209693,
+        -6.452530196,
+        3.970059109
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL4sketch_1.OBJ.cleaner.gles",
+        "Object_2",
+        "Object_3"
+      ],
+      "uniform_scale_native": 1.1279110808149082,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.0774491204152311,
+      "symmetric_distance_p95_nominal_mm": 0.13005764948249698
+    },
+    "25": {
+      "fdi": 25,
+      "source_asset": "research-models\\dentition-28\\maxillary_second_premolar.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 26,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "ZBrushPolyMesh3D4",
+        "ZBrushPolyMesh3D4_blinn17_0"
+      ],
+      "target_exterior_faces": 1526,
+      "target_bounds_native": [
+        [
+          1.912272958,
+          -6.27904774,
+          3.104820166
+        ],
+        [
+          2.732990222,
+          -5.624959693,
+          4.91332341
+        ]
+      ],
+      "target_bbox_center_native": [
+        2.32263159,
+        -5.952003716,
+        4.009071788
+      ],
+      "target_crown_landmark_native": [
+        2.360333155,
+        -5.980196604,
+        3.217806257
+      ],
+      "target_apical_landmark_native": [
+        2.377610809,
+        -6.041746161,
+        4.707472835
+      ],
+      "target_crownward_axis_native": [
+        -0.011587671,
+        0.041279679,
+        -0.999080434
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.456291274,
+        -0.877716448,
+        -0.146328774
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.887266978,
+        -0.46125623,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          1.0474469487053908,
+          -0.06874306686158105,
+          -0.1271026267001034,
+          0.38490350350234387
+        ],
+        [
+          0.03920796376578027,
+          1.0303676769925605,
+          -0.23416016547253152,
+          1.3177320912177215
+        ],
+        [
+          0.1390806332058599,
+          0.22725016672215406,
+          1.023249596383827,
+          0.8798140895158618
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          1.0474469487053908,
+          -0.06874306686158105,
+          -0.1271026267001034,
+          0.38490350350234387
+        ],
+        [
+          0.03920796376578027,
+          1.0303676769925605,
+          -0.23416016547253152,
+          1.3177320912177215
+        ],
+        [
+          0.1390806332058599,
+          0.22725016672215406,
+          1.023249596383827,
+          0.8798140895158618
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.0592723927353167,
+          -0.24988275590583964,
+          0.13514832417524922,
+          0.38490350350234387
+        ],
+        [
+          0.07708254576332453,
+          -0.4603570279448516,
+          -2.0256946800218216,
+          1.3177320912177215
+        ],
+        [
+          0.27343142168580553,
+          2.0117005900061447,
+          -0.4467720252121833,
+          0.8798140895158618
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          5.572757169755407e-33,
+          0.0
+        ],
+        [
+          0.0,
+          5.572757169755407e-33,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.892878771,
+        -6.312402248,
+        4.158374548
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        2.272987158,
+        -6.0858729,
+        3.963637482
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL5sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.0573673899396743,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.0674795304564251,
+      "symmetric_distance_p95_nominal_mm": 0.1129661946144376
+    },
+    "26": {
+      "fdi": 26,
+      "source_asset": "zub-3d\\assets\\source\\dundee\\scene.gltf",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 28,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "ZBrushPolyMesh3D5",
+        "ZBrushPolyMesh3D5_blinn18_0"
+      ],
+      "target_exterior_faces": 2962,
+      "target_bounds_native": [
+        [
+          1.957946156,
+          -5.848630131,
+          3.203744113
+        ],
+        [
+          3.074839861,
+          -4.684397927,
+          5.031120377
+        ]
+      ],
+      "target_bbox_center_native": [
+        2.516393008,
+        -5.266514029,
+        4.117432245
+      ],
+      "target_crown_landmark_native": [
+        2.565730021,
+        -5.271013636,
+        3.306482646
+      ],
+      "target_apical_landmark_native": [
+        2.499193982,
+        -5.360134323,
+        4.857863862
+      ],
+      "target_crownward_axis_native": [
+        0.042778471,
+        0.057298973,
+        -0.997440139
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.309218182,
+        -0.931215986,
+        -0.192927199
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.949045636,
+        -0.315138669,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          1.041459137147247,
+          -0.07425501027778604,
+          -0.16724562188238648,
+          0.532981759807282
+        ],
+        [
+          0.04864420060583232,
+          1.044010883615815,
+          -0.16061461819153156,
+          1.0968225824592863
+        ],
+        [
+          0.17640477980372335,
+          0.15049753246494652,
+          1.031675280949404,
+          0.23247440813181994
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          1.041459137147247,
+          -0.07425501027778604,
+          -0.16724562188238648,
+          0.532981759807282
+        ],
+        [
+          0.04864420060583232,
+          1.044010883615815,
+          -0.16061461819153156,
+          1.0968225824592863
+        ],
+        [
+          0.17640477980372335,
+          0.15049753246494652,
+          1.031675280949404,
+          0.23247440813181994
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.388180527115092,
+          -0.383512634512801,
+          0.17027491839179776,
+          0.532981759807282
+        ],
+        [
+          0.11154651056415288,
+          -0.36830701258786736,
+          -2.3940319628642297,
+          1.0968225824592863
+        ],
+        [
+          0.4045155925860528,
+          2.365745067077951,
+          -0.34510742053323606,
+          0.23247440813181994
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.2703643856469265e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -1.2703643856469265e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.167386293,
+        -5.574500084,
+        4.201561928
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        2.501467742,
+        -5.292417667,
+        4.110510785
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL6sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.0574128989839628,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.09194438751468453,
+      "symmetric_distance_p95_nominal_mm": 0.15413316113512546
+    },
+    "27": {
+      "fdi": 27,
+      "source_asset": "research-models\\dentition-28\\maxillary_second_molar.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 23,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "group2",
+        "UL7seam_1:ZBrushPolyMesh3D",
+        "polySurface9",
+        "polySurface9_blinn19_0"
+      ],
+      "target_exterior_faces": 2260,
+      "target_bounds_native": [
+        [
+          2.396726001,
+          -4.821719212,
+          3.401018144
+        ],
+        [
+          3.292765966,
+          -4.000308688,
+          4.934483659
+        ]
+      ],
+      "target_bbox_center_native": [
+        2.844745983,
+        -4.41101395,
+        4.167750902
+      ],
+      "target_crown_landmark_native": [
+        2.84772931,
+        -4.512394523,
+        3.521902136
+      ],
+      "target_apical_landmark_native": [
+        2.92536794,
+        -4.465302966,
+        4.801220212
+      ],
+      "target_crownward_axis_native": [
+        -0.060535217,
+        -0.036717516,
+        -0.997490507
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.336709361,
+        -0.905797166,
+        -0.257212558
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.937333904,
+        -0.348432421,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          0.9546420932884357,
+          0.004032222044968158,
+          0.0841620442551487,
+          0.22900382124785215
+        ],
+        [
+          -0.00012758739625056773,
+          0.9573233663156274,
+          -0.04441836122058106,
+          -0.1468088254023897
+        ],
+        [
+          -0.08425848461301642,
+          0.04423514753502892,
+          0.953616691485224,
+          0.5106075490283265
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          0.9546420932884357,
+          0.004032222044968158,
+          0.0841620442551487,
+          0.22900382124785215
+        ],
+        [
+          -0.00012758739625056773,
+          0.9573233663156274,
+          -0.04441836122058106,
+          -0.1468088254023897
+        ],
+        [
+          -0.08425848461301642,
+          0.04423514753502892,
+          0.953616691485224,
+          0.5106075490283265
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          0.9546420932884357,
+          0.0841620442551487,
+          -0.004032222044968139,
+          0.22900382124785215
+        ],
+        [
+          -0.00012758739625056773,
+          -0.04441836122058084,
+          -0.9573233663156274,
+          -0.1468088254023897
+        ],
+        [
+          -0.08425848461301642,
+          0.953616691485224,
+          -0.044235147535028704,
+          0.5106075490283265
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.406500876,
+        -4.279670954,
+        4.262858391
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        2.867865148,
+        -4.433494053,
+        4.183660471
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "UL7sketch_1.OBJ.cleaner.gles",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.95835329330365,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.0743476718539439,
+      "symmetric_distance_p95_nominal_mm": 0.12485469805902283
+    },
+    "31": {
+      "fdi": 31,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_lateral_incisor.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 0,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "LL1seam_2:ZBrushPolyMesh3D",
+        "LL1seam_2:ZBrushPolyMesh3D_Mandible_ll1_0"
+      ],
+      "target_exterior_faces": 1556,
+      "target_bounds_native": [
+        [
+          -0.1349602,
+          -7.767933315,
+          1.283311662
+        ],
+        [
+          0.40435303,
+          -6.830374854,
+          3.272640913
+        ]
+      ],
+      "target_bbox_center_native": [
+        0.134696415,
+        -7.299154084,
+        2.277976288
+      ],
+      "target_crown_landmark_native": [
+        0.124395026,
+        -7.647442314,
+        3.13881935
+      ],
+      "target_apical_landmark_native": [
+        0.100761578,
+        -6.992675262,
+        1.476343513
+      ],
+      "target_crownward_axis_native": [
+        0.013225757,
+        -0.366420921,
+        0.930355194
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.992454413,
+        -0.11662271,
+        0.037860036
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.116706383,
+        -0.993166461,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          0.9948870190102325,
+          -0.0018897536838151038,
+          0.06437362726228664,
+          -0.03746714748775654
+        ],
+        [
+          0.003704222615937057,
+          0.996569307679119,
+          -0.02799302373338918,
+          0.0020872570685193654
+        ],
+        [
+          -0.06429474154781922,
+          0.02817373730872408,
+          0.9944949182305155,
+          0.01871155636148048
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          0.9948870190102324,
+          -0.0018897536838151038,
+          0.06437362726228664,
+          -0.03746714748775654
+        ],
+        [
+          0.0037042226159370566,
+          0.996569307679119,
+          -0.02799302373338918,
+          0.0020872570685193654
+        ],
+        [
+          -0.06429474154781921,
+          0.02817373730872408,
+          0.9944949182305155,
+          0.01871155636148048
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.257428524821604,
+          0.1460656935424593,
+          0.004287907862115842,
+          -0.03746714748775654
+        ],
+        [
+          0.008404992361669974,
+          -0.06351701154431304,
+          -2.2612456883342067,
+          0.0020872570685193654
+        ],
+        [
+          -0.1458866994872179,
+          2.2565388363767602,
+          -0.06392705607398169,
+          0.01871155636148048
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          0.9999999999999999,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -5.653853055650698e-33,
+          0.0
+        ],
+        [
+          0.0,
+          1.9087400377860413e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        -0.056565166,
+        -7.259954453,
+        2.479069233
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        0.079563108,
+        -7.302566699,
+        2.283230104
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL1sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9969692651486107,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.06333580449523686,
+      "symmetric_distance_p95_nominal_mm": 0.10703094281411185
+    },
+    "32": {
+      "fdi": 32,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_central_incisor.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 1,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "LL2seam_2:ZBrushPolyMesh3D",
+        "LL2seam_2:ZBrushPolyMesh3D_Mandible_l2_0"
+      ],
+      "target_exterior_faces": 1618,
+      "target_bounds_native": [
+        [
+          0.381256339,
+          -7.687412436,
+          1.371669379
+        ],
+        [
+          0.911902712,
+          -6.829441299,
+          3.225594932
+        ]
+      ],
+      "target_bbox_center_native": [
+        0.646579526,
+        -7.258426868,
+        2.298632156
+      ],
+      "target_crown_landmark_native": [
+        0.66019489,
+        -7.522122105,
+        3.098073781
+      ],
+      "target_apical_landmark_native": [
+        0.498278461,
+        -6.968708979,
+        1.54840495
+      ],
+      "target_crownward_axis_native": [
+        0.097925347,
+        -0.334698415,
+        0.937223345
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.908140214,
+        -0.412340438,
+        0.072503206
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.413428508,
+        -0.910536583,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          0.9922063827732904,
+          -0.057772594779373805,
+          0.06930969309850298,
+          -0.4868356172777603
+        ],
+        [
+          0.059816056077775924,
+          0.9941187136810201,
+          -0.027659262924246412,
+          -0.05456032247408768
+        ],
+        [
+          -0.06755402060758985,
+          0.03170682391332725,
+          0.9935019596850808,
+          0.10528101579816036
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          0.9922063827732904,
+          -0.057772594779373805,
+          0.06930969309850298,
+          -0.4868356172777603
+        ],
+        [
+          0.059816056077775924,
+          0.9941187136810201,
+          -0.027659262924246412,
+          -0.05456032247408768
+        ],
+        [
+          -0.06755402060758985,
+          0.03170682391332725,
+          0.9935019596850808,
+          0.10528101579816036
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.0945673365212136,
+          0.14631413563644138,
+          0.12195909245486247,
+          -0.4868356172777603
+        ],
+        [
+          0.1262728797509237,
+          -0.05838925215482684,
+          -2.0986043049639633,
+          -0.05456032247408768
+        ],
+        [
+          -0.14260787621608076,
+          2.097302325056363,
+          -0.06693373361301892,
+          0.10528101579816036
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -2.289718409596665e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -2.289718409596665e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.501317516,
+        -7.205367804,
+        2.472508073
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        0.598216392,
+        -7.255952209,
+        2.29939729
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL2sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9963006635955908,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.06062450551923791,
+      "symmetric_distance_p95_nominal_mm": 0.102779781167477
+    },
+    "33": {
+      "fdi": 33,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_canine.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 2,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "LL3seam_2:ZBrushPolyMesh3D",
+        "LL3seam_2:ZBrushPolyMesh3D_Mandible_ll3_0"
+      ],
+      "target_exterior_faces": 1500,
+      "target_bounds_native": [
+        [
+          0.789182073,
+          -7.428737062,
+          1.075635996
+        ],
+        [
+          1.439143707,
+          -6.53646708,
+          3.241181346
+        ]
+      ],
+      "target_bbox_center_native": [
+        1.11416289,
+        -6.982602071,
+        2.158408671
+      ],
+      "target_crown_landmark_native": [
+        1.162970394,
+        -7.175877885,
+        3.05590259
+      ],
+      "target_apical_landmark_native": [
+        1.057313251,
+        -6.723066692,
+        1.269109032
+      ],
+      "target_crownward_axis_native": [
+        0.057226347,
+        -0.245252992,
+        0.967768627
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.737268604,
+        -0.673952816,
+        0.047144541
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.674703033,
+        -0.738089302,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          0.9957929922334181,
+          -0.006028441668954046,
+          0.025336051255774174,
+          0.06076720615804883
+        ],
+        [
+          0.0074840045018951026,
+          0.994442680899666,
+          -0.05752986237672765,
+          -0.2239128363997249
+        ],
+        [
+          -0.024944884822480334,
+          0.057700548346734284,
+          0.9941480475387257,
+          0.24975670684885468
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          0.995792992233418,
+          -0.006028441668954046,
+          0.025336051255774174,
+          0.06076720615804883
+        ],
+        [
+          0.007484004501895102,
+          0.994442680899666,
+          -0.05752986237672765,
+          -0.2239128363997249
+        ],
+        [
+          -0.02494488482248033,
+          0.057700548346734284,
+          0.9941480475387257,
+          0.24975670684885468
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.423547018158995,
+          0.061662526199483224,
+          0.014671936782935638,
+          0.06076720615804883
+        ],
+        [
+          0.018214465190978954,
+          -0.14001537217640178,
+          -2.4202606493734886,
+          -0.2239128363997249
+        ],
+        [
+          -0.06071051082037626,
+          2.419543574831966,
+          -0.1404307852962746,
+          0.24975670684885468
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          0.9999999999999999,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          3.1817716850769284e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -2.6449994536534576e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.944426477,
+        -6.676645041,
+        2.328058183
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        1.10045404,
+        -6.990318405,
+        2.155386515
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL3sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9961334955634111,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.06912949340665571,
+      "symmetric_distance_p95_nominal_mm": 0.11512481967292798
+    },
+    "34": {
+      "fdi": 34,
+      "source_asset": "research-models\\dentition-28\\mandibular_first_premolar.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 3,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "LL4seam_2:ZBrushPolyMesh3D",
+        "LL4seam_2:ZBrushPolyMesh3D_Mandible_ll4_0"
+      ],
+      "target_exterior_faces": 2014,
+      "target_bounds_native": [
+        [
+          1.193807432,
+          -7.05819474,
+          1.212525054
+        ],
+        [
+          1.966719023,
+          -6.258225351,
+          3.184761624
+        ]
+      ],
+      "target_bbox_center_native": [
+        1.580263228,
+        -6.658210045,
+        2.198643339
+      ],
+      "target_crown_landmark_native": [
+        1.568919098,
+        -6.691438098,
+        3.039965534
+      ],
+      "target_apical_landmark_native": [
+        1.600284077,
+        -6.436208246,
+        1.420779378
+      ],
+      "target_crownward_axis_native": [
+        -0.01913107,
+        -0.155677459,
+        0.987622666
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.615970777,
+        -0.787227515,
+        -0.029203456
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.78756342,
+        -0.616233608,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          0.9957533110544171,
+          0.017002281689821028,
+          0.04143582375779051,
+          0.01466707437698428
+        ],
+        [
+          -0.009695395430223004,
+          0.9821091730133916,
+          -0.16999480327171296,
+          -0.17985869075242097
+        ],
+        [
+          -0.04372647230909946,
+          0.16942005858007678,
+          0.9812825795453178,
+          1.010048133565933
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          0.9957533110544171,
+          0.017002281689821028,
+          0.04143582375779051,
+          0.01466707437698428
+        ],
+        [
+          -0.009695395430223004,
+          0.9821091730133916,
+          -0.16999480327171296,
+          -0.17985869075242097
+        ],
+        [
+          -0.04372647230909946,
+          0.16942005858007678,
+          0.9812825795453178,
+          1.010048133565933
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          2.299023543743168,
+          0.0956682074927561,
+          -0.03925535116811249,
+          0.01466707437698428
+        ],
+        [
+          -0.022385004511187086,
+          -0.39248883302412396,
+          -2.267521570069404,
+          -0.17985869075242097
+        ],
+        [
+          -0.10095692196795472,
+          2.2656131075786354,
+          -0.39116184614590427,
+          1.010048133565933
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.3338205094401906e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -1.3338205094401906e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.560346305,
+        -6.112862349,
+        2.340603709
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        1.56143931,
+        -6.596375518,
+        2.202971842
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "L4sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9967600822409497,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.07113186651894855,
+      "symmetric_distance_p95_nominal_mm": 0.11882405911638265
+    },
+    "35": {
+      "fdi": 35,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_second_premolar.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 4,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "LL5seam_3:ZBrushPolyMesh3D",
+        "LL5seam_3:ZBrushPolyMesh3D_Mandible_ll5_0"
+      ],
+      "target_exterior_faces": 1590,
+      "target_bounds_native": [
+        [
+          1.55688209,
+          -6.482840993,
+          1.224925564
+        ],
+        [
+          2.331733556,
+          -5.782468323,
+          3.216255342
+        ]
+      ],
+      "target_bbox_center_native": [
+        1.944307823,
+        -6.132654658,
+        2.220590453
+      ],
+      "target_crown_landmark_native": [
+        1.952761985,
+        -6.166502611,
+        3.09334697
+      ],
+      "target_apical_landmark_native": [
+        1.927911318,
+        -5.969940365,
+        1.427368705
+      ],
+      "target_crownward_axis_native": [
+        0.014812183,
+        -0.117160476,
+        0.993002529
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.453412956,
+        -0.879417578,
+        -0.145056594
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.888818289,
+        -0.458259805,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          1.0308018058291721,
+          -0.02524750028000492,
+          0.08519285299082381,
+          -0.16237002284003338
+        ],
+        [
+          0.025740379219530686,
+          1.034292394501381,
+          -0.004929191213759575,
+          -0.28049884964170396
+        ],
+        [
+          -0.08504523119340465,
+          0.007030489172035574,
+          1.0310991718768128,
+          -0.06162404637934135
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          1.0308018058291721,
+          -0.02524750028000492,
+          0.08519285299082381,
+          -0.16237002284003338
+        ],
+        [
+          0.025740379219530686,
+          1.034292394501381,
+          -0.004929191213759575,
+          -0.28049884964170396
+        ],
+        [
+          -0.08504523119340465,
+          0.007030489172035574,
+          1.0310991718768128,
+          -0.06162404637934135
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          1.0308018058291721,
+          0.08519285299082381,
+          0.02524750028000494,
+          -0.16237002284003338
+        ],
+        [
+          0.025740379219530686,
+          -0.004929191213759345,
+          -1.034292394501381,
+          -0.28049884964170396
+        ],
+        [
+          -0.08504523119340465,
+          1.0310991718768128,
+          -0.007030489172035345,
+          -0.06162404637934135
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.660545468,
+        -5.685791016,
+        2.400084257
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        1.89734528,
+        -6.130356658,
+        2.231905478
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL5sketch1_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.0346243866117728,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.07014360218083156,
+      "symmetric_distance_p95_nominal_mm": 0.11874364909189536
+    },
+    "36": {
+      "fdi": 36,
+      "source_asset": "research-models\\dentition-28\\mandibular_first_molar.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 5,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "LL6seam_2:ZBrushPolyMesh3D",
+        "LL6seam_2:ZBrushPolyMesh3D_Mandible_blinn10_0"
+      ],
+      "target_exterior_faces": 2130,
+      "target_bounds_native": [
+        [
+          1.794547542,
+          -5.905531956,
+          1.550725542
+        ],
+        [
+          2.850598507,
+          -4.653534924,
+          3.368849223
+        ]
+      ],
+      "target_bbox_center_native": [
+        2.322573024,
+        -5.27953344,
+        2.459787383
+      ],
+      "target_crown_landmark_native": [
+        2.305389608,
+        -5.263015943,
+        3.275578352
+      ],
+      "target_apical_landmark_native": [
+        2.375806336,
+        -5.059341196,
+        1.751889253
+      ],
+      "target_crownward_axis_native": [
+        -0.045759212,
+        -0.132354857,
+        0.990145589
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.314295013,
+        -0.92682981,
+        -0.205438914
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.947030017,
+        -0.321145056,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          0.9935583077572487,
+          0.0007225954581433568,
+          0.07185305977811662,
+          0.11409599630470635
+        ],
+        [
+          0.001279840918276621,
+          0.9957670147142602,
+          -0.02771118314671206,
+          -0.33874239321155697
+        ],
+        [
+          -0.07184529456337249,
+          0.027731309380744695,
+          0.9931720512510674,
+          0.18068961088390437
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          0.9935583077572487,
+          0.0007225954581433649,
+          0.07185305977811664,
+          0.11409599630470635
+        ],
+        [
+          0.0012798409182766292,
+          0.9957670147142602,
+          -0.027711183146712084,
+          -0.33874239321155697
+        ],
+        [
+          -0.07184529456337249,
+          0.027731309380744706,
+          0.9931720512510677,
+          0.18068961088390437
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          0.9743481840698915,
+          0.07105777097206749,
+          0.1947252028919407,
+          0.11409599630470635
+        ],
+        [
+          0.20410549324249327,
+          -0.16560784424685426,
+          -0.9608519578006097,
+          -0.33874239321155697
+        ],
+        [
+          -0.036167099483710365,
+          0.9797174747678598,
+          -0.1765420794217196,
+          0.18068961088390437
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          7.410217408139577e-18,
+          4.334118010759386e-18,
+          0.0
+        ],
+        [
+          8.271194283991728e-18,
+          1.0,
+          -1.7048797567010864e-17,
+          0.0
+        ],
+        [
+          -4.893065868675973e-19,
+          8.984824296913747e-18,
+          1.0000000000000002,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.007399619,
+        -4.892248392,
+        2.584018767
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        2.290699103,
+        -5.279319035,
+        2.467174159
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL6sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9961533492676314,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.08915807064242581,
+      "symmetric_distance_p95_nominal_mm": 0.1506257458642768
+    },
+    "37": {
+      "fdi": 37,
+      "source_asset": "research-models\\dentition-28\\mandibular_second_molar.glb",
+      "contralateral_from_left_source": false,
+      "target_reference_mesh": 6,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "LL7seam_2:ZBrushPolyMesh3D",
+        "LL7seam_2:ZBrushPolyMesh3D_Mandible_ll7_0"
+      ],
+      "target_exterior_faces": 2066,
+      "target_bounds_native": [
+        [
+          2.172929944,
+          -4.899974021,
+          1.863965819
+        ],
+        [
+          3.14813892,
+          -3.753034622,
+          3.626922446
+        ]
+      ],
+      "target_bbox_center_native": [
+        2.660534432,
+        -4.326504322,
+        2.745444132
+      ],
+      "target_crown_landmark_native": [
+        2.591463179,
+        -4.283025995,
+        3.510833964
+      ],
+      "target_apical_landmark_native": [
+        2.723432575,
+        -4.062696879,
+        2.040767665
+      ],
+      "target_crownward_axis_native": [
+        -0.08843164,
+        -0.147640785,
+        0.985079714
+      ],
+      "target_mesial_axis_native_from_arch": [
+        -0.273063022,
+        -0.935420267,
+        -0.22455625
+      ],
+      "target_buccal_axis_native_from_arch": [
+        0.959935948,
+        -0.280219512,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          0.9896885319322943,
+          0.10629218482684669,
+          -0.046011710679409575,
+          0.8942636770441593
+        ],
+        [
+          -0.1130947885686971,
+          0.9722651395507512,
+          -0.18657053230929402,
+          0.14422587436743578
+        ],
+        [
+          0.024993496624361997,
+          0.19052812436044012,
+          0.9777386436402076,
+          0.6659068911031041
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          0.9896885319322943,
+          0.10629218482684669,
+          -0.046011710679409575,
+          0.8942636770441593
+        ],
+        [
+          -0.1130947885686971,
+          0.9722651395507512,
+          -0.18657053230929402,
+          0.14422587436743578
+        ],
+        [
+          0.024993496624361997,
+          0.19052812436044012,
+          0.9777386436402076,
+          0.6659068911031041
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          0.9896885319322943,
+          -0.046011710679409554,
+          -0.1062921848268467,
+          0.8942636770441593
+        ],
+        [
+          -0.1130947885686971,
+          -0.1865705323092938,
+          -0.9722651395507512,
+          0.14422587436743578
+        ],
+        [
+          0.024993496624361997,
+          0.9777386436402076,
+          -0.1905281243604399,
+          0.6659068911031041
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.338371277,
+        -3.771213412,
+        2.781123519
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        2.679708149,
+        -4.305726761,
+        2.725040685
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL7sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9964429217537811,
+      "determinant_sign": 1,
+      "fit_rms_nominal_mm": 0.08205740470585215,
+      "symmetric_distance_p95_nominal_mm": 0.13758741605150432
+    },
+    "41": {
+      "fdi": 41,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_lateral_incisor.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 15,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "ZBrushPolyMesh3D7",
+        "ZBrushPolyMesh3D7_Mandible_ll1_0"
+      ],
+      "target_exterior_faces": 1556,
+      "target_bounds_native": [
+        [
+          -0.68510552,
+          -7.76793283,
+          1.283311733
+        ],
+        [
+          -0.145792963,
+          -6.830374377,
+          3.272640782
+        ]
+      ],
+      "target_bbox_center_native": [
+        -0.415449241,
+        -7.299153603,
+        2.277976258
+      ],
+      "target_crown_landmark_native": [
+        -0.406106306,
+        -7.647422506,
+        3.138750915
+      ],
+      "target_apical_landmark_native": [
+        -0.381449461,
+        -6.993588598,
+        1.476415266
+      ],
+      "target_crownward_axis_native": [
+        -0.01380201,
+        -0.365992589,
+        0.930515411
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.99172367,
+        -0.122099372,
+        0.039697692
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.122195694,
+        -0.992506026,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -0.9944025323644969,
+          -0.0005992103588218997,
+          -0.06551490991415578,
+          -0.2584405011985433
+        ],
+        [
+          0.0012532306859177865,
+          0.9961605931015652,
+          -0.028132916866809965,
+          -0.00038650252307399416
+        ],
+        [
+          -0.06550566301444505,
+          0.02815444095578538,
+          0.9940046752478384,
+          0.01878238882821549
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -0.9944025323644968,
+          -0.0005992103588218997,
+          -0.06551490991415578,
+          -0.2584405011985433
+        ],
+        [
+          0.0012532306859177863,
+          0.9961605931015652,
+          -0.028132916866809965,
+          -0.00038650252307399416
+        ],
+        [
+          -0.06550566301444503,
+          0.02815444095578538,
+          0.9940046752478384,
+          0.01878238882821549
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.25632921007221,
+          -0.14865529815482675,
+          0.0013596262997971462,
+          -0.2584405011985433
+        ],
+        [
+          0.0028436180636742816,
+          -0.06383443326534918,
+          -2.2603183026831224,
+          -0.00038650252307399416
+        ],
+        [
+          -0.14863431666167803,
+          2.25542646032597,
+          -0.06388327206965105,
+          0.01878238882821549
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          0.9999999999999999,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -5.653853055650698e-33,
+          0.0
+        ],
+        [
+          0.0,
+          1.9087400377860413e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        -0.056565166,
+        -7.259954453,
+        2.479069233
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -0.360257715,
+        -7.302281374,
+        2.282294176
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL1sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9965585576608369,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.06315610409570413,
+      "symmetric_distance_p95_nominal_mm": 0.10646074157494324
+    },
+    "42": {
+      "fdi": 42,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_central_incisor.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 14,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "ZBrushPolyMesh3D6",
+        "ZBrushPolyMesh3D6_Mandible_l2_0"
+      ],
+      "target_exterior_faces": 1618,
+      "target_bounds_native": [
+        [
+          -1.143789607,
+          -7.687412475,
+          1.371670881
+        ],
+        [
+          -0.613142611,
+          -6.829441381,
+          3.225596594
+        ]
+      ],
+      "target_bbox_center_native": [
+        -0.878466109,
+        -7.258426928,
+        2.298633738
+      ],
+      "target_crown_landmark_native": [
+        -0.89233135,
+        -7.522264651,
+        3.098120825
+      ],
+      "target_apical_landmark_native": [
+        -0.730698331,
+        -6.969006846,
+        1.548636784
+      ],
+      "target_crownward_axis_native": [
+        -0.097768897,
+        -0.334655665,
+        0.937254943
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.898669855,
+        -0.437921776,
+        -0.024839697
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.438056939,
+        -0.898947227,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -0.992502708065373,
+          0.060034896145391384,
+          -0.06857660283880503,
+          0.269602287536302
+        ],
+        [
+          0.06207090144296671,
+          0.9943542469435626,
+          -0.027845996275242983,
+          -0.053246372673935234
+        ],
+        [
+          -0.06673936174520079,
+          0.0320001181140844,
+          0.9939267652919593,
+          0.10513407266303057
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -0.992502708065373,
+          0.060034896145391384,
+          -0.06857660283880503,
+          0.269602287536302
+        ],
+        [
+          0.06207090144296671,
+          0.9943542469435626,
+          -0.027845996275242983,
+          -0.053246372673935234
+        ],
+        [
+          -0.06673936174520079,
+          0.0320001181140844,
+          0.9939267652919593,
+          0.10513407266303057
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.095192885085058,
+          -0.1447665675706189,
+          -0.12673485547039878,
+          0.269602287536302
+        ],
+        [
+          0.13103290300095957,
+          -0.058783449959262796,
+          -2.099101520348737,
+          -0.053246372673935234
+        ],
+        [
+          -0.14088811521353786,
+          2.0981990981108276,
+          -0.06755288348300863,
+          0.10513407266303057
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -2.289718409596665e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -2.289718409596665e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.501317516,
+        -7.205367804,
+        2.472508073
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -0.830086417,
+        -7.255666669,
+        2.298595792
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL2sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9966787670705158,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.06039032984670346,
+      "symmetric_distance_p95_nominal_mm": 0.10151434673708212
+    },
+    "43": {
+      "fdi": 43,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_canine.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 13,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "ZBrushPolyMesh3D5",
+        "ZBrushPolyMesh3D5_Mandible_ll3_0"
+      ],
+      "target_exterior_faces": 1500,
+      "target_bounds_native": [
+        [
+          -1.642774632,
+          -7.411752358,
+          1.232688486
+        ],
+        [
+          -0.975628284,
+          -6.433884685,
+          3.349057639
+        ]
+      ],
+      "target_bbox_center_native": [
+        -1.309201458,
+        -6.922818521,
+        2.290873062
+      ],
+      "target_crown_landmark_native": [
+        -1.373080241,
+        -7.176216155,
+        3.165478572
+      ],
+      "target_apical_landmark_native": [
+        -1.198142107,
+        -6.619280622,
+        1.418948307
+      ],
+      "target_crownward_axis_native": [
+        -0.094997261,
+        -0.302434633,
+        0.948424384
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.627398879,
+        -0.778095839,
+        -0.030618822
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.778460832,
+        -0.627693183,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -0.9938386351544329,
+          0.008552805127083014,
+          -0.06608468881871365,
+          -0.12544566996829284
+        ],
+        [
+          0.016795386483269663,
+          0.9880904031047365,
+          -0.12470300550761629,
+          -0.06637978369794034
+        ],
+        [
+          -0.06448450639251158,
+          0.12553793894362478,
+          0.9860210665186322,
+          0.884779853651444
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -0.9938386351544328,
+          0.008552805127083014,
+          -0.06608468881871365,
+          -0.12544566996829284
+        ],
+        [
+          0.01679538648326966,
+          0.9880904031047365,
+          -0.12470300550761629,
+          -0.06637978369794034
+        ],
+        [
+          -0.06448450639251156,
+          0.12553793894362478,
+          0.9860210665186322,
+          0.884779853651444
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.41879053131069,
+          -0.16083598878652933,
+          -0.020815697162265518,
+          -0.12544566996829284
+        ],
+        [
+          0.040876376061918296,
+          -0.303500425801957,
+          -2.404800564769067,
+          -0.06637978369794034
+        ],
+        [
+          -0.15694148724074683,
+          2.3997642424089625,
+          -0.30553247508828635,
+          0.884779853651444
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          0.9999999999999999,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          3.1817716850769284e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -2.6449994536534576e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        0.944426477,
+        -6.676645041,
+        2.328058183
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -1.275006235,
+        -6.937962518,
+        2.281221134
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL3sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9960700624441218,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.06942725050583784,
+      "symmetric_distance_p95_nominal_mm": 0.11643101789339658
+    },
+    "44": {
+      "fdi": 44,
+      "source_asset": "research-models\\dentition-28\\mandibular_first_premolar.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 11,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "ZBrushPolyMesh3D3",
+        "ZBrushPolyMesh3D3_Mandible_ll4_0"
+      ],
+      "target_exterior_faces": 2014,
+      "target_bounds_native": [
+        [
+          -2.067468361,
+          -6.925546517,
+          1.308601714
+        ],
+        [
+          -1.294556619,
+          -6.125577559,
+          3.280838225
+        ]
+      ],
+      "target_bbox_center_native": [
+        -1.68101249,
+        -6.525562038,
+        2.29471997
+      ],
+      "target_crown_landmark_native": [
+        -1.669127367,
+        -6.558887494,
+        3.136030645
+      ],
+      "target_apical_landmark_native": [
+        -1.701234012,
+        -6.304025017,
+        1.516766361
+      ],
+      "target_crownward_axis_native": [
+        0.019583039,
+        -0.15545012,
+        0.987649616
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.461907386,
+        -0.883566334,
+        0.07714985
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.886207669,
+        -0.463288213,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -0.9958833716004157,
+          -0.017111672251904995,
+          -0.041691368303979126,
+          -0.11513609105543521
+        ],
+        [
+          -0.009773607380232134,
+          0.9823021535423355,
+          -0.16971041539456602,
+          -0.0463700345885511
+        ],
+        [
+          -0.04399381907827334,
+          0.16912817378356032,
+          0.9814656764574498,
+          1.1036484563497966
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -0.9958833716004157,
+          -0.017111672251904995,
+          -0.041691368303979126,
+          -0.11513609105543521
+        ],
+        [
+          -0.009773607380232134,
+          0.9823021535423355,
+          -0.16971041539456602,
+          -0.0463700345885511
+        ],
+        [
+          -0.04399381907827334,
+          0.16912817378356032,
+          0.9814656764574498,
+          1.1036484563497966
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -2.2993238312280733,
+          -0.09625821600353945,
+          0.03950791520671763,
+          -0.11513609105543521
+        ],
+        [
+          -0.022565582484141703,
+          -0.39183223021110025,
+          -2.2679671289991115,
+          -0.0463700345885511
+        ],
+        [
+          -0.1015741797865841,
+          2.2660358469329562,
+          -0.3904879342323788,
+          1.1036484563497966
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          -1.3338205094401906e-32,
+          0.0
+        ],
+        [
+          0.0,
+          -1.3338205094401906e-32,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.560346305,
+        -6.112862349,
+        2.340603709
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -1.662040705,
+        -6.463522924,
+        2.29836782
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "L4sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9969025375374112,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.07090181633864102,
+      "symmetric_distance_p95_nominal_mm": 0.11928741093873929
+    },
+    "45": {
+      "fdi": 45,
+      "source_asset": "research-models\\dentition-28\\mandibular_left_second_premolar.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 12,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "ZBrushPolyMesh3D4",
+        "ZBrushPolyMesh3D4_Mandible_ll5_0"
+      ],
+      "target_exterior_faces": 1590,
+      "target_bounds_native": [
+        [
+          -2.386000924,
+          -6.326902721,
+          1.163599176
+        ],
+        [
+          -1.586785256,
+          -5.54850011,
+          3.180927228
+        ]
+      ],
+      "target_bbox_center_native": [
+        -1.98639309,
+        -5.937701415,
+        2.172263202
+      ],
+      "target_crown_landmark_native": [
+        -1.997733081,
+        -5.981339786,
+        3.061146244
+      ],
+      "target_apical_landmark_native": [
+        -1.972116413,
+        -5.672559459,
+        1.368270553
+      ],
+      "target_crownward_axis_native": [
+        -0.014884786,
+        -0.179419478,
+        0.98366005
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.437989474,
+        -0.896313246,
+        -0.069193834
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.89846666,
+        -0.439041754,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -1.0613347697512574,
+          0.03129168329572762,
+          -0.08599517022194436,
+          0.2079939913860984
+        ],
+        [
+          0.03918557347651764,
+          1.0600409331215146,
+          -0.09789557276060323,
+          0.2911403606051737
+        ],
+        [
+          -0.08269721625482908,
+          0.10069698551262472,
+          1.0572734366096188,
+          0.3512705859277966
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -1.0613347697512574,
+          0.03129168329572762,
+          -0.08599517022194436,
+          0.2079939913860984
+        ],
+        [
+          0.03918557347651764,
+          1.0600409331215146,
+          -0.09789557276060323,
+          0.2911403606051737
+        ],
+        [
+          -0.08269721625482908,
+          0.10069698551262472,
+          1.0572734366096188,
+          0.3512705859277966
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -1.0613347697512574,
+          -0.08599517022194435,
+          -0.03129168329572764,
+          0.2079939913860984
+        ],
+        [
+          0.03918557347651764,
+          -0.097895572760603,
+          -1.0600409331215146,
+          0.2911403606051737
+        ],
+        [
+          -0.08269721625482908,
+          1.0572734366096188,
+          -0.10069698551262449,
+          0.3512705859277966
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        1.660545468,
+        -5.685791016,
+        2.400084257
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -1.938714277,
+        -5.90591905,
+        2.178951413
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL5sketch1_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 1.065272656284737,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.07203591613959186,
+      "symmetric_distance_p95_nominal_mm": 0.12119357832773216
+    },
+    "46": {
+      "fdi": 46,
+      "source_asset": "research-models\\dentition-28\\mandibular_first_molar.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 10,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "ZBrushPolyMesh3D2",
+        "ZBrushPolyMesh3D2_Mandible_blinn10_0"
+      ],
+      "target_exterior_faces": 2130,
+      "target_bounds_native": [
+        [
+          -2.924381085,
+          -5.747641189,
+          1.523603582
+        ],
+        [
+          -1.872461106,
+          -4.495794569,
+          3.341413393
+        ]
+      ],
+      "target_bbox_center_native": [
+        -2.398421095,
+        -5.121717879,
+        2.432508487
+      ],
+      "target_crown_landmark_native": [
+        -2.379093453,
+        -5.105994115,
+        3.248191504
+      ],
+      "target_apical_landmark_native": [
+        -2.45090306,
+        -4.904882967,
+        1.724683082
+      ],
+      "target_crownward_axis_native": [
+        0.046678056,
+        -0.130727319,
+        0.990318902
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.351934716,
+        -0.915692746,
+        -0.19403286
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.933432604,
+        -0.358752802,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -0.9937442830865012,
+          0.02258828315814131,
+          -0.06610807964078266,
+          -0.09117634482693383
+        ],
+        [
+          0.024318253953156392,
+          0.9955765843999702,
+          -0.02537904679231916,
+          -0.23613143497408537
+        ],
+        [
+          -0.06549145940116212,
+          0.026930335225995587,
+          0.9936769267156451,
+          0.13425930480439216
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -0.9937442830865012,
+          0.022588283158141303,
+          -0.06610807964078268,
+          -0.09117634482693383
+        ],
+        [
+          0.0243182539531564,
+          0.9955765843999702,
+          -0.02537904679231918,
+          -0.23613143497408537
+        ],
+        [
+          -0.06549145940116212,
+          0.026930335225995597,
+          0.9936769267156453,
+          0.13425930480439216
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -0.9695981582877626,
+          -0.06860279316567754,
+          -0.21813132996379633,
+          -0.09117634482693383
+        ],
+        [
+          0.2266751780334245,
+          -0.16327184377776538,
+          -0.9562263736113182,
+          -0.23613143497408537
+        ],
+        [
+          -0.030099568193286526,
+          0.9803286034265271,
+          -0.17452236015852174,
+          0.13425930480439216
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          7.410217408139577e-18,
+          4.334118010759386e-18,
+          0.0
+        ],
+        [
+          8.271194283991728e-18,
+          1.0,
+          -1.7048797567010864e-17,
+          0.0
+        ],
+        [
+          -4.893065868675973e-19,
+          8.984824296913747e-18,
+          1.0000000000000002,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.007399619,
+        -4.892248392,
+        2.584018767
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -2.36735025,
+        -5.123502859,
+        2.438721712
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL6sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.996196872559299,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.08955746004970963,
+      "symmetric_distance_p95_nominal_mm": 0.1503214884081047
+    },
+    "47": {
+      "fdi": 47,
+      "source_asset": "research-models\\dentition-28\\mandibular_second_molar.glb",
+      "contralateral_from_left_source": true,
+      "target_reference_mesh": 9,
+      "target_reference_node_path": [
+        "Sketchfab_model",
+        "5736dd2386f34ec6a47d9428aa6430ab.fbx",
+        "Object_2",
+        "RootNode",
+        "Mandible_group1",
+        "ZBrushPolyMesh3D1",
+        "ZBrushPolyMesh3D1_Mandible_ll7_0"
+      ],
+      "target_exterior_faces": 2066,
+      "target_bounds_native": [
+        [
+          -3.247399334,
+          -4.802371524,
+          1.819105684
+        ],
+        [
+          -2.236561187,
+          -3.601238696,
+          3.564766757
+        ]
+      ],
+      "target_bbox_center_native": [
+        -2.741980261,
+        -4.20180511,
+        2.69193622
+      ],
+      "target_crown_landmark_native": [
+        -2.697034687,
+        -4.161839241,
+        3.446693576
+      ],
+      "target_apical_landmark_native": [
+        -2.8881338,
+        -3.921534658,
+        1.996615488
+      ],
+      "target_crownward_axis_native": [
+        0.128927176,
+        -0.162124203,
+        0.978311569
+      ],
+      "target_mesial_axis_native_from_arch": [
+        0.312985513,
+        -0.929438415,
+        -0.195408038
+      ],
+      "target_buccal_axis_native_from_arch": [
+        -0.947708308,
+        -0.319137843,
+        0.0
+      ],
+      "source_pre_sketchfab_to_assembled_pre_sketchfab": [
+        [
+          -0.9519805411447729,
+          -0.27288532034034635,
+          0.10915055478456305,
+          -1.8951170950151353
+        ],
+        [
+          -0.29183172334962865,
+          0.9215338659417905,
+          -0.24136439578879934,
+          0.6479688031718719
+        ],
+        [
+          0.034849489434095306,
+          0.26259498900484146,
+          0.9604564421258581,
+          0.8988091179532447
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_assembled_pre_sketchfab": [
+        [
+          -0.9519805411447729,
+          -0.27288532034034635,
+          0.10915055478456305,
+          -1.8951170950151353
+        ],
+        [
+          -0.29183172334962865,
+          0.9215338659417905,
+          -0.24136439578879934,
+          0.6479688031718719
+        ],
+        [
+          0.034849489434095306,
+          0.26259498900484146,
+          0.9604564421258581,
+          0.8988091179532447
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_gltf_world_to_assembled_pre_sketchfab": [
+        [
+          -0.9519805411447729,
+          0.109150554784563,
+          0.27288532034034635,
+          -1.8951170950151353
+        ],
+        [
+          -0.29183172334962865,
+          -0.24136439578879915,
+          -0.9215338659417905,
+          0.6479688031718719
+        ],
+        [
+          0.034849489434095306,
+          0.9604564421258582,
+          -0.26259498900484124,
+          0.8988091179532447
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "source_mesh_local_to_source_pre_sketchfab": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "input_source_pre_sketchfab_bbox_center": [
+        2.338371277,
+        -3.771213412,
+        2.781123519
+      ],
+      "fitted_source_anchor_in_assembled_native": [
+        -2.788531093,
+        -4.181007189,
+        2.661146419
+      ],
+      "source_mesh_node_path": [
+        "Sketchfab_model",
+        "LL7sketch_1.OBJ.cleaner",
+        "Object_2"
+      ],
+      "uniform_scale_native": 0.9963168132603849,
+      "determinant_sign": -1,
+      "fit_rms_nominal_mm": 0.0823811008972663,
+      "symmetric_distance_p95_nominal_mm": 0.13834832899112223
+    }
+  }
+}

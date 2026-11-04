@@ -1,0 +1,228 @@
+{
+  "manifest_sha256": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+  "asset_sha256": {
+    "public\\dentition-assets\\dentition.glb": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+    "public\\prototype-assets\\molar.glb": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+    "public\\dentition-assets\\dentition-mobile.glb": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+    "public\\prototype-assets\\molar-mobile.glb": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2"
+  },
+  "matrix_selected": {
+    "11": "sourceMatrix",
+    "12": "sourceMatrix",
+    "13": "sourceMatrix",
+    "14": "sourceMatrix",
+    "15": "sourceMatrix",
+    "16": "sourceMatrix",
+    "17": "sourceMatrix",
+    "21": "sourceMatrix",
+    "22": "sourceMatrix",
+    "23": "sourceMatrix",
+    "24": "sourceMatrix",
+    "25": "sourceMatrix",
+    "26": "sourceMatrix",
+    "27": "sourceMatrix",
+    "31": "sourceMatrix",
+    "32": "sourceMatrix",
+    "33": "sourceMatrix",
+    "34": "sourceMatrix",
+    "35": "sourceMatrix",
+    "36": "sourceMatrix",
+    "37": "sourceMatrix",
+    "41": "sourceMatrix",
+    "42": "sourceMatrix",
+    "43": "sourceMatrix",
+    "44": "sourceMatrix",
+    "45": "sourceMatrix",
+    "46": "sourceMatrix",
+    "47": "sourceMatrix"
+  },
+  "triangle_counts": {
+    "desktop": 592016,
+    "mobile": 333016
+  },
+  "method": "Actual delivered GLB POSITION and triangle indices for every render mesh on BOTH LOD sets. Original sourceMatrix if present else unchanged original matrix, saved world-cm presentation offset once, upper +0.32cm/lower -0.48cm world Y. Triangle BVH epsilon zero, all 182 same-arch and 196 opposing pairs for EACH LOD. Negative-determinant winding corrected before signed sampled depths. Tighter gap upper bounds for coarse contacts sample triangle edges as well as vertices in both directions.",
+  "opened_bite_source_matrix_display_offsets_before": {
+    "desktop": [],
+    "mobile": []
+  },
+  "after_joint_correction": {
+    "desktop": [],
+    "mobile": []
+  },
+  "incremental_world_cm_translations": {},
+  "final_per_fdi_translation_world_cm": {
+    "11": [
+      -0.00068349609375,
+      0.0,
+      0.0
+    ],
+    "12": [
+      -0.004525042590888348,
+      0.0,
+      -0.002779176724858038
+    ],
+    "13": [
+      -0.012654603769252426,
+      0.0,
+      -0.018533808144799734
+    ],
+    "14": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "15": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "16": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "17": [
+      -0.0075157863578695595,
+      0.0,
+      -0.014349076813083363
+    ],
+    "21": [
+      0.00068349609375,
+      0.0,
+      0.0
+    ],
+    "22": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "23": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "24": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "25": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "26": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "27": [
+      0.0024934014627692605,
+      0.0,
+      -0.0067076126778423065
+    ],
+    "31": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "32": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "33": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "34": [
+      0.022196290126635185,
+      0.0,
+      -0.028367466409699837
+    ],
+    "35": [
+      0.007851547831666363,
+      0.0,
+      -0.015228477884055997
+    ],
+    "36": [
+      0.00721719727044252,
+      0.0,
+      -0.021282913543351732
+    ],
+    "37": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "41": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "42": [
+      -0.02597990846431439,
+      0.0,
+      -0.012660008117782
+    ],
+    "43": [
+      -0.017822161813784886,
+      0.0,
+      -0.022102924325058743
+    ],
+    "44": [
+      -0.011758682378908902,
+      0.0,
+      -0.022492768471419983
+    ],
+    "45": [
+      -0.018434276154227165,
+      0.0,
+      -0.03772439036071683
+    ],
+    "46": [
+      -0.016585530407276523,
+      0.0,
+      -0.04315359975757543
+    ],
+    "47": [
+      -0.030811528308637433,
+      0.0,
+      -0.09149758356913526
+    ]
+  },
+  "final_original_contact_gap_upper_bound_mm": {
+    "desktop": {
+      "11-12": 0.012885230826213956,
+      "11-21": 0.014364751987159252,
+      "12-13": 0.010592869948595762,
+      "16-17": 0.01135969185270369,
+      "26-27": 0.011870387243106961,
+      "33-34": 0.011400283547118306,
+      "35-36": 0.011843441752716899,
+      "41-42": 0.011588556226342916,
+      "42-43": 0.011951589258387685,
+      "44-45": 0.011859460501000285,
+      "45-46": 0.012546657817438245,
+      "46-47": 0.013943917583674192
+    },
+    "mobile": {
+      "11-12": 0.014326294185593724,
+      "11-21": 0.020109296310693026,
+      "12-13": 0.011695848079398274,
+      "16-17": 0.0123567134141922,
+      "26-27": 0.009641876094974577,
+      "33-34": 0.01405575661920011,
+      "35-36": 0.012910023797303438,
+      "41-42": 0.015563328051939607,
+      "42-43": 0.009360233088955283,
+      "44-45": 0.012837653048336506,
+      "45-46": 0.012818423565477133,
+      "46-47": 0.012239443603903055
+    }
+  },
+  "max_total_displacement_mm": 0.9654614479980471,
+  "max_increment_mm": 0.0,
+  "steps": []
+}

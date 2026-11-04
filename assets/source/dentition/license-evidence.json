@@ -1,0 +1,379 @@
+[
+  {
+    "source": 21,
+    "download": "https://www.teethatlas.com/models/maxillary_left_central_incisor.glb",
+    "sha256": "be57ac9ed3b7b7ef08310fb1f8dedbef566f5371286ecfb804f35ae1f4479d8d",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/maxillary-left-central-incisor-c8a7c2d9280d4c92bc651cfa1459866a",
+      "title": "Maxillary Left Central Incisor"
+    },
+    "primary_metadata": {
+      "name": "Maxillary Left Central Incisor",
+      "uid": "c8a7c2d9280d4c92bc651cfa1459866a",
+      "description": "Maxillary Left Central Incisor (Left)\n\nCreated by the University of Dundee, School of Dentistry.\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/maxillary-left-central-incisor-c8a7c2d9280d4c92bc651cfa1459866a",
+      "publishedAt": "2015-10-06T12:03:19",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/c8a7c2d9280d4c92bc651cfa1459866a"
+    }
+  },
+  {
+    "source": 22,
+    "download": "https://www.teethatlas.com/models/maxillary_lateral_incisor.glb",
+    "sha256": "70f8b3fc8cc3601caf9aa9d85aca4a57c902d983468c0460d727c5841dd04891",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/maxillary-lateral-incisor-5e89ddbfc6454e2e8e09c645574b8932",
+      "title": "Maxillary Lateral Incisor"
+    },
+    "primary_metadata": {
+      "name": "Maxillary Lateral Incisor",
+      "uid": "5e89ddbfc6454e2e8e09c645574b8932",
+      "description": "The maxilary lateral incisor may present as a peg shape or even be missing in some patients.\n\nMaxillary Lateral Incisor (Left)\n\nCreated by the University of Dundee, School of Dentistry.\n\nCreated in zBrush using CT Data.",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/maxillary-lateral-incisor-5e89ddbfc6454e2e8e09c645574b8932",
+      "publishedAt": "2015-10-06T12:28:47",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/5e89ddbfc6454e2e8e09c645574b8932"
+    }
+  },
+  {
+    "source": 23,
+    "download": "https://www.teethatlas.com/models/maxillary_canine.glb",
+    "sha256": "6dc2ebb740ce56c7ed08afe0bfc8f7dd7716d741ac5a9646cf1675581f5ac517",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/maxillary-canine-bd930c9b9da14f2a9a8c9b130b0e08a2",
+      "title": "Maxillary Canine"
+    },
+    "primary_metadata": {
+      "name": "Maxillary Canine",
+      "uid": "bd930c9b9da14f2a9a8c9b130b0e08a2",
+      "description": "The upper canines have a very long root. In patients with canine guidance, it is involved in guiding lateral excursive moments during mastication.\n\nCreated by The University of Dundee, School of Dentistry.\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/maxillary-canine-bd930c9b9da14f2a9a8c9b130b0e08a2",
+      "publishedAt": "2015-10-06T13:20:41",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/bd930c9b9da14f2a9a8c9b130b0e08a2"
+    }
+  },
+  {
+    "source": 24,
+    "download": "https://www.teethatlas.com/models/maxillary_first_premolar.glb",
+    "sha256": "b0d94d2ab01954710936b46618ef23d9b123302296001d648088dd43baf0e8b3",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/maxillary-first-premolar-f9b48a29d34f4923b683433f030c5c70",
+      "title": "Maxillary First Premolar"
+    },
+    "primary_metadata": {
+      "name": "Maxillary First Premolar",
+      "uid": "f9b48a29d34f4923b683433f030c5c70",
+      "description": "Maxillary First Premolar (Left)\n\nCreated by the University of Dundee, School of Dentistry\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/maxillary-first-premolar-f9b48a29d34f4923b683433f030c5c70",
+      "publishedAt": "2016-09-20T12:12:26.536999",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/f9b48a29d34f4923b683433f030c5c70"
+    }
+  },
+  {
+    "source": 25,
+    "download": "https://www.teethatlas.com/models/maxillary_second_premolar.glb",
+    "sha256": "ae5afef4c885181ff12fa9d9380bba05334ac4ae28ad2611f28bf43c5ed4cb96",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/maxillary-second-premolar-69f3142830064588b000b04bea0ee09f",
+      "title": "Maxillary Second Premolar"
+    },
+    "primary_metadata": {
+      "name": "Maxillary Second Premolar",
+      "uid": "69f3142830064588b000b04bea0ee09f",
+      "description": "Maxillary Second Premolar (Left)\n\nCreated by The University of Dundee, School of Dentistry\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/maxillary-second-premolar-69f3142830064588b000b04bea0ee09f",
+      "publishedAt": "2015-10-06T13:57:22",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/69f3142830064588b000b04bea0ee09f"
+    }
+  },
+  {
+    "source": 27,
+    "download": "https://www.teethatlas.com/models/maxillary_second_molar.glb",
+    "sha256": "1ee64344137280606c827d3b050db7f1468e1fb1e7129d103876af981c672329",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/maxillary-second-molar-e035713849d1438791306e25235ac452",
+      "title": "Maxillary Second Molar"
+    },
+    "primary_metadata": {
+      "name": "Maxillary Second Molar",
+      "uid": "e035713849d1438791306e25235ac452",
+      "description": "Maxillary Second Molar (Left)\n\nCreated by The University of Dundee, School of Dentistry\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/maxillary-second-molar-e035713849d1438791306e25235ac452",
+      "publishedAt": "2016-05-16T12:28:29.358862",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/e035713849d1438791306e25235ac452"
+    }
+  },
+  {
+    "source": 32,
+    "download": "https://www.teethatlas.com/models/mandibular_left_central_incisor.glb",
+    "sha256": "baff5d28d84646da67a5cf6c9d021bb2c92d2183987de303ecf82078366a9181",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mandibular-left-central-incisor-90dcbf474e5a4d97b8783b7eb2b9c4b7",
+      "title": "Mandibular Left Central Incisor"
+    },
+    "primary_metadata": {
+      "name": "Mandibular Left Central Incisor",
+      "uid": "90dcbf474e5a4d97b8783b7eb2b9c4b7",
+      "description": "The central incisor is normally the smallest tooth in the permanent dentition.\n\n\nCreated by the University of Dundee, School of Dentistry.\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/mandibular-left-central-incisor-90dcbf474e5a4d97b8783b7eb2b9c4b7",
+      "publishedAt": "2015-10-06T10:21:15",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/90dcbf474e5a4d97b8783b7eb2b9c4b7"
+    }
+  },
+  {
+    "source": 31,
+    "download": "https://www.teethatlas.com/models/mandibular_left_lateral_incisor.glb",
+    "sha256": "b9259c1d2900ce66351b577cfe114f14d02d224941dee015b966e4be03bb4560",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mandibular-left-lateral-incisor-00fa4f74e10b4769830bf60469c65e27",
+      "title": "Mandibular Left Lateral Incisor"
+    },
+    "primary_metadata": {
+      "name": "Mandibular Left Lateral Incisor",
+      "uid": "00fa4f74e10b4769830bf60469c65e27",
+      "description": "The mandibular lateral incisor is normally slightly larger than the central incisor.\n\nCreated by The University of Dundee, School of Dentistry\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/mandibular-left-lateral-incisor-00fa4f74e10b4769830bf60469c65e27",
+      "publishedAt": "2015-10-06T10:07:01",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/00fa4f74e10b4769830bf60469c65e27"
+    }
+  },
+  {
+    "source": 33,
+    "download": "https://www.teethatlas.com/models/mandibular_left_canine.glb",
+    "sha256": "c76233e423c5540108db49328c23fc61fb476eb4095e445cbfef2ca364ca7ecc",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mandibular-left-canine-1082011ab5aa46bb96b2af6a02a4ec0c",
+      "title": "Mandibular Left Canine"
+    },
+    "primary_metadata": {
+      "name": "Mandibular Left Canine",
+      "uid": "1082011ab5aa46bb96b2af6a02a4ec0c",
+      "description": "Compared to the upper canine, this tooth is smaller and narrower than the upper canine.\n\n\nMandibular Left Canine\n\nCreated by the University of Dundee, School of Dentistry\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/mandibular-left-canine-1082011ab5aa46bb96b2af6a02a4ec0c",
+      "publishedAt": "2015-10-06T10:16:54",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/1082011ab5aa46bb96b2af6a02a4ec0c"
+    }
+  },
+  {
+    "source": 34,
+    "download": "https://www.teethatlas.com/models/mandibular_first_premolar.glb",
+    "sha256": "4f6f26f467ab6a94079d3be1c325cad32c0e4ec154dc34ab7459020a848e225f",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mandibular-first-premolar-935637a703dc49eb9eeec9b15a8a5c4c",
+      "title": "Mandibular First Premolar"
+    },
+    "primary_metadata": {
+      "name": "Mandibular First Premolar",
+      "uid": "935637a703dc49eb9eeec9b15a8a5c4c",
+      "description": "Mandibular Left First Premolar\n\nCreated by the University of Dundee, School of Dentistry.\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/mandibular-first-premolar-935637a703dc49eb9eeec9b15a8a5c4c",
+      "publishedAt": "2015-10-06T10:40:55",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/935637a703dc49eb9eeec9b15a8a5c4c"
+    }
+  },
+  {
+    "source": 35,
+    "download": "https://www.teethatlas.com/models/mandibular_left_second_premolar.glb",
+    "sha256": "19911824e3685a2712d07c20400091787cef3055bf86b9bd84ea0ea8b33a51d1",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mandibular-left-second-premolar-fe59fe04725446479bc1115bb12d0ad8",
+      "title": "Mandibular Left Second Premolar"
+    },
+    "primary_metadata": {
+      "name": "Mandibular Left Second Premolar",
+      "uid": "fe59fe04725446479bc1115bb12d0ad8",
+      "description": "Created by the University of Dundee, School of Dentistry.\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/mandibular-left-second-premolar-fe59fe04725446479bc1115bb12d0ad8",
+      "publishedAt": "2015-10-06T10:49:38",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/fe59fe04725446479bc1115bb12d0ad8"
+    }
+  },
+  {
+    "source": 36,
+    "download": "https://www.teethatlas.com/models/mandibular_first_molar.glb",
+    "sha256": "763de453952e1f53843da89d8d9a4c03fb64dc325865c2197a5eaf09121dde87",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6",
+      "title": "Mandibular First Molar"
+    },
+    "primary_metadata": {
+      "name": "Mandibular First Molar",
+      "uid": "e1c919d6603846eca873154eeededdd6",
+      "description": "Mandibular First Molar (Left)\n\nCreated by the University of Dundee, School of Dentistry.\n\nCreated in zBrush",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6",
+      "publishedAt": "2015-10-06T10:59:19",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/e1c919d6603846eca873154eeededdd6"
+    }
+  },
+  {
+    "source": 37,
+    "download": "https://www.teethatlas.com/models/mandibular_second_molar.glb",
+    "sha256": "72de9953d5220406c1baea4f3dc089c9235a0ca163a16fc54fcccea5de8a041c",
+    "embedded": {
+      "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mandibular-second-molar-b77dcbc5052e4740b87cdb1964649742",
+      "title": "Mandibular Second Molar"
+    },
+    "primary_metadata": {
+      "name": "Mandibular Second Molar",
+      "uid": "b77dcbc5052e4740b87cdb1964649742",
+      "description": "Maxillary Third Molar (Left)\n\nCreated by the University of Dundee, School of Dentistry.\n\nCreated in zBrush using CT Data.",
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "viewerUrl": "https://sketchfab.com/3d-models/mandibular-second-molar-b77dcbc5052e4740b87cdb1964649742",
+      "publishedAt": "2015-10-06T11:14:29",
+      "isDownloadable": true,
+      "author": "University of Dundee, School of Dentistry",
+      "url": "https://api.sketchfab.com/v3/models/b77dcbc5052e4740b87cdb1964649742"
+    }
+  }
+]

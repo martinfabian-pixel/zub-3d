@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Jeden zub. Celý chrup. Súvislá interaktívna anatomická 3D štúdia." />
+    <title>ZUB — Dental study</title>
+  </head>
+  <body>
+    <main id="dental-journey" aria-label="Postupné odhalenie stáleho chrupu posúvaním stránky">
+      <div id="journey-stage">
+        <canvas id="journey-canvas" aria-label="3D chrup. Posúvaním stránky odhaľujete 28 zubov." tabindex="-1"></canvas>
+        <div id="journey-status" role="status" aria-live="polite">
+          <span id="journey-message">Pripravujem zub…</span>
+          <button id="journey-retry" type="button" hidden>Skúsiť znova</button>
+        </div>
+        <div id="journey-hint" aria-hidden="true"><span>Posunutím odhaľte chrup</span><span class="scroll-arrow">↓</span></div>
+        <div id="journey-inspect" hidden>
+          <span id="journey-orbit-hint" hidden>Ťahajte do strán · zvislo posúvajte stránku</span>
+          <button id="journey-explore" type="button" aria-pressed="false">Preskúmať 3D <span aria-hidden="true">↗</span></button>
+          <button id="journey-reset" type="button" aria-label="Obnoviť pohľad" hidden>↺</button>
+        </div>
+        <a class="journey-credit" href="../dentition-assets/credits.txt" target="_blank" rel="noopener">Dundee · CC BY 4.0</a>
+        <noscript><p class="no-script">Pre interaktívne 3D zobrazenie povoľte JavaScript.</p></noscript>
+      </div>
+    </main>
+    <script type="module" src="../src/experience/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,2 @@
+-r requirements-model.txt
+DracoPy==2.2.0

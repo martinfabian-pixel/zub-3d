@@ -45,3 +45,9 @@ The comparison and primary anatomical/optical references are listed in [docs/MOD
 - Blender 4.5 LTS, used as an external modeling/export tool: GPL, https://www.blender.org/about/license/
 
 The earlier D46/Diaz et al. model remains credited in Git history and is not included in the current deployed tooth. Reuse must retain appropriate credit, the CC BY 4.0 link and a description of modifications.
+
+## Nová samostatná prezentácia `/experience/`
+
+Táto stránka pridáva 13 odlišných ľavostranných anatomických predlôh University of Dundee, School of Dentistry, k existujúcemu schválenému prvému hornému moláru. Spolu ide o 14 typov; pravé náprotivky sú zrkadlené, pozície pochádzajú zo samostatného diela *Permanent Dentition*. Všetky modely a odvodené mapy sú **CC BY 4.0**. Vytvorenie: **Emily McDougall**; odborný obsah: **Dr. Andrew Mason**; počiatočná 3D príprava: **Mark Roughley**. Nejde o schválenie nášho projektu týmito autormi.
+
+Presné originály, odkazy na licenciu, redistribúcie a popis úprav: [DENTITION_SOURCES.md](docs/DENTITION_SOURCES.md), [vložené kredity](public/dentition-assets/credits.txt), [proveniencia](public/dentition-assets/provenance.json). Existujúce HDR je naďalej **Studio Small 09**, Sergej Majboroda / Poly Haven, CC0. Kód novej prezentácie: MIT. Žiadne platené assety, prevzaté kódy alebo assety referencie Raspberry.

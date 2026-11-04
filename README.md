@@ -1,5 +1,7 @@
 # ZUB-3D — jeden horný prvý molár
 
+**Nová fáza: [súvislý 3D zážitok s 28 zubami](https://martinfabian-pixel.github.io/zub-3d/experience/)**. Jeden zub → susedia → horný oblúk → celý chrup, riadené bežným scrollom. [Spustenie, architektúra, testy a obmedzenia](docs/EXPERIENCE.md) · [Pôvod 14 odlišných anatomických predlôh a licencie](docs/DENTITION_SOURCES.md). Pôvodná stránka nižšie a [schválený samostatný prototyp](https://martinfabian-pixel.github.io/zub-3d/prototype/) zostávajú zachované.
+
 [Otvoriť interaktívne demo](https://martinfabian-pixel.github.io/zub-3d/)
 
 Horná ľavá prvá trvalá stolička **FDI 26 / UL6**, s tromi pôvodnými koreňmi. Jeden zub bez ďasien, biele pozadie a ovládanie myšou, dotykom aj klávesnicou. Ťahanie otáča pohľad, koliesko alebo gesto dvoma prstami približuje. Tlačidlo so šípkou a kláves Home obnovia pohľad.

@@ -1,0 +1,266 @@
+{
+  "dentition.glb": {
+    "FDI_21": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 7752,
+      "volumeMm3": 604.5892236339809,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_22": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 7752,
+      "volumeMm3": 340.5562667748259,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_23": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 8752,
+      "volumeMm3": 563.5591692910349,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_24": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 9502,
+      "volumeMm3": 580.8055415071129,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_25": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 9502,
+      "volumeMm3": 522.4152323665697,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_27": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 11002,
+      "volumeMm3": 900.2819741803443,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_31": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 7752,
+      "volumeMm3": 424.8662730430379,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_32": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 7752,
+      "volumeMm3": 395.7141847375138,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_33": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 8752,
+      "volumeMm3": 626.7076707626045,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_34": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 9502,
+      "volumeMm3": 715.1780810222886,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_35": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 9502,
+      "volumeMm3": 596.9136128725337,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_36": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 11002,
+      "volumeMm3": 1395.2399442628928,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_37": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 11002,
+      "volumeMm3": 1105.9671303396833,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    }
+  },
+  "dentition-mobile.glb": {
+    "FDI_21": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 3502,
+      "volumeMm3": 604.4174310360163,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_22": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 3502,
+      "volumeMm3": 340.4737294328188,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_23": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 4002,
+      "volumeMm3": 563.4064107136,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_24": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 4252,
+      "volumeMm3": 580.6345415875818,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_25": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 4252,
+      "volumeMm3": 522.3154246879595,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_27": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 5252,
+      "volumeMm3": 900.0556376663682,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_31": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 3502,
+      "volumeMm3": 424.74890658456314,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_32": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 3502,
+      "volumeMm3": 395.61568280649686,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_33": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 4002,
+      "volumeMm3": 626.567980284787,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_34": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 4252,
+      "volumeMm3": 715.0217194233159,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_35": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 4252,
+      "volumeMm3": 596.7570210572204,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_36": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 5252,
+      "volumeMm3": 1394.8633617444702,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    },
+    "FDI_37": {
+      "watertight": true,
+      "consistentWinding": true,
+      "components": 1,
+      "degenerateAreaBelow1e-12mm2": 0,
+      "weldedVertices": 5252,
+      "volumeMm3": 1105.6883155022779,
+      "crownTipMaskMedian": 1.0,
+      "rootTipMaskMedian": 0.0
+    }
+  }
+}

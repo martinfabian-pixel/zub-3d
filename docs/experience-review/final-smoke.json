@@ -1,0 +1,119 @@
+{
+  "clearance": [
+    {
+      "name": "desktop",
+      "stage": "hero",
+      "bodyBottom": 772.24,
+      "overlayTop": 824,
+      "gapPx": 51.76,
+      "revision": "ae74b2aa28d6",
+      "visible": 1
+    },
+    {
+      "name": "desktop",
+      "stage": "full",
+      "bodyBottom": 749.77,
+      "overlayTop": 832.81,
+      "gapPx": 83.04,
+      "revision": "ae74b2aa28d6",
+      "visible": 28
+    },
+    {
+      "name": "portrait",
+      "stage": "hero",
+      "bodyBottom": 695.41,
+      "overlayTop": 752,
+      "gapPx": 56.59,
+      "revision": "ae74b2aa28d6",
+      "visible": 1
+    },
+    {
+      "name": "portrait",
+      "stage": "full",
+      "bodyBottom": 520.48,
+      "overlayTop": 762.81,
+      "gapPx": 242.34,
+      "revision": "ae74b2aa28d6",
+      "visible": 28
+    },
+    {
+      "name": "landscape",
+      "stage": "hero",
+      "bodyBottom": 301.14,
+      "overlayTop": 314,
+      "gapPx": 12.86,
+      "revision": "ae74b2aa28d6",
+      "visible": 1
+    },
+    {
+      "name": "landscape",
+      "stage": "full",
+      "bodyBottom": 292.37,
+      "overlayTop": 322.81,
+      "gapPx": 30.44,
+      "revision": "ae74b2aa28d6",
+      "visible": 28
+    }
+  ],
+  "requests": [
+    {
+      "name": "desktop",
+      "urls": [
+        "/dentition-assets/manifest.json?v=ae74b2aa28d6",
+        "/prototype-assets/molar.glb?v=ae74b2aa28d6",
+        "/dentition-assets/dentition.glb?v=ae74b2aa28d6"
+      ]
+    },
+    {
+      "name": "portrait",
+      "urls": [
+        "/dentition-assets/manifest.json?v=ae74b2aa28d6",
+        "/prototype-assets/molar-mobile.glb?v=ae74b2aa28d6",
+        "/dentition-assets/dentition-mobile.glb?v=ae74b2aa28d6"
+      ]
+    },
+    {
+      "name": "landscape",
+      "urls": [
+        "/dentition-assets/manifest.json?v=ae74b2aa28d6",
+        "/prototype-assets/molar-mobile.glb?v=ae74b2aa28d6",
+        "/dentition-assets/dentition-mobile.glb?v=ae74b2aa28d6"
+      ]
+    }
+  ],
+  "revision": "ae74b2aa28d6",
+  "manifestSHA": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+  "audit": {
+    "desktop": [],
+    "mobile": []
+  },
+  "credits": {
+    "status": 200,
+    "contentType": "text/plain",
+    "matchesSource": true,
+    "CCBY": true,
+    "Dundee": true
+  },
+  "revealContinuity": {
+    "productionEntry": "experience-C_utWqh9.js",
+    "details": "report.json → revealContinuity",
+    "boundary": {
+      "n": 5,
+      "maxPeak": 7,
+      "maxRms": 0.11578530250338984,
+      "maxPct": 0
+    },
+    "arrival": {
+      "n": 19,
+      "maxPeak": 4,
+      "maxRms": 0.020035103142412247,
+      "maxPct": 0
+    },
+    "shadow": {
+      "n": 19,
+      "maxPeak": 7,
+      "maxRms": 0.027849271193636085,
+      "maxPct": 0
+    }
+  }
+}

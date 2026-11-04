@@ -1,0 +1,292 @@
+{
+  "method": "Exact prepared canonical triangle positions transformed by actual manifest Matrix4 values; bounded distal horizontal arch-tangent translation until no BVH triangle intersection, with 0.012 mm extra travel. Bilateral central incisors share equal/opposite x correction only where an initial intersection exists, preserving their midpoint. Permanent reference matrices and tooth geometry unchanged. Final verification against ALL 182 same-arch and 196 opposing pairs, not just adjacent pairs. Widths/scales illustrative, not clinically validated contacts.",
+  "manifest_sha256": "09a048d8133b46e89da526ed5adda79e092985fa751540a248bca836bc7379cc",
+  "units": "Add these world cm translations AFTER applying source seating matrix, before applying independent jaw display opening. +X patient left,+Y superior,+Z anterior. No y change in offsets.",
+  "same_arch_before": [
+    [
+      11,
+      12
+    ],
+    [
+      11,
+      21
+    ],
+    [
+      12,
+      13
+    ],
+    [
+      16,
+      17
+    ],
+    [
+      26,
+      27
+    ],
+    [
+      33,
+      34
+    ],
+    [
+      35,
+      36
+    ],
+    [
+      41,
+      42
+    ],
+    [
+      42,
+      43
+    ],
+    [
+      44,
+      45
+    ],
+    [
+      45,
+      46
+    ],
+    [
+      46,
+      47
+    ]
+  ],
+  "same_arch_after": [],
+  "opposing_after_display_opening": [],
+  "opening_cm": {
+    "upper": 0.32,
+    "lower": -0.48
+  },
+  "clearance_pad_along_tangent_mm": 0.011999999999999999,
+  "largest_displacement_mm": 0.9654614479980471,
+  "per_fdi_translation_world_cm": {
+    "11": [
+      -0.00068349609375,
+      0.0,
+      0.0
+    ],
+    "12": [
+      -0.004525042590888348,
+      0.0,
+      -0.002779176724858038
+    ],
+    "13": [
+      -0.012654603769252426,
+      0.0,
+      -0.018533808144799734
+    ],
+    "14": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "15": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "16": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "17": [
+      -0.0075157863578695595,
+      0.0,
+      -0.014349076813083363
+    ],
+    "21": [
+      0.00068349609375,
+      0.0,
+      0.0
+    ],
+    "22": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "23": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "24": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "25": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "26": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "27": [
+      0.0024934014627692605,
+      0.0,
+      -0.0067076126778423065
+    ],
+    "31": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "32": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "33": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "34": [
+      0.022196290126635185,
+      0.0,
+      -0.028367466409699837
+    ],
+    "35": [
+      0.007851547831666363,
+      0.0,
+      -0.015228477884055997
+    ],
+    "36": [
+      0.00721719727044252,
+      0.0,
+      -0.021282913543351732
+    ],
+    "37": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "41": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "42": [
+      -0.02597990846431439,
+      0.0,
+      -0.012660008117782
+    ],
+    "43": [
+      -0.017822161813784886,
+      0.0,
+      -0.022102924325058743
+    ],
+    "44": [
+      -0.011758682378908902,
+      0.0,
+      -0.022492768471419983
+    ],
+    "45": [
+      -0.018434276154227165,
+      0.0,
+      -0.03772439036071683
+    ],
+    "46": [
+      -0.016585530407276523,
+      0.0,
+      -0.04315359975757543
+    ],
+    "47": [
+      -0.030811528308637433,
+      0.0,
+      -0.09149758356913526
+    ]
+  },
+  "initial_contact_final_gap_upper_bound_mm": {
+    "11-12": 0.011792603181675076,
+    "11-21": 0.011946952436119318,
+    "12-13": 0.011870667804032564,
+    "16-17": 0.012040591100230813,
+    "26-27": 0.011975762899965048,
+    "33-34": 0.011808861745521426,
+    "35-36": 0.01172750722616911,
+    "41-42": 0.011867299908772111,
+    "42-43": 0.01200550002977252,
+    "44-45": 0.01197022502310574,
+    "45-46": 0.011820613872259855,
+    "46-47": 0.012008892372250557
+  },
+  "gap_method": "Nearest mesh vertex to opposite triangle, both directions. A non-intersecting pair has gap >=0; this is an upper bound for triangle-to-triangle gap, so <=0.06 mm establishes requested clearance range without claiming exact minimum.",
+  "step_trace": [
+    {
+      "moving_distal_fdi": 21,
+      "previous_fdi": 11,
+      "relative_step_mm": 0.013669921875
+    },
+    {
+      "moving_distal_fdi": 12,
+      "previous_fdi": 11,
+      "relative_step_mm": 0.05310351562499999
+    },
+    {
+      "moving_distal_fdi": 13,
+      "previous_fdi": 12,
+      "relative_step_mm": 0.22441948242187504
+    },
+    {
+      "moving_distal_fdi": 17,
+      "previous_fdi": 16,
+      "relative_step_mm": 0.161982421875
+    },
+    {
+      "moving_distal_fdi": 27,
+      "previous_fdi": 26,
+      "relative_step_mm": 0.07156054687499999
+    },
+    {
+      "moving_distal_fdi": 34,
+      "previous_fdi": 33,
+      "relative_step_mm": 0.3601927880859376
+    },
+    {
+      "moving_distal_fdi": 35,
+      "previous_fdi": 34,
+      "relative_step_mm": 0.171333984375
+    },
+    {
+      "moving_distal_fdi": 36,
+      "previous_fdi": 35,
+      "relative_step_mm": 0.224733251953125
+    },
+    {
+      "moving_distal_fdi": 42,
+      "previous_fdi": 41,
+      "relative_step_mm": 0.2890037109375
+    },
+    {
+      "moving_distal_fdi": 43,
+      "previous_fdi": 42,
+      "relative_step_mm": 0.283931103515625
+    },
+    {
+      "moving_distal_fdi": 44,
+      "previous_fdi": 43,
+      "relative_step_mm": 0.25380922851562504
+    },
+    {
+      "moving_distal_fdi": 45,
+      "previous_fdi": 44,
+      "relative_step_mm": 0.4198752392578125
+    },
+    {
+      "moving_distal_fdi": 46,
+      "previous_fdi": 45,
+      "relative_step_mm": 0.4623108251953125
+    },
+    {
+      "moving_distal_fdi": 47,
+      "previous_fdi": 46,
+      "relative_step_mm": 0.965461447998047
+    }
+  ]
+}
