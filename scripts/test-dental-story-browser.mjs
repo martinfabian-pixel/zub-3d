@@ -1,18 +1,20 @@
 // Production WebGL QA. Launches a fresh local Chrome; no existing user profile,
 // external websites, remote-debugging port, or production-site mutations.
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
 import { DENTAL_CHAPTERS as chapters } from '../src/experience/story-config.js';
+import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, compareSmileBand, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const site = new URL(process.env.DENTAL_STORY_TEST_URL || process.env.EXPERIENCE_TEST_URL || 'http://127.0.0.1:4173/');
 if (!['localhost', '127.0.0.1', '[::1]'].includes(site.hostname) || !['http:', 'https:'].includes(site.protocol)) throw new Error('Use a loopback HTTP(S) preview URL.');
 if (!site.pathname.endsWith('/')) site.pathname += '/';
-const out = resolve(process.env.DENTAL_STORY_REVIEW_DIR || 'docs/story-review');
+const out = resolve(process.env.DENTAL_STORY_REVIEW_DIR || 'docs/interaction-review');
 const perfOnly=process.env.DENTAL_STORY_BENCHMARK_ONLY==='1';
 const prefixOnly=process.env.DENTAL_STORY_PREFIX_ONLY==='1';
 await mkdir(out, { recursive: true });
@@ -95,8 +97,10 @@ async function read(page) {
       }
     }
     const gl=app.renderer.getContext(), ex=gl.getExtension('WEBGL_debug_renderer_info');
-    return {progress:d.progress,sceneProgress:d.sceneProgress,chapter:s.chapterId,exploring:d.exploring,shaderErrors:d.shaderErrors,canvasCount:document.querySelectorAll('canvas').length,
-      visible:visible.sort((a,b)=>a-b),meshFDIs:meshFDIs.sort((a,b)=>a-b),kinds,camera:cam.position.toArray(),quaternion:cam.quaternion.toArray(),target:app.rig.target.toArray(),
+    const lights=app.scene.children.filter(o=>o.isLight).map(o=>({type:o.type,position:o.position.toArray(),rotation:o.quaternion.toArray(),intensity:o.intensity,color:o.color.toArray(),
+      width:o.width??null,height:o.height??null,target:o.target?.position.toArray()??null,shadowCamera:o.shadow?.camera?['left','right','top','bottom','near','far'].map(k=>o.shadow.camera[k]):null}));
+    return {progress:d.progress,sceneProgress:d.sceneProgress,chapter:s.chapterId,exploring:d.exploring,mode:d.mode,view:d.view,finalView:d.finalView,closureCm:d.closureCm,shaderErrors:d.shaderErrors,canvasCount:document.querySelectorAll('canvas').length,
+      visible:visible.sort((a,b)=>a-b),meshFDIs:meshFDIs.sort((a,b)=>a-b),kinds,camera:cam.position.toArray(),quaternion:cam.quaternion.toArray(),target:d.target??app.rig.target.toArray(),
       pose36:m36.matrixWorld.toArray(),geometry36:geom.uuid,geometry46:m46.geometry.uuid,depthLocal,lesionNDC,healthyMolar:{morphBuffers:m46.geometry.morphAttributes.position?.length||0,lesionAttribute:Boolean(m46.geometry.getAttribute('lesionRegion'))},
       lesion:s.lesionProgress,clean:s.cleaningProgress,deposit:s.plaqueDeposition,brushPose:s.brushPose,caries:s.caries,plaque:s.plaque,brush:s.brush,
       active:document.querySelector('.journey-step[aria-current="step"]')?.innerText,activeCount:document.querySelectorAll('.journey-step[aria-current="step"]').length,
@@ -104,11 +108,14 @@ async function read(page) {
       note:document.querySelector('#journey-note')?.innerText,instruction:document.querySelector('#journey-instruction')?.innerText,
       resultLabels:document.querySelector('#journey-result-labels')?.innerText,
       layout:{width:innerWidth,height:innerHeight,overflowX:document.documentElement.scrollWidth-innerWidth,canvas,copy,tools,clippedText,copyOverlap:overlap(canvas,copy),toolsOverlap:overlap(canvas,tools)},
-      gpu:gl.getParameter(ex?ex.UNMASKED_RENDERER_WEBGL:gl.RENDERER)};
+      lights,gpu:gl.getParameter(ex?ex.UNMASKED_RENDERER_WEBGL:gl.RENDERER)};
   });
 }
 async function saveView(page,label,p,index,expected,base) {
   await scroll(page,p);const s=await read(page);
+  if(/^(desktop|mobile)-(hero|caries|brush|full)$/.test(label)){
+    const {matrices,...footprint}=await projectedFootprints(page);s.projectedFootprint=footprint;
+  }
   const png=await page.screenshot({path:resolve(out,label+'.png'),scale:'css',animations:'disabled'});
   // Sample only the 3D viewport in the screenshot: navigation typography or
   // coloured controls outside the canvas cannot make an empty WebGL frame pass.
@@ -140,7 +147,111 @@ async function saveView(page,label,p,index,expected,base) {
 const three=[35,36,37], lower=allFDI.slice(14);
 const standard=[['hero',0,0,[36]],['space',.21,1,three],['plaque',.33,2,three],['caries',.475,3,three],['brush',.62,4,three],['result',.76,5,three],['full',.98,6,allFDI]];
 const extra=[['brush-align',.51,4,three],['brush-entry',.542,4,three],['brush-insert',.58,4,three],['brush-stroke',.64,4,three],['lower',.876,6,lower]];
-const stamp=s=>({p:s.progress,chapter:s.chapter,visible:s.visible,lesion:s.lesion,deform:s.depthLocal,deposit:s.deposit,clean:s.clean,brush:s.brushPose,insertion:s.brush.insertion,tip:s.brush.tipWorld,removed:s.plaque.patches.map(x=>x.currentWeightedRemoval),camera:s.camera,pose36:s.pose36});
+const stamp=s=>({p:s.progress,chapter:s.chapter,visible:s.visible,lesion:s.lesion,deform:s.depthLocal,deposit:s.deposit,clean:s.clean,brush:s.brushPose,insertion:s.brush.insertion,tip:s.brush.tipWorld,removed:s.plaque.patches.map(x=>x.currentWeightedRemoval),camera:s.camera,pose36:s.pose36,lights:s.lights});
+
+const drift=(a,b)=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
+const guided=s=>s.mode==='presentation'&&!s.free;
+const free=s=>s.mode==='free'&&s.free;
+const sameStory=(a,b)=>equal(a.story,b.story);
+const sameOffsets=(a,b)=>['desiredYaw','desiredPitch','desiredZoom'].every(k=>near(a.manual?.[k],b.manual?.[k],1e-7));
+function checkHandover(name,t) {
+  check(name+' leaves the click-handler view continuous',t.clickAngleJump<.035&&t.clickPositionJump<.025,{clickAngle:t.clickAngleJump,clickPosition:t.clickPositionJump});
+  check(name+' visibly traverses intermediate frames',t.movingFrames>=3&&t.largestFrameAngle<.45, {movingFrames:t.movingFrames,maxAngle:t.largestFrameAngle,endpointRotation:t.endpointRotation});
+}
+async function desktopInputs(page) {
+  const evidence=await desktopInputSequence(page,p=>scroll(page,p)),s=evidence.states;
+  check('Desktop first drag orbits horizontally immediately in presentation',guided(s.initial)&&guided(s.guidedX)&&drift(s.initial.yaw,s.guidedX.yaw)>.03&&sameStory(s.initial,s.guidedX));
+  check('Desktop default drag also changes elevation, not native scroll',guided(s.guidedY)&&Math.abs(s.guidedY.pitch-s.guidedX.pitch)>.025&&Math.abs(s.guidedY.nativeY-s.initial.nativeY)<=1&&sameStory(s.guidedY,s.initial));
+  check('Default +/- zoom affects actual camera without selecting Free 3D',guided(s.guidedPlus)&&guided(s.guidedMinus)&&zoomTravel(s.guidedY,s.guidedPlus)>.002&&zoomTravel(s.guidedPlus,s.guidedMinus)<-.002&&sameStory(s.guidedPlus,s.guidedMinus));
+  check('Arrow key adjusts the presentation camera without changing the lesson',guided(s.guidedKey)&&angular(s.guidedMinus.quat,s.guidedKey.quat)>.005&&sameStory(s.guidedMinus,s.guidedKey));
+  check('Presentation wheel scrolls the actual document, no extra zoom gesture',guided(s.guidedWheel)&&s.guidedWheel.nativeY>s.guidedKey.nativeY+5&&near(s.guidedWheel.manual?.desiredZoom,s.guidedKey.manual?.desiredZoom));
+  check('Explicit Free 3D handles both mouse axes',free(s.freeStart)&&free(s.freeDrag)&&drift(s.freeDrag.yaw,s.freeStart.yaw)>.02&&Math.abs(s.freeDrag.pitch-s.freeStart.pitch)>.02);
+  check('Free-mode wheel zooms camera while native page position stays fixed',free(s.freeWheel)&&zoomTravel(s.freeDrag,s.freeWheel)>.002&&Math.abs(s.freeWheel.nativeY-s.freeDrag.nativeY)<=1);
+  check('Free mode freezes brush, plaque, cavity and teeth even after actual document scroll',free(s.freeNativeJump)&&Math.abs(s.freeNativeJump.nativeP-s.freeStart.nativeP)>.20&&[s.freeDrag,s.freeWheel,s.freeNativeJump].every(v=>sameStory(s.freeStart,v)));
+  check('Continue returns to the frozen educational point',guided(s.continued)&&s.continued.story.chapter===s.freeStart.story.chapter&&near(s.continued.nativeP,s.freeStart.nativeP,.0005)&&near(s.continued.story.clean,s.freeStart.story.clean,.001));
+  checkHandover('Continue from a rotated/zoomed brush',evidence.continueTrace);
+  check('Guided user offsets survive an actual viewport resize',guided(s.beforeResize)&&guided(s.afterResize)&&Math.abs(s.beforeResize.manual?.desiredYaw)>.02&&s.beforeResize.manual?.desiredZoom<.99&&sameOffsets(s.beforeResize,s.afterResize));
+  checkHandover('Selecting another chapter after dragging',evidence.chapterTrace);
+  check('Direct chapter destination renders the cleaned patch and persistent cavity',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.clean===1&&s.navigated.story.influence===1);
+  checkHandover('Native wheel chapter crossing after a drag',evidence.wheelTrace);
+  check('Purposeful native chapter crossing returns manual offsets to the authored view',guided(s.afterWheelHandover)&&s.beforeWheelHandover.story.chapter==='caries'&&s.afterWheelHandover.story.chapter==='brush'&&
+    s.afterWheelHandover.nativeY-s.beforeWheelHandover.nativeY>64&&Math.abs(s.beforeWheelHandover.manual?.desiredYaw)>.05&&near(s.afterWheelHandover.manual?.desiredYaw,0,1e-5));
+  report.desktopInput=evidence;
+  // Native p can already equal the clicked destination while Free 3D still
+  // displays another chapter. The action cannot depend on a new scroll event.
+  await scroll(page,.62);await page.locator('#journey-explore').click();await nativeJump(page,0);
+  const held=await cameraProbe(page);await page.locator('#journey-home').click();await page.waitForTimeout(680);
+  const home=await cameraProbe(page);
+  check('Clicking an already reached native position reconciles frozen state',free(held)&&held.story.chapter==='brush'&&near(held.nativeP,0,.0005)&&guided(home)&&home.story.chapter==='hero'&&equal(home.story.visible,[36]),{held:held.story.chapter,home:home.story.chapter,native:home.nativeP});
+}
+async function mobileInputs(ctx,page){
+  const evidence=await mobileInputSequence(ctx,page,p=>scroll(page,p)),s=evidence.states;
+  check('Mobile first horizontal gesture rotates immediately, vertical scroll remains available',guided(s.guidedX)&&s.initial.touchAction.includes('pan-y')&&drift(s.initial.yaw,s.guidedX.yaw)>.02&&Math.abs(s.guidedX.nativeY-s.initial.nativeY)<=1&&sameStory(s.initial,s.guidedX));
+  check('Mobile guided zoom button works without enabling free mode',guided(s.guidedPlus)&&zoomTravel(s.guidedX,s.guidedPlus)>.002);
+  check('Guided vertical finger gesture actually scrolls the page',guided(s.guidedY)&&s.guidedY.nativeY>s.guidedPlus.nativeY+5);
+  check('Entering Free 3D changes touch-action before the gesture',free(s.freeStart)&&s.freeStart.touchAction==='none');
+  check('Free touch drag orbits horizontally and vertically without page movement',free(s.freeX)&&free(s.freeY)&&drift(s.freeStart.yaw,s.freeX.yaw)>.02&&Math.abs(s.freeY.pitch-s.freeX.pitch)>.02&&Math.abs(s.freeY.nativeY-s.freeStart.nativeY)<=1);
+  check('Two fingers pinch-zoom the model, not the browser or the lesson',free(s.freePinch)&&zoomTravel(s.freeY,s.freePinch)>.002&&near(s.freePinch.pageScale,1,.01)&&sameStory(s.freePinch,s.freeStart));
+  check('Mobile frozen scene survives outside-canvas document scroll',free(s.freeNativeJump)&&Math.abs(s.freeNativeJump.nativeP-s.freeStart.nativeP)>.2&&sameStory(s.freeNativeJump,s.freeStart));
+  check('Mobile chapter navigation explicitly leaves free mode',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.influence===1&&s.navigated.story.clean===1);
+  report.mobileInput=evidence;
+}
+async function finalViews(page,label) {
+  await scroll(page,.98);await page.waitForTimeout(550);
+  const beforeRest=await cameraProbe(page),rested=await restingRaster(page);
+  const smile=await cameraProbe(page),smileProjection=await projectedFootprints(page);
+  const masked=await page.locator(q).screenshot({scale:'css',animations:'disabled'});
+  await page.locator('#journey-explore').click();await page.waitForTimeout(220);const freeRest=await restingRaster(page),freeSmile=await cameraProbe(page);
+  const unmasked=await page.locator(q).screenshot({scale:'css',animations:'disabled'});
+  const band=await compareSmileBand(page,masked,unmasked);
+  const matched={beforeRest,rested,smile,freeRest,freeSmile};
+  if(band.centralChangedFraction>=.002){await writeFile(resolve(out,label+'-debug-masked.png'),masked);await writeFile(resolve(out,label+'-debug-unmasked.png'),unmasked);await writeFile(resolve(out,label+'-debug-raster.json'),JSON.stringify(matched,null,2));}
+  check(label+' matched smile images use same full-resolution drawing buffer, camera and aperture size',rested.dpr===freeRest.dpr&&equal(rested.buffer,freeRest.buffer)&&near(smile.raster.rect.width,freeSmile.raster.rect.width)&&
+    dist(smile.pos,freeSmile.pos)<1e-7&&angular(smile.quat,freeSmile.quat)<1e-7,matched);
+  check(label+' only the stationary smile gets photographic framing; entering Free 3D releases it',smile.computedMask.includes('gradient')&&free(freeSmile)&&freeSmile.computedMask==='none'&&dist(smile.pos,freeSmile.pos)<.004&&angular(smile.quat,freeSmile.quat)<.002);
+  check(label+' actual smile edge softens while central crowns stay opaque',band.centralToothPixels>100&&band.centralChangedFraction<.002&&band.edgeLightenedFraction>.05,band);
+  await page.locator('#journey-explore').click();await page.waitForTimeout(760);
+  if(label==='mobile')await touchDrag(page.context(),page,60,0);else await mouseDrag(page,60,0);
+  const manuallyMoved=await cameraProbe(page);await page.locator('#journey-reset').click();await page.waitForTimeout(760);const afterReset=await cameraProbe(page);
+  check(label+' a default drag also releases framing; reset restores it',guided(manuallyMoved)&&manuallyMoved.computedMask==='none'&&afterReset.computedMask.includes('gradient'));
+  await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(720);
+  const anatomy=await cameraProbe(page),anatomyProjection=await projectedFootprints(page);
+  await page.screenshot({path:resolve(out,label+'-anatomy.png'),scale:'css',animations:'disabled'});
+  check(label+' final smile and anatomical overview both retain all 28 surfaces',smile.finalView==='smile'&&anatomy.finalView==='anatomy'&&equal(smile.story.visible,allFDI)&&equal(anatomy.story.visible,allFDI));
+  check(label+' smile translates upper arch only; lower and tooth morphology stay fixed',near(smile.closureCm,.58,.0005)&&near(anatomy.closureCm,0,.0005)&&allFDI.every(fdi=>{
+    const a=anatomyProjection.matrices[fdi],s=smileProjection.matrices[fdi];return a.every((v,i)=>near(v-s[i],fdi<30&&i===13?.58:0,1e-5));})&&smile.story.influence===1&&anatomy.story.influence===1);
+  check(label+' anatomy view includes the intact roots and both arches without a mask',anatomy.computedMask==='none'&&anatomyProjection.geometry?.clipped===0,{mask:anatomy.computedMask,bounds:anatomyProjection.geometry});
+  await page.locator('#journey-view-smile').click();await page.waitForTimeout(720);const restored=await cameraProbe(page);
+  check(label+' returning to smile reproduces frontal pose',restored.finalView==='smile'&&near(restored.closureCm,smile.closureCm,.0005)&&dist(smile.pos,restored.pos)<.008&&angular(smile.quat,restored.quat)<.006);
+  (report.finalViews??=[]).push({label,smile:smileProjection,anatomy:anatomyProjection,photoBand:band,comparisonRaster:{beforeRest:beforeRest.raster,rested,freeRest},clearInFree:freeSmile.computedMask,clearAfterDrag:manuallyMoved.computedMask});
+}
+async function macroZoom(page,label) {
+  await scroll(page,.475);await page.locator('#journey-reset').click();await page.waitForTimeout(580);
+  const before=await projectedFootprints(page),state=await cameraProbe(page);
+  await page.locator('#journey-zoom-in').click();await page.locator('#journey-zoom-in').click();await page.waitForTimeout(350);
+  const enlarged=await projectedFootprints(page),after=await cameraProbe(page);
+  await page.screenshot({path:resolve(out,label+'-caries-macro.png'),scale:'css',animations:'disabled'});
+  check(label+' two guided zoom steps enlarge the actual projected cavity floor',guided(after)&&sameStory(state,after)&&
+    enlarged.floor?.width>before.floor?.width*1.1&&enlarged.floor?.height>before.floor?.height*1.1,{before:before.floor,after:enlarged.floor});
+  (report.manualMacro??=[]).push({label,originalFloor:before.floor,userZoomFloor:enlarged.floor,zoom:after.manual?.zoom});
+  await page.locator('#journey-reset').click();await page.waitForTimeout(570);
+}
+async function lightingHistory(page) {
+  // Identical destination after a near/far jump: measuring only the camera
+  // misses illumination accidentally calculated using the previous VIEW pose.
+  async function take(from){await scroll(page,from);await scroll(page,.475);await page.waitForTimeout(350);
+    return {state:await read(page),png:await page.locator(q).screenshot({scale:'css',animations:'disabled'})};}
+  const a=await take(0),b=await take(.98);
+  const pixels=await page.evaluate(async([aa,bb])=>{
+    async function read(s){const im=await createImageBitmap(new Blob([Uint8Array.from(atob(s),c=>c.charCodeAt(0))],{type:'image/png'}));const c=new OffscreenCanvas(im.width,im.height),ctx=c.getContext('2d');ctx.drawImage(im,0,0);im.close();return ctx.getImageData(0,0,c.width,c.height).data;}
+    const a=await read(aa),b=await read(bb);let peak=0,changed=0,sum=0;
+    for(let i=0;i<a.length;i+=4){const d=Math.max(Math.abs(a[i]-b[i]),Math.abs(a[i+1]-b[i+1]),Math.abs(a[i+2]-b[i+2]));peak=Math.max(peak,d);if(d>2)changed++;sum+=d;}
+    return {pixels:a.length/4,peak,changedOver2:changed,meanMaximumChannelDifference:sum/(a.length/4)};
+  },[a.png.toString('base64'),b.png.toString('base64')]);
+  check('Actual studio lights/shadow extents are identical at the same caries pose after different scroll histories',a.state.lights.length>=4&&equal(a.state.lights,b.state.lights),{fromHero:a.state.lights,fromFull:b.state.lights});
+  check('Rendered cavity frame is repeatable from opposite scroll directions',pixels.peak<=2,pixels);
+  report.lightingHistory={from:[0,.98],destination:.475,lights:b.state.lights,pixels};
+}
 
 async function desktop() {
   const {ctx,page}=await open();try {
@@ -169,35 +280,9 @@ async function desktop() {
     await page.locator('#journey-previous').click();await at(page,0);
     await page.locator('#journey-help').click();check('Help opens an accessible modal',await page.locator('#journey-help-dialog').evaluate(d=>d.open&&Boolean(d.getAttribute('aria-labelledby'))));
     await page.keyboard.press('Escape');check('Escape dismisses the help dialog',!(await page.locator('#journey-help-dialog').isVisible()));
-    await scroll(page,.475);const before=await read(page);
-    await page.locator(q).focus();await page.keyboard.press('ArrowRight');await threeFrames(page);const rotated=await read(page);
-    await page.keyboard.press('+');await threeFrames(page);const zoomed=await read(page);
-    check('Canvas keyboard orbit and zoom operate on the actual camera',rotated.exploring&&dist(before.camera,rotated.camera)>.001&&dist(zoomed.camera,zoomed.target)<dist(rotated.camera,rotated.target)-.001);
-    await page.keyboard.press('Escape');
-    const returnTrace=await page.evaluate(async target=>{const cam=window.__dentalExperience.rig.camera,start=performance.now(),result=[];
-      do{const t=await new Promise(r=>requestAnimationFrame(r));const v=cam.position;result.push({ms:t-start,distance:Math.hypot(v.x-target[0],v.y-target[1],v.z-target[2])});}while(performance.now()-start<550);
-      return result;},before.camera);
-    const back=await read(page),initialReturnDistance=dist(zoomed.camera,before.camera);
-    check('Manual return traverses intermediate camera poses instead of snapping',returnTrace.some(x=>x.distance>initialReturnDistance*.05&&x.distance<initialReturnDistance*.95),returnTrace);
-    check('Escape restores authored camera without altering tissue state',!back.exploring&&dist(back.camera,before.camera)<.005&&back.depthLocal===before.depthLocal&&back.clean===before.clean,{before:before.camera,after:back.camera});
-    await scroll(page,.475123);await page.locator('#journey-zoom-in').click();await page.locator(q).focus();await page.keyboard.press('ArrowLeft');await threeFrames(page);
-    const preSize=await read(page);await page.setViewportSize({width:1073,height:811});await page.waitForTimeout(220);const postSize=await read(page);
-    check('Fractional scroll rounding on a real viewport resize preserves manual orbit',preSize.exploring&&postSize.exploring&&dist(preSize.camera,postSize.camera)<.001&&dist(preSize.quaternion,postSize.quaternion)<.001,
-      {before:{p:preSize.progress,camera:preSize.camera},after:{p:postSize.progress,camera:postSize.camera,exploring:postSize.exploring}});
-    await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(160);await page.locator(q).focus();await page.keyboard.press('Escape');await page.waitForTimeout(550);
-    await page.locator('#journey-explore').click();await threeFrames(page);const y=await page.evaluate(()=>scrollY);
-    const bb=await page.locator(q).boundingBox();await page.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await page.mouse.wheel(0,-260);
-    await page.waitForFunction(y=>scrollY<y-4,y);await page.waitForTimeout(550);check('Native wheel leaves orbit and scrolls the document',!(await read(page)).exploring);
-    report.navigation.push({desktop:true,from:before.camera,rotated:rotated.camera,restored:back.camera,returnTrace});
+    await lightingHistory(page);await macroZoom(page,'desktop');await desktopInputs(page);
+    await finalViews(page,'desktop');
   }finally{await closeContext(ctx);}
-}
-async function swipe(ctx,page,dx,dy) {
-  const b=await page.locator(q).boundingBox(),cdp=await ctx.newCDPSession(page),x=b.x+b.width*.40,y=b.y+b.height*.35;
-  dx=Math.sign(dx)*Math.min(Math.abs(dx),b.width*.36);dy=Math.sign(dy)*Math.min(Math.abs(dy),b.height*.4);
-  try{await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:0}]});
-    for(let i=1;i<=10;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/10,y:y+dy*i/10,id:0}]});await page.waitForTimeout(18);}
-    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-  }finally{await cdp.detach();}
 }
 async function mobile() {
   const {ctx,page}=await open({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});try {
@@ -205,17 +290,15 @@ async function mobile() {
     for(const [n,p,i,f]of standard)await saveView(page,'mobile-'+n,p,i,f,base);
     const selector=page.locator('#journey-chapter-select');check('Compact chapter selector is visible and contains all seven destinations',await selector.isVisible()&&await selector.locator('option').count()===7);
     for(const i of [0,4,5,6]){await selector.selectOption({index:i});await at(page,chapters[i].at);check('Native mobile selector lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);}
-    await scroll(page,.62);await page.locator('#journey-explore').tap();await threeFrames(page);const original=await read(page);
-    await swipe(ctx,page,85,0);await page.waitForTimeout(180);const rotated=await read(page);
-    check('Horizontal touch inspection rotates an actual brush-chapter view',rotated.exploring&&dist(original.camera,rotated.camera)>.001);
-    const y=await page.evaluate(()=>scrollY);await swipe(ctx,page,0,140);await page.waitForFunction(y=>scrollY<y-3,y);await page.waitForTimeout(550);
-    check('Vertical finger gesture scrolls timeline and releases orbit',!(await read(page)).exploring);
+    await macroZoom(page,'mobile');await mobileInputs(ctx,page);
+    await finalViews(page,'mobile');
     for(const [label,size]of [['landscape',{width:844,height:390}],['small-phone',{width:320,height:568}]]){
       await page.setViewportSize(size);await threeFrames(page);
       for(const [n,p,i,f]of standard){await saveView(page,label+'-'+n,p,i,f,base);}
     }
-    const warmCleanup=await page.evaluate(()=>{const a=window.__dentalExperience,r=a.renderer,before={...r.info.memory};a.dispose();return {before,after:{...r.info.memory},disposed:a.report().disposed};});
+    const warmCleanup=await page.evaluate(()=>{const a=window.__dentalExperience,r=a.renderer,c=document.querySelector('#journey-canvas'),before={...r.info.memory},maskBefore=c.style.maskImage;a.dispose();return {before,after:{...r.info.memory},disposed:a.report().disposed,maskBefore,maskAfter:c.style.maskImage};});
     check('Successfully rendered brush and full arch release tracked GPU resources on dispose',warmCleanup.before.geometries>1&&warmCleanup.before.textures>3&&warmCleanup.disposed&&warmCleanup.after.geometries===0&&warmCleanup.after.textures===0,warmCleanup);
+    check('Dispose clears the active final photographic framing',warmCleanup.maskBefore.includes('gradient')&&!warmCleanup.maskAfter,warmCleanup);
     report.successfulSceneCleanup=warmCleanup;
   }finally{await closeContext(ctx);}
 }
@@ -298,6 +381,24 @@ async function lostContextDuringInitialLoad() {
     check('Completing an initially gated GLB cannot resurrect a lost context or replace its recovery message',state.lost&&!state.ready&&!state.assetsReady&&state.datasetReady==='false'&&state.retryVisible&&state.controlsDisabled&&/prerušilo|WebGL/i.test(state.message),state);
     report.contextLossInjection=state;
   }finally{release();await closeContext(ctx);}
+}
+async function pendingAssetsWithInput() {
+  for(const mode of ['presentation','free']){
+    const {ctx,page}=await open();let release,noticed;
+    const gate=new Promise(r=>{release=r;}),request=new Promise(r=>{noticed=r;});
+    try{
+      await page.route('**/story-assets/caries-36.json*',async r=>{noticed();await gate;return r.continue();});
+      await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
+      let timer;try{await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Story data gate not reached')),15000);})]);}finally{clearTimeout(timer);}
+      if(mode==='free')await page.locator('#journey-explore').click();
+      await mouseDrag(page,65,-40);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(450);
+      const held=await cameraProbe(page);release();await ready(page);await page.waitForTimeout(180);const after=await cameraProbe(page);
+      check('Completing background assets keeps real user rotation/zoom in '+mode,
+        held.mode===mode&&after.mode===mode&&sameOffsets(held,after)&&Math.abs(after.manual?.desiredYaw)>.015&&after.manual?.desiredZoom<.99&&
+        angular(held.quat,after.quat)<.025&&equal(held.story.visible,[36])&&equal(after.story.visible,[36]),{held,after});
+      (report.pendingAssetInput??=[]).push({mode,held,after});
+    }finally{release();await closeContext(ctx);}
+  }
 }
 async function pagesPrefix() {
   // Vite preview can resolve an accidental root-relative path even when the
@@ -383,6 +484,7 @@ try {
     await scenario('historical viewer routes and narrative alias',aliases);
     await scenario('late malformed story data / retained geometry ownership / idempotent GPU cleanup',malformedStoryOwnership);
     await scenario('initial asset gate + actual WebGL context loss',lostContextDuringInitialLoad);
+    await scenario('manual offsets and frozen subject survive deferred asset completion',pendingAssetsWithInput);
   }
   if(!perfOnly)await scenario('strict GitHub Pages subdirectory mount',pagesPrefix);
   if(perfOnly||process.env.DENTAL_STORY_BENCHMARK==='1'){
@@ -391,11 +493,14 @@ try {
   }
   // The offline BVH audit is stronger evidence of numerical surface clearance
   // than a screenshot. Keep its conclusions separate from browser observations.
-  const audit=JSON.parse(await readFile(new URL('../docs/proximal-story-review/morph-geometry-audit.json',import.meta.url),'utf8'));
+  const audit=JSON.parse(await readFile(new URL('../docs/proximal-reframe-review/independent-geometry.json',import.meta.url),'utf8'));
   const siteData=JSON.parse(await readFile(new URL('../public/story-assets/site.json',import.meta.url),'utf8'));
-  report.offlineEvidence={morphAudit:'docs/proximal-story-review/morph-geometry-audit.json',summary:audit.summary,
+  report.offlineEvidence={morphAudit:'docs/proximal-reframe-review/independent-geometry.json',summary:audit.summary,
     rigidEnvelope:siteData.brush.rigidEnvelope,note:'Precomputed hard-tooth surface/path checks only; no gingiva is modelled. This run does not validate clinical fit.'};
-  check('Companion morph audit covers actual protected meshes and no new triangle crossings',audit.summary.immutableGlbsAndManifestByteIdentical&&audit.summary.interToothIntersectionPairsAcrossTests===0&&audit.summary.maxFlippedFacesAtAnySample===0);
+  const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+  const auditedHashes=await Promise.all(['site.json','caries-36.json'].map(async n=>({name:n,expected:audit.changedStoryJson[n]?.currentSha256,actual:digest(await readFile(new URL('../public/story-assets/'+n,import.meta.url)))})));
+  check('Companion audit describes these exact enlarged-lesion data and unchanged source tooth assets',audit.summary.sourceAssetsAllByteIdenticalToF3257d1&&auditedHashes.every(x=>x.actual===x.expected),auditedHashes);
+  check('Independent two-LOD tooth/brush sampling finds no hard-tissue crossings in the cleaning pose',audit.summary.all28HardToothPairsAcrossStagesAndLods===3780&&audit.summary.toothSelfOrPairHits===0&&audit.summary.toolVsMatureHardHits===0&&!audit.summary.anyFloorToolHit,audit.summary);
   const env=siteData.brush.rigidEnvelope;
   check('Documented wire diameter is within the conservative hard-tooth path bound',env.wireRadialMarginLowerBoundMm>0&&env.illustrativeWireDiameterMm<2*env.continuousLowerBoundRadiusMm,env);
   check('No unexpected WebGL or JavaScript errors',report.errors.length===0,report.errors);

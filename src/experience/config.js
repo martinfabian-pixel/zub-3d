@@ -23,9 +23,10 @@ export const experienceConfig = {
   anatomy: {
     hero: 36,
     neighbors: [35, 36, 37],
-    // Translation separates the two author-arranged arches as complete units.
-    // No individual tooth moves or is reseated during the story.
+    // The mandibular teaching site stays fixed. Only the complete upper
+    // arch approaches it during the final frontal composition.
     upperOffset: [0, 0.32, 0], lowerOffset: [0, -0.48, 0],
+    smileClosureCm: 0.58, smileClosureRange: [0.89, 0.96],
   },
   reveal: {
     neighbors: { start: 0.12, end: 0.33 },
@@ -39,12 +40,18 @@ export const experienceConfig = {
     padding: { hero: 1.12, neighbors: 1.12, arch: 1.10, full: 1.10 },
     portraitPadding: { hero: 1.10, neighbors: 1.10, arch: 1.08, full: 1.08 },
   },
+  material: {
+    ...structuredClone(toothConfig.material),
+    enamel: { ...toothConfig.material.enamel, color: '#f2f0eb', roughness: 0.31 },
+    root: { ...toothConfig.material.root, color: '#e8e1d5', roughness: 0.54 },
+    occlusionStrength: 0.33,
+  },
   lighting: { ...structuredClone(toothConfig.lighting), environment: 'environment/studio-small-09-1k.hdr' },
   studio: {
-    key: { color: '#fffcf7', intensity: 2.4, size: [4.5, 5.5], position: [-4.5, 5.5, 5] },
-    fill: { color: '#ffffff', intensity: 0.70, size: [4, 6], position: [4, 2, 4] },
-    rim: { color: '#ffffff', intensity: 0.60, size: [3.5, 2.5], position: [0, 7, -1.5] },
-    directional: { color: '#fffaf2', intensity: 0.65, position: [-3.8, 7, 5], shadowBias: -0.00015, shadowNormalBias: 0.012, shadowRadius: 3 },
+    key: { color: '#fffefd', intensity: 2.55, size: [4, 5.25], position: [4.8, 5.2, 3.4] },
+    fill: { color: '#ffffff', intensity: 0.72, size: [5, 6], position: [-4, 1, 4] },
+    rim: { color: '#ffffff', intensity: 0.76, size: [3.5, 2.5], position: [-1, 5, -3.5] },
+    directional: { color: '#fffefd', intensity: 0.58, position: [3.8, 7, 2], shadowBias: -0.00012, shadowNormalBias: 0.006, shadowRadius: 3 },
     referenceRadius: 1.15,
   },
   quality: {
@@ -55,8 +62,25 @@ export const experienceConfig = {
   interaction: {
     ...structuredClone(toothConfig.interaction),
     minimumDistanceFraction: 0.68, maximumDistanceFraction: 1.7,
+    returnDurationMs: 480, dampingMs: 45, handoverScrollPx: 64, gestureRotateSpeed: 0.65,
   },
-  storyCamera: {detailRadiusCm:.12,detailDistanceCm:2.15,resultDistanceCm:2.15,cleaningDistanceCm:3.1,cleaningBuccalShiftMm:1.7,cleaningOcclusalShiftMm:-.3,neighborDirection:[1,.65,.35]},
+  storyCamera: {
+    neighborDirection: [0.84, 0.72, 0.48], smileDirection: [0.035, 0.045, 1],
+    spaceDistanceCm: 3.35, plaqueDistanceCm: 2.40, detailDistanceCm: 1.94,
+    cleaningDistanceCm: 3.35, resultDistanceCm: 2.17,
+    spaceOcclusalShiftCm: 0.035, spaceOcclusalAngle: 0.77,
+    lesionYawDegrees: 0, cleaningEntryFraction: 0.43, resultApicalShiftCm: 0.018,
+    compact: {
+      spaceDistanceCm: 3.54, plaqueDistanceCm: 2.23, detailDistanceCm: 1.69,
+      cleaningDistanceCm: 3.35, resultDistanceCm: 1.89,
+      spaceOcclusalShiftCm: -0.040, spaceOcclusalAngle: 0.60,
+      lesionYawDegrees: 2, cleaningEntryFraction: 0.52, resultApicalShiftCm: 0.030,
+    },
+  },
+  smileFraming: {
+    desktopPadding: 1.34, portraitPadding: 1.04,
+    arrival: [0.93, 0.98], featherFraction: 0.29, releaseMs: 120,
+  },
   caries: {chalk:'#f8f2df',floor:'#927157',margin:'#c5ad84'},
   assetsStory: {site:'story-assets/site.json',caries:'story-assets/caries-36.json'},
   presentation: { steps:DENTAL_CHAPTERS.map((ch,i)=>({...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,meta:i===0?'FDI 36 · dolná ľavá · 2 korene':i===6?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',next:i===6?'Späť na ukážku čistenia':'Pokračovať',subject:i===0?'Dolná ľavá prvá stolička':i===6?'Starostlivosť o celý chrup':'Medzizubný priestor 36–37'})) },

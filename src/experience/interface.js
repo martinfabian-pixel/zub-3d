@@ -1,5 +1,5 @@
 /** Chapter navigation, content and help never own the Three.js scene. */
-export function createInterface({config,section,stage,signal,navigate,explore,reset,zoom}) {
+export function createInterface({config,section,stage,signal,navigate,explore,reset,zoom,finalView:chooseFinalView}) {
   const byId=id=>document.getElementById(id),steps=config.presentation.steps,help=byId('journey-help-dialog');
   const previous=byId('journey-previous'),next=byId('journey-next'),select=byId('journey-chapter-select');
   const nav=document.querySelector('.journey-steps'),buttons=[];
@@ -23,7 +23,8 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
   previous.addEventListener('click',()=>move(-1),{signal});
   next.addEventListener('click',()=>navigate(index===steps.length-1?steps.find(s=>s.id==='brush').at:steps[index+1].at),{signal});
   byId('journey-cleaning-link').addEventListener('click',()=>navigate(steps.find(s=>s.id==='brush').at),{signal});
-  byId('journey-final-explore').addEventListener('click',explore,{signal});
+  byId('journey-view-smile').addEventListener('click',()=>chooseFinalView('smile'),{signal});
+  byId('journey-view-anatomy').addEventListener('click',()=>chooseFinalView('anatomy'),{signal});
   byId('journey-explore').addEventListener('click',explore,{signal});
   byId('journey-reset').addEventListener('click',reset,{signal});
   byId('journey-zoom-in').addEventListener('click',()=>zoom(.88),{signal});
@@ -32,7 +33,7 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
   const close=()=>help.close();
   byId('journey-close-help').addEventListener('click',close,{signal});byId('journey-help-done').addEventListener('click',close,{signal});
   help.addEventListener('click',event=>{if(event.target===help){const r=help.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();}},{signal});
-  function update({progress,ready,complete,exploring,compact,state}) {
+  function update({progress,ready,complete,exploring,finalView,compact,state}) {
     const small=window.matchMedia('(max-width:700px)').matches;
     let active=0;while(active<steps.length-1&&progress>=steps[active+1].from)active++;
     const step=steps[active],phase=state?.brushPose?.phase??'hidden',final=active===steps.length-1;
@@ -41,11 +42,12 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
       byId('journey-step-number').textContent=String(index+1).padStart(2,'0')+' / '+String(steps.length).padStart(2,'0');
       byId('journey-eyebrow').textContent=step.eyebrow;byId('journey-title').textContent=small?step.mobileTitle:step.title;
       byId('journey-meta').textContent=step.meta;byId('journey-subject').textContent=step.subject;
-      byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+step.title+' Zapnite preskúmanie a použite šípky, + a −.');
+      byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+step.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');
       next.textContent=step.next+(final?' ↶':' →');
       next.classList.toggle('final-back-button',final);
       previous.disabled=index===0;byId('journey-mobile-previous').disabled=index===0;byId('journey-mobile-next').disabled=final;
-      byId('journey-final-explore').hidden=!final;byId('journey-cleaning-link').hidden=!final;
+      byId('journey-cleaning-link').hidden=!final;
+      byId('journey-final-views').hidden=!final;
       select.value=index;
       buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
       if(liveReady)byId('journey-stage-live').textContent='Kapitola '+(index+1)+' zo '+steps.length+'. '+step.title;
@@ -66,10 +68,13 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
     }
     liveReady=ready;
     for(const button of modelButtons)button.disabled=!ready;
-    byId('journey-final-explore').disabled=!ready||!complete;
+    for(const name of ['smile','anatomy']){
+      const button=byId('journey-view-'+name);button.disabled=!ready||!complete;button.setAttribute('aria-pressed',String(finalView===name));
+    }
     byId('journey-explore').setAttribute('aria-pressed',String(exploring));
-    byId('journey-explore').textContent=exploring?'Prezentácia':final?'Preskúmať chrup':'Preskúmať';
-    byId('journey-orbit-hint').textContent=exploring?(compact?'Preskúmať · do strán otáčate, zvislo posúvate':'Preskúmať · šípky, + a − · Esc späť'):'Prezentácia · posúvajte stránku alebo vyberte kapitolu';
+    byId('journey-explore').textContent=exploring?'Pokračovať v príbehu':'Voľné 3D';
+    byId('journey-explore').classList.toggle('is-free',exploring);
+    byId('journey-orbit-hint').textContent=exploring?'Voľné 3D · otáčajte v oboch osiach · pinch alebo koliesko približuje':compact?'Ťah do strán otáča · zvislo pokračujete v príbehu':'Ťahaním otáčate · kolieskom pokračujete v príbehu';
   }
   function scrollTo(progress,reducedMotion) {const rect=section.getBoundingClientRect(),travel=rect.height-stage.getBoundingClientRect().height;window.scrollTo({top:window.scrollY+rect.top+progress*travel,behavior:reducedMotion?'instant':'smooth'});}
   return {update,scrollTo,get index(){return index;},dispose(){if(help.open)help.close();}};

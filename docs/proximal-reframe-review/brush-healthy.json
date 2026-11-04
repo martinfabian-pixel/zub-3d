@@ -1,0 +1,78 @@
+{
+  "passed": true,
+  "scope": "Finite BVH triangle-overlap audit; the separate continuous certificate covers the rigid wire along the measured corridor.",
+  "result": [
+    {
+      "lod": "desktop",
+      "component": "rigid",
+      "poses": 83,
+      "hardTriangleIntersections": {
+        "35": 0,
+        "36": 0,
+        "37": 0
+      },
+      "touchedFilmTriangles": {
+        "36": 0,
+        "37": 0
+      },
+      "filmContactPoses": {
+        "36": 0,
+        "37": 0
+      }
+    },
+    {
+      "lod": "desktop",
+      "component": "fibres",
+      "poses": 83,
+      "hardTriangleIntersections": {
+        "35": 0,
+        "36": 0,
+        "37": 0
+      },
+      "touchedFilmTriangles": {
+        "36": 191,
+        "37": 63
+      },
+      "filmContactPoses": {
+        "36": 34,
+        "37": 36
+      }
+    },
+    {
+      "lod": "mobile",
+      "component": "rigid",
+      "poses": 83,
+      "hardTriangleIntersections": {
+        "35": 0,
+        "36": 0,
+        "37": 0
+      },
+      "touchedFilmTriangles": {
+        "36": 0,
+        "37": 0
+      },
+      "filmContactPoses": {
+        "36": 0,
+        "37": 0
+      }
+    },
+    {
+      "lod": "mobile",
+      "component": "fibres",
+      "poses": 83,
+      "hardTriangleIntersections": {
+        "35": 0,
+        "36": 0,
+        "37": 0
+      },
+      "touchedFilmTriangles": {
+        "36": 166,
+        "37": 32
+      },
+      "filmContactPoses": {
+        "36": 32,
+        "37": 36
+      }
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "captureSource": "Production build served on http://127.0.0.1:4173/?qa=1, final 2026-11-04 review; independent headless Chrome, deviceScaleFactor=1. Mobile is a touch/viewport emulation, not a physical phone.",
+  "captureReport": "professional-review/smile-2026-11-04/final/report.json",
+  "captureReportSha256": "cedec94c8a87a052f8b11c726343920476b882f51c6090317362f8ecaafa309d",
+  "captureScriptSha256": "eb80c1247f56f2e9a5ae2d82df641d5f48db2a02137623b6287a6e8157387d62",
+  "servedBundleSha256": {
+    "/assets/RectAreaLightUniformsLib-CzzGm1_Y.js": "4d15f376e64e80d78309c4bd78d4058641c38c3f5a727ed849f784ad745fa5fd",
+    "/assets/main-DInNu9Uz.js": "e2433579d020a0e06a645a7c4caab39f66a06203416fe78491cdeaadca3dc0cc",
+    "/assets/quality-CwVSwoh0.js": "231f6a4c4be5b47b17775497779f5db6f2a29fafd783fa498d43b220903b8dc3"
+  },
+  "captureCounts": {
+    "allBrowserStates": 18,
+    "allImagePairs": 18,
+    "selectedBrowserStates": 6,
+    "selectedImageFiles": 12
+  },
+  "method": "Camera/target are untouched arrays recorded by live renderer. Canvas size is layout CSS pixels, not outer window size. ProjectedFloorCSS is a screen-space AABB of vertices with source region G>0.4, not guaranteed unobscured pixel count. Raw JPGs are independently hash-identified; the CPU replay needs only supplied numeric poses.",
+  "poses": [
+    {
+      "lod": "desktop",
+      "name": "lesion",
+      "captureTag": "cavity",
+      "viewportCSS": [
+        1366,
+        900
+      ],
+      "canvasCSS": [
+        811,
+        550
+      ],
+      "projectedFloorCSS": [
+        57.77877773890452,
+        41.51199055334081
+      ],
+      "cameraWorldCm": [
+        5.115349782302144,
+        -0.17382265542957376,
+        -1.4110204134644495
+      ],
+      "targetWorldCm": [
+        3.248850646173392,
+        -0.7039629277606153,
+        -1.0273687346631866
+      ],
+      "distanceCm": 1.9778918939526589,
+      "sceneProgress": 0.475084,
+      "visibleToothCountInCapture": 3,
+      "capturedClosureCm": 0,
+      "capturedMask": "none",
+      "images": {
+        "desktop-cavity.jpg": "046bb801fce4478af260658aedaea43da852d00363b92ac90b801fc81a84a309",
+        "desktop-cavity-canvas.jpg": "e2fa25b6ae7531127fd8721ae87f5c190a597cd0dfb63cda08c5cd70e145e1c3"
+      }
+    },
+    {
+      "lod": "desktop",
+      "name": "brush",
+      "captureTag": "brush",
+      "viewportCSS": [
+        1366,
+        900
+      ],
+      "canvasCSS": [
+        811,
+        550
+      ],
+      "projectedFloorCSS": [
+        29.81486486685416,
+        23.85575920372935
+      ],
+      "cameraWorldCm": [
+        6.52489333425774,
+        0.5544845349198896,
+        -1.3393351931550648
+      ],
+      "targetWorldCm": [
+        3.468865292167548,
+        -0.768657824894513,
+        -0.9753476911400127
+      ],
+      "distanceCm": 3.3499999999999996,
+      "sceneProgress": 0.620034,
+      "visibleToothCountInCapture": 3,
+      "capturedClosureCm": 0,
+      "capturedMask": "none",
+      "images": {
+        "desktop-brush.jpg": "a6a03b823d95c7d0c2056f080b697773cae9dd6ae80ec273d04608386c63e69e",
+        "desktop-brush-canvas.jpg": "82ed8a1e61a3f83b025e4516481e4b03841b8b56a4c0567bb8a883fc5712fd90"
+      }
+    },
+    {
+      "lod": "desktop",
+      "name": "result",
+      "captureTag": "result",
+      "viewportCSS": [
+        1366,
+        900
+      ],
+      "canvasCSS": [
+        811,
+        550
+      ],
+      "projectedFloorCSS": [
+        50.15196581858883,
+        38.13933014254871
+      ],
+      "cameraWorldCm": [
+        5.324455861762033,
+        -0.18200961861719245,
+        -1.3167466911789312
+      ],
+      "targetWorldCm": [
+        3.240767471613554,
+        -0.7166798457286574,
+        -1.031606070788999
+      ],
+      "distanceCm": 2.1700080028413122,
+      "sceneProgress": 0.759933,
+      "visibleToothCountInCapture": 3,
+      "capturedClosureCm": 0,
+      "capturedMask": "none",
+      "images": {
+        "desktop-result.jpg": "164fe03ad8c861ff9a1f09bf2752197c01692f7fd00e842a3062e54d8c2ba947",
+        "desktop-result-canvas.jpg": "3b76321b278d285b75efb52effdb8d6b3b5c50e9cdc951115aa0c952c1b89590"
+      }
+    },
+    {
+      "lod": "mobile",
+      "name": "lesion",
+      "captureTag": "cavity",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "canvasCSS": [
+        374,
+        431
+      ],
+      "projectedFloorCSS": [
+        52.83493615543925,
+        36.988858294759815
+      ],
+      "cameraWorldCm": [
+        4.873553779310979,
+        -0.24260075855390006,
+        -1.411585435471543
+      ],
+      "targetWorldCm": [
+        3.252423601563501,
+        -0.7063983486042524,
+        -1.0209502665371972
+      ],
+      "distanceCm": 1.73082844122358,
+      "sceneProgress": 0.475045,
+      "visibleToothCountInCapture": 3,
+      "capturedClosureCm": 0,
+      "capturedMask": "none",
+      "images": {
+        "mobile-cavity.jpg": "505d3894ce9a1535f23b50a0f98976665311281c32b70800b3eccbd65e85fd29",
+        "mobile-cavity-canvas.jpg": "8ecef8840f234be25e61bbd281ec9307e5250741a86086731bc5875ffcaf26b8"
+      }
+    },
+    {
+      "lod": "mobile",
+      "name": "brush",
+      "captureTag": "brush",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "canvasCSS": [
+        374,
+        359
+      ],
+      "projectedFloorCSS": [
+        19.20152746893493,
+        15.388132496300747
+      ],
+      "cameraWorldCm": [
+        6.56881442779688,
+        0.5473031371692042,
+        -1.3278391564576553
+      ],
+      "targetWorldCm": [
+        3.5127863857066877,
+        -0.7758392226451986,
+        -0.9638516544426032
+      ],
+      "distanceCm": 3.35,
+      "sceneProgress": 0.620002,
+      "visibleToothCountInCapture": 3,
+      "capturedClosureCm": 0,
+      "capturedMask": "none",
+      "images": {
+        "mobile-brush.jpg": "d3771c4e36c2912c062f8ef625daab1a4dd74c0c33226323180f903188f45789",
+        "mobile-brush-canvas.jpg": "1790787a5fd5b979505000a07033dc33d281cb285c23828dc47c1fd6c0ad1abd"
+      }
+    },
+    {
+      "lod": "mobile",
+      "name": "result",
+      "captureTag": "result",
+      "viewportCSS": [
+        390,
+        844
+      ],
+      "canvasCSS": [
+        374,
+        424
+      ],
+      "projectedFloorCSS": [
+        44.385602821696985,
+        33.71683074752658
+      ],
+      "cameraWorldCm": [
+        5.057083373525039,
+        -0.2627131595628531,
+        -1.276306258672419
+      ],
+      "targetWorldCm": [
+        3.242264115712158,
+        -0.728389518881928,
+        -1.0279585390476202
+      ],
+      "distanceCm": 1.8900000000000003,
+      "sceneProgress": 0.760146,
+      "visibleToothCountInCapture": 3,
+      "capturedClosureCm": 0,
+      "capturedMask": "none",
+      "images": {
+        "mobile-result.jpg": "22265d85b6c47df8b9acbc2ee406d4f2c6cca9abba04432630843c78da43ce96",
+        "mobile-result-canvas.jpg": "48866d3152cdd667bab86e61944c7e2cb0963db1ef7c87452fb4a9c87097630c"
+      }
+    }
+  ]
+}

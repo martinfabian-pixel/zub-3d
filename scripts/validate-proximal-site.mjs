@@ -23,6 +23,48 @@ for(const file of ['hero-36.glb','hero-36-mobile.glb']){
 const count=damage.indices.length, used=new Set(damage.indices);assert.equal(count,used.size);assert.equal(damage.vertexCount,27741);assert.equal(damage.triangleCount,55184);assert.equal(damage.fdi,36);assert.equal(damage.noncavitatedEarlyInfluence,0);
 assert.ok(damage.indices.every(i=>Number.isInteger(i)&&i>=0&&i<damage.vertexCount));assert.ok(damage.positionDelta.length===3*count&&damage.normalDelta.length===3*count&&damage.region.length===4*count);assert.ok(damage.positionDelta.every(Number.isFinite)&&damage.normalDelta.every(Number.isFinite)&&damage.region.every(x=>x>=0&&x<=1));assert.ok(damage.audit.maximumMeasuredDepressionMm>=.5&&damage.audit.maximumMeasuredDepressionMm<=.8);assert.ok(damage.audit.matureSignedVolumeNominalMm3>0&&damage.audit.matureSignedVolumeNominalMm3<damage.audit.healthySignedVolumeNominalMm3);
 const brush=site.brush,line=brush.centerline,A=line[0].position,E=line.at(-1).position,length=norm(sub(E,A))*10,axis=sub(E,A).map(x=>x*10/length),env=brush.rigidEnvelope;assert.ok(Math.abs(length-brush.lengthMm)<1e-5);assert.ok(brush.dimensionsMm.wireRadius<env.continuousLowerBoundRadiusMm);assert.ok(brush.maxTipArcMm-brush.dimensionsMm.exposedHeadLength<=brush.maxFerruleNoseArcMm);assert.equal(brush.maxCurvaturePerMm,0);
+// Check the delivered deformation against its physical dimensions and ensure
+// the enlarged opening remains away from the cleaning corridor throughout.
+function verifyCavity(){
+  const surface=models['hero-36.glb'],matrix=site.displayedMatrixColumnMajor[36];
+  const morphSlot=new Map(damage.indices.map((id,i)=>[id,i])),cache=new Map();
+  const width=[],height=[],frame=site.lesion.basisWorld;
+  function endpoint(id){
+    if(cache.has(id))return cache.get(id);
+    const slot=morphSlot.get(id),p=surface.POSITION.subarray(3*id,3*id+3);
+    const d=slot===undefined?[0,0,0]:damage.positionDelta.slice(3*slot,3*slot+3);
+    const rotated=v=>[0,1,2].map(k=>10*(matrix[k]*v[0]+matrix[4+k]*v[1]+matrix[8+k]*v[2]));
+    const start=rotated(p).map((x,k)=>x+10*(matrix[12+k]-A[k])),shift=rotated(d);
+    const end=start.map((x,k)=>x+shift[k]),depth=norm(shift);
+    if(depth>.005){
+      width.push(dot(start,frame.buccalLingualTangentBuccalPositive));
+      height.push(dot(start,frame.occlusalGingivalTangentOcclusalPositive));
+    }
+    const record={start,end,depth,floor:slot===undefined?0:damage.region[4*slot+1]};cache.set(id,record);return record;
+  }
+  const bounds={anyDisplacement:Infinity,over5Microns:Infinity,exposedFloor:Infinity};
+  for(let i=0;i<surface.INDICES.length;i+=3){
+    const ids=Array.from(surface.INDICES.subarray(i,i+3));
+    if(!ids.some(id=>morphSlot.has(id)))continue;
+    const tri=ids.map(endpoint),depth=Math.max(...tri.map(v=>v.depth)),floor=tri.reduce((s,v)=>s+v.floor,0)/3;
+    if(depth<=1e-6&&floor<=.55)continue;
+    const radial=tri.flatMap(v=>[v.start,v.end]).map(p=>p.map((x,k)=>x-dot(p,axis)*axis[k]));
+    const sum=[0,1,2].map(k=>radial.reduce((s,r)=>s+r[k],0)),dir=sum.map(x=>x/norm(sum));
+    const lower=Math.min(...radial.map(r=>dot(r,dir)));
+    if(depth>1e-6)bounds.anyDisplacement=Math.min(bounds.anyDisplacement,lower);
+    if(depth>.005)bounds.over5Microns=Math.min(bounds.over5Microns,lower);
+    if(floor>.55)bounds.exposedFloor=Math.min(bounds.exposedFloor,lower);
+  }
+  const extents=[width,height].map(v=>Math.max(...v)-Math.min(...v));
+  assert.ok(extents[0]>=1.5*1.393 && extents[0]<=2*1.393,'Opening width relative to f3257d1');
+  assert.ok(extents.every((v,k)=>Math.abs(v-damage.audit.displacedFootprintExtentMmAt5Microns[k])<1e-5));
+  for(const [region,lower]of Object.entries(bounds)){
+    assert.ok(Number.isFinite(lower)&&Math.abs(lower-damage.audit.wireSeparation[region].minimumRadiusMm)<2e-6);
+    const radius=region==='anyDisplacement'?brush.dimensionsMm.wireRadius:brush.dimensionsMm.bristleRadius;
+    assert.ok(lower>radius,`Tooth 36 ${region} enters the brush envelope`);
+  }
+}
+verifyCavity();
 for(let k=0;k<line.length;k++){
   const t=line[k];assert.ok(k===0||t.arcLengthMm>line[k-1].arcLengthMm);assert.ok(norm(sub(t.position,A.map((x,i)=>x+axis[i]*t.arcLengthMm/10)))<2e-7);
   for(const hits of [t.contacts,t.contactsMobile])for(const h of hits){assert.ok(Math.abs(norm(sub(h.nearestWorld,t.position))*10-h.distanceMm)<2e-5);assert.ok(Math.abs(norm(h.normalWorld)-1)<1e-5);assert.ok(h.distanceMm>=brush.dimensionsMm.wireRadius);}

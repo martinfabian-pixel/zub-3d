@@ -20,15 +20,23 @@ Hypotetická lézia je na distálnej ploche 36, 1,05 mm apikálne a 2,00 mm buk�
 
 ## Skorá zmena a skutočná priehlbina
 
-[Riedky morph 36](../public/story-assets/caries-36.json) sa viaže na pôvodné indexy schváleného dolného molára. Na začiatku sa môže zmeniť materiál skloviny, ale geometrický vplyv je nulový. Až ilustračná kavitácia posúva 39 vrcholov dovnútra. Dáta pre 113 vrcholov zahŕňajú aj normály susedných trojuholníkov a nepravidelný materiálový okraj. Iné pozície ani UV sa nemenia. Zub 46 naďalej používa zdravú geometriu.
+[Riedky morph 36](../public/story-assets/caries-36.json) sa viaže na pôvodné indexy dolného molára. V štádiu nekavitovanej zmeny má geometrický vplyv nulu. Pri kavitácii posúva 95 vrcholov dovnútra. 202 záznamov zahŕňa aj okolité normály a materiál okraja. Pôvodné UV a topológia sú zachované. Zub 46 používa zdravú geometriu.
 
-Maximálna výsledná hĺbka je **0,641 mm**; pôdorys posunu väčšieho než 5 µm má približne **1,39 × 1,04 mm**. Kladný orientovaný objem sa v nominálnej mierke zmenší o 0,334 mm³. Preto je priehlbina čitateľná aj na jednofarebnom kontrolnom materiáli. Rozmery a sfarbenie sú autorské, nie údaje z vyšetrenia alebo meranie priebehu choroby.
+Rozšírená priehlbina má **2,43 × 1,48 mm a hĺbku 0,769 mm** v ilustračnej mierke. Pôdorys je rozpätie vrcholov posunutých o viac než 5 µm v dvoch dotyčnicových smeroch. Bukolingválna šírka je 1,74-násobkom predchádzajúcej verzie. Orientovaný objem ubudol o 0,783 mm³. Pôvodný stred, polohy zubov a dráha kefky sa zhodujú s verziou `f3257d1`.
 
-![Rovnaké svetlo a kamera: zdravý a geometricky zmenený povrch](proximal-story-review/clay-comparison.jpg)
+![Neutrálne porovnanie zdravého povrchu, pôvodnej ilustrácie a rozšírenej priehlbiny](proximal-reframe-review/clay-width-comparison.jpg)
 
-Vľavo zdravý povrch, vpravo rovnaký neutrálny materiál s konečným geometrickým vplyvom. Ide o nezávislý offline Cycles render, nie snímku finálneho webového shaderu.
+Kontrolné rendery Cycles používajú rovnaké neutrálne materiály, pohľad a svetlo. Na pravej snímke je vidieť rozšírenú bočnú stenu a nepravidelný okraj aj bez zafarbenia. Zub 37 prirodzene zakrýva časť lingválnej strany.
 
-[Nezávislý BVH audit](proximal-story-review/morph-geometry-audit.json) kontroloval vplyvy 0, 0,25, 0,5, 0,75 a 1. Pri piatich vzorkovaných geometrických stavoch vrátane oboch krajností neboli zistené samoprieseky nesusediacich trojuholníkov, prevrátené alebo degenerované plochy ani otvorené UV švy. Pri každom stave a oboch LOD sa overilo všetkých 182 dvojíc v rovnakom oblúku a 196 protiľahlých dvojíc s už použitým otvorením 8 mm; bez prieniku. Pri overenom makropohľade bola viditeľná najhlbšia časť a všetky vzorkované stredy 27 plôch dna. Časť širšieho kriedového okraja prirodzene zakrýva zub 37 — celý okraj sa nevydáva za viditeľný z jediného uhla.
+Počas postupného prechodu medzi zdravým a zmeneným povrchom zostávajú všetky trojuholníky dna najmenej 0,802 mm od osi drôtu. Túto dolnú hranicu dáva radiálna projekcia šiestich krajných vrcholov každého trojuholníka. Zahŕňa celú plochu pri každej hodnote geometrického vplyvu. Pre všetkých 203 trojuholníkov s aspoň jedným vrcholom posunutým o viac než 5 µm je rovnaká hranica 0,606 mm. Voľný polomer štetín je 0,600 mm. Priehlbina je pri dráhe čistenia, jej dno mimo dosahu štetín.
+
+[Audit rozšírenej priehlbiny a kefky](proximal-reframe-review/independent-geometry.json) použil skutočné plochy 28 zubov v polohe čistenia s otvorením 8 mm. V piatich vzorkách deformácie a pri oboch úrovniach detailu našiel nula prienikov v 3 780 dvojiciach zubov. Povrch 36 sa neprevrátil ani neotvoril na UV švoch. V 83 polohách nástroja pri každej úrovni detailu neprechádzali jeho pevné časti ani štetiny cez zuby. Štetiny sa pri zasúvaní dotkli povlaku na 36 aj 37. Dolná hranica odstupu týchto vzorkovaných nástrojových plôch od dna dutiny bola 0,203 mm.
+
+V záberoch kazu, čistenia a výsledku zostalo viditeľných 59 z 59 vzorkovaných stredov trojuholníkov dna, najhlbší vrchol aj vstupný bod dráhy. Overili sme základné polohy kamery pre obe úrovne detailu aj [šesť skutočných polôh zaznamenaných prehliadačom](proximal-reframe-review/browser-camera-inputs.json). Najmenšia zmeraná vzdialenosť kamery od tvrdého povrchu bola 11,84 mm v mobilnom zábere dutiny.
+
+[Samostatná kontrola záverečného úsmevu](proximal-reframe-review/smile-closure.json) zahŕňa celú dráhu priblíženia horného oblúka o 5,8 mm so zrelou dutinou na 36. Na každej úrovni detailu prešlo 196 protiľahlých dvojíc bez prieniku. Pri kontrolnom posune o 6,4 mm sa pretli rezáky 21 a 31. Tieto merania opisujú výučbovú scénu.
+
+[Pôvodný audit verzie `f3257d1`](proximal-story-review/morph-geometry-audit.json) zostáva dostupný pre porovnanie so skoršou, užšou ilustráciou.
 
 ## Reprodukcia
 
@@ -39,6 +47,8 @@ python scripts/prepare_proximal_story.py
 node scripts/validate-proximal-site.mjs
 node scripts/test-cleaning-path.mjs
 node scripts/audit-brush-contact.mjs
+node docs/proximal-reframe-review/run-audit.mjs
+blender --background --factory-startup --python-exit-code 1 --python docs/proximal-reframe-review/smile-closure.py
 blender --background --factory-startup --python scripts/render_caries_review.py -- ../geometry-review
 ```
 

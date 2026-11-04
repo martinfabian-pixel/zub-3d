@@ -1,7 +1,7 @@
 import { PerspectiveCamera, Vector3 } from 'three';
 
 /** A pure scroll pose. The scene owner controls rendering and any final orbit. */
-export function createJourneyCamera({ timeline, config, camera: suppliedCamera }) {
+export function createJourneyCamera({ timeline, config, camera: suppliedCamera, sampleOnly=false }) {
   const settings = config?.camera ?? config ?? {};
   const camera = suppliedCamera ?? new PerspectiveCamera();
   camera.fov = timeline.fov ?? settings.fov;
@@ -18,9 +18,7 @@ export function createJourneyCamera({ timeline, config, camera: suppliedCamera }
     timeline.sampleInto(pose, next, camera.aspect, reducedMotion);
     progress = pose.progress;
     target.copy(pose.target);
-    camera.position.copy(pose.position);
-    camera.lookAt(target);
-    camera.updateMatrixWorld();
+    if(!sampleOnly){camera.position.copy(pose.position);camera.lookAt(target);camera.updateMatrixWorld();}
     return pose;
   }
 
@@ -33,5 +31,5 @@ export function createJourneyCamera({ timeline, config, camera: suppliedCamera }
 
   camera.updateProjectionMatrix();
   setProgress(0);
-  return { camera, target, resize, setProgress, dispose() { disposed = true; } };
+  return { camera, target,pose, resize, setProgress, dispose() { disposed = true; } };
 }

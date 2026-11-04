@@ -26,19 +26,48 @@ def smooth_field(p,f):
         a=tri[:,(k+1)%3]-tri[:,k];b=tri[:,(k+2)%3]-tri[:,k];angle=np.arctan2(np.linalg.norm(np.cross(a,b),axis=1),np.sum(a*b,axis=1));np.add.at(N,weld[f[:,k]],face*angle[:,None])
     return dent.norm(N)[weld]
 
-def lesion_morph(g,site):
+def swept_distance_certificate(healthy,mature,f,face_mask,wire_start,wire_axis):
+    # Every interpolated triangle lies in the convex hull of its six endpoint
+    # vertices. Projection on one radial unit vector bounds the distance from
+    # the entire hull to the infinite wire axis, hence to the finite wire too.
+    selected=f[face_mask]
+    endpoints=np.concatenate((healthy[selected],mature[selected]),axis=1)-wire_start
+    radial=endpoints-(endpoints@wire_axis)[:,:,None]*wire_axis
+    direction=dent.norm(radial.mean(axis=1))
+    bound=np.min(np.sum(radial*direction[:,None,:],axis=2))
+    return {'triangles':len(selected),'minimumRadiusMm':round(float(bound),6)}
+
+def lesion_morph(g,site,wire):
     p,n,w,wn,f=g['p'],g['n'],g['worldMm'],g['worldN'],g['f'];M=g['M'];c=np.array(site['anchor36']['worldCm'])*10;frame=site['basisWorld'];u=np.asarray(frame['buccalLingualTangentBuccalPositive']);v=np.asarray(frame['occlusalGingivalTangentOcclusalPositive']);out=np.asarray(frame['outwardNormal']);r=w-c;x=r@u;y=r@v;z=r@out
     # A bounded asymmetric, non-circular opening. This is authored illustration,
     # not a scan finding, a disease rate or a simulation of tissue chemistry.
-    a=-.20;xx=x*np.cos(a)+y*np.sin(a);yy=-x*np.sin(a)+y*np.cos(a);U=(xx-.055*np.sin(yy*4.1))/.82;V=(yy+.07*xx-.029*np.sin(xx*4.6))/.57;theta=np.arctan2(V,U)
-    scale=1+.087*np.sin(3*theta+.42)+.047*np.cos(5*theta-.52)+.021*np.sin(7*theta+1.08);rr=np.sqrt(U*U+V*V)/scale
-    allowed=(abs(z)<.6)&((wn@out)>.60);body=(1-dent.smooth(.21,1.0,rr))*allowed
-    # A gently asymmetric floor, curved side walls, thin irregular margin.
-    depth=.645*body*np.clip(.97+.033*np.sin(4.3*xx+1.7*yy)+.023*np.sin(4.2*yy-xx),.9,1.04)
+    angle=-.15
+    xx=x*np.cos(angle)+y*np.sin(angle)
+    yy=-x*np.sin(angle)+y*np.cos(angle)
+    U=(xx-.062*np.sin(3.1*yy))/1.32
+    V=(yy+.095*xx-.055*np.sin(3.3*xx))/.84
+    theta=np.arctan2(V,U)
+    outline=1+.103*np.sin(3*theta+.42)+.059*np.cos(5*theta-.52)+.027*np.sin(7*theta+1.08)
+    rr=np.hypot(U,V)/outline
+    # Respect the surveyed brush envelope. A rising wall on the gingival side
+    # opens toward the contact, while the passable cleaning corridor is intact.
+    wire_start,wire_end=np.asarray(wire['path']['controlPointsWorldCm'])*10
+    wire_axis=dent.norm(wire_end-wire_start)
+    station=np.clip((w-wire_start)@wire_axis,0,np.linalg.norm(wire_end-wire_start))
+    wire_distance=np.linalg.norm(w-wire_start-station[:,None]*wire_axis,axis=1)
+    allowed=(abs(z)<.90)&((wn@out)>.50)
+    body=(1-dent.smooth(.15,1.0,rr))*allowed*dent.smooth(.68,.94,wire_distance)
+    # The floor is shallow toward one lateral lobe. A steeper shoulder on
+    # its opposite side breaks the symmetry without creating a reentrant mesh.
+    floor_shape=.96+.038*np.sin(3.3*xx+1.6*yy)+.023*np.sin(3.6*yy-.9*xx)
+    depth=.777*body*np.clip(floor_shape,.88,1.03)
     # A single geometric displacement field is shared across every UV duplicate.
     _,first,inv=np.unique(np.round(p,12),axis=0,return_index=True,return_inverse=True);avg=np.zeros((len(first),3));np.add.at(avg,inv,wn);safe_normal=dent.norm(avg)[inv];depw=-safe_normal*depth[first][inv,None];delta=(depw/10)@np.linalg.inv(M[:3,:3]).T;end=p+delta
     bn=smooth_field(p,f);en=smooth_field(end,f);axis=np.cross(bn,en);cos=np.sum(bn*en,axis=1);rotated=n+np.cross(axis,n)+np.cross(axis,np.cross(axis,n))/np.maximum(1+cos[:,None],1e-9);newN=dent.norm(rotated);normal_delta=newN-n;normal_delta[np.linalg.norm(axis,axis=1)<1e-10]=0
-    chalk=(1-dent.smooth(.84,1.63,rr))*allowed;floor=(1-dent.smooth(.34,.90,rr))*allowed;rim=dent.smooth(.35,.70,rr)*(1-dent.smooth(.79,1.13,rr))*allowed;variation=np.clip(.54+.22*np.sin(xx*7.4+yy*4.1)+.10*np.cos(xx*4.1-yy*6.7),0,1)*chalk
+    chalk=(1-dent.smooth(.82,1.40,rr))*allowed
+    floor=(1-dent.smooth(.31,.90,rr))*allowed*dent.smooth(.68,.94,wire_distance)
+    rim=dent.smooth(.30,.65,rr)*(1-dent.smooth(.79,1.12,rr))*allowed*dent.smooth(.66,.88,wire_distance)
+    variation=np.clip(.54+.22*np.sin(xx*7.4+yy*4.1)+.10*np.cos(xx*4.1-yy*6.7),0,1)*chalk
     regions=np.stack([chalk,floor,rim,variation],axis=1);ids=np.flatnonzero((np.linalg.norm(delta,axis=1)>1e-12)|(np.linalg.norm(normal_delta,axis=1)>1e-7)|(chalk>1e-6));affected=np.flatnonzero(depth>.005)
     cross=lambda q:np.cross(q[f[:,1]]-q[f[:,0]],q[f[:,2]]-q[f[:,0]])
     base=cross(p);final=cross(end);flips=int((np.einsum('ij,ij->i',base,final)<=0).sum());mesh=trimesh.Trimesh(end*1000,f,process=True);assert flips==0 and mesh.is_watertight and mesh.is_winding_consistent and len(mesh.split())==1 and np.all(mesh.area_faces>1e-12)
@@ -46,7 +75,16 @@ def lesion_morph(g,site):
     audit={'sourceVertexCount':len(p),'sourceTriangleCount':len(f),'sparseVertexCount':len(ids),'displacedVertexCount':len(np.flatnonzero(depth>1e-6)),'maximumMeasuredDepressionMm':float(depth.max()),'displacedFootprintExtentMmAt5Microns':[float(np.ptp(x[affected])),float(np.ptp(y[affected]))],'healthySignedVolumeNominalMm3':float(source_vol),'matureSignedVolumeNominalMm3':float(end_vol),'illustrativeTissueVolumeRemovedMm3':float(source_vol-end_vol),'flippedFaces':flips,'watertightAfterUvWeld':bool(mesh.is_watertight),'consistentWinding':bool(mesh.is_winding_consistent),'degenerateFaces':int(np.sum(mesh.area_faces<1e-12)),'components':len(mesh.split()),'outsidePatchPositionChangeMetres':0,'outsideOneRingNormalChange':0,'topologyAndUvsUnchanged':True}
     result={'schemaVersion':1,'fdi':36,'vertexCount':len(p),'triangleCount':len(f),'sourceSha256':{'desktop':g['sha'],'mobile':dent.sha((dent.OUT/'hero-36-mobile.glb').read_bytes())},'indices':ids.tolist(),'positionDelta':flat(delta[ids],11),'normalDelta':flat(normal_delta[ids],8),'region':flat(regions[ids],5),'units':'Sparse arrays correspond to original 36 vertex indices; local POSITION deltas in metres and relative NORMAL deltas. Fill every other entry with zero. Clone only mesh36 and use morphTargetsRelative=true; never modify shared mesh46.','regionChannels':['R: noncavitated chalky/rough enamel footprint','G: mature exposed floor weight','B: broken cavity margin weight','A: restrained authored tone breakup, multiplied by the lesion footprint'],'healthyInfluence':0,'noncavitatedEarlyInfluence':0,'matureInfluence':1,'audit':audit,'attribution':'Mandibular First Molar, University of Dundee School of Dentistry, CC BY 4.0. Hypothetical geometric cavity and region weights authored for ZUB-3D. No original disease label or measured patient lesion.'}
     result['sourceGeometrySha256']=json.loads((dent.OUT/'hero-36-provenance.json').read_text())['outputs']['hero-36.glb']['geometry_sha256']
-    exclusion=np.maximum(dent.smooth(.002,.038,depth),1-dent.smooth(.78,1.09,rr))*allowed
+    mature=dent.affect(M,end)*10
+    displacement=np.linalg.norm(mature-w,axis=1)
+    masks={'anyDisplacement':displacement[f].max(axis=1)>1e-6,
+           'over5Microns':displacement[f].max(axis=1)>.005,
+           'exposedFloor':floor[f].mean(axis=1)>.55}
+    audit['wireSeparation']={name:swept_distance_certificate(w,mature,f,mask,wire_start,wire_axis) for name,mask in masks.items()}
+    assert audit['wireSeparation']['anyDisplacement']['minimumRadiusMm']>.09
+    assert audit['wireSeparation']['over5Microns']['minimumRadiusMm']>.60
+    assert audit['wireSeparation']['exposedFloor']['minimumRadiusMm']>.60
+    exclusion=np.maximum(dent.smooth(.002,.038,depth),(1-dent.smooth(.78,1.09,rr))*dent.smooth(.65,.83,wire_distance))*allowed
     return result,exclusion,end,newN,regions
 
 def patch(g,fdi,origin,axis,L,reference,exclusion=None):
@@ -60,7 +98,7 @@ def patch(g,fdi,origin,axis,L,reference,exclusion=None):
 
 def main():
     wire=record('path-result.json');lesion=record('lesion-result.json');manifest=json.loads((dent.OUT/'manifest.json').read_text());hard_sha=wire['assetSha256'];assert all(dent.sha((dent.OUT/file).read_bytes())==value for file,value in hard_sha.items());g=model(36,'desktop',manifest);mg=model(36,'mobile',manifest);assert np.array_equal(g['p'],mg['p']) and np.array_equal(g['f'],mg['f'])
-    shape,ex,end,normals,regions=lesion_morph(g,lesion);emit('caries-36.json',shape);path=wire['path'];A,B=np.asarray(path['controlPointsWorldCm'])*10;ax=dent.norm(B-A);length=float(np.linalg.norm(B-A));samples=[]
+    shape,ex,end,normals,regions=lesion_morph(g,lesion,wire);emit('caries-36.json',shape);path=wire['path'];A,B=np.asarray(path['controlPointsWorldCm'])*10;ax=dent.norm(B-A);length=float(np.linalg.norm(B-A));samples=[]
     for t in path['samples']:
         def contacts(lod):return [{'fdi':i,'nearestWorld':rnd(t[lod][str(i)]['nearestWorldCm']),'normalWorld':rnd(t[lod][str(i)]['normalWorld'],7),'distanceMm':round(t[lod][str(i)]['distanceMm'],6)} for i in [36,37]]
         samples.append({'position':rnd(t['worldCm']),'arcLengthMm':round(t['arcMm'],6),'clearanceMm':round(t['limitingRadiusBothLodsMm'],6),'contacts':contacts('desktop'),'contactsMobile':contacts('mobile')})
@@ -70,6 +108,7 @@ def main():
     M=g['M'];bw=lesion['basisWorld'];local={k:rnd(dent.norm(np.linalg.solve(M[:3,:3],v)),8) for k,v in bw.items()};anchor=lesion['anchor36'];site={'schemaVersion':1,'units':'World cm including fixed lower Y−0.48cm. Distances/radii/arc lengths in nominal mm, local patch coordinates/metre morph deltas in original glTF metres. Never apply lower opening twice.','teeth':[36,37],'assetSha256':hard_sha,'displayedMatrixColumnMajor':{str(i):rnd(model(i,'desktop',manifest)['M'].T.ravel(),10) for i in [36,37]},'basisWorld':wire['basisWorld'],'closestProximalPair':wire['closestProximalPair'],'tightestGapFocusWorldCm':wire['siteFocusWorldCm'],'focusWorldCm':path['centerAtClosestSiteBuccalCoordinateWorldCm'],'brush':brush,'plaque':{'patches':patches,'mobile37':mobile37,'contract':'In compact mode replace only the FDI37 patch with mobile37. Positions lie on actual source meshes; UV, normal and indexed faces are native. Tunable render lift 0.02–0.04 mm. edgeWeight gives soft irregular perimeter. Subtract mature lesionExclusion only as cavitation develops. nearestArcMm/pathDistanceMm are exact closest points to finite calibrated path, not a cleaning percentage. Use instantaneous bristle position/radius to reduce ONLY supported, contacted plaque.'},'lesion':{'fdi':36,'asset':'caries-36.json','anchor':anchor,'centerWorldCm':anchor['worldCm'],'centerLocalMetres':anchor['localMetres'],'normalWorld':anchor['normalWorld'],'basisWorld':bw,'basisLocal':local,'macroCamera':lesion['macroCamera'],'footprintVisibilityAudit':{k:v for k,v in lesion['footprintQA'].items() if k!='samples'},'distanceToOpposing37Mm':lesion['distanceToOpposing37Mm'],'heightAboveEstimatedCejMm':lesion['estimatedCrownwardHeightAboveLocalPaintedCejMm'],'buccalOffsetFromTightestMm':lesion['buccalDistanceFromClosestSiteMm'],'apicalOffsetFromTightestMm':lesion['apicalDistanceFromClosestSiteMm'],'wireRelationship':lesion['wireRelationship'],'morphAudit':shape['audit']},'limitations':['Educational hard-surface measurements in an illustrative 21mm reference scale. No gingiva, papilla or bone in this geometry.','No clinical brush size, passage safety, treatment advice or disease timeline can be inferred.','Thickness, plaque, early chalking and mature cavity are authored examples, not conditions in the original Dundee specimen. Brushing does not restore lost tooth structure.']}
     camera=site['lesion']['macroCamera'];camera.update(direction=camera['directionFromLesionToCameraWorld'],target=camera['lookAtWorldCm'],distanceCm=camera['cameraDistanceMmUsedForFootprintCheck']/10)
     site['plaque']['verifiedReachableCenters']=lesion.get('brushReachablePlaqueAnchors',{})
+    site['lesion']['footprintVisibilityAudit']['scope']='Fixed healthy 1.2 by 0.8 mm site survey used to select the anchor. This survey covers only part of the enlarged cavity; mature-floor visibility is audited separately.'
     site['sourceLicense']={'author':'University of Dundee, School of Dentistry','license':'CC-BY-4.0','creditFile':'credits.txt'}
     emit('site.json',site)
     print(json.dumps({'morph':shape['audit'],'patches':[p['audit'] for p in [*patches,mobile37]],'siteBytes':(OUT/'site.json').stat().st_size,'morphBytes':(OUT/'caries-36.json').stat().st_size},indent=2))

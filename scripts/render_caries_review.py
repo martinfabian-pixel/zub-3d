@@ -1,5 +1,5 @@
 """Matched Cycles geometry proof, separate from the browser material and image.
-blender --background --factory-startup --python scripts/render_caries_review.py -- OUTPUT_DIR
+blender --background --factory-startup --python scripts/render_caries_review.py -- OUTPUT_DIR [--mature-clay-only] [--cpu]
 """
 from pathlib import Path
 import json,sys,numpy as np,bpy
@@ -28,12 +28,14 @@ try:
     for device in prefs.devices:device.use=device.type=='OPTIX'
     scene.cycles.device='GPU'
 except Exception:scene.cycles.device='CPU'
+if '--cpu' in sys.argv:scene.cycles.device='CPU'
 scene.render.resolution_x=850;scene.render.resolution_y=700;scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG';scene.render.film_transparent=False;scene.world=bpy.data.worlds.new('Neutral');scene.world.use_nodes=True;scene.world.node_tree.nodes['Background'].inputs['Color'].default_value=(.8,.8,.8,1);scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value=.24;scene.view_settings.view_transform='AgX';scene.view_settings.look='AgX - Medium High Contrast'
 def light(name,offset,energy,width,height):
     l=bpy.data.lights.new(name,'AREA');l.energy=energy;l.shape='RECTANGLE';l.size=width;l.size_y=height;o=bpy.data.objects.new(name,l);scene.collection.objects.link(o);o.location=Vector(target+offset);look(o,target)
 light('Upper-left source',D*.017-u*.009+v*.010,.010,.014,.010);light('Broad fill',D*.018+u*.009-v*.003,.003,.016,.018)
 camera=bpy.data.cameras.new('Measured macro');camera.type='PERSP';camera.lens=165;camera.sensor_width=36;camera.clip_start=.0001;camera.clip_end=.5;o=bpy.data.objects.new(camera.name,camera);scene.collection.objects.link(o);scene.camera=o;o.location=Vector(target+D*.031);look(o,target)
 for phase,depth,early,late,clay in [('healthy-clay',0,0,0,True),('mature-clay',1,0,0,True),('healthy',0,0,0,False),('early',0,1,0,False),('mature',1,1,1,False)]:
+    if '--mature-clay-only' in sys.argv and phase!='mature-clay':continue
     for i,(p,n,f,M,delta,deltaN,reg,mesh,colors) in source.items():
         pos=B(d.affect(M,p+delta*depth))/100;normal=B(d.norm((n+deltaN*depth)@np.linalg.inv(M[:3,:3])));mesh.vertices.foreach_set('co',pos.ravel());mesh.update();mesh.normals_split_custom_set_from_vertices(normal.tolist());base=np.tile(lin(np.array([.70,.70,.70]) if clay else np.array([.935,.918,.881])),(len(p),1))
         if i==36 and not clay:

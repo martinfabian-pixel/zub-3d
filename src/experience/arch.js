@@ -21,7 +21,9 @@ function mirrorGeometry(source) {
   return geometry;
 }
 
-/** Fixed, author-derived anatomical placement. Only the reveal uniform changes. */
+/** Native seating is kept within each arch. The single audited final motion
+ * translates the maxilla vertically as a unit; the teaching site never moves.
+ */
 export function createArch({ manifest, hero, config, renderer, profile, clay=false }) {
   const object = new THREE.Group(); object.name='28 permanent teeth — author-arranged dentition';
   const teeth = new Map(), mirror = new THREE.Matrix4().makeScale(-1,1,1);
@@ -31,6 +33,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const sourceObjects=new Set([hero.object]);
   const proxies = [];
   let disposed=false, assetsReady=false, visibleCount=1;
+  let finalView='smile', smileWeight=1, sceneProgress=0, closureCm=0;
   for (const entry of manifest.teeth) {
     const upper = entry.fdi < 30;
     const matrix = new THREE.Matrix4().fromArray(entry.matrix);
@@ -80,7 +83,27 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     assetsReady=true; object.updateMatrixWorld(true);
   }
   const sampled={brushPose:{}};
+  function updateClosure() {
+    const [start,end]=config.anatomy.smileClosureRange;
+    const next=smileWeight*config.anatomy.smileClosureCm*smooth(start,end,sceneProgress);
+    if(next===closureCm)return;
+    closureCm=next;
+    for(const item of teeth.values()) {
+      if(!item.upper||!item.mesh)continue;
+      item.mesh.matrix.elements[13]=item.matrix.elements[13]-closureCm;
+      item.mesh.updateMatrixWorld(true);
+    }
+  }
+  function setFinalView(view, weight=view==='smile'?1:0) {
+    if(view!=='smile'&&view!=='anatomy')throw new RangeError('Unknown final dental view.');
+    if(!Number.isFinite(weight))throw new RangeError('Final smile weight must be finite.');
+    finalView=view;
+    smileWeight=THREE.MathUtils.clamp(weight,0,1);
+    updateClosure();
+  }
   function setState(state) {
+    sceneProgress=state.sceneProgress??0;
+    updateClosure();
     visibleCount=0;
     for (const [fdi,item] of teeth) {
       let reveal=0;
@@ -98,11 +121,36 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   }
   function setProgress(p){setState(sampleDentalStory(p,sampled));}
   const selection=(filter)=>[...teeth.values()].filter(filter).map((i)=>i.entry.fdi===config.anatomy.hero?i.mesh:i.proxy);
+  // Measure the six anterior crowns of each arch in their final position.
+  // Responsive lens padding includes more of the premolars on a wide screen.
+  // Every intact molar and every root still renders.
+  // These are framing measurements from the native exterior, not cut planes.
+  let smileBounds;
+  function measureSmile() {
+    if(smileBounds)return smileBounds;
+    const bounds=[],p=new THREE.Vector3();
+    for(const item of teeth.values()) {
+      if(!item.mesh||item.entry.fdi%10>3)continue;
+      const cervicalHeight=item.entry.cervicalRing.reduce((sum,point)=>sum+point[1],0)/item.entry.cervicalRing.length;
+      const positions=item.mesh.geometry.attributes.position,box=new THREE.Box3();
+      const matrix=item.mesh.matrix.clone();
+      matrix.elements[13]=item.matrix.elements[13]-(item.upper?config.anatomy.smileClosureCm:0);
+      for(let i=0;i<positions.count;i++) {
+        if(positions.getY(i)<cervicalHeight)continue;
+        box.expandByPoint(p.fromBufferAttribute(positions,i).applyMatrix4(matrix));
+      }
+      if(!box.isEmpty())bounds.push(box);
+    }
+    if(!bounds.length)throw new Error('The smile composition needs the anterior crown meshes.');
+    smileBounds=bounds;
+    return bounds;
+  }
   const landmarks={
     hero:()=>teeth.get(config.anatomy.hero).mesh,
     neighbors:()=>selection((i)=>config.anatomy.neighbors.includes(i.entry.fdi)),
     arch:()=>selection((i)=>i.upper===(config.anatomy.hero<30)),
     full:()=>selection(()=>true),
+    smile:measureSmile,
   };
   function report() {
     return [...teeth].map(([fdi,item])=>({fdi,source:item.entry.source,loaded:Boolean(item.mesh),reveal:item.mesh?item.reveal:0,worldMatrix:(item.mesh?.matrixWorld??item.matrix).toArray(),triangles:item.mesh?(item.mesh.geometry.index?.count??item.mesh.geometry.attributes.position.count)/3:0}));
@@ -115,5 +163,5 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
     mirrored.clear(); teeth.clear();
   }
-  return { object,teeth,landmarks,attachAtlas,setState,setProgress,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
+  return { object,teeth,landmarks,attachAtlas,setState,setProgress,setFinalView,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

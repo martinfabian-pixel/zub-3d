@@ -25,7 +25,7 @@
         <p id="journey-description">Pozrite sa zblízka. Potom objavte priestor medzi zubami.</p>
         <p id="journey-instruction" hidden></p><p id="journey-note" hidden></p>
         <p id="journey-meta">FDI 36 · dolná ľavá · 2 korene</p>
-        <div class="copy-actions"><button id="journey-final-explore" class="primary-button" type="button" hidden>Preskúmať chrup ↗</button>
+        <div class="copy-actions">
           <button id="journey-previous" class="previous-button" type="button" aria-label="Predchádzajúci krok" disabled>←</button>
           <button id="journey-next" class="primary-button" type="button">Pokračovať <span aria-hidden="true">→</span></button>
         </div>
@@ -40,18 +40,18 @@
             <button id="journey-retry" class="outline-button" type="button" hidden>Skúsiť znova</button>
           </div>
         </div>
-        <div id="journey-result-labels" aria-hidden="true"><span>Vyčistený povrch</span><span>Kaz vyžaduje ošetrenie</span></div>
+        <div class="journey-context"><div id="journey-result-labels" aria-hidden="true"><span>Vyčistený povrch</span><span>Kaz vyžaduje ošetrenie</span></div><div id="journey-final-views" role="group" aria-label="Pohľad na chrup" hidden><button id="journey-view-smile" type="button" aria-pressed="true">Úsmev</button><button id="journey-view-anatomy" type="button" aria-pressed="false">Anatómia</button></div></div>
         <div id="journey-inspect">
           <div class="view-caption"><span class="view-status-dot" aria-hidden="true"></span><span id="journey-subject">Dolná ľavá prvá stolička</span></div>
           <div class="model-controls" role="group" aria-label="Ovládanie 3D modelu">
-            <button id="journey-explore" type="button" aria-pressed="false" disabled>Otáčať model</button>
+            <button id="journey-explore" type="button" aria-pressed="false" disabled>Voľné 3D</button>
             <span class="control-separator" aria-hidden="true"></span>
             <button id="journey-zoom-out" class="icon-button" type="button" aria-label="Oddialiť model" title="Oddialiť" disabled>−</button>
             <button id="journey-zoom-in" class="icon-button" type="button" aria-label="Priblížiť model" title="Priblížiť" disabled>+</button>
             <button id="journey-reset" class="icon-button" type="button" aria-label="Obnoviť pohľad aktuálneho kroku" title="Obnoviť pohľad" disabled>↺</button>
           </div>
         </div>
-        <p id="journey-orbit-hint">Zapnite otáčanie alebo pokračujte posunutím stránky.</p>
+        <p id="journey-orbit-hint">Ťahaním otáčate · kolieskom pokračujete v príbehu.</p>
       </section>
       <div class="journey-footer">
         <nav class="journey-steps" aria-label="Kapitoly príbehu"></nav>
@@ -68,8 +68,8 @@
     <h2 id="help-title">Chrup máte pod kontrolou.</h2>
     <dl class="help-list">
       <div><dt>Prezentácia</dt><dd>Posúvajte stránku alebo kliknite na jednu zo siedmich kapitol. Spätným posunom sa vrátite k predošlým častiam ukážky.</dd></div>
-      <div><dt>Otáčanie</dt><dd>Zapnite „Preskúmať“ a ťahajte myšou. Na mobile otáčajte ťahom do strán; zvislým ťahom posúvate stránku.</dd></div>
-      <div><dt>Priblíženie</dt><dd>Použite tlačidlá + a − alebo gesto dvoma prstami. Koliesko myši zostáva vyhradené posúvaniu stránky.</dd></div>
+      <div><dt>Otáčanie</dt><dd>Ťahajte priamo na modeli. Na mobile otáčajte vodorovne; zvislým ťahom pokračujete v príbehu. Voľné 3D umožňuje otáčanie v oboch osiach.</dd></div>
+      <div><dt>Priblíženie</dt><dd>Použite + a −. Vo Voľnom 3D približuje aj koliesko či gesto dvoma prstami; príbeh je pozastavený. Tlačidlo „Pokračovať v príbehu“ vás plynulo vráti.</dd></div>
       <div><dt>Klávesnica</dt><dd>Po zameraní modelu ho otáčajú šípky. + a − menia priblíženie, Home obnoví pohľad a Escape vráti prezentáciu.</dd></div>
     </dl>
     <p class="help-note">Výučbová vizualizácia, nie klinicky validovaný návod. Fialová farba kefky neurčuje veľkosť. Vzniknutú dutinu čistenie neopraví.</p>

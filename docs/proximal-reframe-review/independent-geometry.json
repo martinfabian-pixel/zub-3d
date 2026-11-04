@@ -1,0 +1,1351 @@
+{
+  "baselineCommit": "f3257d1da28aa51a628d07ee497f5e9f50120f44",
+  "assetComparison": {
+    "public/dentition-assets/manifest.json": {
+      "currentSha256": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+      "f3257d1Sha256": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+      "byteIdentical": true
+    },
+    "public/prototype-assets/molar.glb": {
+      "currentSha256": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+      "f3257d1Sha256": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+      "byteIdentical": true
+    },
+    "public/prototype-assets/molar-mobile.glb": {
+      "currentSha256": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+      "f3257d1Sha256": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+      "byteIdentical": true
+    },
+    "public/dentition-assets/dentition-mobile.glb": {
+      "currentSha256": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+      "f3257d1Sha256": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+      "byteIdentical": true
+    },
+    "public/dentition-assets/dentition.glb": {
+      "currentSha256": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+      "f3257d1Sha256": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+      "byteIdentical": true
+    },
+    "public/dentition-assets/hero-36-mobile.glb": {
+      "currentSha256": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2",
+      "f3257d1Sha256": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2",
+      "byteIdentical": true
+    },
+    "public/dentition-assets/hero-36.glb": {
+      "currentSha256": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+      "f3257d1Sha256": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+      "byteIdentical": true
+    },
+    "assets/source/dentition/mandibular_first_molar.glb": {
+      "currentSha256": "763de453952e1f53843da89d8d9a4c03fb64dc325865c2197a5eaf09121dde87",
+      "f3257d1Sha256": "763de453952e1f53843da89d8d9a4c03fb64dc325865c2197a5eaf09121dde87",
+      "byteIdentical": true
+    }
+  },
+  "changedStoryJson": {
+    "site.json": {
+      "baselineSha256": "a8b8a8d3549c5f8365c977dd2f614c5b1d2242d2b3e7fe1228026d1dc92add27",
+      "currentSha256": "ddf0650de8b920d14337b1dd7de78b463c273fd50eeb45830571648811a16e39"
+    },
+    "caries-36.json": {
+      "baselineSha256": "12ab8966f034cf12bf62b2760ae4d7e7bf6da652b7c4d33342cd482f102be90a",
+      "currentSha256": "a321360aabd8556f106fe4cb9bb1e07a5343d209dc691117abe074d967ef5b5d"
+    }
+  },
+  "unchangedRegistration": {
+    "brushCenterline": {
+      "currentCanonicalSha256": "8158b9a96d2ec9f4bdc36853d5790f120ed762a86e02594b5193cc5756aacd92",
+      "baselineCanonicalSha256": "8158b9a96d2ec9f4bdc36853d5790f120ed762a86e02594b5193cc5756aacd92",
+      "identical": true
+    },
+    "wholeBrushGuide": {
+      "currentCanonicalSha256": "2c56e2efb454dedce236ee5a22e337e0d5a5fcd6be94a0d265b0b5633a171303",
+      "baselineCanonicalSha256": "2c56e2efb454dedce236ee5a22e337e0d5a5fcd6be94a0d265b0b5633a171303",
+      "identical": true
+    },
+    "displayedMatrices": {
+      "currentCanonicalSha256": "545b414b2182917c55433a7c6558a1c147fec8d6c0928f422af0e47e351bc6b5",
+      "baselineCanonicalSha256": "545b414b2182917c55433a7c6558a1c147fec8d6c0928f422af0e47e351bc6b5",
+      "identical": true
+    },
+    "closestProximalPair": {
+      "currentCanonicalSha256": "015e42e13de536f0bb72462b5bc40b31f46bdc1c08dab589a931302fa9c1af3f",
+      "baselineCanonicalSha256": "015e42e13de536f0bb72462b5bc40b31f46bdc1c08dab589a931302fa9c1af3f",
+      "identical": true
+    }
+  },
+  "runtimeBrush": {
+    "pathLengthMm": 14.345443,
+    "depictedTravelMm": 11.7,
+    "surveyedTipRangeMm": [
+      0,
+      14.34544306990572
+    ],
+    "samples": 112,
+    "maxChordDeviationMm": 9.004259361936092e-08,
+    "certifiedWireRadialMarginMm": 0.34896159792593473,
+    "maxActualFerruleNoseArcMm": -1.4000000000000004,
+    "allowedFerruleNoseArcMm": 1.4289367601335858,
+    "minMeasuredWireClearanceMm": 0.35396108495183554,
+    "tipRangeMm": [
+      0,
+      11.7
+    ],
+    "contactRangeMm": [
+      4.598821460929626,
+      9.683624054716786
+    ],
+    "wireRadiusMm": 0.09,
+    "bristleRadiusMm": 0.6,
+    "bristledLengthMm": 8,
+    "fiberRadiusMm": 0.018,
+    "tipMarginMm": 0.45,
+    "ferruleBackMm": 13.1,
+    "ferruleRadiusMm": 0.8,
+    "handleLengthMm": 18,
+    "handleRadiusMm": 1.85
+  },
+  "sampledPoses": 83,
+  "toolRuntimeSha256": {
+    "src/experience/cleaning-path.js": "da62cd7f324bd2ff8fbd96c01bcd5f5ffad596e83f8d3990e6482adaaa6a1288",
+    "src/experience/interdental-brush.js": "55b25a809229ba79b68dc0d8327160477c56c36f14cdb5999eadd7e328cdd688",
+    "src/experience/plaque.js": "19e22dd29d67e3c29cf4411ffb6e9b06e8eb6e4e8e430f4aa9fbb9e1eb0064f1",
+    "src/experience/caries.js": "4b204f2da0cce97da1c0c8a35977e15b5b2e2e9cdbca32ca2ab9f0137511929c",
+    "src/experience/story-camera.js": "f84d91a1d38cfdcd1d2edcc86a45abb2d6e56042ea288d0844f5272c85ba1f3b",
+    "src/experience/config.js": "78f9d1b1ccfc9932e5541b68e9e904b9bc2511041cbdc730f22e7728b50d75e2"
+  },
+  "units": "Nominal mm internally. Displayed XYZ = manifest.matrix then one jaw offset (+.32cm upper; \u2212.48cm lower). No tooth motion. Educational geometry only.",
+  "lods": {
+    "desktop": {
+      "healthyNamedSource": {
+        "both36And46CanonicalSource": "hero-36.glb",
+        "sourceNote": "One real left source, distinct independently fitted reflected right instance. No claim of two distinct cadaver specimens. Only 36 is deformed.",
+        "sourceAttributeSha256": {
+          "POSITION": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+          "NORMAL": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+          "TANGENT": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+          "TEXCOORD_0": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+          "INDICES": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+        },
+        "healthy36WorldPositionF32Sha256": "17d4fd93cbe8437030ba48e5b297d4cfa84d23b1de6c076fd42247798d713722",
+        "untouched46WorldPositionF32Sha256": "1fdf0463d05f405c260b5cf009ad536bfb084506ad7b77c2c4912ccc4230f958",
+        "placed36And46UseDifferentMatrix": true,
+        "source36And46AreSameRegisteredShape": true
+      },
+      "baselineOriginalLesion": {
+        "over5umVertices": 38,
+        "over5umAffectedFaces": 100,
+        "floorFaces": 27,
+        "originalFrameExtentAt5umMm": [
+          1.3931620678899748,
+          1.0365318307267035
+        ],
+        "maxDepthMm": 0.6409349863255518,
+        "removedVolumeMm3": 0.3341810443189388,
+        "deformedPatchFaceNormalsChangedVsHealthyDegP50P95Max": [
+          46.08790309947494,
+          64.96128311932947,
+          66.81952625226145
+        ],
+        "deepestOriginalVertex": 17721
+      },
+      "newLesion": {
+        "over5umVertices": 82,
+        "over5umAffectedFaces": 203,
+        "floorFaces": 59,
+        "originalFrameExtentAt5umMm": [
+          2.4250268423388306,
+          1.4805051692053084
+        ],
+        "maxDepthMm": 0.768658626173794,
+        "removedVolumeMm3": 0.7831024869867633,
+        "deformedPatchFaceNormalsChangedVsHealthyDegP50P95Max": [
+          42.28708796879906,
+          62.29080942877897,
+          71.64482980808411
+        ],
+        "deepestOriginalVertex": 17721,
+        "deepestFloorMatureWorldCm": [
+          3.1954528591023474,
+          -0.6847947381224435,
+          -0.9616149784705158
+        ],
+        "deepestHealthyWorldCm": [
+          3.248801630655948,
+          -0.6708072365554456,
+          -1.0151557966333793
+        ]
+      },
+      "topology": {
+        "weldedVertexCount": 27594,
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0
+      },
+      "stages": {
+        "0.0": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 1.0,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "0.25": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.8895864143646555,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "0.5": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.7876575000294369,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "0.75": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.6940010166458018,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "1.0": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.6083804000521413,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        }
+      },
+      "visibility": [
+        {
+          "originalMacroDirectionWorldYawDeg": 0.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            4.980361285233305,
+            -0.18766985282065124,
+            -1.3942593805436405
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -4.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            5.001548071993584,
+            -0.18766985282065124,
+            -1.2715013713724086
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -6.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            5.008915740729671,
+            -0.18766985282065124,
+            -1.209642647823753
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 6.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            4.932665550667143,
+            -0.18766985282065124,
+            -1.574880010132441
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 0.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.263670149263595,
+            -0.10868991914760721,
+            -1.4534054509022665
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -4.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.288292631174191,
+            -0.10868991914760721,
+            -1.310740737541105
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -6.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.296855057002617,
+            -0.10868991914760721,
+            -1.238850869633208
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 6.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.208239971254273,
+            -0.10868991914760721,
+            -1.663315912316278
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 0.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.1608148853595175,
+            0.1414132041503656,
+            -1.640701340371249
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -4.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.196317068579445,
+            0.1414132041503656,
+            -1.4349987304086445
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -6.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.208662891866943,
+            0.1414132041503656,
+            -1.3313435720298161
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 6.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.080892303113518,
+            0.1414132041503656,
+            -1.9433629358984283
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        }
+      ],
+      "actualAuthoredCameraKeyframes": [
+        {
+          "name": "lesion",
+          "lod": "desktop",
+          "targetWorldCm": [
+            3.233289957046509,
+            -0.6747127771377563,
+            -1.0295252799987793
+          ],
+          "direction": [
+            0.9443628801009707,
+            0.26326644557681356,
+            -0.19715356786208735
+          ],
+          "distanceCm": 1.94,
+          "cameraWorldCm": [
+            5.065353944442392,
+            -0.16397587271873804,
+            -1.4120032016512287
+          ],
+          "scope": "Per-profile createStoryCameraConfig: landmark center + authored direction \u00d7 minimum distance. Viewport fit and scroll interpolation may alter the rendered pose.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 13.85649299621582
+        },
+        {
+          "name": "brush",
+          "lod": "desktop",
+          "targetWorldCm": [
+            3.43966926241651,
+            -0.7067993310685211,
+            -0.9956129257993042
+          ],
+          "direction": [
+            0.912247176743341,
+            0.3949678686013143,
+            -0.10865298567613513
+          ],
+          "distanceCm": 3.35,
+          "cameraWorldCm": [
+            6.495697304506702,
+            0.6163430287458816,
+            -1.3596004278143567
+          ],
+          "scope": "Per-profile createStoryCameraConfig: landmark center + authored direction \u00d7 minimum distance. Viewport fit and scroll interpolation may alter the rendered pose.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 25.868200302124023
+        },
+        {
+          "name": "result",
+          "lod": "desktop",
+          "targetWorldCm": [
+            3.234500963779167,
+            -0.6924953586630465,
+            -1.0320378995461579
+          ],
+          "direction": [
+            0.9602218295306245,
+            0.24638960810533064,
+            -0.1314009098543911
+          ],
+          "distanceCm": 2.17,
+          "cameraWorldCm": [
+            5.318182333860622,
+            -0.15782990907447902,
+            -1.3171778739301865
+          ],
+          "scope": "Per-profile createStoryCameraConfig: landmark center + authored direction \u00d7 minimum distance. Viewport fit and scroll interpolation may alter the rendered pose.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 16.449405670166016
+        }
+      ],
+      "capturedProductionCameras": [
+        {
+          "lod": "desktop",
+          "name": "lesion",
+          "captureTag": "cavity",
+          "viewportCSS": [
+            1366,
+            900
+          ],
+          "canvasCSS": [
+            811,
+            550
+          ],
+          "projectedFloorCSS": [
+            57.77877773890452,
+            41.51199055334081
+          ],
+          "cameraWorldCm": [
+            5.115349782302144,
+            -0.17382265542957376,
+            -1.4110204134644495
+          ],
+          "targetWorldCm": [
+            3.248850646173392,
+            -0.7039629277606153,
+            -1.0273687346631866
+          ],
+          "distanceCm": 1.9778918939526589,
+          "sceneProgress": 0.475084,
+          "visibleToothCountInCapture": 3,
+          "capturedClosureCm": 0,
+          "capturedMask": "none",
+          "images": {
+            "desktop-cavity.jpg": "046bb801fce4478af260658aedaea43da852d00363b92ac90b801fc81a84a309",
+            "desktop-cavity-canvas.jpg": "e2fa25b6ae7531127fd8721ae87f5c190a597cd0dfb63cda08c5cd70e145e1c3"
+          },
+          "scope": "Actual production renderer camera and target from the frozen browser capture. All 28 teeth tested, though only three were visible in these story frames. Hard-surface visibility only; does not measure brush or interface coverage.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 14.305732727050781
+        },
+        {
+          "lod": "desktop",
+          "name": "brush",
+          "captureTag": "brush",
+          "viewportCSS": [
+            1366,
+            900
+          ],
+          "canvasCSS": [
+            811,
+            550
+          ],
+          "projectedFloorCSS": [
+            29.81486486685416,
+            23.85575920372935
+          ],
+          "cameraWorldCm": [
+            6.52489333425774,
+            0.5544845349198896,
+            -1.3393351931550648
+          ],
+          "targetWorldCm": [
+            3.468865292167548,
+            -0.768657824894513,
+            -0.9753476911400127
+          ],
+          "distanceCm": 3.3499999999999996,
+          "sceneProgress": 0.620034,
+          "visibleToothCountInCapture": 3,
+          "capturedClosureCm": 0,
+          "capturedMask": "none",
+          "images": {
+            "desktop-brush.jpg": "a6a03b823d95c7d0c2056f080b697773cae9dd6ae80ec273d04608386c63e69e",
+            "desktop-brush-canvas.jpg": "82ed8a1e61a3f83b025e4516481e4b03841b8b56a4c0567bb8a883fc5712fd90"
+          },
+          "scope": "Actual production renderer camera and target from the frozen browser capture. All 28 teeth tested, though only three were visible in these story frames. Hard-surface visibility only; does not measure brush or interface coverage.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 26.252031326293945
+        },
+        {
+          "lod": "desktop",
+          "name": "result",
+          "captureTag": "result",
+          "viewportCSS": [
+            1366,
+            900
+          ],
+          "canvasCSS": [
+            811,
+            550
+          ],
+          "projectedFloorCSS": [
+            50.15196581858883,
+            38.13933014254871
+          ],
+          "cameraWorldCm": [
+            5.324455861762033,
+            -0.18200961861719245,
+            -1.3167466911789312
+          ],
+          "targetWorldCm": [
+            3.240767471613554,
+            -0.7166798457286574,
+            -1.031606070788999
+          ],
+          "distanceCm": 2.1700080028413122,
+          "sceneProgress": 0.759933,
+          "visibleToothCountInCapture": 3,
+          "capturedClosureCm": 0,
+          "capturedMask": "none",
+          "images": {
+            "desktop-result.jpg": "164fe03ad8c861ff9a1f09bf2752197c01692f7fd00e842a3062e54d8c2ba947",
+            "desktop-result-canvas.jpg": "3b76321b278d285b75efb52effdb8d6b3b5c50e9cdc951115aa0c952c1b89590"
+          },
+          "scope": "Actual production renderer camera and target from the frozen browser capture. All 28 teeth tested, though only three were visible in these story frames. Hard-surface visibility only; does not measure brush or interface coverage.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 16.453893661499023
+        }
+      ],
+      "continuousMorphPathBound": {
+        "fullAxisToAffectedFaceHullMm": 0.6118313615661783,
+        "fullAxisToCoreFloorHullMm": 0.8058778745867368,
+        "method": "Per-row minimum distance from infinite straight shaft axis to the convex 2D projection of all six healthy/mature endpoints. Encloses each corresponding whole triangle throughout continuous linear morph. Includes both tangent walls and arbitrary intermediate blends; does not approximate by vertex distances alone."
+      },
+      "brushContact": {
+        "grip": {
+          "poses": 83,
+          "verticesPerPose": 652,
+          "trianglesPerPose": 1040,
+          "all28CohortPairTests": 2324,
+          "matureHardSurfaceIntersections": [],
+          "healthy36IntersectionPairs": 0,
+          "matureFloorTriangleHits": 0,
+          "filmContactPoses": {
+            "36": 0,
+            "37": 0
+          },
+          "touchedFilmTriangles": {
+            "36": 0,
+            "37": 0
+          },
+          "maxActualRadialExtentMm": 1.8500013466580523,
+          "allSampledToolPosesVsAllMorphStagesConservativeFloorSeparationMm": 5.369718618566023,
+          "boundMethod": "Whole transformed tool triangles project inside endpoint radial cylinder and axial range; radial/axial ranges hold over every point of each triangle. Compare with whole continuous-morph floor hull bound, using 0.001 mm numerical reserve. Finite tool pose sampling, not a universal clinical claim."
+        },
+        "wire": {
+          "poses": 83,
+          "verticesPerPose": 5075,
+          "trianglesPerPose": 8644,
+          "all28CohortPairTests": 2324,
+          "matureHardSurfaceIntersections": [],
+          "healthy36IntersectionPairs": 0,
+          "matureFloorTriangleHits": 0,
+          "filmContactPoses": {
+            "36": 0,
+            "37": 0
+          },
+          "touchedFilmTriangles": {
+            "36": 0,
+            "37": 0
+          },
+          "maxActualRadialExtentMm": 0.09000105883167119,
+          "allSampledToolPosesVsAllMorphStagesConservativeFloorSeparationMm": 0.714876997695808,
+          "boundMethod": "Whole transformed tool triangles project inside endpoint radial cylinder and axial range; radial/axial ranges hold over every point of each triangle. Compare with whole continuous-morph floor hull bound, using 0.001 mm numerical reserve. Finite tool pose sampling, not a universal clinical claim."
+        },
+        "nylon": {
+          "poses": 83,
+          "verticesPerPose": 23392,
+          "trianglesPerPose": 13760,
+          "all28CohortPairTests": 2324,
+          "matureHardSurfaceIntersections": [],
+          "healthy36IntersectionPairs": 0,
+          "matureFloorTriangleHits": 0,
+          "filmContactPoses": {
+            "36": 34,
+            "37": 36
+          },
+          "touchedFilmTriangles": {
+            "36": 191,
+            "37": 63
+          },
+          "maxActualRadialExtentMm": 0.6017466188653352,
+          "allSampledToolPosesVsAllMorphStagesConservativeFloorSeparationMm": 0.20313142828446606,
+          "boundMethod": "Whole transformed tool triangles project inside endpoint radial cylinder and axial range; radial/axial ranges hold over every point of each triangle. Compare with whole continuous-morph floor hull bound, using 0.001 mm numerical reserve. Finite tool pose sampling, not a universal clinical claim."
+        }
+      }
+    },
+    "mobile": {
+      "healthyNamedSource": {
+        "both36And46CanonicalSource": "hero-36-mobile.glb",
+        "sourceNote": "One real left source, distinct independently fitted reflected right instance. No claim of two distinct cadaver specimens. Only 36 is deformed.",
+        "sourceAttributeSha256": {
+          "POSITION": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+          "NORMAL": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+          "TANGENT": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+          "TEXCOORD_0": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+          "INDICES": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+        },
+        "healthy36WorldPositionF32Sha256": "17d4fd93cbe8437030ba48e5b297d4cfa84d23b1de6c076fd42247798d713722",
+        "untouched46WorldPositionF32Sha256": "1fdf0463d05f405c260b5cf009ad536bfb084506ad7b77c2c4912ccc4230f958",
+        "placed36And46UseDifferentMatrix": true,
+        "source36And46AreSameRegisteredShape": true
+      },
+      "baselineOriginalLesion": {
+        "over5umVertices": 38,
+        "over5umAffectedFaces": 100,
+        "floorFaces": 27,
+        "originalFrameExtentAt5umMm": [
+          1.3931620678899748,
+          1.0365318307267035
+        ],
+        "maxDepthMm": 0.6409349863255518,
+        "removedVolumeMm3": 0.3341810443189388,
+        "deformedPatchFaceNormalsChangedVsHealthyDegP50P95Max": [
+          46.08790309947494,
+          64.96128311932947,
+          66.81952625226145
+        ],
+        "deepestOriginalVertex": 17721
+      },
+      "newLesion": {
+        "over5umVertices": 82,
+        "over5umAffectedFaces": 203,
+        "floorFaces": 59,
+        "originalFrameExtentAt5umMm": [
+          2.4250268423388306,
+          1.4805051692053084
+        ],
+        "maxDepthMm": 0.768658626173794,
+        "removedVolumeMm3": 0.7831024869867633,
+        "deformedPatchFaceNormalsChangedVsHealthyDegP50P95Max": [
+          42.28708796879906,
+          62.29080942877897,
+          71.64482980808411
+        ],
+        "deepestOriginalVertex": 17721,
+        "deepestFloorMatureWorldCm": [
+          3.1954528591023474,
+          -0.6847947381224435,
+          -0.9616149784705158
+        ],
+        "deepestHealthyWorldCm": [
+          3.248801630655948,
+          -0.6708072365554456,
+          -1.0151557966333793
+        ]
+      },
+      "topology": {
+        "weldedVertexCount": 27594,
+        "boundaryEdges": 0,
+        "nonmanifoldEdges": 0
+      },
+      "stages": {
+        "0.0": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 1.0,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "0.25": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.8895864143646555,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "0.5": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.7876575000294369,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "0.75": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.6940010166458018,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        },
+        "1.0": {
+          "all28PairsTested": 378,
+          "interToothHits": [],
+          "nonadjacentSelfIntersectionPairs": 0,
+          "firstSelfPairs": [],
+          "flippedFaces": 0,
+          "degenerateFacesBelow1eMinus12Mm2": 0,
+          "minAreaRatio": 0.6083804000521413,
+          "seamCrackMm": 0.0,
+          "outsideSparseMutationCount": 0
+        }
+      },
+      "visibility": [
+        {
+          "originalMacroDirectionWorldYawDeg": 0.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            4.980361285233305,
+            -0.18766985282065124,
+            -1.3942593805436405
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -4.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            5.001548071993584,
+            -0.18766985282065124,
+            -1.2715013713724086
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -6.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            5.008915740729671,
+            -0.18766985282065124,
+            -1.209642647823753
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 6.0,
+          "distanceMm": 18.5,
+          "cameraWorldCm": [
+            4.932665550667143,
+            -0.18766985282065124,
+            -1.574880010132441
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 0.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.263670149263595,
+            -0.10868991914760721,
+            -1.4534054509022665
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -4.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.288292631174191,
+            -0.10868991914760721,
+            -1.310740737541105
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -6.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.296855057002617,
+            -0.10868991914760721,
+            -1.238850869633208
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 6.0,
+          "distanceMm": 21.5,
+          "cameraWorldCm": [
+            5.208239971254273,
+            -0.10868991914760721,
+            -1.663315912316278
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 0.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.1608148853595175,
+            0.1414132041503656,
+            -1.640701340371249
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -4.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.196317068579445,
+            0.1414132041503656,
+            -1.4349987304086445
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": -6.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.208662891866943,
+            0.1414132041503656,
+            -1.3313435720298161
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        },
+        {
+          "originalMacroDirectionWorldYawDeg": 6.0,
+          "distanceMm": 31.0,
+          "cameraWorldCm": [
+            6.080892303113518,
+            0.1414132041503656,
+            -1.9433629358984283
+          ],
+          "floorVisible": 59,
+          "floorProbes": 59,
+          "floorAreaFractionByVisibleCentroids": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccluder": null,
+          "blockedFloorCentroidsBy": {}
+        }
+      ],
+      "actualAuthoredCameraKeyframes": [
+        {
+          "name": "lesion",
+          "lod": "mobile",
+          "targetWorldCm": [
+            3.233289957046509,
+            -0.6747127771377563,
+            -1.0295252799987793
+          ],
+          "direction": [
+            0.9369070394587549,
+            0.2632664455768135,
+            -0.22999125645550503
+          ],
+          "distanceCm": 1.69,
+          "cameraWorldCm": [
+            4.816662853731804,
+            -0.22979248411294156,
+            -1.4182105034085828
+          ],
+          "scope": "Per-profile createStoryCameraConfig: landmark center + authored direction \u00d7 minimum distance. Viewport fit and scroll interpolation may alter the rendered pose.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 11.3214693069458
+        },
+        {
+          "name": "brush",
+          "lod": "mobile",
+          "targetWorldCm": [
+            3.4828649309823243,
+            -0.7135151214261231,
+            -0.988514991199414
+          ],
+          "direction": [
+            0.912247176743341,
+            0.3949678686013143,
+            -0.10865298567613513
+          ],
+          "distanceCm": 3.35,
+          "cameraWorldCm": [
+            6.5388929730725165,
+            0.6096272383882797,
+            -1.3525024932144667
+          ],
+          "scope": "Per-profile createStoryCameraConfig: landmark center + authored direction \u00d7 minimum distance. Viewport fit and scroll interpolation may alter the rendered pose.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 26.30518913269043
+        },
+        {
+          "name": "result",
+          "lod": "mobile",
+          "targetWorldCm": [
+            3.235308301600939,
+            -0.7043504130132399,
+            -1.0337129792444102
+          ],
+          "direction": [
+            0.9602218295306245,
+            0.24638960810533064,
+            -0.1314009098543911
+          ],
+          "distanceCm": 1.89,
+          "cameraWorldCm": [
+            5.05012755941382,
+            -0.23867405369416494,
+            -1.2820606988692094
+          ],
+          "scope": "Per-profile createStoryCameraConfig: landmark center + authored direction \u00d7 minimum distance. Viewport fit and scroll interpolation may alter the rendered pose.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 13.804952621459961
+        }
+      ],
+      "capturedProductionCameras": [
+        {
+          "lod": "mobile",
+          "name": "lesion",
+          "captureTag": "cavity",
+          "viewportCSS": [
+            390,
+            844
+          ],
+          "canvasCSS": [
+            374,
+            431
+          ],
+          "projectedFloorCSS": [
+            52.83493615543925,
+            36.988858294759815
+          ],
+          "cameraWorldCm": [
+            4.873553779310979,
+            -0.24260075855390006,
+            -1.411585435471543
+          ],
+          "targetWorldCm": [
+            3.252423601563501,
+            -0.7063983486042524,
+            -1.0209502665371972
+          ],
+          "distanceCm": 1.73082844122358,
+          "sceneProgress": 0.475045,
+          "visibleToothCountInCapture": 3,
+          "capturedClosureCm": 0,
+          "capturedMask": "none",
+          "images": {
+            "mobile-cavity.jpg": "505d3894ce9a1535f23b50a0f98976665311281c32b70800b3eccbd65e85fd29",
+            "mobile-cavity-canvas.jpg": "8ecef8840f234be25e61bbd281ec9307e5250741a86086731bc5875ffcaf26b8"
+          },
+          "scope": "Actual production renderer camera and target from the frozen browser capture. All 28 teeth tested, though only three were visible in these story frames. Hard-surface visibility only; does not measure brush or interface coverage.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 11.8389253616333
+        },
+        {
+          "lod": "mobile",
+          "name": "brush",
+          "captureTag": "brush",
+          "viewportCSS": [
+            390,
+            844
+          ],
+          "canvasCSS": [
+            374,
+            359
+          ],
+          "projectedFloorCSS": [
+            19.20152746893493,
+            15.388132496300747
+          ],
+          "cameraWorldCm": [
+            6.56881442779688,
+            0.5473031371692042,
+            -1.3278391564576553
+          ],
+          "targetWorldCm": [
+            3.5127863857066877,
+            -0.7758392226451986,
+            -0.9638516544426032
+          ],
+          "distanceCm": 3.35,
+          "sceneProgress": 0.620002,
+          "visibleToothCountInCapture": 3,
+          "capturedClosureCm": 0,
+          "capturedMask": "none",
+          "images": {
+            "mobile-brush.jpg": "d3771c4e36c2912c062f8ef625daab1a4dd74c0c33226323180f903188f45789",
+            "mobile-brush-canvas.jpg": "1790787a5fd5b979505000a07033dc33d281cb285c23828dc47c1fd6c0ad1abd"
+          },
+          "scope": "Actual production renderer camera and target from the frozen browser capture. All 28 teeth tested, though only three were visible in these story frames. Hard-surface visibility only; does not measure brush or interface coverage.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 26.703083038330078
+        },
+        {
+          "lod": "mobile",
+          "name": "result",
+          "captureTag": "result",
+          "viewportCSS": [
+            390,
+            844
+          ],
+          "canvasCSS": [
+            374,
+            424
+          ],
+          "projectedFloorCSS": [
+            44.385602821696985,
+            33.71683074752658
+          ],
+          "cameraWorldCm": [
+            5.057083373525039,
+            -0.2627131595628531,
+            -1.276306258672419
+          ],
+          "targetWorldCm": [
+            3.242264115712158,
+            -0.728389518881928,
+            -1.0279585390476202
+          ],
+          "distanceCm": 1.8900000000000003,
+          "sceneProgress": 0.760146,
+          "visibleToothCountInCapture": 3,
+          "capturedClosureCm": 0,
+          "capturedMask": "none",
+          "images": {
+            "mobile-result.jpg": "22265d85b6c47df8b9acbc2ee406d4f2c6cca9abba04432630843c78da43ce96",
+            "mobile-result-canvas.jpg": "48866d3152cdd667bab86e61944c7e2cb0963db1ef7c87452fb4a9c87097630c"
+          },
+          "scope": "Actual production renderer camera and target from the frozen browser capture. All 28 teeth tested, though only three were visible in these story frames. Hard-surface visibility only; does not measure brush or interface coverage.",
+          "testedFloorCentroids": 59,
+          "visibleFloorCentroids": 59,
+          "visibleAreaFraction": 1.0,
+          "deepestVertexVisible": true,
+          "deepestOccludingTooth": null,
+          "buccalCenterlineEntryVisible": true,
+          "entryOccluderFdi": null,
+          "cameraToNearestHardSurfaceMm": 13.83158016204834
+        }
+      ],
+      "continuousMorphPathBound": {
+        "fullAxisToAffectedFaceHullMm": 0.6118313615661783,
+        "fullAxisToCoreFloorHullMm": 0.8058778745867368,
+        "method": "Per-row minimum distance from infinite straight shaft axis to the convex 2D projection of all six healthy/mature endpoints. Encloses each corresponding whole triangle throughout continuous linear morph. Includes both tangent walls and arbitrary intermediate blends; does not approximate by vertex distances alone."
+      },
+      "brushContact": {
+        "grip": {
+          "poses": 83,
+          "verticesPerPose": 412,
+          "trianglesPerPose": 648,
+          "all28CohortPairTests": 2324,
+          "matureHardSurfaceIntersections": [],
+          "healthy36IntersectionPairs": 0,
+          "matureFloorTriangleHits": 0,
+          "filmContactPoses": {
+            "36": 0,
+            "37": 0
+          },
+          "touchedFilmTriangles": {
+            "36": 0,
+            "37": 0
+          },
+          "maxActualRadialExtentMm": 1.8500013466580523,
+          "allSampledToolPosesVsAllMorphStagesConservativeFloorSeparationMm": 5.369718542222338,
+          "boundMethod": "Whole transformed tool triangles project inside endpoint radial cylinder and axial range; radial/axial ranges hold over every point of each triangle. Compare with whole continuous-morph floor hull bound, using 0.001 mm numerical reserve. Finite tool pose sampling, not a universal clinical claim."
+        },
+        "wire": {
+          "poses": 83,
+          "verticesPerPose": 2357,
+          "trianglesPerPose": 3732,
+          "all28CohortPairTests": 2324,
+          "matureHardSurfaceIntersections": [],
+          "healthy36IntersectionPairs": 0,
+          "matureFloorTriangleHits": 0,
+          "filmContactPoses": {
+            "36": 0,
+            "37": 0
+          },
+          "touchedFilmTriangles": {
+            "36": 0,
+            "37": 0
+          },
+          "maxActualRadialExtentMm": 0.09000127177417576,
+          "allSampledToolPosesVsAllMorphStagesConservativeFloorSeparationMm": 0.714876997695808,
+          "boundMethod": "Whole transformed tool triangles project inside endpoint radial cylinder and axial range; radial/axial ranges hold over every point of each triangle. Compare with whole continuous-morph floor hull bound, using 0.001 mm numerical reserve. Finite tool pose sampling, not a universal clinical claim."
+        },
+        "nylon": {
+          "poses": 83,
+          "verticesPerPose": 11648,
+          "trianglesPerPose": 6656,
+          "all28CohortPairTests": 2324,
+          "matureHardSurfaceIntersections": [],
+          "healthy36IntersectionPairs": 0,
+          "matureFloorTriangleHits": 0,
+          "filmContactPoses": {
+            "36": 32,
+            "37": 36
+          },
+          "touchedFilmTriangles": {
+            "36": 166,
+            "37": 32
+          },
+          "maxActualRadialExtentMm": 0.6015212622682317,
+          "allSampledToolPosesVsAllMorphStagesConservativeFloorSeparationMm": 0.20335674129184034,
+          "boundMethod": "Whole transformed tool triangles project inside endpoint radial cylinder and axial range; radial/axial ranges hold over every point of each triangle. Compare with whole continuous-morph floor hull bound, using 0.001 mm numerical reserve. Finite tool pose sampling, not a universal clinical claim."
+        }
+      }
+    }
+  },
+  "summary": {
+    "sourceAssetsAllByteIdenticalToF3257d1": true,
+    "physicalCenterlineUnchanged": true,
+    "all28HardToothPairsAcrossStagesAndLods": 3780,
+    "toothSelfOrPairHits": 0,
+    "toolVsMatureHardHits": 0,
+    "anyFloorToolHit": false,
+    "minimumConservativeGapFloorToToolMmOverSampledPosesAndAllMorphWeights": 0.20313142828446606
+  },
+  "cameraInputProvenance": {
+    "frozenNumericInputSha256": "fad050508f04b76d7b8644f0745631cb285991fd70e8af846f05153b5937c2bd",
+    "sourceBrowserReportSha256": "cedec94c8a87a052f8b11c726343920476b882f51c6090317362f8ecaafa309d",
+    "servedBundleSha256": {
+      "/assets/RectAreaLightUniformsLib-CzzGm1_Y.js": "4d15f376e64e80d78309c4bd78d4058641c38c3f5a727ed849f784ad745fa5fd",
+      "/assets/main-DInNu9Uz.js": "e2433579d020a0e06a645a7c4caab39f66a06203416fe78491cdeaadca3dc0cc",
+      "/assets/quality-CwVSwoh0.js": "231f6a4c4be5b47b17775497779f5db6f2a29fafd783fa498d43b220903b8dc3"
+    },
+    "captureCounts": {
+      "allBrowserStates": 18,
+      "allImagePairs": 18,
+      "selectedBrowserStates": 6,
+      "selectedImageFiles": 12
+    }
+  },
+  "checks": {
+    "actualAndAuthoredCamerasSeeCavityAndEntry": true,
+    "referenceMeshesUnchanged": true,
+    "registrationAndPathUnchanged": true,
+    "noToothCollisions": true,
+    "orientationAndSeamsIntact": true,
+    "actualToolNeverCrossesHardSurface": true,
+    "coreStaysClearOfActualTool": true,
+    "bristlesReachBothFilms": true
+  },
+  "passed": true
+}

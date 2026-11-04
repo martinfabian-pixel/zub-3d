@@ -1,0 +1,85 @@
+{
+  "method": "Rigid world-Y sweep. BVH intersections with end caps and swept edge rectangles of every upper face, plus inverse-translation ray tests on lower vertices. Closed full tooth surfaces, with no render mask, are used.",
+  "scope": "Final smile pose only. The lower teaching site and brush audit use the separate fixed open setup.",
+  "upperOffsetCm": [
+    0,
+    0.32,
+    0
+  ],
+  "lowerOffsetCm": [
+    0,
+    -0.48,
+    0
+  ],
+  "sweepMm": 5.8,
+  "range": [
+    0.89,
+    0.96
+  ],
+  "morph": {
+    "tooth": 36,
+    "influence": 1,
+    "sparseVertices": 202,
+    "geometrySha256": {
+      "POSITION": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+      "NORMAL": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+      "TANGENT": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+      "TEXCOORD_0": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+      "INDICES": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+    }
+  },
+  "lods": {
+    "desktop": {
+      "configuredSweep": {
+        "testedOpposingPairs": 196,
+        "overlappingSweptBounds": 25,
+        "intersections": []
+      },
+      "positiveControl6.4Mm": {
+        "testedOpposingPairs": 196,
+        "overlappingSweptBounds": 28,
+        "intersections": [
+          {
+            "teeth": [
+              21,
+              31
+            ],
+            "triangleBoundaryPairs": 254,
+            "coveredLowerVertices": 13
+          }
+        ]
+      }
+    },
+    "mobile": {
+      "configuredSweep": {
+        "testedOpposingPairs": 196,
+        "overlappingSweptBounds": 25,
+        "intersections": []
+      },
+      "positiveControl6.4Mm": {
+        "testedOpposingPairs": 196,
+        "overlappingSweptBounds": 28,
+        "intersections": [
+          {
+            "teeth": [
+              21,
+              31
+            ],
+            "triangleBoundaryPairs": 174,
+            "coveredLowerVertices": 5
+          }
+        ]
+      }
+    }
+  },
+  "inputSha256": {
+    "story-assets/caries-36.json": "a321360aabd8556f106fe4cb9bb1e07a5343d209dc691117abe074d967ef5b5d",
+    "dentition-assets/manifest.json": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+    "dentition-assets/dentition.glb": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+    "prototype-assets/molar.glb": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+    "dentition-assets/hero-36.glb": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+    "dentition-assets/dentition-mobile.glb": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+    "prototype-assets/molar-mobile.glb": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+    "dentition-assets/hero-36-mobile.glb": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2"
+  }
+}

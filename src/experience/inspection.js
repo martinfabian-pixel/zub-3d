@@ -59,6 +59,7 @@ export function createInspectionReturn(camera, durationMs) {
       if (!measure(position, rotation, startTarget, start)
         || !captureDestination(storyFocus, start.yaw, start.roll)) return;
       began = now; active = true;
+      target.copy(startTarget);
       camera.position.copy(position); camera.quaternion.copy(rotation); camera.updateMatrixWorld(true);
     },
     destination(focus) {
@@ -68,6 +69,7 @@ export function createInspectionReturn(camera, durationMs) {
       if (!active) return false;
       const t = Math.min(1, Math.max(0, (now - began) / durationMs));
       if (t === 1) {
+        target.copy(endTarget);
         camera.position.copy(endPosition); camera.quaternion.copy(endQuaternion);
         camera.updateMatrixWorld(true); active = false; return false;
       }
@@ -83,5 +85,6 @@ export function createInspectionReturn(camera, durationMs) {
     },
     cancel() { active = false; },
     get active() { return active; },
+    get target() { return target; },
   };
 }

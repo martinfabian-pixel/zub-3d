@@ -1,6 +1,6 @@
 # Čo sa deje medzi zubami
 
-Hlavná stránka a konzistentný alias [`/experience/`](https://martinfabian-pixel.github.io/zub-3d/experience/) používajú jednu scénu, kameru a canvas. Základom je funkčná verzia `333c359`, uložená aj pod tagom `backup/before-interdental-story-2026-11-04`. Pôvodné zdravé GLB, autorské polohy všetkých 28 zubov, `/prototype/` a `/legacy/` zostávajú zachované.
+Hlavná stránka a konzistentný alias [`/experience/`](https://martinfabian-pixel.github.io/zub-3d/experience/) používajú jednu scénu, kameru a canvas. Príbeh vznikol na funkčnej verzii `333c359`; jeho prvú publikáciu `f3257d1` uchováva tag `backup/before-controls-smile-2026-11-04`. Pôvodné zdravé GLB, vzájomné polohy zubov v oblúkoch, `/prototype/` a `/legacy/` zostávajú zachované. Nové ovládanie, bližší kaz a záverečný pohľad opisuje [CONTROLS_AND_SMILE.md](CONTROLS_AND_SMILE.md).
 
 | Kapitola | Poloha príbehu | Akcia v scéne |
 |---|---:|---|
@@ -23,16 +23,16 @@ pnpm dev
 
 Otvorte `http://127.0.0.1:5173/` alebo `http://127.0.0.1:5173/experience/`. Produkčná zostava: `pnpm build`, náhľad: `pnpm preview`. Blender ani Python nie sú potrebné na spustenie či build.
 
-Zvislý posun stránky riadi celý príbeh bez zachytávania scrollu. Kapitoly možno preskočiť priamo; na mobile sú dostupné v jednom kompaktnom výbere s predchádzajúcim a ďalším krokom. **Preskúmať** oddelí ručné otáčanie od vedenej kamery. **Prezentácia**, Escape alebo nové posunutie stránky vrátia správny záber. Krátky návrat interpoluje okolo bodu záujmu, nie priamou úsečkou cez jeho stred. Pri obmedzenom pohybe je návrat okamžitý a príbeh používa sedem pokojných reprezentatívnych stavov.
+Zvislý posun stránky riadi celý príbeh bez zachytávania scrollu. Kapitoly možno preskočiť priamo; na mobile sú dostupné v jednom kompaktnom výbere. Priame ťahanie funguje bez prepínača. Na dotyku je v základnom režime vodorovné, aby zvislý pohyb zostal stránke. **Voľné 3D** drží aktuálny dej a umožní obe osi aj pinch či koliesko na zoom; iba táto 3D plocha používa `touch-action:none`. **Pokračovať v príbehu** alebo Escape obnoví držanú polohu stránky a plynulo odovzdá kameru príbehu. Malý scroll, resize ani načítanie ručný pohľad nerušia. Pri zámernom prechode do inej kapitoly sa kamera preberie plynulo. Pri obmedzenom pohybe je návrat okamžitý a príbeh používa sedem pokojných stavov.
 
-Šípky na zameranej 3D ploche otáčajú, +/− približujú, Home resetuje pohľad. Koliesko aj zvislé gesto naďalej posúvajú stránku. Tlačidlá zoomu sú dostupné aj na dotykovej obrazovke. Záverečné **Preskúmať chrup** a **Späť na ukážku čistenia** zostávajú dostupné bez opakovania celej cesty.
+Šípky na zameranej 3D ploche otáčajú, +/− približujú, Home resetuje pohľad. Tlačidlá zoomu nemenia režim. Záver ponúka **Úsmev**, **Anatómia**, to isté **Voľné 3D** aj **Späť na ukážku čistenia**.
 
 ## Architektúra a zmenené súbory
 
 - `src/experience/story-config.js`: sedem kapitol, slovenské texty a hranice jednotlivých dejov; `config.js`: spoločné materiálové a kamerové parametre.
 - `dental-story.js`: čisté `sampleDentalStory(progress, out)` a znížený pohyb. Oddelené `plaqueDeposition`, `plaqueCoverage`, `lesionProgress`, `brushPose` a `cleaningProgress`; žiadny spoločný parameter „špiny“.
 - `arch.js`: pôvodné pevné anatomické transformácie a odhaľovanie zostavy. Spravuje vlastníctvo vypožičaných GLTF zdrojov aj pri čiastočnej chybe načítania.
-- `story-camera.js`, `timeline.js`, `camera.js`: zmerané lokálne miesto záujmu, všeobecná postupnosť kamerových bodov a plynulý výpočet polohy. `inspection.js`: oddelený návrat z ručného ovládania.
+- `story-camera.js`, `timeline.js`, `camera.js`: zmerané lokálne miesto záujmu, všeobecná postupnosť kamerových bodov a vzorkovanie základnej pózy. `view-controller.js` ako jediný zapisuje výslednú polohu a orientáciu kamery; pridáva orbit/zoom a návrat z `inspection.js`. `gestures.js` rieši vlastníctvo gest, nie kameru. `smile-framing.js` upravuje iba obrazový okraj pokojného finálneho záberu.
 - `caries.js`: súkromná kópia geometrie a shaderové rozšírenie iba zuba 36. Zdravý pôvodný súbor a zrkadlená 46 sa nemenia.
 - `plaque.js`: priliehajúce povrchové výrezy a deterministická priestorová maska zásahu. `cleaning-path.js`: zmeraná dráha a dosah; `interdental-brush.js`: vlastný neznačkový model, instancované vlákna a obmedzené ohnutie.
 - `main.js`, `assets.js`, `scene.js`: jedna renderovacia slučka, postupné načítanie, synchronizácia všetkých vrstiev a uvoľnenie zdrojov vrátane troch svetelných LUT v pripnutej verzii Three.js.
@@ -46,7 +46,7 @@ Pri rovnakom progress vznikne rovnaký stav, bez kreslenia do trvalej textúry a
 
 [Geometrický rozbor](PROXIMAL_SITE.md) uvádza súradnice, mierku, údaje o kontrolách aj obmedzenia merania. Základné GLB sú v metroch, spoločná scéna v centimetroch a rozmery pomôcky v milimetroch. Všetky nové kotvy vychádzajú z jedného overeného `site.json`, nie z nesúvisiacich súradníc v rôznych moduloch.
 
-Kaz má riedky relatívny morph so zmenou pozícií a normál, bez výpočtu CSG počas renderovania. Posúva 39 pôvodných vrcholov; 113 záznamov obsahuje aj susedné normály a materiálovú masku. Ilustračná dutina má približne 1,39 × 1,04 mm a maximálnu hĺbku 0,641 mm. Je viditeľná aj na neutrálnom materiáli. Po kapitole kazu zostáva jej geometrický aj materiálový stav konštantný počas čistenia, výsledku a záverečného chrupu. Skorá nekavitovaná zmena sa neprezentuje ako nevyhnutne postupujúca choroba.
+Kaz má riedky relatívny morph so zmenou pozícií a normál, bez výpočtu CSG počas renderovania. Po zväčšení posúva 95 pôvodných vrcholov; 202 záznamov obsahuje aj susedné normály a materiálovú masku. Ilustračná dutina má približne 2,43 × 1,48 mm a maximálnu hĺbku 0,769 mm. Je 1,74-krát širšia než vo verzii `f3257d1`, pri rovnakom strede a chránenom priechode kefky. Je viditeľná aj na neutrálnom materiáli. Po kapitole kazu zostáva jej geometrický aj materiálový stav konštantný počas čistenia, výsledku a záverečného chrupu. Skorá nekavitovaná zmena sa neprezentuje ako nevyhnutne postupujúca choroba. [Nové priestorové kontroly](proximal-reframe-review/GEOMETRY-AUDIT.md).
 
 Povlak používa pôvodné trojuholníky zubov s posunom 20–36 µm nad povrch. Pevná nepravidelná hustota zvýrazňuje pracovný pás; mimo neho zostáva slabší, ale nenulový film. Táto počiatočná hustota sa pri čistení nemení. Odstránenie má samostatnú masku podľa vzdialenosti od dráhy a najhlbšieho dovtedy dosiahnutého bodu. Mimo polomeru štetín sa neodstraňuje nič. Dutina má vlastnú masku, aby cez ňu neležala pôvodná zdravá plocha povlaku. Nejde o globálne stlmenie vrstvy ani zmenu tkaniva kefkou.
 
@@ -70,6 +70,7 @@ node scripts/validate-proximal-site.mjs
 node scripts/test-dental-story.mjs
 node scripts/test-cleaning-path.mjs
 node scripts/test-inspection-return.mjs
+node scripts/test-view-controller.mjs
 pnpm build
 ```
 
@@ -81,7 +82,7 @@ node scripts/test-dental-story-browser.mjs
 
 Premenné `DENTAL_STORY_TEST_URL`, `DENTAL_STORY_REVIEW_DIR`, `PLAYWRIGHT_MODULE_PATH` a `DENTAL_STORY_BENCHMARK_ONLY=1` umožňujú zvoliť lokálnu adresu, výstup a samostatné meranie časovania. Skript používa vlastný nový profil a povoľuje iba loopback preview. Nevyužíva osobný profil používateľa. [Výsledný report a snímky](story-review/README.md) odlišujú skutočné renderovanie na desktopovom GPU od emulácie rozmerov a dotyku mobilu.
 
-Finálna zostava prešla 389 prehliadačovými kontrolami. Izolované meranie na NVIDIA RTX 3060 Ti v Chrome, po zahrievaní a pri 120 intervaloch na každý priechod, zaznamenalo medián 16,7 ms a 95. percentil 16,9–17,0 ms pre celý príbeh aj čistenie. To platí pre tento desktop a mobilný viewport renderovaný na tom istom GPU; nie je to nameraný výkon iPhonu. Zdrojové validačné a numerické kontroly uvedené vyššie aj produkčný build prešli.
+Prvá publikácia príbehu `f3257d1` prešla 389 prehliadačovými kontrolami; jej [report](story-review/README.md) zostáva historickým dôkazom. Aktuálnu verziu s novým ovládaním a úsmevom dokumentuje [INTERACTION_QA.md](INTERACTION_QA.md), vrátane novej zostavy, skutočných gest, snímok a meraní. Mobilné viewporty sa renderujú na desktopovom GPU, nie na fyzickom iPhone.
 
 Voliteľné priestorové overenie všetkých reálnych vlákien a pevných častí používa `node scripts/audit-brush-contact.mjs` s Blenderom; podrobnosti a výsledky sú v dokumente kefky. Nezávislý offline audit morpha skúša viac stavov dutiny a obe úrovne detailu. Nie je to náhrada vizuálnej kontroly webu.
 
