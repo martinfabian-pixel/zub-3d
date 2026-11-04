@@ -1,0 +1,894 @@
+{
+  "method": "Built approved prototype (dist), one current headless Chrome context per viewport, dedicated temporary browser, localhost only. Each A/B uses identical camera, width, lighting, shader, geometry and frozen scene; only the texture image changes. One reference repeat and independent replacement using the approved map must give exact matching pixels. Render synchronously then copy WebGL canvas to 2D. Tooth mask: max RGB code difference versus same frame without tooth >8. Per-pixel max absolute RGB channel difference in 8-bit sRGB, plus per-channel RMS. Native 4K is the unmodified source file, using identical sampler configuration; one whole mip chain generated per texture. No exported assets touched.",
+  "views": [
+    {
+      "profile": "desktop",
+      "view": "default",
+      "buffer": [
+        1280,
+        900
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        3.0076694242197655,
+        4.371043970876463,
+        6.015338848439531
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 217058,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 217058,
+          "rgb_channel_rms": 0.10075927935423877,
+          "rgb_channel_mae": 0.010146289624585749,
+          "fraction_changed": 0.02686378755908559,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.000009214127099643754,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 217058,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 217058,
+          "rgb_channel_rms": 0.18939939938358355,
+          "rgb_channel_mae": 0.0357492774588666,
+          "fraction_changed": 0.09017866192446258,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00011978365229570187,
+          "fraction_more_than_2": 0
+        }
+      }
+    },
+    {
+      "profile": "desktop",
+      "view": "crown",
+      "buffer": [
+        1280,
+        900
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        0.49473535297484755,
+        6.224191912185591,
+        1.1131545441934072
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 321339,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 321339,
+          "rgb_channel_rms": 0.15972800492869607,
+          "rgb_channel_mae": 0.02548606507976519,
+          "fraction_changed": 0.06644696099757577,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00003423176147310247,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 321339,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 321339,
+          "rgb_channel_rms": 0.2173353266322172,
+          "rgb_channel_mae": 0.0471578820705444,
+          "fraction_changed": 0.11892425133581669,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00008402341452484752,
+          "fraction_more_than_2": 0
+        }
+      }
+    },
+    {
+      "profile": "desktop",
+      "view": "close",
+      "buffer": [
+        1280,
+        900
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        0.3831230573437219,
+        4.829038216796521,
+        0.8620268790233744
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 578004,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 578004,
+          "rgb_channel_rms": 0.1781385539570844,
+          "rgb_channel_mae": 0.03166644752170112,
+          "fraction_changed": 0.08082643026691856,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00008304440799722368,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 578004,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 578004,
+          "rgb_channel_rms": 0.22204019968362929,
+          "rgb_channel_mae": 0.04917959045266123,
+          "fraction_changed": 0.12287804236648882,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00013494716299544685,
+          "fraction_more_than_2": 0
+        }
+      }
+    },
+    {
+      "profile": "desktop",
+      "view": "max",
+      "buffer": [
+        1280,
+        900
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        0.1744398902263756,
+        2.220498627829714,
+        0.39248975300934524
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 1152000,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 1152000,
+          "rgb_channel_rms": 0.19690971916083777,
+          "rgb_channel_mae": 0.03864785879629629,
+          "fraction_changed": 0.09499479166666666,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00014583333333328952,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 1152000,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 1152000,
+          "rgb_channel_rms": 0.2520781679911566,
+          "rgb_channel_mae": 0.06291493055555555,
+          "fraction_changed": 0.14850868055555555,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.0006024305555555332,
+          "fraction_more_than_2": 0.000007812500000037303
+        }
+      }
+    },
+    {
+      "profile": "retina",
+      "view": "default",
+      "buffer": [
+        2240,
+        1575
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        3.0076694242197655,
+        4.371043970876463,
+        6.015338848439531
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 663670,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 663670,
+          "rgb_channel_rms": 0.12234903736775762,
+          "rgb_channel_mae": 0.014924083756485402,
+          "fraction_changed": 0.038586948332755736,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.000048216734220285495,
+          "fraction_more_than_2": 0.0000015067729444151468
+        },
+        "2k": {
+          "n": 663670,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 663670,
+          "rgb_channel_rms": 0.1877001997484561,
+          "rgb_channel_mae": 0.03509776445120818,
+          "fraction_changed": 0.08827278617385147,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.00013108924616145323,
+          "fraction_more_than_2": 0.0000015067729444151468
+        }
+      }
+    },
+    {
+      "profile": "retina",
+      "view": "crown",
+      "buffer": [
+        2240,
+        1575
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        0.49473535297484755,
+        6.224191912185591,
+        1.1131545441934072
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 983167,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 983167,
+          "rgb_channel_rms": 0.17683335423121038,
+          "rgb_channel_mae": 0.031220535270203333,
+          "fraction_changed": 0.079661949597576,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.000060010150869538315,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 983167,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 983167,
+          "rgb_channel_rms": 0.2198575195995169,
+          "rgb_channel_mae": 0.048196966198689205,
+          "fraction_changed": 0.12073940642840941,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.0001484996953722284,
+          "fraction_more_than_2": 0
+        }
+      }
+    },
+    {
+      "profile": "retina",
+      "view": "close",
+      "buffer": [
+        2240,
+        1575
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        0.3831230573437219,
+        4.829038216796521,
+        0.8620268790233744
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 1769160,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 1769160,
+          "rgb_channel_rms": 0.18092537278955942,
+          "rgb_channel_mae": 0.032657871532252594,
+          "fraction_changed": 0.08264826245223722,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.00009156888014649756,
+          "fraction_more_than_2": 5.652400009159564e-7
+        },
+        "2k": {
+          "n": 1769160,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 1769160,
+          "rgb_channel_rms": 0.22339857612165842,
+          "rgb_channel_mae": 0.04973019210623497,
+          "fraction_changed": 0.1236473806778358,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.0002017906803228886,
+          "fraction_more_than_2": 0.0000011304800018319128
+        }
+      }
+    },
+    {
+      "profile": "retina",
+      "view": "max",
+      "buffer": [
+        2240,
+        1575
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        2048,
+        2048
+      ],
+      "camera": [
+        0.1744398902263756,
+        2.220498627829714,
+        0.39248975300934524
+      ],
+      "model": "molar.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 3528000,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 3528000,
+          "rgb_channel_rms": 0.19699605376834922,
+          "rgb_channel_mae": 0.03865967498110355,
+          "fraction_changed": 0.09484240362811791,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.0001717687074830332,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 3528000,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 3528000,
+          "rgb_channel_rms": 0.25247770682066367,
+          "rgb_channel_mae": 0.06307095616024187,
+          "fraction_changed": 0.1487749433106576,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.0006544784580498897,
+          "fraction_more_than_2": 0.000007653061224521807
+        }
+      }
+    },
+    {
+      "profile": "mobile_emulation",
+      "view": "default",
+      "buffer": [
+        585,
+        1266
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        1024,
+        1024
+      ],
+      "camera": [
+        3.4766280858503573,
+        5.046344443624516,
+        6.953256171700715
+      ],
+      "model": "molar-mobile.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 317841,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 317841,
+          "rgb_channel_rms": 0.17809005496502212,
+          "rgb_channel_mae": 0.03167831295102478,
+          "fraction_changed": 0.08161627983803223,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00004404718082307024,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 317841,
+          "rgb_channel_rms": 0.1859151743062933,
+          "rgb_channel_mae": 0.0344910400693009,
+          "fraction_changed": 0.08763501247479086,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.0000818019072429399,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 317841,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        }
+      }
+    },
+    {
+      "profile": "mobile_emulation",
+      "view": "crown",
+      "buffer": [
+        585,
+        1266
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        1024,
+        1024
+      ],
+      "camera": [
+        0.7660231664646879,
+        9.615289580808595,
+        1.7235521245455483
+      ],
+      "model": "molar-mobile.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 233909,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 233909,
+          "rgb_channel_rms": 0.2034121179219941,
+          "rgb_channel_mae": 0.04133658816035296,
+          "fraction_changed": 0.10670388911927288,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00004702683522228579,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 233909,
+          "rgb_channel_rms": 0.2120826025553669,
+          "rgb_channel_mae": 0.044904927414792364,
+          "fraction_changed": 0.11402724991342787,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.0000855033367677116,
+          "fraction_more_than_2": 0.000004275166838429989
+        },
+        "1k": {
+          "n": 233909,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        }
+      }
+    },
+    {
+      "profile": "mobile_emulation",
+      "view": "close",
+      "buffer": [
+        585,
+        1266
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        1024,
+        1024
+      ],
+      "camera": [
+        0.5932083401102544,
+        7.4551042513781764,
+        1.3347187652480725
+      ],
+      "model": "molar-mobile.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 391132,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 391132,
+          "rgb_channel_rms": 0.2077154471642621,
+          "rgb_channel_mae": 0.04308093772264436,
+          "fraction_changed": 0.10969953877463363,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00007670044895324857,
+          "fraction_more_than_2": 0
+        },
+        "2k": {
+          "n": 391132,
+          "rgb_channel_rms": 0.2192834145648994,
+          "rgb_channel_mae": 0.04797783527470692,
+          "fraction_changed": 0.1203353343628238,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 1,
+          "maxchannel_max": 2,
+          "fraction_more_than_1": 0.00011249399179813491,
+          "fraction_more_than_2": 0
+        },
+        "1k": {
+          "n": 391132,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        }
+      }
+    },
+    {
+      "profile": "mobile_emulation",
+      "view": "max",
+      "buffer": [
+        585,
+        1266
+      ],
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "normal_size": [
+        1024,
+        1024
+      ],
+      "camera": [
+        0.17443989022637668,
+        2.2204986278297136,
+        0.3924897530093476
+      ],
+      "model": "molar-mobile.glb",
+      "revision": "bfcf1ab37cc3",
+      "results": {
+        "repeat": {
+          "n": 740610,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        },
+        "4k": {
+          "n": 740610,
+          "rgb_channel_rms": 0.2684323338748594,
+          "rgb_channel_mae": 0.06937344441293888,
+          "fraction_changed": 0.1539717260096407,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 2,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.0023089075221777167,
+          "fraction_more_than_2": 0.00009181620556031334
+        },
+        "2k": {
+          "n": 740610,
+          "rgb_channel_rms": 0.2704976235056472,
+          "rgb_channel_mae": 0.07108689683729179,
+          "fraction_changed": 0.15939158261433142,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 1,
+          "maxchannel_p99": 1,
+          "maxchannel_p999": 2,
+          "maxchannel_max": 3,
+          "fraction_more_than_1": 0.0019483938915219046,
+          "fraction_more_than_2": 0.00003780667287778261
+        },
+        "1k": {
+          "n": 740610,
+          "rgb_channel_rms": 0,
+          "rgb_channel_mae": 0,
+          "fraction_changed": 0,
+          "maxchannel_p50": 0,
+          "maxchannel_p95": 0,
+          "maxchannel_p99": 0,
+          "maxchannel_p999": 0,
+          "maxchannel_max": 0,
+          "fraction_more_than_1": 0,
+          "fraction_more_than_2": 0
+        }
+      }
+    }
+  ],
+  "errors": []
+}

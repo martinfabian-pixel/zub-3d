@@ -2,6 +2,8 @@
 
 Implementácia z 28. októbra 2026. Prototyp je oddelený od pôvodnej prezentácie: **`/prototype/`**. Pôvodné `index.html`, `src/main.js`, `src/style.css`, `src/tooth-material.js`, modely v `public/models/` a zdroj Dundee sa nemenili. Vite má dva HTML vstupy; pôvodná stránka sa stále zostavuje a bola otvorená v regresnom teste.
 
+[Povrchové doladenie zo 4. novembra 2026](REFINEMENT_2026-11-04.md) zachováva schválený tvar a paletu; dopĺňa korektnejší výpočet jemného reliéfu a ohraničenú lokálnu variáciu povrchu. GLB aj ich rozlíšenie zostali rovnaké. Nové snímky a funkčné testy sú oddelené od pôvodného záznamu nižšie.
+
 ## Spustenie
 
 Z koreňa repozitára `zub-3d`:

@@ -18,7 +18,13 @@ export const toothConfig = {
     clearcoat: 0,
     transmission: 0,
     scattering: { fraction: 0.065, wrap: 0.18 },
-    micro: { wavelengthToHeight: 0.0033, amplitudeToHeight: 0.000012, rootAmplitudeScale: 1.3 },
+    // Authored shading at an illustrative 21 mm model height, not tissue measurements.
+    // The height field is bounded to ±half the corresponding amplitude.
+    micro: {
+      wavelengthToHeight: 0.0033, amplitudeToHeight: 0.000012, rootAmplitudeToHeight: 0.000033,
+      rootAxialFrequency: 0.35, filterFootprintStart: 0.35, filterFootprintEnd: 1.0,
+    },
+    mesoRoughness: { wavelengthToHeight: 0.60 / 21, enamelAmplitude: 0.006, rootAmplitude: 0.010 },
     clay: { color: '#b4b2ad', roughness: 0.65 },
   },
   lighting: {

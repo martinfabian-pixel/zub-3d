@@ -1,0 +1,35 @@
+{
+  "overview": {
+    "visible_reference_boundary_pixels": 1895,
+    "symmetric_coverage_change_pixel_area": 39.15294117647059,
+    "coverage_change_over_boundary_pixels": 0.020661182678876303,
+    "pixels_crossing_half_coverage": 38,
+    "interior_abs_rgb_8bit_p50_p95_p99": [
+      0.0,
+      0.3333333333333333,
+      1.0
+    ]
+  },
+  "macro-crown": {
+    "visible_reference_boundary_pixels": 1937,
+    "symmetric_coverage_change_pixel_area": 355.19215686274504,
+    "coverage_change_over_boundary_pixels": 0.18337230607266136,
+    "pixels_crossing_half_coverage": 353,
+    "interior_abs_rgb_8bit_p50_p95_p99": [
+      0.0,
+      1.0,
+      1.0
+    ]
+  },
+  "macro-root": {
+    "visible_reference_boundary_pixels": 1309,
+    "symmetric_coverage_change_pixel_area": 149.59607843137255,
+    "coverage_change_over_boundary_pixels": 0.11428271843496757,
+    "pixels_crossing_half_coverage": 147,
+    "interior_abs_rgb_8bit_p50_p95_p99": [
+      0.0,
+      1.0,
+      2.0
+    ]
+  }
+}

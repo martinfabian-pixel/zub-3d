@@ -14,7 +14,9 @@ uniform float toothRoughnessVariation;
 uniform float toothOcclusionStrength;
 uniform float toothScatterFraction;
 uniform float toothScatterWrap;
-uniform vec3 toothMicro;
+uniform vec4 toothMicro;
+uniform vec2 toothFilterFootprint;
+uniform vec3 toothMesoRoughness;
 varying vec2 vToothUv;
 varying vec3 vToothPosition;
 float toothCrown;
@@ -31,6 +33,9 @@ float toothMicroNoise(vec3 p) {
   float d = mix(toothHash(c + vec3(0,0,1)), toothHash(c + vec3(1,0,1)), w.x);
   float e = mix(toothHash(c + vec3(0,1,1)), toothHash(c + vec3(1,1,1)), w.x);
   return mix(mix(a,b,w.y), mix(d,e,w.y), w.z);
+}
+float toothDetailWeight(vec3 cellPosition) {
+  return 1.0 - smoothstep(toothFilterFootprint.x, toothFilterFootprint.y, length(fwidth(cellPosition)));
 }
 `;
 
@@ -58,6 +63,8 @@ export function prepareMaterial(model, config, profile, renderer, clay = false) 
     normal.colorSpace = THREE.NoColorSpace;
     const anisotropy = Math.min(config.quality[profile.compact ? 'compact' : 'desktop'].anisotropy, renderer.capabilities.getMaxAnisotropy());
     regions.anisotropy = normal.anisotropy = anisotropy;
+    const { micro, mesoRoughness } = config.material;
+    const modelHeight = config.model.height;
     const uniforms = {
       toothRegions: { value: regions },
       toothEnamelColor: { value: new THREE.Color(config.material.enamel.color) },
@@ -72,7 +79,11 @@ export function prepareMaterial(model, config, profile, renderer, clay = false) 
       toothOcclusionStrength: { value: config.material.occlusionStrength },
       toothScatterFraction: { value: config.material.scattering.fraction },
       toothScatterWrap: { value: config.material.scattering.wrap },
-      toothMicro: { value: new THREE.Vector3(config.material.micro.wavelengthToHeight * config.model.height, config.material.micro.amplitudeToHeight * config.model.height, config.material.micro.rootAmplitudeScale) },
+      toothMicro: { value: new THREE.Vector4(micro.wavelengthToHeight * modelHeight,
+        micro.amplitudeToHeight * modelHeight, micro.rootAmplitudeToHeight * modelHeight, micro.rootAxialFrequency) },
+      toothFilterFootprint: { value: new THREE.Vector2(micro.filterFootprintStart, micro.filterFootprintEnd) },
+      toothMesoRoughness: { value: new THREE.Vector3(mesoRoughness.wavelengthToHeight * modelHeight,
+        mesoRoughness.enamelAmplitude, mesoRoughness.rootAmplitude) },
     };
     const material = new THREE.MeshPhysicalMaterial({
       name: clay ? 'Neutral clay — geometry review' : 'Ivory enamel and matte cementum — one continuous surface',
@@ -107,22 +118,31 @@ export function prepareMaterial(model, config, profile, renderer, clay = false) 
           // The authored G map is centered on its regional reference values.
           float roughnessReference = mix(toothRoughnessReference.x, toothRoughnessReference.y, toothCrown);
           roughnessFactor += (toothRegion.g - roughnessReference) * toothRoughnessVariation;
+          // A separate, zero-centred illustrative field modulates only roughness.
+          vec3 mesoP = vToothPosition / toothMesoRoughness.x;
+          float mesoVariation = (2.0 * toothMicroNoise(mesoP) - 1.0) * toothDetailWeight(mesoP);
+          roughnessFactor += mesoVariation * mix(toothMesoRoughness.z, toothMesoRoughness.y, toothCrown);
           roughnessFactor = clamp(roughnessFactor, toothRoughnessLimits.x, toothRoughnessLimits.y);
         `);
         shader.fragmentShader = replaceRequired(shader.fragmentShader, '#include <normal_fragment_maps>', THREE.ShaderChunk.normal_fragment_maps.replace('mapN.xy *= normalScale;', 'mapN.xy *= normalScale * mix(toothNormalStrength.x, toothNormalStrength.y, toothCrown);') + `
-          // Original band-limited microrelief, continuous across the UV seam.
-          // Approx. 0.25µm height / 70µm pitch at the illustrative 21mm scale.
-          // This is authored shading detail, not scanned enamel or anatomy.
-          vec3 microP = vToothPosition / toothMicro.x;
-          float microAttenuation = 1.0 - smoothstep(0.35, 1.0, length(fwidth(microP)));
-          float microH = toothMicroNoise(microP) - 0.5;
-          microH *= toothMicro.y * mix(toothMicro.z, 1.0, toothCrown) * microAttenuation;
+          // Both illustrative fields stay continuous across UV seams. Cementum
+          // uses a longer axial cell; neither field contains growth bands.
+          vec3 enamelP = vToothPosition / toothMicro.x;
+          vec3 rootP = enamelP * vec3(1.0, toothMicro.w, 1.0);
+          float enamelH = toothMicroNoise(enamelP) - 0.5;
+          float rootH = toothMicroNoise(rootP) - 0.5;
+          // Differentiate only the raw heights. Differentiating the footprint
+          // would require undefined second derivatives; differentiating the
+          // crown mask would introduce a spurious height ridge at the neck.
+          vec2 enamelSlope = vec2(dFdx(enamelH), dFdy(enamelH)) * toothMicro.y * toothDetailWeight(enamelP);
+          vec2 rootSlope = vec2(dFdx(rootH), dFdy(rootH)) * toothMicro.z * toothDetailWeight(rootP);
+          vec2 slope = mix(rootSlope, enamelSlope, toothCrown);
           vec3 surfaceX = dFdx(-vViewPosition);
           vec3 surfaceY = dFdy(-vViewPosition);
           vec3 gradientX = cross(surfaceY, normal);
           vec3 gradientY = cross(normal, surfaceX);
           float determinant = dot(surfaceX, gradientX);
-          vec3 surfaceGradient = sign(determinant) * (dFdx(microH) * gradientX + dFdy(microH) * gradientY);
+          vec3 surfaceGradient = sign(determinant) * (slope.x * gradientX + slope.y * gradientY);
           if (abs(determinant) > 1e-12) normal = normalize(abs(determinant) * normal - surfaceGradient);
         `);
         shader.fragmentShader = replaceRequired(shader.fragmentShader, '#include <lights_physical_fragment>', THREE.ShaderChunk.lights_physical_fragment.replace('material.ior = ior;', 'material.ior = mix(toothIOR.x, toothIOR.y, toothCrown);'));
@@ -141,7 +161,7 @@ export function prepareMaterial(model, config, profile, renderer, clay = false) 
           #endif
         `);
       };
-      material.customProgramCacheKey = () => 'zub-continuous-ivory-r186-v1';
+      material.customProgramCacheKey = () => 'zub-continuous-ivory-r186-v2';
     }
     mesh.material = material;
     mesh.castShadow = true;

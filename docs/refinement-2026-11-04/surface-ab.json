@@ -1,0 +1,378 @@
+{
+  "baseline": "95202c7f978dc77a1a6048123bf6dbfd080d4388",
+  "scope": "Matched actual WebGL renders, not photographs; own desktop headless Chrome. No physical mobile device.",
+  "variants": {
+    "approved": {
+      "errors": [],
+      "poses": {
+        "home": {
+          "position": [
+            3.0076694242197655,
+            4.371043970876463,
+            6.015338848439531
+          ],
+          "target": [
+            0,
+            0.04,
+            0
+          ]
+        },
+        "crown": {
+          "position": [
+            0.3000000000000008,
+            5.799999999999999,
+            0.6000000000000016
+          ],
+          "target": [
+            0,
+            1.1,
+            0
+          ]
+        },
+        "neck": {
+          "position": [
+            1.2000000000000002,
+            1.1500000000000004,
+            4.6000000000000005
+          ],
+          "target": [
+            0,
+            0.25,
+            0
+          ]
+        },
+        "root": {
+          "position": [
+            1.800000000000001,
+            -0.5499999999999997,
+            4.1
+          ],
+          "target": [
+            0,
+            -0.8499999999999998,
+            0.09999999999999999
+          ]
+        }
+      },
+      "temporalReference": {
+        "home": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.6565714011290086,
+          "worstP99MaxChannelCodeError": 2
+        },
+        "crown": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.5936171043631961,
+          "worstP99MaxChannelCodeError": 1
+        },
+        "root": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.6487985099413187,
+          "worstP99MaxChannelCodeError": 2
+        }
+      },
+      "dataset": {
+        "ready": "true",
+        "engine": "three.js r186",
+        "revision": "bfcf1ab37cc3",
+        "profile": "desktop",
+        "model": "molar.glb",
+        "modelMeshes": "1",
+        "assetTriangles": "57008",
+        "material": "continuous dielectric",
+        "environment": "Poly Haven Studio Small 09 — CC0",
+        "metalness": "0",
+        "opacity": "1",
+        "transmission": "0",
+        "frameCount": "1",
+        "drawCalls": "3",
+        "renderTriangles": "114018",
+        "pixelRatio": "1",
+        "bufferSize": "1280x900",
+        "camera": "3.0077,4.3710,6.0153",
+        "distance": "7.9993",
+        "minDistance": "2.2223977473635976",
+        "shaderErrors": "0",
+        "gpuTextures": "9",
+        "gpuGeometries": "2"
+      }
+    },
+    "derivative-only": {
+      "errors": [],
+      "poses": {
+        "home": {
+          "position": [
+            3.0076694242197655,
+            4.371043970876463,
+            6.015338848439531
+          ],
+          "target": [
+            0,
+            0.04,
+            0
+          ]
+        },
+        "crown": {
+          "position": [
+            0.3000000000000008,
+            5.799999999999999,
+            0.6000000000000016
+          ],
+          "target": [
+            0,
+            1.1,
+            0
+          ]
+        },
+        "neck": {
+          "position": [
+            1.2000000000000002,
+            1.1500000000000004,
+            4.6000000000000005
+          ],
+          "target": [
+            0,
+            0.25,
+            0
+          ]
+        },
+        "root": {
+          "position": [
+            1.800000000000001,
+            -0.5499999999999997,
+            4.1
+          ],
+          "target": [
+            0,
+            -0.8499999999999998,
+            0.09999999999999999
+          ]
+        }
+      },
+      "temporalReference": {
+        "home": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.6565680117979454,
+          "worstP99MaxChannelCodeError": 2
+        },
+        "crown": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.5936171043631961,
+          "worstP99MaxChannelCodeError": 1
+        },
+        "root": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.6487985099413187,
+          "worstP99MaxChannelCodeError": 2
+        }
+      },
+      "dataset": {
+        "ready": "true",
+        "engine": "three.js r186",
+        "revision": "bfcf1ab37cc3",
+        "profile": "desktop",
+        "model": "molar.glb",
+        "modelMeshes": "1",
+        "assetTriangles": "57008",
+        "material": "continuous dielectric",
+        "environment": "Poly Haven Studio Small 09 — CC0",
+        "metalness": "0",
+        "opacity": "1",
+        "transmission": "0",
+        "frameCount": "1",
+        "drawCalls": "3",
+        "renderTriangles": "114018",
+        "pixelRatio": "1",
+        "bufferSize": "1280x900",
+        "camera": "3.0077,4.3710,6.0153",
+        "distance": "7.9993",
+        "minDistance": "2.2223977473635976",
+        "shaderErrors": "0",
+        "gpuTextures": "9",
+        "gpuGeometries": "2"
+      }
+    },
+    "refined": {
+      "errors": [],
+      "poses": {
+        "home": {
+          "position": [
+            3.0076694242197655,
+            4.371043970876463,
+            6.015338848439531
+          ],
+          "target": [
+            0,
+            0.04,
+            0
+          ]
+        },
+        "crown": {
+          "position": [
+            0.3000000000000008,
+            5.799999999999999,
+            0.6000000000000016
+          ],
+          "target": [
+            0,
+            1.1,
+            0
+          ]
+        },
+        "neck": {
+          "position": [
+            1.2000000000000002,
+            1.1500000000000004,
+            4.6000000000000005
+          ],
+          "target": [
+            0,
+            0.25,
+            0
+          ]
+        },
+        "root": {
+          "position": [
+            1.800000000000001,
+            -0.5499999999999997,
+            4.1
+          ],
+          "target": [
+            0,
+            -0.8499999999999998,
+            0.09999999999999999
+          ]
+        }
+      },
+      "temporalReference": {
+        "home": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.6581792472356566,
+          "worstP99MaxChannelCodeError": 2
+        },
+        "crown": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.5936658009952165,
+          "worstP99MaxChannelCodeError": 1
+        },
+        "root": {
+          "method": "Eight matched subpixel poses against a 2x-resolution Lanczos3-downsampled WebGL reference; excludes silhouette/background. This is a sampling proxy, not a photograph or ground-truth optical measurement.",
+          "meanRgbRmsCodeError": 0.6505507169579499,
+          "worstP99MaxChannelCodeError": 2
+        }
+      },
+      "dataset": {
+        "ready": "true",
+        "engine": "three.js r186",
+        "revision": "bfcf1ab37cc3",
+        "profile": "desktop",
+        "model": "molar.glb",
+        "modelMeshes": "1",
+        "assetTriangles": "57008",
+        "material": "continuous dielectric",
+        "environment": "Poly Haven Studio Small 09 — CC0",
+        "metalness": "0",
+        "opacity": "1",
+        "transmission": "0",
+        "frameCount": "1",
+        "drawCalls": "3",
+        "renderTriangles": "114018",
+        "pixelRatio": "1",
+        "bufferSize": "1280x900",
+        "camera": "3.0077,4.3710,6.0153",
+        "distance": "7.9993",
+        "minDistance": "2.2223977473635976",
+        "shaderErrors": "0",
+        "gpuTextures": "9",
+        "gpuGeometries": "2"
+      }
+    }
+  },
+  "differences": {
+    "derivative-only": {
+      "home": {
+        "maxChannelCodeDifference": {
+          "samples": 215351,
+          "mean": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "rgbRmsCodeDifference": 0
+      },
+      "crown": {
+        "maxChannelCodeDifference": {
+          "samples": 388922,
+          "mean": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "rgbRmsCodeDifference": 0
+      },
+      "neck": {
+        "maxChannelCodeDifference": {
+          "samples": 515554,
+          "mean": 0.00015711254301198322,
+          "p95": 0,
+          "p99": 0,
+          "max": 1
+        },
+        "rgbRmsCodeDifference": 0.007236770527705095
+      },
+      "root": {
+        "maxChannelCodeDifference": {
+          "samples": 432064,
+          "mean": 0,
+          "p95": 0,
+          "p99": 0,
+          "max": 0
+        },
+        "rgbRmsCodeDifference": 0
+      }
+    },
+    "refined": {
+      "home": {
+        "maxChannelCodeDifference": {
+          "samples": 215351,
+          "mean": 0.11607561608722504,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "rgbRmsCodeDifference": 0.2107176543923801
+      },
+      "crown": {
+        "maxChannelCodeDifference": {
+          "samples": 388922,
+          "mean": 0.0631694787129553,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "rgbRmsCodeDifference": 0.15013354346419133
+      },
+      "neck": {
+        "maxChannelCodeDifference": {
+          "samples": 515554,
+          "mean": 0.2042172110002056,
+          "p95": 1,
+          "p99": 1,
+          "max": 2
+        },
+        "rgbRmsCodeDifference": 0.29091124105947413
+      },
+      "root": {
+        "maxChannelCodeDifference": {
+          "samples": 432064,
+          "mean": 0.3740186639016442,
+          "p95": 1,
+          "p99": 1,
+          "max": 4
+        },
+        "rgbRmsCodeDifference": 0.41969012411123313
+      }
+    }
+  },
+  "passed": true
+}
