@@ -6,6 +6,7 @@ import json,sys,numpy as np,bpy
 from mathutils import Vector
 
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'));import prepare_dentition as d
+from refine_cavity_surface import extend,faces_after_refinement
 DATA=ROOT/'public/story-assets';OUT=Path(sys.argv[sys.argv.index('--')+1]);OUT.mkdir(parents=True,exist_ok=True)
 site=json.loads((DATA/'site.json').read_text(encoding='utf8'));morph=json.loads((DATA/'caries-36.json').read_text(encoding='utf8'));manifest=json.loads((d.OUT/'manifest.json').read_text(encoding='utf8'));items={v['fdi']:v for v in manifest['teeth']}
 def B(v):
@@ -19,6 +20,9 @@ source={};materials={i:material(str(i)) for i in [36,37]}
 for i in [36,37]:
     j,b=d.glb(d.OUT/('hero-36.glb' if i==36 else 'dentition.glb'));key='ToothExterior' if i==36 else 'FDI_37';pr=next(x for x in j['meshes'] if x['name']==key)['primitives'][0];p=d.accessor(j,b,pr['attributes']['POSITION']).astype(float);n=d.accessor(j,b,pr['attributes']['NORMAL']).astype(float);f=d.accessor(j,b,pr['indices']).reshape(-1,3);M=np.asarray(items[i]['matrix']).reshape(4,4).T.copy();M[1,3]-=.48;D=np.zeros_like(p);N=np.zeros_like(n);region=np.zeros((len(p),4))
     if i==36:
+        if morph.get('refinement'):
+            recipe=morph['refinement'];p=extend(p,recipe);n=extend(n,recipe,normalize=True);f=faces_after_refinement(f,recipe)
+            D=np.zeros_like(p);N=np.zeros_like(n);region=np.zeros((len(p),4))
         ix=morph['indices'];D[ix]=np.array(morph['positionDelta']).reshape(-1,3);N[ix]=np.array(morph['normalDelta']).reshape(-1,3);region[ix]=np.array(morph['region']).reshape(-1,4)
     mesh=bpy.data.meshes.new('FDI'+str(i));mesh.from_pydata((B(d.affect(M,p))/100).tolist(),[],f.tolist());mesh.update();mesh.polygons.foreach_set('use_smooth',np.ones(len(f),bool));colors=mesh.color_attributes.new(name='Review albedo',type='FLOAT_COLOR',domain='POINT');obj=bpy.data.objects.new(mesh.name,mesh);bpy.context.collection.objects.link(obj);mesh.materials.append(materials[i]);source[i]=(p,n,f,M,D,N,region,mesh,colors)
 target=B(site['lesion']['centerWorldCm'])/100;D=B(site['lesion']['macroCamera']['directionFromLesionToCameraWorld']);u=B(site['lesion']['basisWorld']['buccalLingualTangentBuccalPositive']);v=B(site['lesion']['basisWorld']['occlusalGingivalTangentOcclusalPositive'])

@@ -37,7 +37,9 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
   const polymer=new MeshPhysicalMaterial({color:options.handleColor??'#7351a0',roughness:.37,
     metalness:0,ior:1.46,clearcoat:.12,clearcoatRoughness:.42});
   const steel=new MeshStandardMaterial({color:'#d4d3d1',metalness:.87,roughness:.29});
-  const nylon=new MeshStandardMaterial({color:0xffffff,metalness:0,roughness:.49});
+  // A soft nylon reflection stays continuous along the tapered segments;
+  // bright pin-point glints on subpixel tips read as unrelated speckles.
+  const nylon=new MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.58,ior:1.50,specularIntensity:.46});
   const handleL=dims.handleLengthMm,handleR=dims.handleRadiusMm;
   const profile=[
     [1,0],[.995,.28],[.98,.66],[.95,.89],[.9,.975],[.73,1],[.56,.985],
@@ -66,7 +68,7 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
   bristles.castShadow=false;bristles.receiveShadow=true;object.add(bristles);
   geometries.add(bristles.geometry);materials.add(nylon);
   const fibres=[],sample=makePathSample(),station=makePathSample();
-  const color=new Color(),warm=new Color('#f6eee0'),cool=new Color('#dbd7e1');
+  const color=new Color(),baseTone=new Color('#a2a6ae'),tipTone=new Color('#d3d2ce');
   for(let i=0;i<pairs;i++){
     const t=(i+.5)/pairs,back=dims.tipMarginMm+t*length;
     const angle=TAU*back/pitch+Math.PI*.5+(noise(i+2)-.5)*.19;
@@ -74,8 +76,9 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
       const f=i*2+side,theta=angle+side*Math.PI+(noise(f+19)-.5)*.12;
       fibres.push({back,c:Math.cos(theta),s:Math.sin(theta),radius:path.radiusAt(back)*(.955+.045*noise(f+5)),
         rake:.025+.05*noise(f+47),thickness:fr*(.90+.16*noise(f+23))});
-      color.copy(warm).lerp(cool,.12+.48*noise(f+64));
-      bristles.setColorAt(2*f,color);bristles.setColorAt(2*f+1,color);
+      const tone=noise(f+64);
+      color.copy(baseTone).lerp(tipTone,.08+.12*tone);bristles.setColorAt(2*f,color);
+      color.copy(baseTone).lerp(tipTone,.67+.16*tone);bristles.setColorAt(2*f+1,color);
     }
   }
   const from=new Vector3(),mid=new Vector3(),tip=new Vector3(),delta=new Vector3(),center=new Vector3();

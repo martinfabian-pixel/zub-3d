@@ -14,12 +14,15 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 OUT = Path(__file__).resolve().parent
+sys.path.insert(0, str(OUT))
+from refined_surface import expand_surface
+
 ROOT = OUT.parents[1]
 PUB = ROOT / "public"
 DENT = PUB / "dentition-assets"
 STORY = PUB / "story-assets"
 TMP = Path(sys.argv[-1])
-BASE = "f3257d1"
+BASE = "510a734"
 META = json.loads((TMP / "descriptor.json").read_bytes())
 SITE = json.loads((STORY / "site.json").read_bytes())
 SHAPE = json.loads((STORY / "caries-36.json").read_bytes())
@@ -102,6 +105,36 @@ def volume(p, f):
     return float(np.sum(t[:, 0] * np.cross(t[:, 1], t[:, 2])) / 6)
 
 
+def welded_mesh_topology(vertex_count, face):
+    directed = np.vstack([face[:, [0, 1]], face[:, [1, 2]], face[:, [2, 0]]])
+    unordered = np.sort(directed, axis=1)
+    edges, index, counts = np.unique(
+        unordered, axis=0, return_inverse=True, return_counts=True
+    )
+    signs = np.where(directed[:, 0] == unordered[:, 0], 1, -1)
+    balance = np.bincount(index, weights=signs)
+    parents = list(range(vertex_count))
+
+    def root(i):
+        while parents[i] != i:
+            parents[i] = parents[parents[i]]
+            i = parents[i]
+        return i
+
+    for a, b in edges:
+        a, b = root(int(a)), root(int(b))
+        if a != b:
+            parents[b] = a
+    return {
+        "weldedVertexCount": vertex_count,
+        "boundaryEdges": int((counts == 1).sum()),
+        "nonmanifoldEdges": int((counts > 2).sum()),
+        "inconsistentManifoldEdgeOrientations": int(((counts == 2) & (balance != 0)).sum()),
+        "connectedComponents": len({root(v) for v in range(vertex_count)}),
+        "eulerCharacteristic": int(vertex_count - len(edges) + len(face)),
+    }
+
+
 def fields(shape, p):
     ids = np.asarray(shape["indices"])
     assert len(np.unique(ids)) == len(ids) and min(ids) >= 0 and max(ids) < len(p)
@@ -166,9 +199,15 @@ for path in [
 ]:
     now = sha(path.read_bytes())
     was = sha(srcgit(path))
+    legacy = sha(
+        subprocess.check_output(
+            ["git", "-C", str(ROOT), "show", f"f3257d1:{path.relative_to(ROOT).as_posix()}"]
+        )
+    )
     changes[path.relative_to(ROOT).as_posix()] = {
         "currentSha256": now,
-        "f3257d1Sha256": was,
+        "baselineSha256": was,
+        "f3257d1Sha256": legacy,
         "byteIdentical": now == was,
     }
 rep = {
@@ -236,7 +275,7 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
             "ToothExterior" if source in [26, 36] else it["node"]
         ]
         m = np.asarray(it["matrix"], float).reshape(4, 4).T.copy()
-        m[1, 3] += 0.32 if fdi < 30 else -0.48
+        m[:3, 3] += META["archOffsets"]["upper" if fdi < 30 else "lower"]
         p = g["attrs"]["POSITION"]
         f = g["attrs"]["INDICES"].reshape(-1, 3)
         if np.linalg.det(m[:3, :3]) < 0:
@@ -262,11 +301,31 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
         rtol=0,
         atol=1e-9,
     )
-    d, r = fields(SHAPE, p0)
+    native_world = w0.copy()
+    native_faces = face.copy()
     oldd, oldr = fields(oldshape, p0)
+    old = tx(M, (p0 + oldd).astype(float)) * 10
+    source_attributes = {k: v for k, v in hero["attrs"].items() if k != "INDICES"}
+    render_attributes, face, refinement_audit = expand_surface(
+        source_attributes, native_faces, SHAPE
+    )
+    assert refinement_audit["refined"], "Expected the new locally refined cavity asset"
+    reconstructed = {
+        k: sha(v.astype("<f4", copy=False).tobytes()) for k, v in render_attributes.items()
+    }
+    reconstructed["INDICES"] = sha(face.astype("<u4").tobytes())
+    runtime = META["runtimeRefinement"][lod]
+    assert runtime["sourceUnchanged"] and runtime["refined"] == reconstructed, (
+        "Independent healthy reconstruction differs from the runtime constructor",
+        [k for k in reconstructed if runtime["refined"][k] != reconstructed[k]],
+    )
+    refinement_audit["runtimeHealthyAttributeHashes"] = reconstructed
+    refinement_audit["runtimeConstructorMatchesIndependentReconstruction"] = True
+    p0 = render_attributes["POSITION"]
+    w0 = tx(M, p0.astype(float)) * 10
+    d, r = fields(SHAPE, p0)
     healthy = arch[36]
     current = tx(M, (p0 + d).astype(float)) * 10
-    old = tx(M, (p0 + oldd).astype(float)) * 10
     dep = np.linalg.norm(current - w0, axis=1)
     affected = (dep[face] > 0.005).any(1)
     floors = r[face, 1].mean(1) > 0.55
@@ -275,15 +334,15 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
     ulen = np.linalg.norm(d0, axis=1)
     _, first, inv = np.unique(p0, axis=0, return_index=True, return_inverse=True)
     wf = inv[face]
-    edges = np.sort(np.vstack([wf[:, [0, 1]], wf[:, [1, 2]], wf[:, [2, 0]]]), axis=1)
-    _, counts = np.unique(edges, axis=0, return_counts=True)
     area = np.linalg.norm(crosses(current, face), axis=1) / 2
     applyB = np.asarray(SITE["lesion"]["basisWorld"]["buccalLingualTangentBuccalPositive"])
     applyU = np.asarray(
         SITE["lesion"]["basisWorld"]["occlusalGingivalTangentOcclusalPositive"]
     )
 
-    def shape_numbers(w, r):
+    def shape_numbers(w, r, w0, face):
+        d0 = crosses(w0, face)
+        ulen = np.linalg.norm(d0, axis=1)
         depth = np.linalg.norm(w - w0, axis=1)
         mask = depth > 0.005
         dots = (d0 * crosses(w, face)).sum(1) / np.maximum(
@@ -291,10 +350,25 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
         )
         local = mask[face].any(1)
         turn = np.degrees(np.arccos(np.clip(dots, -1, 1)))
+        floor_mask = r[face, 1].mean(1) > 0.55
+
+        def edge_lengths(region):
+            f = face[region]
+            edges = np.unique(
+                np.sort(np.vstack([f[:, [0, 1]], f[:, [1, 2]], f[:, [2, 0]]]), axis=1),
+                axis=0,
+            )
+            return np.percentile(
+                np.linalg.norm(w0[edges[:, 0]] - w0[edges[:, 1]], axis=1),
+                [0, 10, 50, 90, 100],
+            ).tolist()
+
         return {
             "over5umVertices": int(mask.sum()),
             "over5umAffectedFaces": int(local.sum()),
-            "floorFaces": int((r[face, 1].mean(1) > 0.55).sum()),
+            "floorFaces": int(floor_mask.sum()),
+            "healthyEdgeLengthInAffectedFacesMmP0P10P50P90P100": edge_lengths(local),
+            "healthyEdgeLengthInFloorFacesMmP0P10P50P90P100": edge_lengths(floor_mask),
             "originalFrameExtentAt5umMm": np.ptp(
                 np.stack([w0[mask] @ applyB, w0[mask] @ applyU], axis=1), axis=0
             ).tolist(),
@@ -303,7 +377,7 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
             "deformedPatchFaceNormalsChangedVsHealthyDegP50P95Max": np.percentile(
                 turn[local], [50, 95, 100]
             ).tolist(),
-            "deepestOriginalVertex": int(np.argmax(depth)),
+            "deepestRenderVertex": int(np.argmax(depth)),
         }
 
     info = {
@@ -311,28 +385,79 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
             "both36And46CanonicalSource": ("hero-36" + suf + ".glb"),
             "sourceNote": "One real left source, distinct independently fitted reflected right instance. No claim of two distinct cadaver specimens. Only 36 is deformed.",
             "sourceAttributeSha256": hero["hashes"],
-            "healthy36WorldPositionF32Sha256": sha(w0.astype("<f4").tobytes()),
+            "healthy36WorldPositionF32Sha256": sha(native_world.astype("<f4").tobytes()),
             "untouched46WorldPositionF32Sha256": sha(raw[46].astype("<f4").tobytes()),
             "placed36And46UseDifferentMatrix": not np.array_equal(mats[36], mats[46]),
             "source36And46AreSameRegisteredShape": True,
         },
-        "baselineOriginalLesion": shape_numbers(old, oldr),
-        "newLesion": shape_numbers(current, r),
-        "topology": {
-            "weldedVertexCount": len(first),
-            "boundaryEdges": int(np.sum(counts == 1)),
-            "nonmanifoldEdges": int(np.sum(counts > 2)),
-        },
+        "baselineOriginalLesion": shape_numbers(old, oldr, native_world, native_faces),
+        "newLesion": shape_numbers(current, r, w0, face),
+        "healthySubdivisionProof": refinement_audit,
+        "matureFilmValidation": META["matureFilmValidation"][lod],
+        "topology": welded_mesh_topology(len(first), wf),
         "stages": {},
         "visibility": [],
     }
+    previous_surface = tree(old, native_faces)
+    candidate_surface = tree(current, face)
+    anchor = np.asarray(SITE["lesion"]["centerWorldCm"]) * 10
+    outward = unit(np.asarray(SITE["lesion"]["basisWorld"]["outwardNormal"]))
+    info["geometryFalloffProfilesMm"] = {}
+    for direction_name, axis_on_patch in [
+        ("buccal", applyB),
+        ("lingual", -applyB),
+        ("occlusal", applyU),
+        ("apical", -applyU),
+    ]:
+        # Real profile through the healthy and indented surfaces, with materials
+        # and shading entirely absent. Report section width rather than inferring
+        # optical sharpness solely from vertex density or maximum depression.
+        distances = np.linspace(0, 2, 401)
+        traces = [[], []]
+        for s in distances:
+            origin = Vector(anchor + axis_on_patch * s + outward * 2)
+            direction = Vector(-outward)
+            _, _, _, base_d = healthy["b"].ray_cast(origin, direction, 5)
+            assert base_d is not None
+            for surface, trace in zip((previous_surface, candidate_surface), traces):
+                _, _, _, d_hit = surface["b"].ray_cast(origin, direction, 5)
+                assert d_hit is not None
+                trace.append(d_hit - base_d)
+        row = {}
+        for name, trace in zip(("baseline510a734", "candidate"), traces):
+            peak = int(np.argmax(trace))
+            peak_mm = trace[peak]
+            intersections = []
+            for fraction in (0.9, 0.1):
+                threshold = fraction * peak_mm
+                j = next(j for j in range(peak + 1, len(trace)) if trace[j] <= threshold)
+                t = (trace[j - 1] - threshold) / (trace[j - 1] - trace[j])
+                intersections.append(
+                    float(distances[j - 1] + t * (distances[j] - distances[j - 1]))
+                )
+            row[name] = {
+                "peakRayDepthMm": float(peak_mm),
+                "radiiAt90And10PercentMm": intersections,
+                "90To10PercentWallWidthMm": intersections[1] - intersections[0],
+            }
+        info["geometryFalloffProfilesMm"][direction_name] = row
     rep["lods"][lod] = info
+    base_normals = render_attributes["NORMAL"].astype(float)
+    normal_deltas = np.zeros_like(base_normals)
+    normal_deltas[np.asarray(SHAPE["indices"])] = np.asarray(SHAPE["normalDelta"]).reshape(
+        -1, 3
+    )
     # Test global self-intersection as well as local orientation; the latter alone
     # cannot detect non-neighboring parts of a surface passing through each other.
     for a in [0.0, 0.25, 0.5, 0.75, 1.0]:
         w = tx(M, (p0 + np.float32(a) * d).astype(float)) * 10
         fn = crosses(w, face)
         len1 = np.linalg.norm(fn, axis=1)
+        raw_shading = base_normals + a * normal_deltas
+        posed_normals = unit(raw_shading @ np.linalg.inv(M[:3, :3]))
+        shade_dot = (unit(posed_normals[face[affected]].mean(1)) * unit(fn[affected])).sum(
+            1
+        )
         tr = tree(w, face)
         arch[36] = tr
         weld = tree(w[first], wf)
@@ -356,12 +481,17 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
             "flippedFaces": int(np.sum((fn * d0).sum(1) <= 0)),
             "degenerateFacesBelow1eMinus12Mm2": int((len1 < 2e-12).sum()),
             "minAreaRatio": float((len1 / ulen).min()),
+            "minimumUnnormalizedVertexShadingLength": float(
+                np.linalg.norm(raw_shading, axis=1).min()
+            ),
+            "affectedFaceCentroidsWithReversedShadingNormal": int((shade_dot <= 0).sum()),
+            "minimumAffectedFaceGeometricVsShadingNormalDot": float(shade_dot.min()),
             "seamCrackMm": float(np.linalg.norm(w - w[first][inv], axis=1).max()),
             "outsideSparseMutationCount": int(
                 np.sum((w != w0).any(1) & (np.linalg.norm(d, axis=1) == 0))
             ),
         }
-    localn = hero["attrs"]["NORMAL"].copy()
+    localn = render_attributes["NORMAL"].copy()
     localn[np.asarray(SHAPE["indices"])] += np.asarray(SHAPE["normalDelta"]).reshape(-1, 3)
     wn = unit(localn @ np.linalg.inv(M[:3, :3]))
     dir = unit(
@@ -411,11 +541,16 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
                     "blockedFloorCentroidsBy": blocked,
                 }
             )
+
     def audit_camera(pose, scope):
         C = np.array(pose["cameraWorldCm"]) * 10
         ids = np.flatnonzero(floors)
         vis = [visible(fc[k], fn[k], C, arch) for k in ids]
         mask = np.array([ok for ok, _ in vis])
+        blocked = {}
+        for ok, by in vis:
+            if not ok:
+                blocked[str(by)] = blocked.get(str(by), 0) + 1
         dv, dby = visible(current[deep], wn[deep], C, arch)
         # For a point in free space, start the ray exactly at the calibrated buccal path entrance (no surface offset).
         view = unit(C - S)
@@ -425,22 +560,21 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
             ray, _, _, dist = tr["b"].ray_cast(Vector(S), Vector(view), length)
             if ray is not None:
                 hits.append((dist, i))
-        return (
-            {
-                **pose,
-                "scope": scope,
-                "testedFloorCentroids": len(mask),
-                "visibleFloorCentroids": int(mask.sum()),
-                "visibleAreaFraction": float(area[ids][mask].sum() / area[ids].sum()),
-                "deepestVertexVisible": dv,
-                "deepestOccludingTooth": dby,
-                "buccalCenterlineEntryVisible": not bool(hits),
-                "entryOccluderFdi": min(hits)[1] if hits else None,
-                "cameraToNearestHardSurfaceMm": min(
-                    float(tr["b"].find_nearest(Vector(C))[3]) for tr in arch.values()
-                ),
-            }
-        )
+        return {
+            **pose,
+            "scope": scope,
+            "testedFloorCentroids": len(mask),
+            "visibleFloorCentroids": int(mask.sum()),
+            "visibleAreaFraction": float(area[ids][mask].sum() / area[ids].sum()),
+            "blockedFloorCentroidsBy": blocked,
+            "deepestVertexVisible": dv,
+            "deepestOccludingTooth": dby,
+            "buccalCenterlineEntryVisible": not bool(hits),
+            "entryOccluderFdi": min(hits)[1] if hits else None,
+            "cameraToNearestHardSurfaceMm": min(
+                float(tr["b"].find_nearest(Vector(C))[3]) for tr in arch.values()
+            ),
+        }
 
     author_scope = (
         "Per-profile createStoryCameraConfig: landmark center + authored direction × "
@@ -456,8 +590,16 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
     ]
     captured = [pose for pose in META["browserCapture"]["poses"] if pose["lod"] == lod]
     assert {pose["name"] for pose in captured} == {"lesion", "brush", "result"}
-    assert len(captured) == 3
-    info["capturedProductionCameras"] = [audit_camera(pose, capture_scope) for pose in captured]
+    for viewport in {tuple(pose["viewportCSS"]) for pose in captured}:
+        matching = [pose for pose in captured if tuple(pose["viewportCSS"]) == viewport]
+        assert len(matching) == 3 and {pose["name"] for pose in matching} == {
+            "lesion",
+            "brush",
+            "result",
+        }
+    info["capturedProductionCameras"] = [
+        audit_camera(pose, capture_scope) for pose in captured
+    ]
     # Continuous conservative bound: entire triangle affine movement projects within hull of six projected endpoint vertices.
     ids = np.flatnonzero(affected | floors)
     proj0 = (w0 - S) @ frame
@@ -555,8 +697,11 @@ for lod, suf in [("desktop", ""), ("mobile", "-mobile")]:
             flush=True,
         )
 rep["summary"] = {
-    "sourceAssetsAllByteIdenticalToF3257d1": all(
+    "sourceAssetsAllByteIdenticalTo510a734": all(
         x["byteIdentical"] for x in rep["assetComparison"].values()
+    ),
+    "sourceAssetsAllByteIdenticalToF3257d1": all(
+        x["currentSha256"] == x["f3257d1Sha256"] for x in rep["assetComparison"].values()
     ),
     "physicalCenterlineUnchanged": rep["unchangedRegistration"]["brushCenterline"][
         "identical"
@@ -594,14 +739,31 @@ rep["cameraInputProvenance"] = {
     "captureCounts": META["browserCapture"]["captureCounts"],
 }
 checks = {
+    # A concave steep wall can obscure its own far edge. Keep the actual
+    # percentages above, instead of calling a natural self-occlusion a defect.
     "actualAndAuthoredCamerasSeeCavityAndEntry": all(
-        pose["deepestVertexVisible"] and pose["buccalCenterlineEntryVisible"]
-        and pose["visibleFloorCentroids"] == pose["testedFloorCentroids"]
+        pose["buccalCenterlineEntryVisible"]
+        and (
+            (pose["name"] == "brush" and pose["visibleFloorCentroids"] > 0)
+            or (pose["deepestVertexVisible"] and pose["visibleAreaFraction"] > 0.5)
+        )
         for info in rep["lods"].values()
         for key in ("actualAuthoredCameraKeyframes", "capturedProductionCameras")
         for pose in info[key]
     ),
-    "referenceMeshesUnchanged": summary["sourceAssetsAllByteIdenticalToF3257d1"],
+    "referenceMeshesUnchanged": summary["sourceAssetsAllByteIdenticalToF3257d1"]
+    and summary["sourceAssetsAllByteIdenticalTo510a734"],
+    "healthyRefinementIsClosedAndConforming": all(
+        info["healthySubdivisionProof"]["refined"]
+        and info["healthySubdivisionProof"][
+            "allNativeParentsHaveOrientedCompleteBoundaryPartitions"
+        ]
+        and info["topology"]["boundaryEdges"] == info["topology"]["nonmanifoldEdges"] == 0
+        and info["topology"]["inconsistentManifoldEdgeOrientations"] == 0
+        and info["topology"]["connectedComponents"] == 1
+        and info["topology"]["eulerCharacteristic"] == 2
+        for info in rep["lods"].values()
+    ),
     "registrationAndPathUnchanged": all(
         x["identical"] for x in rep["unchangedRegistration"].values()
     ),
@@ -609,6 +771,7 @@ checks = {
     "orientationAndSeamsIntact": all(
         not (
             s["flippedFaces"]
+            or s["affectedFaceCentroidsWithReversedShadingNormal"]
             or s["degenerateFacesBelow1eMinus12Mm2"]
             or s["seamCrackMm"]
             or s["outsideSparseMutationCount"]

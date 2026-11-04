@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { BufferAttribute, BufferGeometry } from 'three';
+import { refineCavitySurface } from '../src/experience/cavity-surface.js';
 const publicURL=new URL('../public/',import.meta.url);
 const read=(path)=>readFile(new URL(path,publicURL));
 const json=async path=>JSON.parse(await read(path));
@@ -20,13 +22,24 @@ for(const [name,expected] of Object.entries(site.assetSha256)){
 for(const file of ['hero-36.glb','hero-36-mobile.glb']){
   const m=models[file];for(const [name,expected] of Object.entries(damage.sourceGeometrySha256)){const x=m[name];assert.equal(sha(Buffer.from(x.buffer,x.byteOffset,x.byteLength)),expected,`${file}/${name}`);}
 }
-const count=damage.indices.length, used=new Set(damage.indices);assert.equal(count,used.size);assert.equal(damage.vertexCount,27741);assert.equal(damage.triangleCount,55184);assert.equal(damage.fdi,36);assert.equal(damage.noncavitatedEarlyInfluence,0);
+const count=damage.indices.length, used=new Set(damage.indices);assert.equal(count,used.size);assert.equal(damage.refinement.sourceVertexCount,27741);assert.equal(damage.refinement.sourceTriangleCount,55184);assert.equal(damage.fdi,36);assert.equal(damage.noncavitatedEarlyInfluence,0);
 assert.ok(damage.indices.every(i=>Number.isInteger(i)&&i>=0&&i<damage.vertexCount));assert.ok(damage.positionDelta.length===3*count&&damage.normalDelta.length===3*count&&damage.region.length===4*count);assert.ok(damage.positionDelta.every(Number.isFinite)&&damage.normalDelta.every(Number.isFinite)&&damage.region.every(x=>x>=0&&x<=1));assert.ok(damage.audit.maximumMeasuredDepressionMm>=.5&&damage.audit.maximumMeasuredDepressionMm<=.8);assert.ok(damage.audit.matureSignedVolumeNominalMm3>0&&damage.audit.matureSignedVolumeNominalMm3<damage.audit.healthySignedVolumeNominalMm3);
 const brush=site.brush,line=brush.centerline,A=line[0].position,E=line.at(-1).position,length=norm(sub(E,A))*10,axis=sub(E,A).map(x=>x*10/length),env=brush.rigidEnvelope;assert.ok(Math.abs(length-brush.lengthMm)<1e-5);assert.ok(brush.dimensionsMm.wireRadius<env.continuousLowerBoundRadiusMm);assert.ok(brush.maxTipArcMm-brush.dimensionsMm.exposedHeadLength<=brush.maxFerruleNoseArcMm);assert.equal(brush.maxCurvaturePerMm,0);
 // Check the delivered deformation against its physical dimensions and ensure
 // the enlarged opening remains away from the cleaning corridor throughout.
 function verifyCavity(){
-  const surface=models['hero-36.glb'],matrix=site.displayedMatrixColumnMajor[36];
+  const base=models['hero-36.glb'],matrix=site.displayedMatrixColumnMajor[36];
+  const original=new BufferGeometry();
+  for(const [name,key,width] of [['position','POSITION',3],['normal','NORMAL',3],['uv','TEXCOORD_0',2],['tangent','TANGENT',4]]){
+    if(base[key])original.setAttribute(name,new BufferAttribute(base[key],width));
+  }
+  original.setIndex(new BufferAttribute(base.INDICES,1));
+  const refined=refineCavitySurface(original,damage);
+  for(const [name,attribute] of Object.entries(original.attributes)) {
+    assert.deepEqual(refined.getAttribute(name).array.subarray(0,attribute.array.length),attribute.array);
+  }
+  assert.equal(refined.index.count,damage.triangleCount*3);
+  const surface={POSITION:refined.getAttribute('position').array,INDICES:refined.index.array};
   const morphSlot=new Map(damage.indices.map((id,i)=>[id,i])),cache=new Map();
   const width=[],height=[],frame=site.lesion.basisWorld;
   function endpoint(id){
@@ -56,7 +69,8 @@ function verifyCavity(){
     if(floor>.55)bounds.exposedFloor=Math.min(bounds.exposedFloor,lower);
   }
   const extents=[width,height].map(v=>Math.max(...v)-Math.min(...v));
-  assert.ok(extents[0]>=1.5*1.393 && extents[0]<=2*1.393,'Opening width relative to f3257d1');
+  assert.ok(Math.abs(extents[0]-2.42503)<.035 && Math.abs(extents[1]-1.48051)<.035,
+    'Keep the approved 510a734 opening footprint while refining the rim');
   assert.ok(extents.every((v,k)=>Math.abs(v-damage.audit.displacedFootprintExtentMmAt5Microns[k])<1e-5));
   for(const [region,lower]of Object.entries(bounds)){
     assert.ok(Number.isFinite(lower)&&Math.abs(lower-damage.audit.wireSeparation[region].minimumRadiusMm)<2e-6);

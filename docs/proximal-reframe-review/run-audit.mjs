@@ -6,12 +6,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { Matrix4, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Matrix4, Vector3 } from 'three';
 import { createCleaningPath } from '../../src/experience/cleaning-path.js';
 import { createInterdentalBrush } from '../../src/experience/interdental-brush.js';
-import { createPlaque } from '../../src/experience/plaque.js';
+import { createMatureFilm } from '../film-review/mature-film.mjs';
 import { createStoryCameraConfig } from '../../src/experience/story-camera.js';
 import { experienceConfig } from '../../src/experience/config.js';
+import { refineCavitySurface } from '../../src/experience/cavity-surface.js';
 const here = path.dirname(fileURLToPath(import.meta.url)),
   root = path.resolve(here, '../..'),
   prv = await realpath(tmpdir()),
@@ -28,9 +29,91 @@ meta.poses = poses;
 const v = new Vector3(),
   im = new Matrix4(),
   wm = new Matrix4();
+
+/** Decode exactly the indexed hero attributes. This does not require a renderer,
+ * an image decoder, or a GPU context. Hash indices canonically as little-endian
+ * uint32 so index storage width cannot hide or manufacture a topology change. */
+function geometryFingerprint(geometry) {
+  const hash = (array) =>
+    createHash('sha256')
+      .update(Buffer.from(array.buffer, array.byteOffset, array.byteLength))
+      .digest('hex');
+  const result = {};
+  for (const [name, semantic] of Object.entries({
+    position: 'POSITION',
+    normal: 'NORMAL',
+    tangent: 'TANGENT',
+    uv: 'TEXCOORD_0',
+  }))
+    result[semantic] = hash(geometry.getAttribute(name).array);
+  result.INDICES = hash(Uint32Array.from(geometry.index.array));
+  return result;
+}
+
+function runtimeRefinement(bytes, damage) {
+  const length = bytes.readUInt32LE(12);
+  const header = JSON.parse(bytes.toString('utf8', 20, 20 + length));
+  const primitive = header.meshes[0].primitives[0];
+  const source = new BufferGeometry();
+  function accessor(index) {
+    const a = header.accessors[index],
+      view = header.bufferViews[a.bufferView];
+    const width = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }[a.type];
+    const Type = { 5123: Uint16Array, 5125: Uint32Array, 5126: Float32Array }[
+      a.componentType
+    ];
+    const step = Type.BYTES_PER_ELEMENT,
+      stride = view.byteStride ?? width * step;
+    const start = 28 + length + (view.byteOffset ?? 0) + (a.byteOffset ?? 0);
+    const output = new Type(a.count * width);
+    for (let i = 0; i < a.count; i++)
+      for (let j = 0; j < width; j++) {
+        const off = start + i * stride + j * step;
+        output[i * width + j] =
+          a.componentType === 5126
+            ? bytes.readFloatLE(off)
+            : step === 2
+              ? bytes.readUInt16LE(off)
+              : bytes.readUInt32LE(off);
+      }
+    return new BufferAttribute(output, width);
+  }
+  for (const [name, semantic] of Object.entries({
+    position: 'POSITION',
+    normal: 'NORMAL',
+    tangent: 'TANGENT',
+    uv: 'TEXCOORD_0',
+  }))
+    source.setAttribute(name, accessor(primitive.attributes[semantic]));
+  source.setIndex(accessor(primitive.indices));
+  const before = geometryFingerprint(source);
+  const result = refineCavitySurface(source, damage);
+  const after = geometryFingerprint(source);
+  if (JSON.stringify(before) !== JSON.stringify(after))
+    throw Error('Native hero attributes mutated');
+  const evidence = {
+    source: before,
+    refined: geometryFingerprint(result),
+    sourceUnchanged: true,
+  };
+  result.dispose();
+  source.dispose();
+  return evidence;
+}
+
 try {
+  const damage = await toJson('public/story-assets/caries-36.json');
+  meta.runtimeRefinement = {};
+  meta.matureFilmValidation = {};
+  meta.archOffsets = {
+    upper: experienceConfig.anatomy.upperOffset,
+    lower: experienceConfig.anatomy.lowerOffset,
+  };
   meta.authoredCameraProfiles = {};
-  for (const [lod, compact] of [['desktop', false], ['mobile', true]]) {
+  for (const [lod, compact] of [
+    ['desktop', false],
+    ['mobile', true],
+  ]) {
     const framing = createStoryCameraConfig(site, experienceConfig, { compact });
     meta.authoredCameraProfiles[lod] = framing.camera.keyframes
       .filter((frame) => ['lesion', 'result', 'brush'].includes(frame.key))
@@ -43,7 +126,10 @@ try {
           targetWorldCm: center.toArray(),
           direction: direction.toArray(),
           distanceCm: frame.distance,
-          cameraWorldCm: center.clone().addScaledVector(direction, frame.distance).toArray(),
+          cameraWorldCm: center
+            .clone()
+            .addScaledVector(direction, frame.distance)
+            .toArray(),
         };
       });
   }
@@ -55,6 +141,8 @@ try {
     'src/experience/interdental-brush.js',
     'src/experience/plaque.js',
     'src/experience/caries.js',
+    'src/experience/cavity-surface.js',
+    'docs/film-review/mature-film.mjs',
     'src/experience/story-camera.js',
     'src/experience/config.js',
   ])
@@ -65,8 +153,14 @@ try {
     ['desktop', false],
     ['mobile', true],
   ]) {
-    const brush = createInterdentalBrush({ path: guide, compact }),
-      plaque = createPlaque({ site, path: guide, compact });
+    const suffix = compact ? '-mobile' : '';
+    meta.runtimeRefinement[lod] = runtimeRefinement(
+      await readFile(path.join(root, `public/dentition-assets/hero-36${suffix}.glb`)),
+      damage,
+    );
+    const brush = createInterdentalBrush({ path: guide, compact });
+    const plaque = await createMatureFilm({ root, site, path: guide, compact });
+    meta.matureFilmValidation[lod] = plaque.report();
     const by = { nylon: [], wire: [], grip: [] };
     for (const m of brush.object.children)
       by[

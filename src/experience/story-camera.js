@@ -36,31 +36,31 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     space: region(space, new Vector3(0.35, 0.35, 0.49)),
     plaque: region(plaque, new Vector3(0.13, 0.19, 0.32)),
     detail: region(lesion, new Vector3(0.10, 0.14, 0.25)),
-    cleaning: region(cleaning, new Vector3(0.33, 0.21, 0.37)),
+    cleaning: region(cleaning, new Vector3(0.19, 0.13, 0.21)),
     result: region(result, new Vector3(0.11, 0.17, 0.27)),
   };
-  const brushDirection = adjustDirection(macro, -5, 8);
-  const resultDirection = adjustDirection(macro, -4, -1);
+  // Turn toward the side of the working head. Looking along the wire hides
+  // the filaments behind the grip. The cavity view stays on the 36 side
+  // of this angle to keep the proximal opening in view.
+  const brushDirection = adjustDirection(macro, settings.brushYawDegrees, settings.brushPitchDegrees);
+  const lesionDirection = adjustDirection(macro, settings.lesionYawDegrees, settings.lesionPitchDegrees);
   const specs = [
     ['hero', 0.045, 'hero', base.camera.directions.hero],
     ['neighbors', 0.145, 'neighbors', settings.neighborDirection],
     ['space', 0.21, 'space', spaceDirection, settings.spaceDistanceCm],
     ['plaque', 0.33, 'plaque', adjustDirection(macro, -4, 4), settings.plaqueDistanceCm],
-    ['lesion', 0.47, 'detail', adjustDirection(macro, settings.lesionYawDegrees, 0), settings.detailDistanceCm],
+    ['lesion', 0.47, 'detail', lesionDirection, settings.detailDistanceCm],
+    ['lesion-hold', 0.48, 'detail', lesionDirection, settings.detailDistanceCm],
     ['brush', 0.515, 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['withdrawn', 0.72, 'cleaning', brushDirection, settings.cleaningDistanceCm],
-    ['result', 0.76, 'result', resultDirection, settings.resultDistanceCm],
-    ['result-hold', 0.80, 'result', resultDirection, settings.resultDistanceCm],
+    ['result', 0.76, 'result', lesionDirection, settings.resultDistanceCm],
+    ['result-hold', 0.80, 'result', lesionDirection, settings.resultDistanceCm],
     ['neighbors-return', 0.835, 'neighbors', settings.neighborDirection],
     ['arch', 0.895, 'arch', base.camera.directions.arch],
     ['full', 0.96, finalView === 'anatomy' ? 'full' : 'smile',
-      finalView === 'anatomy' ? base.camera.directions.full : settings.smileDirection],
+      finalView === 'anatomy' ? base.camera.directions.full : settings.smileDirection,
+      finalView === 'anatomy' ? undefined : settings.smileDistanceCm],
   ];
   const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({ key, at, landmark, direction, distance }));
-  if(finalView === 'smile') {
-    const final=keyframes.at(-1);
-    final.padding=base.smileFraming.desktopPadding;
-    final.portraitPadding=base.smileFraming.portraitPadding;
-  }
   return { landmarks, camera: { ...base.camera, keyframes } };
 }

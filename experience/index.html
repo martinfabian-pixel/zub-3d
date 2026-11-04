@@ -32,7 +32,7 @@
         <p id="journey-hint">Posúvajte stránku alebo vyberte krok.</p>
       </section>
       <section class="view-shell" aria-label="Interaktívny 3D model">
-        <div id="journey-viewport">
+        <div class="journey-scene-area"><div id="journey-viewport">
           <canvas id="journey-canvas" tabindex="0" aria-label="3D model dolnej šestky s dvoma koreňmi" aria-describedby="journey-orbit-hint"></canvas>
           <div id="journey-status" role="status" aria-live="polite">
             <span class="loading-mark" aria-hidden="true"></span>
@@ -40,7 +40,7 @@
             <button id="journey-retry" class="outline-button" type="button" hidden>Skúsiť znova</button>
           </div>
         </div>
-        <div class="journey-context"><div id="journey-result-labels" aria-hidden="true"><span>Vyčistený povrch</span><span>Kaz vyžaduje ošetrenie</span></div><div id="journey-final-views" role="group" aria-label="Pohľad na chrup" hidden><button id="journey-view-smile" type="button" aria-pressed="true">Úsmev</button><button id="journey-view-anatomy" type="button" aria-pressed="false">Anatómia</button></div></div>
+        </div><div class="journey-context"><div id="journey-result-labels" aria-hidden="true"><span>Vyčistený povrch</span><span>Kaz vyžaduje ošetrenie</span></div><div id="journey-final-views" role="group" aria-label="Pohľad na chrup" hidden><button id="journey-view-smile" type="button" aria-pressed="true">Úsmev</button><button id="journey-view-anatomy" type="button" aria-pressed="false">Anatómia</button></div></div>
         <div id="journey-inspect">
           <div class="view-caption"><span class="view-status-dot" aria-hidden="true"></span><span id="journey-subject">Dolná ľavá prvá stolička</span></div>
           <div class="model-controls" role="group" aria-label="Ovládanie 3D modelu">

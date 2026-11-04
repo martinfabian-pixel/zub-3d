@@ -14,6 +14,9 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from refined_surface import expand_surface
+
 ROOT = HERE.parents[1]
 PUBLIC = ROOT / 'public'
 sys.path.insert(0, str(ROOT / 'scripts'))
@@ -116,7 +119,9 @@ for label, atlas_key, upper_key, lower_key in [
         source = entry['source']
         p, f = hero36 if source == 36 else hero26 if source == 26 else atlas[entry['node']]
         if fdi == 36:
-            p = p.copy()
+            attributes, f, refinement = expand_surface({'POSITION': p}, f, shape)
+            assert refinement['refined'], 'Expected new local FDI36 subdivision'
+            p = attributes['POSITION'].copy()
             p[shape['indices']] += np.array(shape['positionDelta'], dtype=p.dtype).reshape(-1, 3)
         matrix = np.asarray(entry['matrix']).reshape(4, 4).T
         offset = anatomy['upperOffset' if fdi < 30 else 'lowerOffset']
@@ -128,7 +133,8 @@ for label, atlas_key, upper_key, lower_key in [
     assert not certified['intersections'] and any(
         hit['teeth'] == [21, 31] for hit in challenge['intersections']
     ), (label, certified, challenge)
-    report['lods'][label] = {'configuredSweep': certified, 'positiveControl6.4Mm': challenge}
+    report['lods'][label] = {'configuredSweep': certified, 'positiveControl6.4Mm': challenge,
+                             'mature36Subdivision': refinement}
     print(label, certified, challenge, flush=True)
 
 (HERE / 'smile-closure.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf8')

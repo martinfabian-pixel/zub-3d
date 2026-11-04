@@ -1,5 +1,7 @@
 # Priame ovládanie, čitateľný kaz a záverečný úsmev
 
+> Archív implementácie `510a734`. Opis okrajového maskovania nižšie sa vzťahuje iba na túto staršiu verziu. Aktuálna prezentácia maskovanie úplne odstránila a používa skutočné fotografické rámovanie kamerou: [VISUAL_POLISH.md](VISUAL_POLISH.md).
+
 Úprava nadväzuje na aktuálny checkout `f3257d1`; nič sa nevracalo na staršiu verziu. Funkčný základ je uložený pod tagom `backup/before-controls-smile-2026-11-04`. Zachovaných je sedem kapitol, FDI 36, priestor 36–37, jedna scéna/kamera/canvas a 28 anatomických modelov. Nevznikla nová aplikácia ani dependency.
 
 ## Čo blokovalo ovládanie

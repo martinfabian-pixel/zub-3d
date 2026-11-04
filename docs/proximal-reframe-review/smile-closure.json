@@ -19,7 +19,7 @@
   "morph": {
     "tooth": 36,
     "influence": 1,
-    "sparseVertices": 202,
+    "sparseVertices": 1904,
     "geometrySha256": {
       "POSITION": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
       "NORMAL": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
@@ -48,6 +48,21 @@
             "coveredLowerVertices": 13
           }
         ]
+      },
+      "mature36Subdivision": {
+        "refined": true,
+        "originalAttributePrefixExact": true,
+        "nativeVertices": 27741,
+        "nativeFaces": 55184,
+        "newMidpoints": 4197,
+        "replacedNativeFaces": 611,
+        "replacementTriangles": 9005,
+        "refinedHealthyVertices": 31938,
+        "refinedHealthyFaces": 63578,
+        "unmodifiedNativeFaces": 54573,
+        "maxChildCoverageAreaRatioError": 0.0,
+        "maxHealthyPointOffsetFromParentMetres": 5.107701515890729e-10,
+        "allNativeParentsHaveOrientedCompleteBoundaryPartitions": true
       }
     },
     "mobile": {
@@ -69,11 +84,26 @@
             "coveredLowerVertices": 5
           }
         ]
+      },
+      "mature36Subdivision": {
+        "refined": true,
+        "originalAttributePrefixExact": true,
+        "nativeVertices": 27741,
+        "nativeFaces": 55184,
+        "newMidpoints": 4197,
+        "replacedNativeFaces": 611,
+        "replacementTriangles": 9005,
+        "refinedHealthyVertices": 31938,
+        "refinedHealthyFaces": 63578,
+        "unmodifiedNativeFaces": 54573,
+        "maxChildCoverageAreaRatioError": 0.0,
+        "maxHealthyPointOffsetFromParentMetres": 5.107701515890729e-10,
+        "allNativeParentsHaveOrientedCompleteBoundaryPartitions": true
       }
     }
   },
   "inputSha256": {
-    "story-assets/caries-36.json": "a321360aabd8556f106fe4cb9bb1e07a5343d209dc691117abe074d967ef5b5d",
+    "story-assets/caries-36.json": "6876faa5ff0a142973a935d7cfab11240780e0047187ff1e4541305d86950337",
     "dentition-assets/manifest.json": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
     "dentition-assets/dentition.glb": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
     "prototype-assets/molar.glb": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",

@@ -8,6 +8,7 @@ import hashlib,json
 import numpy as np
 import trimesh
 import prepare_dentition as dent
+from refine_cavity_surface import refine_patch
 
 ROOT=dent.ROOT;SRC=ROOT/'assets/source/proximal-story';OUT=ROOT/'public/story-assets'
 def rnd(x,d=8):return np.round(np.asarray(x,dtype=float),d).tolist()
@@ -37,18 +38,22 @@ def swept_distance_certificate(healthy,mature,f,face_mask,wire_start,wire_axis):
     bound=np.min(np.sum(radial*direction[:,None,:],axis=2))
     return {'triangles':len(selected),'minimumRadiusMm':round(float(bound),6)}
 
-def lesion_morph(g,site,wire):
+def lesion_morph(source,site,wire):
+    g,recipe=refine_patch(source,site,dent.norm)
     p,n,w,wn,f=g['p'],g['n'],g['worldMm'],g['worldN'],g['f'];M=g['M'];c=np.array(site['anchor36']['worldCm'])*10;frame=site['basisWorld'];u=np.asarray(frame['buccalLingualTangentBuccalPositive']);v=np.asarray(frame['occlusalGingivalTangentOcclusalPositive']);out=np.asarray(frame['outwardNormal']);r=w-c;x=r@u;y=r@v;z=r@out
     # A bounded asymmetric, non-circular opening. This is authored illustration,
     # not a scan finding, a disease rate or a simulation of tissue chemistry.
     angle=-.15
     xx=x*np.cos(angle)+y*np.sin(angle)
     yy=-x*np.sin(angle)+y*np.cos(angle)
-    U=(xx-.062*np.sin(3.1*yy))/1.32
-    V=(yy+.095*xx-.055*np.sin(3.3*xx))/.84
+    U=(xx-.062*np.sin(3.1*yy))/1.235
+    V=(yy+.095*xx-.055*np.sin(3.3*xx))/.755
     theta=np.arctan2(V,U)
     outline=1+.103*np.sin(3*theta+.42)+.059*np.cos(5*theta-.52)+.027*np.sin(7*theta+1.08)
     rr=np.hypot(U,V)/outline
+    # Keep the larger lobes of the original opening while resolving a few
+    # small scallops at the interface between enamel and exposed tissue.
+    rr+=.019*np.sin(12*theta+.58)*dent.smooth(.45,.76,rr)
     # Respect the surveyed brush envelope. A rising wall on the gingival side
     # opens toward the contact, while the passable cleaning corridor is intact.
     wire_start,wire_end=np.asarray(wire['path']['controlPointsWorldCm'])*10
@@ -56,18 +61,22 @@ def lesion_morph(g,site,wire):
     station=np.clip((w-wire_start)@wire_axis,0,np.linalg.norm(wire_end-wire_start))
     wire_distance=np.linalg.norm(w-wire_start-station[:,None]*wire_axis,axis=1)
     allowed=(abs(z)<.90)&((wn@out)>.50)
-    body=(1-dent.smooth(.15,1.0,rr))*allowed*dent.smooth(.68,.94,wire_distance)
-    # The floor is shallow toward one lateral lobe. A steeper shoulder on
-    # its opposite side breaks the symmetry without creating a reentrant mesh.
-    floor_shape=.96+.038*np.sin(3.3*xx+1.6*yy)+.023*np.sin(3.6*yy-.9*xx)
-    depth=.777*body*np.clip(floor_shape,.88,1.03)
+    # An asymmetric shoulder stays steep on the buccal side. The transition
+    # broadens on the other side and softens toward the cleaning corridor.
+    shoulder=.60+.085*np.cos(theta-.8)+.045*np.sin(3*theta-.3)
+    wall=(1-dent.smooth(shoulder,.981,rr))
+    basin=1-dent.smooth(.16,.92,rr)
+    body=(.71*wall+.29*basin)*allowed*dent.smooth(.69,.95,wire_distance)
+    texture=.49*np.sin(15*xx+5*yy+.8*np.sin(7*yy))+.29*np.cos(11*yy-8*xx)+.22*np.sin(19*yy+4*xx)
+    floor_shape=.962+.036*np.sin(3.3*xx+1.6*yy)+.023*np.sin(3.6*yy-.9*xx)
+    depth=.766*body*floor_shape+.019*texture*body*(1-dent.smooth(.42,.84,rr))
     # A single geometric displacement field is shared across every UV duplicate.
     _,first,inv=np.unique(np.round(p,12),axis=0,return_index=True,return_inverse=True);avg=np.zeros((len(first),3));np.add.at(avg,inv,wn);safe_normal=dent.norm(avg)[inv];depw=-safe_normal*depth[first][inv,None];delta=(depw/10)@np.linalg.inv(M[:3,:3]).T;end=p+delta
     bn=smooth_field(p,f);en=smooth_field(end,f);axis=np.cross(bn,en);cos=np.sum(bn*en,axis=1);rotated=n+np.cross(axis,n)+np.cross(axis,np.cross(axis,n))/np.maximum(1+cos[:,None],1e-9);newN=dent.norm(rotated);normal_delta=newN-n;normal_delta[np.linalg.norm(axis,axis=1)<1e-10]=0
-    chalk=(1-dent.smooth(.82,1.40,rr))*allowed
-    floor=(1-dent.smooth(.31,.90,rr))*allowed*dent.smooth(.68,.94,wire_distance)
-    rim=dent.smooth(.30,.65,rr)*(1-dent.smooth(.79,1.12,rr))*allowed*dent.smooth(.66,.88,wire_distance)
-    variation=np.clip(.54+.22*np.sin(xx*7.4+yy*4.1)+.10*np.cos(xx*4.1-yy*6.7),0,1)*chalk
+    chalk=(1-dent.smooth(.85,1.18,rr))*allowed
+    floor=(1-dent.smooth(shoulder-.07,.94,rr))*allowed*dent.smooth(.69,.95,wire_distance)
+    rim=dent.smooth(shoulder-.10,.84,rr)*(1-dent.smooth(.94,1.045,rr))*allowed*dent.smooth(.69,.91,wire_distance)
+    variation=np.clip(.52+.21*texture+.16*np.sin(6.4*xx+3.1*yy)+.11*np.cos(4.6*yy-2.2*xx),0,1)*chalk
     regions=np.stack([chalk,floor,rim,variation],axis=1);ids=np.flatnonzero((np.linalg.norm(delta,axis=1)>1e-12)|(np.linalg.norm(normal_delta,axis=1)>1e-7)|(chalk>1e-6));affected=np.flatnonzero(depth>.005)
     cross=lambda q:np.cross(q[f[:,1]]-q[f[:,0]],q[f[:,2]]-q[f[:,0]])
     base=cross(p);final=cross(end);flips=int((np.einsum('ij,ij->i',base,final)<=0).sum());mesh=trimesh.Trimesh(end*1000,f,process=True);assert flips==0 and mesh.is_watertight and mesh.is_winding_consistent and len(mesh.split())==1 and np.all(mesh.area_faces>1e-12)
@@ -75,6 +84,14 @@ def lesion_morph(g,site,wire):
     audit={'sourceVertexCount':len(p),'sourceTriangleCount':len(f),'sparseVertexCount':len(ids),'displacedVertexCount':len(np.flatnonzero(depth>1e-6)),'maximumMeasuredDepressionMm':float(depth.max()),'displacedFootprintExtentMmAt5Microns':[float(np.ptp(x[affected])),float(np.ptp(y[affected]))],'healthySignedVolumeNominalMm3':float(source_vol),'matureSignedVolumeNominalMm3':float(end_vol),'illustrativeTissueVolumeRemovedMm3':float(source_vol-end_vol),'flippedFaces':flips,'watertightAfterUvWeld':bool(mesh.is_watertight),'consistentWinding':bool(mesh.is_winding_consistent),'degenerateFaces':int(np.sum(mesh.area_faces<1e-12)),'components':len(mesh.split()),'outsidePatchPositionChangeMetres':0,'outsideOneRingNormalChange':0,'topologyAndUvsUnchanged':True}
     result={'schemaVersion':1,'fdi':36,'vertexCount':len(p),'triangleCount':len(f),'sourceSha256':{'desktop':g['sha'],'mobile':dent.sha((dent.OUT/'hero-36-mobile.glb').read_bytes())},'indices':ids.tolist(),'positionDelta':flat(delta[ids],11),'normalDelta':flat(normal_delta[ids],8),'region':flat(regions[ids],5),'units':'Sparse arrays correspond to original 36 vertex indices; local POSITION deltas in metres and relative NORMAL deltas. Fill every other entry with zero. Clone only mesh36 and use morphTargetsRelative=true; never modify shared mesh46.','regionChannels':['R: noncavitated chalky/rough enamel footprint','G: mature exposed floor weight','B: broken cavity margin weight','A: restrained authored tone breakup, multiplied by the lesion footprint'],'healthyInfluence':0,'noncavitatedEarlyInfluence':0,'matureInfluence':1,'audit':audit,'attribution':'Mandibular First Molar, University of Dundee School of Dentistry, CC BY 4.0. Hypothetical geometric cavity and region weights authored for ZUB-3D. No original disease label or measured patient lesion.'}
     result['sourceGeometrySha256']=json.loads((dent.OUT/'hero-36-provenance.json').read_text())['outputs']['hero-36.glb']['geometry_sha256']
+    result.update(schemaVersion=2,refinement=recipe,units='Relative position in original local metres; sparse indices address native vertices followed by local edge midpoints. Every new healthy vertex lies on a native face.')
+    result['materialFrame']={'originMetres':rnd(site['anchor36']['localMetres'],11),
+                             'uMmPerMetre':rnd(M[:3,:3].T@u*10,9),'vMmPerMetre':rnd(M[:3,:3].T@v*10,9),
+                             'profileRadiiMm':[1.235,.755],'rotationRadians':angle}
+    audit.update(sourceVertexCount=len(source['p']),sourceTriangleCount=len(source['f']),
+                 refinedVertexCount=len(p),refinedTriangleCount=len(f),
+                 addedVertices=len(p)-len(source['p']),replacedNativeFaces=len(recipe['replacedFaces']),
+                 healthyShapePreservedByLinearSubdivision=True,topologyAndUvsUnchanged=False)
     mature=dent.affect(M,end)*10
     displacement=np.linalg.norm(mature-w,axis=1)
     masks={'anyDisplacement':displacement[f].max(axis=1)>1e-6,
@@ -91,8 +108,22 @@ def patch(g,fdi,origin,axis,L,reference,exclusion=None):
     p,n,uv,f,w,N=g['p'],g['n'],g['uv'],g['f'],g['worldMm'],g['worldN'];project=np.clip((w-origin)@axis,0,L);radial=w-(origin+project[:,None]*axis);distance=np.linalg.norm(radial,axis=1);occl=np.array(reference['basisWorld']['occlusal']);distal=np.array(reference['basisWorld']['36DistalToward37']);toward=distal if fdi==36 else -distal
     sc=7.05 if fdi==36 else 6.38;U=(project-sc)/(2.95 if fdi==36 else 2.70);V=(radial@occl-.12-.085*np.sin(3*U))/.96;theta=np.arctan2(V,U);rr=np.sqrt(U*U+V*V)/(1+.095*np.sin(3*theta+.47)+.044*np.cos(5*theta-.58))
     facing=N@toward;eligible=(distance<1.65)&(facing>.46);weight=(1-dent.smooth(.70,1.06,rr))*eligible
+    if fdi==36:
+        # A low-density cervical extension follows the exposed distal/buccal
+        # flank. It remains where the physical filament envelope ends.
+        buccal=(project-4.28)/1.55
+        level=-.28-.54*(1-dent.smooth(2.85,5.15,project))-.08*np.sin(2.8*(project-3.4))
+        half_height=.32+.10*dent.smooth(3.1,5.1,project)
+        extension=np.hypot(buccal,(radial@occl-level)/half_height)
+        strength=.33+.18*dent.smooth(3.15,5.25,project)
+        local_surface=(distance<2.62)&(facing>.39)
+        original_weight=np.round(weight,5)
+        weight=np.maximum(weight,strength*(1-dent.smooth(.45,1.025,extension))*local_surface)
+        deposition_weight=original_weight+.43*(np.round(weight,5)-original_weight)
     keep=f[np.max(weight[f],axis=1)>.0001];ids,fi=np.unique(keep,return_inverse=True);faces=fi.reshape(-1,3);assert len(ids)>15 and len(faces)>14
     q={'fdi':fdi,'positions':flat(p[ids],10),'normals':flat(n[ids],7),'uv':flat(uv[ids],7),'indices':faces.ravel().tolist(),'sourceVertexIndices':ids.tolist(),'pathDistanceMm':flat(distance[ids],5),'nearestArcMm':flat(project[ids],5),'edgeWeight':flat(weight[ids],5),'lesionExclusion':flat(np.zeros(len(ids)) if exclusion is None else exclusion[ids],5)}
+    if fdi==36:
+        q['depositionWeight']=flat(deposition_weight[ids],5)
     m=weight[ids]>.05;q['audit']={'vertices':len(ids),'triangles':len(faces),'positiveWeightVertices':int(m.sum()),'withinFreeBristleEnvelope':int(np.sum(m&(distance[ids]<=.60))),'outsideFreeBristleEnvelope':int(np.sum(m&(distance[ids]>.60))),'positiveWeightDistanceRangeMm':rnd([distance[ids][m].min(),distance[ids][m].max()],5),'maximumPlaqueOffsetMmSuggested':.04};assert q['audit']['withinFreeBristleEnvelope']>0 and q['audit']['outsideFreeBristleEnvelope']>0
     return q
 

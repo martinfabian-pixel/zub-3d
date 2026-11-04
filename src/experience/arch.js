@@ -121,29 +121,32 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   }
   function setProgress(p){setState(sampleDentalStory(p,sampled));}
   const selection=(filter)=>[...teeth.values()].filter(filter).map((i)=>i.entry.fdi===config.anatomy.hero?i.mesh:i.proxy);
-  // Measure the six anterior crowns of each arch in their final position.
-  // Responsive lens padding includes more of the premolars on a wide screen.
-  // Every intact molar and every root still renders.
-  // These are framing measurements from the native exterior, not cut planes.
+  // Center the frontal lens on the native anterior crowns in their final
+  // pose. A landscape sensor crops the photograph; all original surfaces
+  // continue to render fully opaque and remain available in Anatomy.
   let smileBounds;
   function measureSmile() {
     if(smileBounds)return smileBounds;
-    const bounds=[],p=new THREE.Vector3();
+    const crowns=new THREE.Box3(),p=new THREE.Vector3();
     for(const item of teeth.values()) {
       if(!item.mesh||item.entry.fdi%10>3)continue;
       const cervicalHeight=item.entry.cervicalRing.reduce((sum,point)=>sum+point[1],0)/item.entry.cervicalRing.length;
-      const positions=item.mesh.geometry.attributes.position,box=new THREE.Box3();
+      const positions=item.mesh.geometry.attributes.position;
       const matrix=item.mesh.matrix.clone();
       matrix.elements[13]=item.matrix.elements[13]-(item.upper?config.anatomy.smileClosureCm:0);
       for(let i=0;i<positions.count;i++) {
         if(positions.getY(i)<cervicalHeight)continue;
-        box.expandByPoint(p.fromBufferAttribute(positions,i).applyMatrix4(matrix));
+        crowns.expandByPoint(p.fromBufferAttribute(positions,i).applyMatrix4(matrix));
       }
-      if(!box.isEmpty())bounds.push(box);
     }
-    if(!bounds.length)throw new Error('The smile composition needs the anterior crown meshes.');
-    smileBounds=bounds;
-    return bounds;
+    if(crowns.isEmpty())throw new Error('The smile composition needs the anterior crown meshes.');
+    const center=crowns.getCenter(new THREE.Vector3());
+    center.y+=0.04; // Bias the composition toward the maxillary incisors.
+    // This focus region also keeps the two central pairs within the field
+    // when the user inspects the final scene on a very narrow canvas.
+    const halfExtent=new THREE.Vector3(0.89,0.37,0.015);
+    smileBounds=new THREE.Box3(center.clone().sub(halfExtent),center.clone().add(halfExtent));
+    return smileBounds;
   }
   const landmarks={
     hero:()=>teeth.get(config.anatomy.hero).mesh,

@@ -1,0 +1,38 @@
+{
+  "productionEntry": "/assets/main-ewRyFOB0.js",
+  "sourceSha256": {
+    "public/story-assets/site.json": "3809454a56a7478bcbae82986eea9be5c66f8c4b40f81b001a4fc3b2f8511ffc",
+    "public/story-assets/caries-36.json": "6876faa5ff0a142973a935d7cfab11240780e0047187ff1e4541305d86950337",
+    "src/experience/plaque.js": "87a14af0ef84674b729e763b9b57a9bb553793af5767043c209dac51d2a98114",
+    "src/experience/interdental-brush.js": "20410bc5f1d3536badada53fff4d110f8fd15992b42771834416463a55cba27e",
+    "src/experience/config.js": "47cf1e38af9e636e0a02690d5ece0259b45e3cf4db258f35861af45772a98e1b",
+    "src/experience/caries.js": "15aee30037fa4caf846991fa37616322b6a8e0a699e049e0cda405f32707fed4",
+    "src/experience/cleaning-path.js": "da62cd7f324bd2ff8fbd96c01bcd5f5ffad596e83f8d3990e6482adaaa6a1288",
+    "docs/film-review/before.jpg": "5dbfa4a3d9fffabb63f549564213cc8934c988197fb971287efc4a99eb9803a4",
+    "docs/film-review/after.jpg": "cb54e9bbbf76f344b515af709c753073de7b4bd56ebe3b584b83cb7d3266a7ba"
+  },
+  "viewportCssPx": [
+    390,
+    844
+  ],
+  "canvasCssPx": [
+    376,
+    521
+  ],
+  "drawingBufferPx": [
+    752,
+    1042
+  ],
+  "photographConditions": "Two unscaled crops from the same live WebGL camera, at native scroll p=0.76. The detached drawing canvas copied a rectangle of identical size from each rendered frame. Both have full deposition and the same mature morph. Only swept cleaning progress differs, 0 vs 1.",
+  "pixelDiagnostic": {
+    "threshold": "Maximum RGB channel change >=4 of 255, at drawing-buffer resolution",
+    "changedPixels": 1230,
+    "changedRegionCssPx": [
+      17.5,
+      26
+    ]
+  },
+  "shaderErrors": 0,
+  "geometryAudit": "../proximal-reframe-review/independent-geometry.json",
+  "sourceHashPolicy": "SHA256 refers to the exact staged Git blobs: LF-normalized source text, byte-preserved published data and binary photographs. Served bundle and captures were measured from the same source semantics."
+}

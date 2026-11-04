@@ -36,7 +36,7 @@ export async function restingRaster(page) {
     const a=window.__dentalExperience,c=document.querySelector('#journey-canvas'),start=performance.now();let frame=-1,since=start;
     function observe(now){const next=a.renderer.info.render.frame,ratio=a.renderer.getPixelRatio();
       if(next!==frame||ratio!==a.profile.pixelRatio||a.report().view?.returning){frame=next;since=now;}
-      if(now-since>=250){resolve({frame,dpr:ratio,buffer:[c.width,c.height],idleMs:now-since});return;}
+      if(now-since>=250){resolve({frame,dpr:ratio,fullDpr:a.profile.pixelRatio,buffer:[c.width,c.height],idleMs:now-since});return;}
       if(now-start>6500){reject(new Error('Renderer did not reach its resting pixel ratio / still frame.'));return;}
       requestAnimationFrame(observe);
     }
@@ -70,27 +70,27 @@ export async function projectedFootprints(page) {
   });
 }
 
-export async function compareSmileBand(page,masked,unmasked) {
-  return page.evaluate(async({masked,unmasked})=>{
-    const app=window.__dentalExperience,cam=app.rig.camera,v=cam.position.clone();let lo=Infinity,hi=-Infinity;
-    for(const fdi of [11,21,31,41]){const item=app.arch.teeth.get(fdi);for(const point of item.entry.cervicalRing){
-      v.fromArray(point);if(item.entry.reflected)v.x*=-1;v.applyMatrix4(item.mesh.matrixWorld).project(cam);
-      const y=(1-v.y)/2;if(fdi<30)lo=Math.min(lo,y);else hi=Math.max(hi,y);
-    }}
-    async function decode(s){const im=await createImageBitmap(new Blob([Uint8Array.from(atob(s),c=>c.charCodeAt(0))],{type:'image/png'}));
-      const canvas=new OffscreenCanvas(im.width,im.height),c=canvas.getContext('2d');c.drawImage(im,0,0);im.close();return c.getImageData(0,0,canvas.width,canvas.height);}
-    const a=await decode(masked),b=await decode(unmasked);if(a.width!==b.width||a.height!==b.height)throw new Error('Canvas size changed between matched smile frames.');
-    let centralPixels=0,centralChanged=0,centralPeak=0,edgePixels=0,edgeLightened=0;
-    for(let y=4;y<a.height-4;y++)for(let x=4;x<a.width-4;x++){const k=(y*a.width+x)*4;
-      if(Math.min(b.data[k],b.data[k+1],b.data[k+2])>244)continue; // compare tooth pixels, not the white margin
-      const changes=[a.data[k]-b.data[k],a.data[k+1]-b.data[k+1],a.data[k+2]-b.data[k+2]];
-      if(y>lo*a.height+3&&y<hi*a.height-3){centralPixels++;const d=Math.max(...changes.map(Math.abs));centralPeak=Math.max(centralPeak,d);if(d>5)centralChanged++;}
-      if(y<lo*a.height-3||y>hi*a.height+3){edgePixels++;if(changes.reduce((u,n)=>u+n,0)>18)edgeLightened++;}
+// Check every layer between the canvas and document. A mask, filter, clip
+// path, fog or material clipping plane could otherwise imitate a camera crop.
+export async function opticalState(page) {
+  return page.evaluate(()=>{
+    const app=window.__dentalExperience,canvas=app.renderer.domElement;
+    const effects=[];
+    for(let n=canvas;n;n=n.parentElement){
+      const s=getComputedStyle(n);
+      if(s.maskImage!=='none'||s.clipPath!=='none'||s.filter!=='none'||Number(s.opacity)!==1)
+        effects.push({element:n.id||n.tagName,mask:s.maskImage,clip:s.clipPath,filter:s.filter,opacity:s.opacity});
     }
-    return {width:a.width,height:a.height,opaqueCervicalBandNormalized:[lo,hi],centralToothPixels:centralPixels,centralChangedOver5:centralChanged,
-      centralPeak,edgeToothPixels:edgePixels,edgeLightened,centralChangedFraction:centralChanged/Math.max(1,centralPixels),edgeLightenedFraction:edgeLightened/Math.max(1,edgePixels),
-      scope:'Matched actual PNGs, same camera before/after free-mode release, central-incisor cervical band with 3 px boundary margin; edge count is not removed tooth geometry.'};
-  },{masked:masked.toString('base64'),unmasked:unmasked.toString('base64')});
+    let clippingPlanes=app.renderer.clippingPlanes?.length??0, translucentTeeth=0;
+    for(const {mesh} of app.arch.teeth.values()){
+      if(!mesh?.visible)continue;
+      for(const mat of Array.isArray(mesh.material)?mesh.material:[mesh.material]){
+        clippingPlanes+=mat.clippingPlanes?.length??0;
+        if(mat.opacity!==1||mat.transparent)translucentTeeth++;
+      }
+    }
+    return {effects, fog:app.scene.fog?.type??(app.scene.fog?'present':null),clippingPlanes,translucentTeeth};
+  });
 }
 
 export async function mouseDrag(page,dx,dy) {

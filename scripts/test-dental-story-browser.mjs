@@ -7,14 +7,14 @@ import { createReadStream } from 'node:fs';
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
 import { DENTAL_CHAPTERS as chapters } from '../src/experience/story-config.js';
-import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, compareSmileBand, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
+import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const site = new URL(process.env.DENTAL_STORY_TEST_URL || process.env.EXPERIENCE_TEST_URL || 'http://127.0.0.1:4173/');
 if (!['localhost', '127.0.0.1', '[::1]'].includes(site.hostname) || !['http:', 'https:'].includes(site.protocol)) throw new Error('Use a loopback HTTP(S) preview URL.');
 if (!site.pathname.endsWith('/')) site.pathname += '/';
-const out = resolve(process.env.DENTAL_STORY_REVIEW_DIR || 'docs/interaction-review');
+const out = resolve(process.env.DENTAL_STORY_REVIEW_DIR || 'docs/visual-polish-review');
 const perfOnly=process.env.DENTAL_STORY_BENCHMARK_ONLY==='1';
 const prefixOnly=process.env.DENTAL_STORY_PREFIX_ONLY==='1';
 await mkdir(out, { recursive: true });
@@ -112,7 +112,8 @@ async function read(page) {
   });
 }
 async function saveView(page,label,p,index,expected,base) {
-  await scroll(page,p);const s=await read(page);
+  await scroll(page,p);const raster=await restingRaster(page),s=await read(page);
+  s.raster=raster;s.optics=await opticalState(page);
   if(/^(desktop|mobile)-(hero|caries|brush|full)$/.test(label)){
     const {matrices,...footprint}=await projectedFootprints(page);s.projectedFootprint=footprint;
   }
@@ -124,6 +125,8 @@ async function saveView(page,label,p,index,expected,base) {
     let body=0,n=0;for(let y=Math.max(0,Math.ceil(b.top+3));y<Math.min(o.height,b.bottom-3);y+=3)for(let x=Math.max(0,Math.ceil(b.left+3));x<Math.min(o.width,b.right-3);x+=3){const k=4*(o.width*y+x);if(Math.min(a[k],a[k+1],a[k+2])<239)body++;n++;}return body/Math.max(n,1);}, {bytes:png.toString('base64'),b:s.layout.canvas});
   report.views.push({name:label,nonwhiteCanvasFraction:fraction,...s});
   const l=s.layout,b=l.canvas;
+  check(label+' settled frame uses full device profile with no mask, alpha filter, fog or clipping planes',
+    raster.dpr===raster.fullDpr&&!s.optics.effects.length&&s.optics.fog===null&&s.optics.clippingPlanes===0,{raster,optics:s.optics});
   check(label+' active chapter and nonblank WebGL',s.chapter===chapters[index].id&&s.canvasCount===1&&s.shaderErrors===0&&fraction>.012,{chapter:s.chapter,fraction,shaderErrors:s.shaderErrors});
   const normalize=t=>String(t||'').trim().replace(/\s+/g,' ');
   check(label+' educational chapter title matches its state',normalize(s.title)===normalize(chapters[index].title),s.title);
@@ -197,38 +200,42 @@ async function mobileInputs(ctx,page){
   report.mobileInput=evidence;
 }
 async function finalViews(page,label) {
-  await scroll(page,.98);await page.waitForTimeout(550);
-  const beforeRest=await cameraProbe(page),rested=await restingRaster(page);
-  const smile=await cameraProbe(page),smileProjection=await projectedFootprints(page);
-  const masked=await page.locator(q).screenshot({scale:'css',animations:'disabled'});
-  await page.locator('#journey-explore').click();await page.waitForTimeout(220);const freeRest=await restingRaster(page),freeSmile=await cameraProbe(page);
-  const unmasked=await page.locator(q).screenshot({scale:'css',animations:'disabled'});
-  const band=await compareSmileBand(page,masked,unmasked);
-  const matched={beforeRest,rested,smile,freeRest,freeSmile};
-  if(band.centralChangedFraction>=.002){await writeFile(resolve(out,label+'-debug-masked.png'),masked);await writeFile(resolve(out,label+'-debug-unmasked.png'),unmasked);await writeFile(resolve(out,label+'-debug-raster.json'),JSON.stringify(matched,null,2));}
-  check(label+' matched smile images use same full-resolution drawing buffer, camera and aperture size',rested.dpr===freeRest.dpr&&equal(rested.buffer,freeRest.buffer)&&near(smile.raster.rect.width,freeSmile.raster.rect.width)&&
-    dist(smile.pos,freeSmile.pos)<1e-7&&angular(smile.quat,freeSmile.quat)<1e-7,matched);
-  check(label+' only the stationary smile gets photographic framing; entering Free 3D releases it',smile.computedMask.includes('gradient')&&free(freeSmile)&&freeSmile.computedMask==='none'&&dist(smile.pos,freeSmile.pos)<.004&&angular(smile.quat,freeSmile.quat)<.002);
-  check(label+' actual smile edge softens while central crowns stay opaque',band.centralToothPixels>100&&band.centralChangedFraction<.002&&band.edgeLightenedFraction>.05,band);
-  await page.locator('#journey-explore').click();await page.waitForTimeout(760);
+  await scroll(page,.98);await restingRaster(page);
+  const smile=await cameraProbe(page),smileProjection=await projectedFootprints(page),smileOptics=await opticalState(page);
+  const aspect=smile.raster.rect.width/smile.raster.rect.height,expectedAspect=label==='desktop'?2.70:2.32;
+  check(label+' frontal composition uses an actual wide camera viewport',near(aspect,expectedAspect,.025)&&
+    smile.computedMask==='none'&&!smileOptics.effects.length&&smileOptics.fog===null&&smileOptics.clippingPlanes===0&&smileOptics.translucentTeeth===0,
+    {aspect,expectedAspect,smileOptics});
+  await page.locator('#journey-explore').click();await restingRaster(page);
+  const freeSmile=await cameraProbe(page);
+  check(label+' Free 3D expands the actual camera viewport at the frozen final chapter',free(freeSmile)&&
+    freeSmile.raster.rect.height>smile.raster.rect.height*1.2&&sameStory(freeSmile,smile)&&freeSmile.computedMask==='none',
+    {freeHeight:freeSmile.raster.rect.height,smileHeight:smile.raster.rect.height});
+  await page.locator('#journey-explore').click();await restingRaster(page);
   if(label==='mobile')await touchDrag(page.context(),page,60,0);else await mouseDrag(page,60,0);
-  const manuallyMoved=await cameraProbe(page);await page.locator('#journey-reset').click();await page.waitForTimeout(760);const afterReset=await cameraProbe(page);
-  check(label+' a default drag also releases framing; reset restores it',guided(manuallyMoved)&&manuallyMoved.computedMask==='none'&&afterReset.computedMask.includes('gradient'));
-  await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(720);
-  const anatomy=await cameraProbe(page),anatomyProjection=await projectedFootprints(page);
+  const manuallyMoved=await cameraProbe(page);await page.locator('#journey-reset').click();await restingRaster(page);
+  const afterReset=await cameraProbe(page);
+  check(label+' default drag moves the view without hiding tissue; reset restores the frontal orientation',
+    guided(manuallyMoved)&&manuallyMoved.computedMask==='none'&&angular(manuallyMoved.quat,smile.quat)>.02&&
+    angular(afterReset.quat,smile.quat)<.006&&near(afterReset.raster.rect.height,smile.raster.rect.height,.5));
+  await page.locator('#journey-view-anatomy').click();await restingRaster(page);
+  const anatomy=await cameraProbe(page),anatomyProjection=await projectedFootprints(page),anatomyOptics=await opticalState(page);
   await page.screenshot({path:resolve(out,label+'-anatomy.png'),scale:'css',animations:'disabled'});
-  check(label+' final smile and anatomical overview both retain all 28 surfaces',smile.finalView==='smile'&&anatomy.finalView==='anatomy'&&equal(smile.story.visible,allFDI)&&equal(anatomy.story.visible,allFDI));
+  check(label+' final smile and anatomical overview both retain all 28 opaque surfaces',smile.finalView==='smile'&&anatomy.finalView==='anatomy'&&equal(smile.story.visible,allFDI)&&equal(anatomy.story.visible,allFDI)&&anatomyOptics.translucentTeeth===0);
   check(label+' smile translates upper arch only; lower and tooth morphology stay fixed',near(smile.closureCm,.58,.0005)&&near(anatomy.closureCm,0,.0005)&&allFDI.every(fdi=>{
     const a=anatomyProjection.matrices[fdi],s=smileProjection.matrices[fdi];return a.every((v,i)=>near(v-s[i],fdi<30&&i===13?.58:0,1e-5));})&&smile.story.influence===1&&anatomy.story.influence===1);
-  check(label+' anatomy view includes the intact roots and both arches without a mask',anatomy.computedMask==='none'&&anatomyProjection.geometry?.clipped===0,{mask:anatomy.computedMask,bounds:anatomyProjection.geometry});
-  await page.locator('#journey-view-smile').click();await page.waitForTimeout(720);const restored=await cameraProbe(page);
-  check(label+' returning to smile reproduces frontal pose',restored.finalView==='smile'&&near(restored.closureCm,smile.closureCm,.0005)&&dist(smile.pos,restored.pos)<.008&&angular(smile.quat,restored.quat)<.006);
-  (report.finalViews??=[]).push({label,smile:smileProjection,anatomy:anatomyProjection,photoBand:band,comparisonRaster:{beforeRest:beforeRest.raster,rested,freeRest},clearInFree:freeSmile.computedMask,clearAfterDrag:manuallyMoved.computedMask});
+  check(label+' Anatomy expands the viewport and fits both whole arches',anatomy.raster.rect.height>smile.raster.rect.height*1.2&&anatomyProjection.geometry?.clipped===0&&
+    !anatomyOptics.effects.length&&anatomyOptics.fog===null&&anatomyOptics.clippingPlanes===0,{bounds:anatomyProjection.geometry,optics:anatomyOptics});
+  await page.locator('#journey-view-smile').click();await restingRaster(page);const restored=await cameraProbe(page);
+  check(label+' returning to smile reproduces frontal pose and viewport',restored.finalView==='smile'&&near(restored.closureCm,smile.closureCm,.0005)&&dist(smile.pos,restored.pos)<.008&&
+    angular(smile.quat,restored.quat)<.006&&near(restored.raster.rect.height,smile.raster.rect.height,.5));
+  (report.finalViews??=[]).push({label,smile:smileProjection,anatomy:anatomyProjection,aspect,expectedAspect,
+    smileOptics,anatomyOptics,smileHeight:smile.raster.rect.height,freeHeight:freeSmile.raster.rect.height,anatomyHeight:anatomy.raster.rect.height});
 }
 async function macroZoom(page,label) {
   await scroll(page,.475);await page.locator('#journey-reset').click();await page.waitForTimeout(580);
   const before=await projectedFootprints(page),state=await cameraProbe(page);
-  await page.locator('#journey-zoom-in').click();await page.locator('#journey-zoom-in').click();await page.waitForTimeout(350);
+  await page.locator('#journey-zoom-in').click();await page.locator('#journey-zoom-in').click();await restingRaster(page);
   const enlarged=await projectedFootprints(page),after=await cameraProbe(page);
   await page.screenshot({path:resolve(out,label+'-caries-macro.png'),scale:'css',animations:'disabled'});
   check(label+' two guided zoom steps enlarge the actual projected cavity floor',guided(after)&&sameStory(state,after)&&
@@ -239,7 +246,7 @@ async function macroZoom(page,label) {
 async function lightingHistory(page) {
   // Identical destination after a near/far jump: measuring only the camera
   // misses illumination accidentally calculated using the previous VIEW pose.
-  async function take(from){await scroll(page,from);await scroll(page,.475);await page.waitForTimeout(350);
+  async function take(from){await scroll(page,from);await scroll(page,.475);await restingRaster(page);
     return {state:await read(page),png:await page.locator(q).screenshot({scale:'css',animations:'disabled'})};}
   const a=await take(0),b=await take(.98);
   const pixels=await page.evaluate(async([aa,bb])=>{
@@ -257,7 +264,17 @@ async function desktop() {
   const {ctx,page}=await open();try {
     await goto(page);await ready(page);const base=await read(page), states={};
     for(const [name,p,i,fdi] of [...standard,...extra])states[name]=await saveView(page,'desktop-'+name,p,i,fdi,base);
-    check('Identical displaced native vertex at and after cleaning',states.caries.depthLocal>0&&['brush','result','full'].every(k=>near(states[k].depthLocal,states.caries.depthLocal,1e-12)));
+    check('Identical displaced refined floor vertex at and after cleaning',states.caries.depthLocal>0&&['brush','result','full'].every(k=>near(states[k].depthLocal,states.caries.depthLocal,1e-12)));
+    const recipe=JSON.parse(await readFile(new URL('../public/story-assets/caries-36.json',import.meta.url),'utf8'));
+    const bindings=await page.evaluate(()=>{const a=window.__dentalExperience,n=a.arch.teeth.get(36).mesh.geometry,h=a.arch.teeth.get(46).mesh.geometry;
+      const r=n.userData.lesionRefinement;return{vertices:n.attributes.position.count,faces:n.index.count/3,morphVertices:n.morphAttributes.position[0].count,sourceVertices:r?.sourceVertexCount,
+        sourceFaces:n.userData.lesionSourceIndex?.count/3,edgeMidpoints:r?.edgeMidpoints.length,healthy46HasRefinement:Boolean(h.userData.lesionRefinement),healthy46Vertices:h.attributes.position.count};});
+    report.refinedSurface=bindings;
+    check('Only 36 receives the fitted subdivision and sparse morph from the released recipe',
+      bindings.vertices===recipe.vertexCount&&bindings.faces===recipe.triangleCount&&bindings.morphVertices===recipe.vertexCount&&
+      bindings.sourceFaces===recipe.refinement.sourceTriangleCount&&bindings.sourceVertices===recipe.refinement.sourceVertexCount&&
+      bindings.vertices===bindings.sourceVertices+bindings.edgeMidpoints/2&&bindings.healthy46Vertices===bindings.sourceVertices&&
+      !bindings.healthy46HasRefinement&&states.caries.caries.sparseVertices===recipe.indices.length,bindings);
     check('Only the affected tooth owns caries attributes',states.caries.caries.sparseVertices>0&&states.caries.caries.fdi===36&&states.caries.healthyMolar.morphBuffers===0);
     check('Localized plaque removal progresses through working passes',states['brush-insert'].plaque.patches.some((x,i)=>states.brush.plaque.patches[i].currentWeightedRemoval>x.currentWeightedRemoval)&&states.result.plaque.patches.every((x,i)=>x.currentWeightedRemoval>=states.brush.plaque.patches[i].currentWeightedRemoval));
     check('All three brush instructions appear at their relevant physical phases',
@@ -284,21 +301,42 @@ async function desktop() {
     await finalViews(page,'desktop');
   }finally{await closeContext(ctx);}
 }
+async function adaptiveBuffers(page) {
+  await restingRaster(page);
+  const states=await page.evaluate(()=>{
+    const a=window.__dentalExperience,r=a.renderer,canvas=r.domElement;
+    const snapshot=()=>({dpr:r.getPixelRatio(),buffer:[canvas.width,canvas.height]});
+    const idle=snapshot();
+    a.adaptive.beginInteraction();const moving=snapshot();
+    // Feed deliberately slow frame intervals into the actual quality controller.
+    // This controlled branch test is separate from measured scroll timings.
+    for(let i=0;i<64;i++)a.adaptive.recordFrame(70);
+    const slow=snapshot();a.adaptive.endInteraction();
+    return {idle,moving,slow,profile:a.profile.pixelRatio,inputIntervalMs:70,inputCount:64};
+  });
+  states.restored=await restingRaster(page);
+  check('Compact still image renders at DPR 2 and interaction reduces the actual drawing buffer',
+    near(states.idle.dpr,2)&&near(states.profile,2)&&states.moving.dpr<=1.35&&states.moving.buffer[0]<states.idle.buffer[0],states);
+  check('Sustained slow input intervals lower the interaction buffer; ending interaction restores native sharpness',
+    states.slow.dpr<states.moving.dpr&&states.slow.buffer[0]<states.moving.buffer[0]&&near(states.restored.dpr,states.idle.dpr)&&equal(states.restored.buffer,states.idle.buffer),states);
+  report.adaptiveBuffers=states;
+}
 async function mobile() {
   const {ctx,page}=await open({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});try {
     await goto(page);await ready(page);const base=await read(page);
+    await adaptiveBuffers(page);
     for(const [n,p,i,f]of standard)await saveView(page,'mobile-'+n,p,i,f,base);
     const selector=page.locator('#journey-chapter-select');check('Compact chapter selector is visible and contains all seven destinations',await selector.isVisible()&&await selector.locator('option').count()===7);
     for(const i of [0,4,5,6]){await selector.selectOption({index:i});await at(page,chapters[i].at);check('Native mobile selector lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);}
     await macroZoom(page,'mobile');await mobileInputs(ctx,page);
     await finalViews(page,'mobile');
-    for(const [label,size]of [['landscape',{width:844,height:390}],['small-phone',{width:320,height:568}]]){
+    for(const [label,size]of [['phone-360',{width:360,height:780}],['landscape',{width:844,height:390}],['small-phone',{width:320,height:568}]]){
       await page.setViewportSize(size);await threeFrames(page);
       for(const [n,p,i,f]of standard){await saveView(page,label+'-'+n,p,i,f,base);}
     }
-    const warmCleanup=await page.evaluate(()=>{const a=window.__dentalExperience,r=a.renderer,c=document.querySelector('#journey-canvas'),before={...r.info.memory},maskBefore=c.style.maskImage;a.dispose();return {before,after:{...r.info.memory},disposed:a.report().disposed,maskBefore,maskAfter:c.style.maskImage};});
+    const warmCleanup=await page.evaluate(()=>{const a=window.__dentalExperience,r=a.renderer,area=document.querySelector('.journey-scene-area'),before={...r.info.memory},composedHeight=area.style.maxHeight;a.dispose();return {before,after:{...r.info.memory},disposed:a.report().disposed,composedHeight,restoredHeight:area.style.maxHeight};});
     check('Successfully rendered brush and full arch release tracked GPU resources on dispose',warmCleanup.before.geometries>1&&warmCleanup.before.textures>3&&warmCleanup.disposed&&warmCleanup.after.geometries===0&&warmCleanup.after.textures===0,warmCleanup);
-    check('Dispose clears the active final photographic framing',warmCleanup.maskBefore.includes('gradient')&&!warmCleanup.maskAfter,warmCleanup);
+    check('Dispose restores the native height of the photographic viewport',warmCleanup.composedHeight.endsWith('px')&&!warmCleanup.restoredHeight,warmCleanup);
     report.successfulSceneCleanup=warmCleanup;
   }finally{await closeContext(ctx);}
 }
@@ -344,7 +382,7 @@ async function malformedStoryOwnership() {
         triangles:m.geometry.index.count/3,morphs:m.geometry.morphAttributes.position?.length||0,
         frame:a.renderer.info.render.frame,camera:a.rig.camera.position.toArray(),target:a.rig.target.toArray(),bitmaps:window.__qaBitmapDisposals()};
     });
-    check('Injected malformed caries is rejected after 28 tooth objects transfer to the arch',corruptResponses===1&&fail.anatomyReady===true&&!fail.assetsReady&&fail.loadedTeeth===28&&/Caries asset does not match/.test(fail.error),fail);
+    check('Injected malformed caries is rejected after 28 tooth objects transfer to the arch',corruptResponses===1&&fail.anatomyReady===true&&!fail.assetsReady&&fail.loadedTeeth===28&&/Cavity refinement does not match|Caries asset does not match/.test(fail.error),fail);
     check('Upcoming-data failure keeps the native healthy hero and readable retry',fail.ready&&fail.upcoming&&fail.message.length>10&&equal(fail.visible,[36])&&fail.triangles===55184&&fail.morphs===0,fail);
     await page.locator('#journey-zoom-in').click();await threeFrames(page);
     const inspect=await page.evaluate(()=>{const a=window.__dentalExperience;return {frame:a.renderer.info.render.frame,camera:a.rig.camera.position.toArray(),target:a.rig.target.toArray(),errors:a.report().shaderErrors};});
@@ -499,7 +537,8 @@ try {
     rigidEnvelope:siteData.brush.rigidEnvelope,note:'Precomputed hard-tooth surface/path checks only; no gingiva is modelled. This run does not validate clinical fit.'};
   const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
   const auditedHashes=await Promise.all(['site.json','caries-36.json'].map(async n=>({name:n,expected:audit.changedStoryJson[n]?.currentSha256,actual:digest(await readFile(new URL('../public/story-assets/'+n,import.meta.url)))})));
-  check('Companion audit describes these exact enlarged-lesion data and unchanged source tooth assets',audit.summary.sourceAssetsAllByteIdenticalToF3257d1&&auditedHashes.every(x=>x.actual===x.expected),auditedHashes);
+  check('Companion audit describes these exact refined lesion data and unchanged source tooth assets',
+    audit.passed&&audit.checks.healthyRefinementIsClosedAndConforming&&audit.summary.sourceAssetsAllByteIdenticalTo510a734&&auditedHashes.every(x=>x.actual===x.expected),auditedHashes);
   check('Independent two-LOD tooth/brush sampling finds no hard-tissue crossings in the cleaning pose',audit.summary.all28HardToothPairsAcrossStagesAndLods===3780&&audit.summary.toothSelfOrPairHits===0&&audit.summary.toolVsMatureHardHits===0&&!audit.summary.anyFloorToolHit,audit.summary);
   const env=siteData.brush.rigidEnvelope;
   check('Documented wire diameter is within the conservative hard-tooth path bound',env.wireRadialMarginLowerBoundMm>0&&env.illustrativeWireDiameterMm<2*env.continuousLowerBoundRadiusMm,env);

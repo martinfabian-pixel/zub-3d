@@ -16,7 +16,7 @@ import { createInterdentalBrush } from './interdental-brush.js';
 import { createPlaque } from './plaque.js';
 import { createViewController } from './view-controller.js';
 import { createModelGestures } from './gestures.js';
-import { createSmileFraming } from './smile-framing.js';
+import { createViewportComposition } from './viewport-composition.js';
 import { chooseQuality, createAdaptiveQuality } from '../prototype/quality.js';
 import './style.css';
 
@@ -33,10 +33,11 @@ export function createExperience(configuration=experienceConfig) {
   const profile=chooseQuality(config);
   const query=new URLSearchParams(location.search), qa=query.has('qa'), clay=query.get('material')==='clay';
   let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
-  let site,caries,plaque,brush,path,view,framing,storyReady=false;
+  let site,caries,plaque,brush,path,view,composition,storyReady=false;
   const dentalState={brushPose:{}};
   sampleDentalStory(0,dentalState);
   let frame=0,renderedFrames=0,lastFrame=0,settleTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
+  let logicalWidth=0,logicalHeight=0,fittedRig=null;
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
   let inspectionProgress=0,manualProgress=0,manualChapter=null,finalView='smile';
   const finalTimelines={};let smileWeight=1,jawTransition=null;
@@ -150,7 +151,7 @@ export function createExperience(configuration=experienceConfig) {
     const teeth=arch?.report()??[];
     return {
       progress,storyProgress,sceneProgress:Number(canvas.dataset.sceneProgress),stage:canvas.dataset.stage,
-      ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,reducedMotion,view:view?.report(),
+      ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,reducedMotion,view:view?.report(),composition:composition?.report(),
       profile:profile.name,frames:renderedFrames,teeth,
       visibleTeeth:teeth.filter((t)=>t.loaded&&t.reveal>.00001).map((t)=>t.fdi),
       fullyVisibleTeeth:teeth.filter((t)=>t.loaded&&t.reveal>.99999).map((t)=>t.fdi),
@@ -170,8 +171,12 @@ export function createExperience(configuration=experienceConfig) {
       smileWeight=THREE.MathUtils.lerp(jawTransition.from,jawTransition.to,s);arch.setFinalView(finalView,smileWeight);
       if(t===1)jawTransition=null;
     }
+    const composing=composition?.update({progress:dentalState.sceneProgress,finalView,free:exploring,now,reducedMotion})??false;
+    // A changing photographic field changes the *real* canvas size. Apply its
+    // projection and drawing buffer before this render; the later observer
+    // sees an unchanged size and cannot clear a just-rendered frame.
+    resize();
     const changing=view?.update(now)??false;
-    const framingMoving=framing?.update({progress:dentalState.sceneProgress,finalView,free:exploring,modified:view.modified||view.active,camera:rig.camera,arch,now,reducedMotion})??false;
     if(lastFrame&&(interaction||changing||scrolling))adaptive.recordFrame(now-lastFrame);
     lastFrame=now;
     try {
@@ -181,18 +186,21 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
-    if(changing||interaction||jawTransition||framingMoving){adaptive.beginInteraction();requestRender();}
+    if(changing||interaction||jawTransition||composing){adaptive.beginInteraction();requestRender();}
     else if(!scrolling){adaptive.endInteraction();lastFrame=0;}
   }
   function resize() {
     if(disposed||!renderer)return;
     const width=canvas.clientWidth,height=canvas.clientHeight;
     if(!width||!height)return;
-    renderer.setSize(width,height,false);
+    const changed=width!==logicalWidth||height!==logicalHeight;
+    if(!changed&&fittedRig===rig)return;
+    if(changed){renderer.setSize(width,height,false);logicalWidth=width;logicalHeight=height;}
     if(!rig)return;
     // The canvas has its own real layout region. Copy and controls never
     // cover the object, so camera fitting uses its actual visible dimensions.
     rig.resize(width,height);
+    fittedRig=rig;
     applyState(exploring?inspectionProgress:dentalState.progress,true);
     setProgress(progress);
     requestRender();
@@ -202,7 +210,7 @@ export function createExperience(configuration=experienceConfig) {
     disposed=true;ready=false;listeners.abort();
     if(frame)cancelAnimationFrame(frame);frame=0;clearTimeout(settleTimer);
     releaseRendererLuts(renderer,scene);
-    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();framing?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();ui.dispose();
+    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();composition?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();ui.dispose();
     brush?.dispose();plaque?.dispose();caries?.dispose();
     const atlasOwned=arch?.ownsSource(atlas),upperOwned=arch?.ownsSource(upperMolar);
     if(arch)arch.dispose();else disposeObject(hero?.object);
@@ -243,7 +251,7 @@ export function createExperience(configuration=experienceConfig) {
       const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:config.camera});
       rig=createJourneyCamera({timeline,config,sampleOnly:true});
       view=createViewController({camera:rig.camera,config});view.setStoryPose(rig.pose);view.update();
-      framing=createSmileFraming({canvas,config});
+      composition=createViewportComposition({area:document.querySelector('.journey-scene-area'),viewport:document.querySelector('#journey-viewport'),settings:config.viewportComposition,compact:profile.compact});
       adaptive=createAdaptiveQuality({renderer,profile,requestRender,config});
       controls=createModelGestures({canvas,view,config,signal,
         onStart(){interaction=true;adaptive.beginInteraction();requestRender();},
@@ -260,7 +268,7 @@ export function createExperience(configuration=experienceConfig) {
       },{signal});
       ready=true;canvas.dataset.ready='true';canvas.dataset.profile=profile.name;canvas.dataset.revision=config.revision;
       resize();scroll=createScrollDriver({section,stage,onProgress:setProgress});
-      Object.assign(controller,{scene,renderer,rig,controls,view,arch,profile});
+      Object.assign(controller,{scene,renderer,rig,controls,view,arch,profile,adaptive});
       requestRender();
       // Give the hero an actual rendered frame before decoding the upcoming
       // atlas. Its compact shared maps are then prefetched without a scroll gate.
