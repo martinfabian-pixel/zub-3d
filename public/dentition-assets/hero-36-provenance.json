@@ -1,0 +1,122 @@
+{
+  "model": "Mandibular left first permanent molar, FDI 36 (LL6); reflected counterpart FDI 46",
+  "source": {
+    "source": 36,
+    "file": "mandibular_first_molar.glb",
+    "download": "https://www.teethatlas.com/models/mandibular_first_molar.glb",
+    "sha256": "763de453952e1f53843da89d8d9a4c03fb64dc325865c2197a5eaf09121dde87",
+    "title": "Mandibular First Molar",
+    "author": "University of Dundee, School of Dentistry (https://sketchfab.com/DundeeDental)",
+    "url": "https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6",
+    "license": "CC-BY-4.0"
+  },
+  "contributors": {
+    "creator": "Emily McDougall",
+    "contentExpert": "Dr. Andrew Mason",
+    "initial3DPreparation": "Mark Roughley",
+    "institution": "University of Dundee, School of Dentistry"
+  },
+  "license": "CC-BY-4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "geometry": {
+    "vertices": 27741,
+    "triangles": 55184,
+    "physicalRootBranches": 2,
+    "nativeTopologyRetained": true,
+    "deformationOrSubdivision": false,
+    "nativeAuthoredNormalsRetained": true,
+    "nativeUvsRetained": true,
+    "canonicalFrame": "Exactly the pre-decimation FDI_36 frame; local metres, +Y crown, +Z buccal. Apply existing manifest Matrix4 directly for FDI36 or reflected46.",
+    "bounds": [
+      -0.006337770639618351,
+      -0.013675363810953921,
+      -0.005710525930433967,
+      0.00619921011314787,
+      0.008002324932157245,
+      0.006010447975141525
+    ],
+    "watertightAfterUvWeld": true,
+    "windingConsistent": true,
+    "componentCount": 1,
+    "weldedVertices": 27594
+  },
+  "material": {
+    "opaque": true,
+    "transmission": 0,
+    "ior": 1.62,
+    "sourcePaintResolution": [
+      4096,
+      4096
+    ],
+    "normalTexture": "Source has native vertex normals but no baked normal texture or tangent accessor. Export includes a neutral 1\u00d71 RGB compatibility map and an orthogonal tangent basis calculated from original UV derivatives. No measured microsurface normal data is invented.",
+    "channels": {
+      "R": "Enamel mask; 0.2 mm inferred cervical transition.",
+      "G": "Absolute authored roughness.",
+      "B": "Source-painted tone variation centered at 0.5.",
+      "A": "40-ray geometric hemisphere visibility at nominal 0.65 mm range."
+    }
+  },
+  "outputs": {
+    "hero-36.glb": {
+      "bytes": 2630860,
+      "sha256": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+      "vertices": 27741,
+      "triangles": 55184,
+      "texture_size": 2048,
+      "parameterTextureSize": [
+        2048,
+        2048
+      ],
+      "normalTextureSize": [
+        1,
+        1
+      ],
+      "geometry_sha256": {
+        "POSITION": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+        "NORMAL": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+        "TANGENT": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+        "TEXCOORD_0": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+        "INDICES": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+      },
+      "rgba8_texture_memory_with_mips_mib": 21.333337148030598
+    },
+    "hero-36-mobile.glb": {
+      "bytes": 2076272,
+      "sha256": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2",
+      "vertices": 27741,
+      "triangles": 55184,
+      "texture_size": 1024,
+      "parameterTextureSize": [
+        1024,
+        1024
+      ],
+      "normalTextureSize": [
+        1,
+        1
+      ],
+      "geometry_sha256": {
+        "POSITION": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+        "NORMAL": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+        "TANGENT": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+        "TEXCOORD_0": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+        "INDICES": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+      },
+      "rgba8_texture_memory_with_mips_mib": 5.333337148030599
+    }
+  },
+  "protectedSha256Unchanged": {
+    "public/dentition-assets/manifest.json": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+    "public/dentition-assets/dentition.glb": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+    "public/dentition-assets/dentition-mobile.glb": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+    "assets/source/dentition/mandibular_first_molar.glb": "763de453952e1f53843da89d8d9a4c03fb64dc325865c2197a5eaf09121dde87",
+    "public/prototype-assets/molar.glb": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+    "public/prototype-assets/molar-mobile.glb": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+    "public/models/molar.glb": "45675707277663d56e52c4c5b95b064c5ce56cf93298605359362a4f57803679",
+    "public/models/molar-mobile.glb": "ed7bb4eb198ae8e4284d3b7d3d94457260a67b16dea42b67d04312edfaad221e"
+  },
+  "limitations": [
+    "Educational ZBrush reconstruction, not a raw microCT specimen or a clinically validated tooth.",
+    "Source colors, inferred tissue boundary, optics and nominal size are visualization approximations.",
+    "Both LODs retain the full source triangle count. Only the packed parameter resolution differs."
+  ]
+}

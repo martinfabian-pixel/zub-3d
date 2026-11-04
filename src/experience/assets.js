@@ -3,7 +3,7 @@ import { loadBinary } from '../prototype/binary.js';
 import { disposeObject } from './scene.js';
 
 export function assetURL(config, path) {
-  const url = new URL(path, document.baseURI);
+  const url = new URL(path, config.assetBaseURL ?? document.baseURI);
   url.searchParams.set('v', config.revision);
   return url.href;
 }

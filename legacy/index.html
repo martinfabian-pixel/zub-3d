@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="Interaktívny 3D model hornej prvej stoličky s tromi koreňmi. Projekt ZUB — fáza 1." />
+    <title>ZUB — horná prvá stolička</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <main id="viewer" aria-label="3D prehliadač hornej prvej stoličky s tromi koreňmi">
+      <canvas id="tooth-canvas" tabindex="0" aria-label="3D model hornej prvej stoličky s tromi koreňmi. Ťahaním otočíte model, kolieskom myši alebo roztiahnutím prstov zmeníte priblíženie. Šípky otáčajú model, plus a mínus menia priblíženie, kláves Home obnoví pohľad." aria-describedby="keyboard-help"></canvas>
+      <p id="keyboard-help" class="sr-only">Použite šípky na otáčanie, plus a mínus na priblíženie a kláves Home na obnovenie pohľadu.</p>
+      <div id="status" class="status" role="status" aria-live="polite">
+        <span class="loading-ring" aria-hidden="true"></span>
+        <span id="status-message">Načítavam 3D model…</span>
+        <button id="retry" type="button" hidden>Skúsiť znova</button>
+      </div>
+      <div id="controls" class="controls" role="group" aria-label="Ovládanie 3D modelu" hidden>
+        <button id="zoom-in" type="button" title="Priblížiť" aria-label="Priblížiť">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+        <button id="zoom-out" type="button" title="Oddialiť" aria-label="Oddialiť">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14" /></svg>
+        </button>
+        <span class="control-divider" aria-hidden="true"></span>
+        <button id="reset-view" type="button" title="Obnoviť pohľad" aria-label="Obnoviť pôvodný pohľad">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 9a8 8 0 1 1 .2 6.5M4.5 4.5V9H9" /></svg>
+        </button>
+      </div>
+      <a class="model-credit" href="../models/credits.txt" target="_blank" rel="noopener" title="Pôvod modelu, licencia a úpravy">Model: University of Dundee · CC BY 4.0</a>
+      <noscript><p class="status">Na zobrazenie 3D modelu zapnite JavaScript.</p></noscript>
+    </main>
+    <script type="module" src="../src/main.js"></script>
+  </body>
+</html>

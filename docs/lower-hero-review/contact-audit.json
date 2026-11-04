@@ -1,0 +1,79 @@
+{
+  "manifest_sha256": "7c98675ae580281dbeb43254af144f96693fe6a9d060726c0e22431e43cd8a5c",
+  "asset_sha256": {
+    "public\\dentition-assets\\dentition.glb": "d02b3ea84f420fd67948ad511d193dc7c73f4d06498f82952e48d7d6838d3894",
+    "public\\prototype-assets\\molar.glb": "2d746a74e34014f3bb6f0f24a9f9b3a3b5f49316266052249970104473471190",
+    "public\\dentition-assets\\dentition-mobile.glb": "c80bcf8da57eaf24207ccff89e19e1d2e98985670cacad0abbf50af57bcf5533",
+    "public\\prototype-assets\\molar-mobile.glb": "b947492f41f468c179506c117c6004a3704a34b674005ec3c8a888a6cffd11d2",
+    "public\\dentition-assets\\hero-36.glb": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+    "public\\dentition-assets\\hero-36-mobile.glb": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2"
+  },
+  "matrix_selected": {
+    "11": "sourceMatrix",
+    "12": "sourceMatrix",
+    "13": "sourceMatrix",
+    "14": "sourceMatrix",
+    "15": "sourceMatrix",
+    "16": "sourceMatrix",
+    "17": "sourceMatrix",
+    "21": "sourceMatrix",
+    "22": "sourceMatrix",
+    "23": "sourceMatrix",
+    "24": "sourceMatrix",
+    "25": "sourceMatrix",
+    "26": "sourceMatrix",
+    "27": "sourceMatrix",
+    "31": "sourceMatrix",
+    "32": "sourceMatrix",
+    "33": "sourceMatrix",
+    "34": "sourceMatrix",
+    "35": "sourceMatrix",
+    "36": "sourceMatrix",
+    "37": "sourceMatrix",
+    "41": "sourceMatrix",
+    "42": "sourceMatrix",
+    "43": "sourceMatrix",
+    "44": "sourceMatrix",
+    "45": "sourceMatrix",
+    "46": "sourceMatrix",
+    "47": "sourceMatrix"
+  },
+  "triangle_counts": {
+    "desktop": 658384,
+    "mobile": 422384
+  },
+  "lower_hero_fdi": [
+    36,
+    46
+  ],
+  "verified_manifest_matrix_equals_raw_seating_plus_clearance": true,
+  "method": "Exactly shipped GLB positions and indexed triangles. Reused entire previous LOD cohort, replacing 36 and 46 by the canonical lower hero for this LOD, same native approved upper hero at 16/26. Applied sourceMatrix, verified saved clearance once, then presentation opening +0.32/-0.48 cm. All 182 same-arch and 196 opposite-arch pairs checked separately for desktop/mobile by Blender BVH at epsilon zero. No offsets solved and no artefacts altered.",
+  "results": {
+    "desktop": {
+      "pairs_tested": {
+        "same_arch": 182,
+        "opposing_arch": 196
+      },
+      "intersections": [],
+      "lower_hero_nearest_contact_gap_upper_bounds_mm": {
+        "35-36": 0.011727563105523586,
+        "36-37": 0.20203566178679466,
+        "45-46": 0.011741005582734942,
+        "46-47": 0.012079046573489904
+      }
+    },
+    "mobile": {
+      "pairs_tested": {
+        "same_arch": 182,
+        "opposing_arch": 196
+      },
+      "intersections": [],
+      "lower_hero_nearest_contact_gap_upper_bounds_mm": {
+        "35-36": 0.01197282806970179,
+        "36-37": 0.20184865221381187,
+        "45-46": 0.010771013330668211,
+        "46-47": 0.010371943935751915
+      }
+    }
+  }
+}

@@ -36,7 +36,7 @@ export async function createLighting(scene, renderer, config, profile, signal) {
   }
   try {
     try {
-      const url = new URL(config.lighting.environment, document.baseURI);
+      const url = new URL(config.lighting.environment, config.assetBaseURL ?? document.baseURI);
       source = new HDRLoader().createDataTexture(await loadBinary(url.href, signal));
       if (signal?.aborted) throw new DOMException('Journey disposed', 'AbortError');
       target = pmrem.fromEquirectangular(source);

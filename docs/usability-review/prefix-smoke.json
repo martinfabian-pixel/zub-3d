@@ -1,0 +1,128 @@
+{
+  "sitePrefix": "/zub-3d/",
+  "scope": "Final compiled dist served only inside a GitHub Pages-style project prefix.",
+  "passed": true,
+  "functionalChecks": 216,
+  "unexpectedMissing": [],
+  "browserErrors": [],
+  "pages": {
+    "main": {
+      "servedEntry": "/zub-3d/assets/main-BCV_mZG6.js",
+      "allEntryScriptsServed": true
+    },
+    "experience": {
+      "servedEntry": "/zub-3d/assets/main-BCV_mZG6.js",
+      "allEntryScriptsServed": true
+    },
+    "legacy": {
+      "servedEntry": "/zub-3d/assets/legacy-oEeneZfj.js",
+      "allEntryScriptsServed": true
+    },
+    "prototype": {
+      "servedEntry": "/zub-3d/assets/prototype-BC24PG82.js",
+      "allEntryScriptsServed": true
+    }
+  },
+  "credits": {
+    "main": {
+      "urls": [
+        "http://127.0.0.1:54545/zub-3d/dentition-assets/manifest.json?v=1f8077464b58",
+        "http://127.0.0.1:54545/zub-3d/dentition-assets/hero-36.glb?v=1f8077464b58",
+        "http://127.0.0.1:54545/zub-3d/environment/studio-small-09-1k.hdr",
+        "http://127.0.0.1:54545/zub-3d/dentition-assets/dentition.glb?v=1f8077464b58",
+        "http://127.0.0.1:54545/zub-3d/prototype-assets/molar.glb?v=1f8077464b58"
+      ],
+      "heroGeometry": {
+        "vertices": 27741,
+        "triangles": 55184,
+        "physicalRootBranches": 2,
+        "nativeTopologyRetained": true,
+        "deformationOrSubdivision": false,
+        "nativeAuthoredNormalsRetained": true,
+        "nativeUvsRetained": true,
+        "canonicalFrame": "Exactly the pre-decimation FDI_36 frame; local metres, +Y crown, +Z buccal. Apply existing manifest Matrix4 directly for FDI36 or reflected46.",
+        "bounds": [
+          -0.006337770639618351,
+          -0.013675363810953921,
+          -0.005710525930433967,
+          0.00619921011314787,
+          0.008002324932157245,
+          0.006010447975141525
+        ],
+        "watertightAfterUvWeld": true,
+        "windingConsistent": true,
+        "componentCount": 1,
+        "weldedVertices": 27594
+      },
+      "heroFDI": 36,
+      "heroTriangles": 55184,
+      "pairedSources": [
+        26,
+        26,
+        36,
+        36
+      ],
+      "creditURL": "http://127.0.0.1:54545/zub-3d/dentition-assets/hero-36-credits.txt",
+      "status": 200,
+      "type": "text/plain",
+      "dundee": true,
+      "license": true,
+      "allCredits": true
+    },
+    "experience alias": {
+      "urls": [
+        "http://127.0.0.1:54545/zub-3d/dentition-assets/manifest.json?v=1f8077464b58",
+        "http://127.0.0.1:54545/zub-3d/dentition-assets/hero-36.glb?v=1f8077464b58",
+        "http://127.0.0.1:54545/zub-3d/environment/studio-small-09-1k.hdr",
+        "http://127.0.0.1:54545/zub-3d/dentition-assets/dentition.glb?v=1f8077464b58",
+        "http://127.0.0.1:54545/zub-3d/prototype-assets/molar.glb?v=1f8077464b58"
+      ],
+      "heroGeometry": {
+        "vertices": 27741,
+        "triangles": 55184,
+        "physicalRootBranches": 2,
+        "nativeTopologyRetained": true,
+        "deformationOrSubdivision": false,
+        "nativeAuthoredNormalsRetained": true,
+        "nativeUvsRetained": true,
+        "canonicalFrame": "Exactly the pre-decimation FDI_36 frame; local metres, +Y crown, +Z buccal. Apply existing manifest Matrix4 directly for FDI36 or reflected46.",
+        "bounds": [
+          -0.006337770639618351,
+          -0.013675363810953921,
+          -0.005710525930433967,
+          0.00619921011314787,
+          0.008002324932157245,
+          0.006010447975141525
+        ],
+        "watertightAfterUvWeld": true,
+        "windingConsistent": true,
+        "componentCount": 1,
+        "weldedVertices": 27594
+      },
+      "heroFDI": 36,
+      "heroTriangles": 55184,
+      "pairedSources": [
+        26,
+        26,
+        36,
+        36
+      ],
+      "creditURL": "http://127.0.0.1:54545/zub-3d/dentition-assets/hero-36-credits.txt",
+      "status": 200,
+      "type": "text/plain",
+      "dundee": true,
+      "license": true,
+      "allCredits": true
+    }
+  },
+  "resources": [
+    "/zub-3d/dentition-assets/hero-36.glb",
+    "/zub-3d/environment/studio-small-09-1k.hdr",
+    "/zub-3d/prototype-assets/molar.glb",
+    "/zub-3d/dentition-assets/dentition.glb",
+    "/zub-3d/models/molar.glb",
+    "/zub-3d/dentition-assets/hero-36-mobile.glb",
+    "/zub-3d/prototype-assets/molar-mobile.glb",
+    "/zub-3d/dentition-assets/dentition-mobile.glb"
+  ]
+}

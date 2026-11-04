@@ -1,31 +1,81 @@
 <!doctype html>
 <html lang="sk">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#ffffff" />
-    <link rel="icon" href="data:," />
-    <meta name="description" content="Jeden zub. Celý chrup. Súvislá interaktívna anatomická 3D štúdia." />
-    <title>ZUB — Dental study</title>
-  </head>
-  <body>
-    <main id="dental-journey" aria-label="Postupné odhalenie stáleho chrupu posúvaním stránky">
-      <div id="journey-stage">
-        <canvas id="journey-canvas" aria-label="3D chrup. Posúvaním stránky odhaľujete 28 zubov." tabindex="-1"></canvas>
-        <div id="journey-status" role="status" aria-live="polite">
-          <span id="journey-message">Pripravujem zub…</span>
-          <button id="journey-retry" type="button" hidden>Skúsiť znova</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="Preskúmajte ľudský chrup v 3D. Od dolnej šestky s dvoma koreňmi po všetkých 28 zubov." />
+  <link rel="icon" href="data:," />
+  <title>ZUB — Ľudský chrup v 3D</title>
+</head>
+<body data-asset-base="../">
+  <a class="skip-link" href="#journey-canvas">Prejsť na 3D model</a>
+  <main id="dental-journey" aria-label="Interaktívna prezentácia ľudského chrupu">
+    <div id="journey-stage">
+      <header class="site-header">
+        <button class="brand" id="journey-home" type="button" aria-label="ZUB — späť na začiatok">ZUB<span class="brand-dot">.</span><span class="brand-caption">Ľudský chrup v 3D</span></button>
+        <div class="header-actions">
+          <button id="journey-help" class="text-button" type="button" aria-haspopup="dialog">Ovládanie <span aria-hidden="true">?</span></button>
+          <button id="journey-show-all" class="outline-button" type="button">Celý chrup <span aria-hidden="true">↗</span></button>
         </div>
-        <div id="journey-hint" aria-hidden="true"><span>Posunutím odhaľte chrup</span><span class="scroll-arrow">↓</span></div>
-        <div id="journey-inspect" hidden>
-          <span id="journey-orbit-hint" hidden>Ťahajte do strán · zvislo posúvajte stránku</span>
-          <button id="journey-explore" type="button" aria-pressed="false">Preskúmať 3D <span aria-hidden="true">↗</span></button>
-          <button id="journey-reset" type="button" aria-label="Obnoviť pohľad" hidden>↺</button>
+      </header>
+      <section class="journey-copy" aria-labelledby="journey-title">
+        <p class="eyebrow"><span id="journey-step-number">01 / 04</span><span class="eyebrow-divider"></span><span id="journey-eyebrow">DETAIL ZUBA</span></p>
+        <h1 id="journey-title">Dolná šestka.<br />Zblízka.</h1>
+        <p id="journey-description">Prvá dolná stolička má dva korene. Od nej postupne odhalíte všetkých 28 zubov.</p>
+        <p id="journey-meta">FDI 36 · dolná ľavá · 2 korene</p>
+        <div class="copy-actions">
+          <button id="journey-previous" class="previous-button" type="button" aria-label="Predchádzajúci krok" disabled>←</button>
+          <button id="journey-next" class="primary-button" type="button">Odhaľte susedov <span aria-hidden="true">→</span></button>
         </div>
-        <a class="journey-credit" href="../dentition-assets/credits.txt" target="_blank" rel="noopener">Dundee · CC BY 4.0</a>
-        <noscript><p class="no-script">Pre interaktívne 3D zobrazenie povoľte JavaScript.</p></noscript>
+        <p id="journey-hint">Posúvajte stránku alebo vyberte krok.</p>
+      </section>
+      <section class="view-shell" aria-label="Interaktívny 3D model">
+        <div id="journey-viewport">
+          <canvas id="journey-canvas" tabindex="0" aria-label="3D model dolnej šestky s dvoma koreňmi" aria-describedby="journey-orbit-hint"></canvas>
+          <div id="journey-status" role="status" aria-live="polite">
+            <span class="loading-mark" aria-hidden="true"></span>
+            <span id="journey-message">Pripravujem dolnú šestku…</span>
+            <button id="journey-retry" class="outline-button" type="button" hidden>Skúsiť znova</button>
+          </div>
+        </div>
+        <div id="journey-inspect">
+          <div class="view-caption"><span class="view-status-dot" aria-hidden="true"></span><span id="journey-subject">Dolná ľavá prvá stolička</span></div>
+          <div class="model-controls" role="group" aria-label="Ovládanie 3D modelu">
+            <button id="journey-explore" type="button" aria-pressed="false" disabled>Otáčať model</button>
+            <span class="control-separator" aria-hidden="true"></span>
+            <button id="journey-zoom-out" class="icon-button" type="button" aria-label="Oddialiť model" title="Oddialiť" disabled>−</button>
+            <button id="journey-zoom-in" class="icon-button" type="button" aria-label="Priblížiť model" title="Priblížiť" disabled>+</button>
+            <button id="journey-reset" class="icon-button" type="button" aria-label="Obnoviť pohľad aktuálneho kroku" title="Obnoviť pohľad" disabled>↺</button>
+          </div>
+        </div>
+        <p id="journey-orbit-hint">Zapnite otáčanie alebo pokračujte posunutím stránky.</p>
+      </section>
+      <div class="journey-footer">
+        <nav class="journey-steps" aria-label="Kroky prezentácie">
+          <button class="journey-step" type="button" data-progress="0" aria-current="step"><span class="step-number">01</span><span>Jeden zub</span><span class="step-count">1</span></button>
+          <button class="journey-step" type="button" data-progress="0.34"><span class="step-number">02</span><span>Susedia</span><span class="step-count">3</span></button>
+          <button class="journey-step" type="button" data-progress="0.64"><span class="step-number">03</span><span>Dolný oblúk</span><span class="step-count">14</span></button>
+          <button class="journey-step" type="button" data-progress="0.94"><span class="step-number">04</span><span>Celý chrup</span><span class="step-count">28</span></button>
+        </nav>
+        <div class="footer-meta"><span>Anatomická 3D štúdia · bez osmičiek</span><a class="journey-credit" href="../dentition-assets/hero-36-credits.txt" target="_blank" rel="noopener">Modely: Dundee · CC BY 4.0 ↗</a></div>
       </div>
-    </main>
-    <script type="module" src="../src/experience/main.js"></script>
-  </body>
+      <p id="journey-stage-live" class="sr-only" role="status" aria-live="polite"></p>
+      <noscript><p class="no-script">Pre interaktívne zobrazenie chrupu povoľte JavaScript.</p></noscript>
+    </div>
+  </main>
+  <dialog id="journey-help-dialog" aria-labelledby="help-title">
+    <div class="dialog-heading"><span class="eyebrow">STRUČNÝ SPRIEVODCA</span><button id="journey-close-help" class="icon-button" type="button" aria-label="Zavrieť návod">×</button></div>
+    <h2 id="help-title">Chrup máte pod kontrolou.</h2>
+    <dl class="help-list">
+      <div><dt>Prezentácia</dt><dd>Posúvajte stránku alebo kliknite na jeden zo štyroch krokov. Spätný posun celý priebeh obráti.</dd></div>
+      <div><dt>Otáčanie</dt><dd>Zapnite „Otáčať model“ a ťahajte myšou. Na mobile otáčajte ťahom do strán; zvislým ťahom posúvate stránku.</dd></div>
+      <div><dt>Priblíženie</dt><dd>Použite tlačidlá + a − alebo gesto dvoma prstami. Koliesko myši zostáva vyhradené posúvaniu stránky.</dd></div>
+      <div><dt>Klávesnica</dt><dd>Po zameraní modelu ho otáčajú šípky. + a − menia priblíženie, Home obnoví pohľad a Escape vráti prezentáciu.</dd></div>
+    </dl>
+    <p class="help-note">Výučbová anatomická rekonštrukcia. Nejde o individuálny pacientsky sken.</p>
+    <button id="journey-help-done" class="primary-button" type="button">Rozumiem <span aria-hidden="true">↗</span></button>
+  </dialog>
+  <script type="module" src="../src/experience/main.js"></script>
+</body>
 </html>

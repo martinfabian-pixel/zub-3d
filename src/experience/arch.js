@@ -56,13 +56,19 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     item.reveal=fdi===config.anatomy.hero?1:0;
   }
   const heroMesh=hero.meshes.get('ToothExterior')??[...hero.meshes.values()][0];
+  const sources=new Map([[config.anatomy.hero,heroMesh]]);
   attach(config.anatomy.hero,heroMesh);
 
-  function attachAtlas(atlas) {
+  function attachAtlas(atlas, upperMolar) {
     if (disposed) { disposeObject(atlas.object); return; }
+    sources.set(26,upperMolar.meshes.get('ToothExterior')??[...upperMolar.meshes.values()][0]);
+    for(const [name,mesh] of atlas.meshes) {
+      const source=Number(name.replace('FDI_',''));
+      if(!sources.has(source))sources.set(source,mesh);
+    }
     for (const [fdi,item] of teeth) {
       if (item.mesh) continue;
-      const source=item.entry.source===config.anatomy.hero?heroMesh:atlas.meshes.get(item.entry.node);
+      const source=sources.get(item.entry.source);
       if (!source) throw new Error(`Missing anatomical source ${item.entry.node} for FDI ${fdi}`);
       attach(fdi,source);
     }
@@ -74,17 +80,17 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       let reveal=0;
       if(fdi===config.anatomy.hero) reveal=1;
       else if(config.anatomy.neighbors.includes(fdi)) reveal=smooth(config.reveal.neighbors.start,config.reveal.neighbors.end,p);
-      else if(item.upper) {
+      else if(item.upper===(config.anatomy.hero<30)) {
         // Distance in the same arch from the hero: nearby crowns emerge first.
         const heroPosition=teeth.get(config.anatomy.hero).matrix.elements;
         const e=item.matrix.elements;
         const distance=Math.hypot(e[12]-heroPosition[12],e[14]-heroPosition[14]);
-        const lag=THREE.MathUtils.clamp(distance/6.5,0,1)*config.reveal.upper.stagger;
-        reveal=smooth(config.reveal.upper.start+lag,config.reveal.upper.end,p);
+        const lag=THREE.MathUtils.clamp(distance/6.5,0,1)*config.reveal.arch.stagger;
+        reveal=smooth(config.reveal.arch.start+lag,config.reveal.arch.end,p);
       } else {
         const index=(fdi%10)-1;
-        const lag=index/6*config.reveal.lower.stagger;
-        reveal=smooth(config.reveal.lower.start+lag,config.reveal.lower.end,p);
+        const lag=index/6*config.reveal.opposite.stagger;
+        reveal=smooth(config.reveal.opposite.start+lag,config.reveal.opposite.end,p);
       }
       item.reveal=reveal;
       item.finish?.setReveal(reveal);
@@ -95,7 +101,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const landmarks={
     hero:()=>teeth.get(config.anatomy.hero).mesh,
     neighbors:()=>selection((i)=>config.anatomy.neighbors.includes(i.entry.fdi)),
-    upper:()=>selection((i)=>i.upper),
+    arch:()=>selection((i)=>i.upper===(config.anatomy.hero<30)),
     full:()=>selection(()=>true),
   };
   function report() {

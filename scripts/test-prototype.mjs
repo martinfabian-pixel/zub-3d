@@ -167,8 +167,8 @@ try {
   assert.equal(report.dispose.after.textures, 3);
   report.dispose.engineLookupTexturesRetained = 'Two shared RectArea LTC tables and the internal DFG_LUT; not tooth or render-target textures.';
 
-  // Original page must still load its original multilayer model independently.
-  await page.goto(new URL('/', origin).href);
+  // The former homepage is preserved at /legacy/ with its original multilayer model.
+  await page.goto(new URL('/legacy/', origin).href);
   await page.waitForSelector('#tooth-canvas[data-ready="true"]', { timeout: 45000 });
   report.originalPage = await page.locator('#tooth-canvas').evaluate((canvas) => ({ ...canvas.dataset }));
   assert.equal(report.originalPage.assetTriangles, '388032');

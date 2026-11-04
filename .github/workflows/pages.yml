@@ -30,6 +30,7 @@ jobs:
       - run: node scripts/validate-model.mjs
       - run: node scripts/validate-prototype.mjs
       - run: node scripts/validate-dentition.mjs
+      - run: node scripts/validate-lower-hero.mjs
       - run: node scripts/test-journey.mjs
       - run: pnpm build
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5

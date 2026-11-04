@@ -6,32 +6,40 @@ import { createTimeline, DEFAULT_STOPS, JOURNEY_STAGES } from '../src/experience
 import { createJourneyCamera } from '../src/experience/camera.js';
 import { createScrollDriver } from '../src/experience/scroll.js';
 
-const arch = new THREE.Group(), upper = new THREE.Group(), lower = new THREE.Group();
-arch.add(upper, lower);
+const dentition = new THREE.Group(), maxillary = new THREE.Group(), mandibular = new THREE.Group();
+dentition.add(maxillary, mandibular);
+const teeth = new Map();
 const geometry = new THREE.SphereGeometry(1, 16, 10), material = new THREE.MeshBasicMaterial();
-for (const jaw of [upper, lower]) for (const side of [-1, 1]) for (let i = 0; i < 7; i++) {
+for (const jaw of [maxillary, mandibular]) for (const side of [-1, 1]) for (let i = 0; i < 7; i++) {
   const theta = (i + 0.5) * Math.PI / 14;
   const tooth = new THREE.Mesh(geometry, material);
-  tooth.position.set(side * 3 * Math.sin(theta), jaw === upper ? 1.35 : -1.25, 2.4 * Math.cos(theta) - i * 0.38);
+  tooth.position.set(side * 3 * Math.sin(theta), jaw === maxillary ? 1.35 : -1.25, 2.4 * Math.cos(theta) - i * 0.38);
   tooth.scale.set(0.3 + i * 0.022, 0.85 + i * 0.02, 0.32 + i * 0.02);
-  tooth.rotation.z = jaw === upper ? -0.08 : 0.09;
+  tooth.rotation.z = jaw === maxillary ? -0.08 : 0.09;
+  const quadrant = jaw === maxillary ? (side > 0 ? 2 : 1) : (side > 0 ? 3 : 4);
+  teeth.set(10 * quadrant + i + 1, tooth);
   jaw.add(tooth);
 }
-const hero = upper.children[12], neighbors = upper.children.slice(11, 14);
-const originalTransform = hero.position.clone(), timeline = createTimeline({ landmarks: { hero: () => hero, neighbors, upper, full: arch } });
+const hero = teeth.get(36), neighbors = [35, 36, 37].map(fdi => teeth.get(fdi));
+const originalTransform = hero.position.clone(), timeline = createTimeline({ landmarks: { hero: () => hero, neighbors, arch: mandibular, full: dentition } });
 const rig = createJourneyCamera({ timeline });
 assert.ok(hero.position.equals(originalTransform));
+assert.deepEqual(JOURNEY_STAGES, ['hero', 'neighbors', 'arch', 'full']);
+for (const name of ['hero', 'neighbors', 'arch']) {
+  const pose = timeline.sample(DEFAULT_STOPS[name], 1);
+  assert.ok(pose.position.y > pose.target.y, 'The lower crown is approached from the occlusal side: ' + name);
+}
 
 // The deferred arch uses detached bounds proxies with manually copied matrices.
 // They have not been rendered, so their matrixWorld may still be identity.
 const detached = new THREE.Mesh(geometry, material);
 detached.matrixAutoUpdate = false;
 detached.matrix.makeTranslation(9, -2, 4);
-const detachedTimeline = createTimeline({ landmarks: { hero: detached, neighbors: detached, upper: detached, full: detached } });
+const detachedTimeline = createTimeline({ landmarks: { hero: detached, neighbors: detached, arch: detached, full: detached } });
 assert.deepEqual(new THREE.Vector3().setFromMatrixPosition(detached.matrixWorld).toArray(), [9, -2, 4]);
 assert.ok(detachedTimeline.sample(1, 1).target.distanceTo(new THREE.Vector3(9, -2, 4)) < 1);
 
-const groups = [[hero], neighbors, upper.children, [...upper.children, ...lower.children]];
+const groups = [[hero], neighbors, mandibular.children, [...maxillary.children, ...mandibular.children]];
 const vertices = groups.map((group) => {
   const result = [];
   for (const mesh of group) for (let i = 0; i < geometry.attributes.position.count; i++) {

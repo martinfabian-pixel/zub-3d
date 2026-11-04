@@ -1,5 +1,7 @@
 # Súvislý scrollový zážitok s 28 zubami
 
+**Archív predchádzajúcej verzie s úvodnou hornou šestkou**, zodpovedajúci commitu `7b3c789`. Aktuálna hlavná stránka začína **dolnou šestkou FDI 36**, má navigáciu, opisy a priebežné ovládanie: [aktuálne rozhranie a spustenie](USABILITY.md). Nižšie uvedené rozmery zostavy, trasa kamery a snímky opisujú starší stav; jeho kód zostáva v Git histórii.
+
 [Publikovaná stránka](https://martinfabian-pixel.github.io/zub-3d/experience/) · [Samostatný schválený zub](https://martinfabian-pixel.github.io/zub-3d/prototype/) · [Pôvodná prezentácia](https://martinfabian-pixel.github.io/zub-3d/)
 
 Nová stránka `/experience/` používa **jednu scénu, jeden canvas a jednu kameru**. Zo schváleného horného ľavého prvého molára FDI 26 sa pohľad rozšíri na 25–27, štrnásť horných zubov a nakoniec všetkých 28 trvalých zubov bez osmičiek. V scéne nie sú ďasná, kosť ani ďalšie predmety. Horné korunky smerujú nadol, dolné nahor; oba oblúky zostávajú počas celej sekvencie na konečných miestach.

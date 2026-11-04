@@ -1,0 +1,27 @@
+ZUB-3D — detailný model dolnej ľavej prvej trvalej stoličky, FDI 36
+
+Mandibular First Molar — University of Dundee, School of Dentistry.
+Vytvorenie modelu: Emily McDougall. Odborný obsah: Dr. Andrew Mason.
+Počiatočná 3D príprava: Mark Roughley.
+https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6
+Pôvodný model a odvodená vizualizácia: Creative Commons Attribution 4.0 International.
+https://creativecommons.org/licenses/by/4.0/
+Verejná redistribúcia zdrojového súboru:
+https://www.teethatlas.com/models/mandibular_first_molar.glb
+
+Úpravy: dekódovanie zdrojového GLB, prezentačná sústava a ilustračná mierka
+zhodná s FDI 36 v zostave, nový materiál a regionálna mapa. Zachovali sa
+pôvodné polohy po súradnicovej transformácii, poradie trojuholníkov, UV,
+autorské vrcholové normály a oba korene. FDI 46 používa zrkadlený náprotivok.
+V podklade nie je samostatná normálová textúra: kompatibilný materiál má
+neutrálnu mapu 1 × 1 a tangentový rámec vypočítaný z pôvodného UV.
+
+Farba, drsnosť, prechod skloviny ku koreňu a mikropovrch v prehliadači
+sú vizualizačné aproximácie, nie merané optické vlastnosti. Ide o výučbový
+model vytvorený v ZBrush; nepredstavuje nespracovaný mikroCT sken ani
+klinickú validáciu konkrétneho pacienta. Schválenie projektu autormi
+zdroja sa netvrdí. Podrobnosti: hero-36-provenance.json.
+
+Všetky ostatné zuby a HDR Studio Small 09 (Sergej Majboroda / Poly Haven,
+CC0): credits.txt. Kód prehliadača a originálne procedurálne materiály: MIT.
+Pri ďalšom použití zachovajte atribúciu, odkaz na licenciu a opis úprav.

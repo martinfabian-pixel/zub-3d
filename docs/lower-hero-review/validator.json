@@ -1,0 +1,159 @@
+{
+  "source36": {
+    "url": "https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6",
+    "license": "CC-BY-4.0",
+    "sha256": "763de453952e1f53843da89d8d9a4c03fb64dc325865c2197a5eaf09121dde87",
+    "vertices": 27741,
+    "triangles": 55184
+  },
+  "assets": {
+    "hero-36.glb": {
+      "bytes": 2630860,
+      "sha256": "d3c53fa9a2dfb8fdb0c7c1004281cbd44b60df757ad2157e1c6944e33e799f74",
+      "triangles": 55184,
+      "vertices": 27741,
+      "khronos": {
+        "errors": 0,
+        "warnings": 0
+      },
+      "geometrySha256": {
+        "positions": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+        "normals": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+        "tangents": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+        "uv": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+        "indices": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+      },
+      "localBoundsMetres": [
+        -0.006337770726531744,
+        -0.01367536373436451,
+        -0.005710525903850794,
+        0.006199209950864315,
+        0.00800232496112585,
+        0.006010448094457388
+      ],
+      "maxNormalLengthError": 4.7214752330049237e-8,
+      "maxTangentFrameError": 7.263237744581374e-8,
+      "rootCrossSections": [
+        {
+          "localYMetres": -0.009259618547093123,
+          "areasMm2": [
+            18.580373597716246,
+            11.849868685854156
+          ],
+          "substantialRoots": 2
+        },
+        {
+          "localYMetres": -0.007885253083799035,
+          "areasMm2": [
+            23.864561327609568,
+            17.661809103818154
+          ],
+          "substantialRoots": 2
+        },
+        {
+          "localYMetres": -0.006536900846939534,
+          "areasMm2": [
+            28.491967903932892,
+            24.537225246759284
+          ],
+          "substantialRoots": 2
+        }
+      ],
+      "textures": {
+        "normal": {
+          "width": 1,
+          "height": 1,
+          "pngColorType": 2,
+          "bytes": 69,
+          "sha256": "bdbee4bed6e418e00b8e04fd8115f4cecae3fed291e5af13a327bcd986e3bae9",
+          "rgb": [
+            128,
+            128,
+            255
+          ]
+        },
+        "parameters": {
+          "width": 2048,
+          "height": 2048,
+          "pngColorType": 6,
+          "bytes": 965356,
+          "sha256": "fa816401341640000f1022c5ef251f8df6a8085884dfbcdc9c1827ec9a7674be"
+        }
+      }
+    },
+    "hero-36-mobile.glb": {
+      "bytes": 2076272,
+      "sha256": "2013a1416ce24297217417f9dde3977ece593c8687ac74223f03be1a621e10f2",
+      "triangles": 55184,
+      "vertices": 27741,
+      "khronos": {
+        "errors": 0,
+        "warnings": 0
+      },
+      "geometrySha256": {
+        "positions": "c10e8fc3db95d2ede71f8f856cd87c6f884e69158687de11b2730165505c212f",
+        "normals": "f6c9db98f215fc9f44af3fe8f6b6e47a6024af0a75fb7da8bb46f180c25fbf80",
+        "tangents": "3d12fc2587c19b30275d8c741a98ae099e351af1157fefc6cf053b38abc60368",
+        "uv": "17deccb6b49aeaada02847c7e4dca7cbe00c76cf76beb9384810f02f2b522e57",
+        "indices": "5fc88e319c5773e4e5368810ae17d1a455d72773d2778e71acd97af0ead28b07"
+      },
+      "localBoundsMetres": [
+        -0.006337770726531744,
+        -0.01367536373436451,
+        -0.005710525903850794,
+        0.006199209950864315,
+        0.00800232496112585,
+        0.006010448094457388
+      ],
+      "maxNormalLengthError": 4.7214752330049237e-8,
+      "maxTangentFrameError": 7.263237744581374e-8,
+      "rootCrossSections": [
+        {
+          "localYMetres": -0.009259618547093123,
+          "areasMm2": [
+            18.580373597716246,
+            11.849868685854156
+          ],
+          "substantialRoots": 2
+        },
+        {
+          "localYMetres": -0.007885253083799035,
+          "areasMm2": [
+            23.864561327609568,
+            17.661809103818154
+          ],
+          "substantialRoots": 2
+        },
+        {
+          "localYMetres": -0.006536900846939534,
+          "areasMm2": [
+            28.491967903932892,
+            24.537225246759284
+          ],
+          "substantialRoots": 2
+        }
+      ],
+      "textures": {
+        "normal": {
+          "width": 1,
+          "height": 1,
+          "pngColorType": 2,
+          "bytes": 69,
+          "sha256": "bdbee4bed6e418e00b8e04fd8115f4cecae3fed291e5af13a327bcd986e3bae9",
+          "rgb": [
+            128,
+            128,
+            255
+          ]
+        },
+        "parameters": {
+          "width": 1024,
+          "height": 1024,
+          "pngColorType": 6,
+          "bytes": 410767,
+          "sha256": "0f39147cf3a081ccb18e30036c61975766fe60880197a0676e9ebd933e5582c8"
+        }
+      }
+    }
+  }
+}

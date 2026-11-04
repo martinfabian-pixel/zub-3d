@@ -1,12 +1,12 @@
 import { Box3, MathUtils, Matrix4, Vector3 } from 'three';
 
-export const JOURNEY_STAGES = Object.freeze(['hero', 'neighbors', 'upper', 'full']);
-export const DEFAULT_STOPS = Object.freeze({ hero: 0.07, neighbors: 0.36, upper: 0.65, full: 0.88 });
+export const JOURNEY_STAGES = Object.freeze(['hero', 'neighbors', 'arch', 'full']);
+export const DEFAULT_STOPS = Object.freeze({ hero: 0.07, neighbors: 0.36, arch: 0.65, full: 0.88 });
 const directions = {
-  hero: [0.75, -0.55, 1], neighbors: [0.65, -0.7, 1], upper: [0.32, -1.1, 1], full: [0.6, 0.12, 1],
+  hero: [0.75, 0.8, 1], neighbors: [0.65, 0.85, 1], arch: [0.32, 1.1, 1], full: [0.58, 0.1, 1],
 };
-const padding = { hero: 1.12, neighbors: 1.11, upper: 1.10, full: 1.10 };
-const portraitPadding = { hero: 1.12, neighbors: 1.09, upper: 1.08, full: 1.08 };
+const padding = { hero: 1.12, neighbors: 1.11, arch: 1.10, full: 1.10 };
+const portraitPadding = { hero: 1.12, neighbors: 1.09, arch: 1.08, full: 1.08 };
 const up = new Vector3(0, 1, 0);
 const unit = (value) => MathUtils.clamp(Number.isFinite(value) ? value : 0, 0, 1);
 
@@ -118,8 +118,9 @@ function track(values, knots) {
 }
 
 /**
- * Landmarks are stable world-space selections: hero FDI 26, neighboring teeth
- * including the hero, upper 14, full 28. No tooth is reparented or transformed.
+ * Landmarks are stable world-space selections: the chosen hero, its neighbors,
+ * the corresponding arch, and the full dentition. The lower-first story supplies
+ * FDI 36, FDI 35–37, the 14 mandibular teeth, and all 28 seated surfaces.
  * A selection can also be a callback; refreshLandmarks() re-reads all four.
  */
 export function createTimeline({ landmarks, cameraOptions = {} }) {

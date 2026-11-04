@@ -1,0 +1,8 @@
+{
+  "sourceIndicesExactlyEqual": true,
+  "sourceUvFloat32ExactlyEqual": true,
+  "sourcePositionMaxTransformRoundingMm": 5.145395676734778e-07,
+  "sourcePositionRmsTransformRoundingMm": 2.0505444299833894e-07,
+  "enamelMaskAtCoronalTipP50": 1.0,
+  "enamelMaskAtApicalTipP50": 0.0
+}

@@ -1,0 +1,12 @@
+{
+  "method": "Independently decoded the immutable native CC BY source using DracoPy; same-index correspondences. Fit one proper rigid rotation, translation and uniform scale by orthogonal Procrustes directly from raw source positions to the actual hero GLB. No preparation helpers used. Compare every raw triangle index, per-vertex UV, and independently rotated normalized source normal. Previous LOD byte-equality test transfers these checks to mobile.",
+  "native_and_hero_positions": 27741,
+  "native_triangle_index_values_identical": true,
+  "native_uv_values_identical": true,
+  "proper_rotation_determinant": 1.0000000000000013,
+  "single_uniform_scale": 0.01176522861407871,
+  "maximum_vertex_residual_metres": 5.128239960586346e-10,
+  "rms_vertex_residual_metres": 2.050452634395649e-10,
+  "maximum_normal_angle_degrees": 2.614408009476782e-06,
+  "p99_normal_angle_degrees": 2.0937960806298536e-06
+}

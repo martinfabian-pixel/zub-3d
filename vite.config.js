@@ -20,7 +20,7 @@ for (const path of ['molar.glb', 'molar-mobile.glb']) {
 }
 
 const dentitionHash = createHash('sha256');
-for (const path of ['manifest.json', 'dentition.glb', 'dentition-mobile.glb']) {
+for (const path of ['manifest.json', 'dentition.glb', 'dentition-mobile.glb', 'hero-36.glb', 'hero-36-mobile.glb']) {
   const file = new URL(`./public/dentition-assets/${path}`, import.meta.url);
   dentitionHash.update(path);
   if (existsSync(file)) dentitionHash.update(readFileSync(file));
@@ -41,6 +41,7 @@ export default defineConfig({
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         prototype: fileURLToPath(new URL('./prototype/index.html', import.meta.url)),
         experience: fileURLToPath(new URL('./experience/index.html', import.meta.url)),
+        legacy: fileURLToPath(new URL('./legacy/index.html', import.meta.url)),
       },
     },
   },

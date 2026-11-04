@@ -8,29 +8,28 @@ import { createLighting } from './lighting.js';
 import { createTimeline } from './timeline.js';
 import { createJourneyCamera } from './camera.js';
 import { createScrollDriver } from './scroll.js';
+import { createInterface } from './interface.js';
 import { chooseQuality, createAdaptiveQuality } from '../prototype/quality.js';
 import './style.css';
 
-export function createExperience(config=experienceConfig) {
+export function createExperience(configuration=experienceConfig) {
+  const config={...configuration,assetBaseURL:new URL(document.body.dataset.assetBase??'./',document.baseURI).href};
   const canvas=document.querySelector('#journey-canvas');
   const section=document.querySelector('#dental-journey');
   const stage=document.querySelector('#journey-stage');
   const status=document.querySelector('#journey-status');
   const message=document.querySelector('#journey-message');
-  const hint=document.querySelector('#journey-hint');
-  const inspect=document.querySelector('#journey-inspect');
   const explore=document.querySelector('#journey-explore');
-  const reset=document.querySelector('#journey-reset');
-  const orbitHint=document.querySelector('#journey-orbit-hint');
   const retry=document.querySelector('#journey-retry');
   const listeners=new AbortController(), signal=listeners.signal;
   const profile=chooseQuality(config);
   const query=new URLSearchParams(location.search), qa=query.has('qa'), clay=query.get('material')==='clay';
-  let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas;
+  let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
   let frame=0,renderedFrames=0,lastFrame=0,settleTimer,ready=false,disposed=false,shaderError=false;
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
-  let lastScrollProgress=0;
+  let lastScrollProgress=0,inspectionProgress=0;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
+  const ui=createInterface({config,section,stage,signal,navigate,explore:toggleExplore,reset:resetView,zoom});
 
   function requestRender() {if(!disposed&&ready&&!document.hidden&&!frame)frame=requestAnimationFrame(render);}
   function showError(text,error,{upcoming=false}={}) {
@@ -38,13 +37,12 @@ export function createExperience(config=experienceConfig) {
     status.hidden=false;status.classList.add('error');status.classList.toggle('is-upcoming',upcoming);
     status.setAttribute('role','alert');message.textContent=text;retry.hidden=false;
     canvas.dataset.error=error?.message??text;
-    if(!upcoming){ready=false;canvas.dataset.ready='false';inspect.hidden=true;hint.hidden=true;}
+    if(!upcoming){ready=false;canvas.dataset.ready='false';}
+    updateUI();
   }
   function updateUI() {
     const complete=arch?.assetsReady;
-    inspect.hidden=!(ready&&complete&&storyProgress>=config.reveal.exploreStart);
-    hint.hidden=!ready||progress>.15||(!complete&&progress>.09);
-    hint.style.opacity=String(1-THREE.MathUtils.smoothstep(progress,.015,.15));
+    ui.update({progress:exploring?inspectionProgress:storyProgress,ready,exploring,compact:profile.compact});
     if(!complete&&progress>.09&&!atlasError&&ready) {
       status.hidden=false;status.classList.add('is-upcoming');message.textContent='Pripravujem celý chrup…';
     }else if(ready&&!atlasError)status.hidden=true;
@@ -55,9 +53,54 @@ export function createExperience(config=experienceConfig) {
   function leaveExplore() {
     if(!exploring)return;
     exploring=false;controls.enabled=false;interaction=false;
-    controls.reset();controls.enabled=false;
+    resetControls();controls.enabled=false;
     canvas.style.cursor='';canvas.style.touchAction='pan-y';
-    explore.textContent='Preskúmať 3D ↗';explore.setAttribute('aria-pressed','false');reset.hidden=true;orbitHint.hidden=true;
+    updateUI();
+  }
+  function navigate(next) {
+    leaveExplore();
+    setProgress(progress);
+    ui.scrollTo(next,window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    requestRender();
+  }
+  function enterExplore(focus=false) {
+    if(!ready||disposed)return false;
+    if(exploring)return true;
+    const distance=rig.camera.position.distanceTo(rig.target);
+    controls.minDistance=distance*config.interaction.minimumDistanceFraction;
+    controls.maxDistance=distance*config.interaction.maximumDistanceFraction;
+    // Old-stage bounds and residual damping must not alter the new story pose
+    // before it is saved as this step's reset destination.
+    const position=rig.camera.position.clone();
+    const damping=controls.enableDamping;
+    controls.enableDamping=false;controls.target.copy(rig.target);controls.update();
+    rig.camera.position.copy(position);controls.target.copy(rig.target);controls.update();
+    controls.enableDamping=damping;
+    controls.saveState();exploring=true;controls.enabled=true;
+    inspectionProgress=Number(canvas.dataset.sceneProgress)||0;
+    canvas.style.touchAction='pan-y';canvas.style.cursor='grab';
+    if(focus)canvas.focus({preventScroll:true});
+    updateUI();requestRender();return true;
+  }
+  function toggleExplore() {
+    if(exploring){leaveExplore();setProgress(progress);}
+    else enterExplore(true);
+  }
+  function resetView() {
+    if(!ready)return;
+    if(exploring)resetControls();else setProgress(progress);
+    requestRender();
+  }
+  function resetControls() {
+    const damping=controls.enableDamping;
+    controls.enableDamping=false;controls.update();controls.reset();
+    controls.enableDamping=damping;
+  }
+  function zoom(factor) {
+    if(!enterExplore())return;
+    const offset=rig.camera.position.clone().sub(controls.target);
+    offset.setLength(THREE.MathUtils.clamp(offset.length()*factor,controls.minDistance,controls.maxDistance));
+    rig.camera.position.copy(controls.target).add(offset);controls.update();requestRender();
   }
   function setProgress(next,{reducedMotion:motion=reducedMotion}={}) {
     if(disposed||!rig)return null;
@@ -65,6 +108,11 @@ export function createExperience(config=experienceConfig) {
     storyProgress=THREE.MathUtils.lerp(config.story.startProgress,config.story.endProgress,progress);
     if(exploring&&Math.abs(progress-lastScrollProgress)>.00001)leaveExplore();
     lastScrollProgress=progress;
+    if(exploring){
+      // Background assets, a pageshow or a same-position scroll refresh must
+      // not discard a view the visitor is currently rotating or zooming.
+      arch.setProgress(inspectionProgress);updateUI();requestRender();return null;
+    }
     // First paint does not wait for all 28 surfaces. If the visitor jumps far
     // ahead on a slow connection, hold the hero composition with a loading cue.
     const applied=arch.assetsReady?storyProgress:Math.min(storyProgress,config.camera.stops.hero);
@@ -76,7 +124,7 @@ export function createExperience(config=experienceConfig) {
     clearTimeout(settleTimer);
     scrolling=true;
     adaptive?.beginInteraction();
-    settleTimer=setTimeout(()=>{scrolling=false;if(!exploring){adaptive?.endInteraction();lastFrame=0;}},120);
+    settleTimer=setTimeout(()=>{scrolling=false;if(!interaction){adaptive?.endInteraction();lastFrame=0;}},120);
     updateUI();requestRender();
     return pose;
   }
@@ -92,7 +140,7 @@ export function createExperience(config=experienceConfig) {
       drawCalls:renderer?.info.render.calls,renderTriangles:renderer?.info.render.triangles,
       pixelRatio:renderer?.getPixelRatio(),gpuGeometries:renderer?.info.memory.geometries,gpuTextures:renderer?.info.memory.textures,
       shaderErrors:shaderError||renderer?.info.programs?.some((p)=>p.diagnostics?.runnable===false)?1:0,
-      environment:lighting?.label,heroBytes:hero?.bytes,atlasBytes:atlas?.bytes,
+      environment:lighting?.label,heroBytes:hero?.bytes,atlasBytes:atlas?.bytes,upperMolarBytes:upperMolar?.bytes,
     };
   }
   function render(now) {
@@ -117,14 +165,10 @@ export function createExperience(config=experienceConfig) {
     if(!width||!height)return;
     renderer.setSize(width,height,false);
     if(!rig)return;
-    // Fit into a real content viewport, then extend its projection downward
-    // for the discreet controls. This preserves perspective and phone width
-    // without putting the scroll cue over a cusp on short landscape screens.
-    const reserve=Math.min(config.camera.footerReservePx,height*config.camera.footerReserveMaxFraction);
-    const contentHeight=height-reserve;
-    if(exploring)rig.camera.aspect=width/contentHeight;
-    else rig.resize(width,contentHeight);
-    rig.camera.setViewOffset(width,contentHeight,0,0,width,height);
+    // The canvas has its own real layout region. Copy and controls never
+    // cover the object, so camera fitting uses its actual visible dimensions.
+    if(exploring){rig.camera.aspect=width/height;rig.camera.updateProjectionMatrix();}
+    else rig.resize(width,height);
     if(!exploring)setProgress(progress);
     requestRender();
   }
@@ -132,9 +176,10 @@ export function createExperience(config=experienceConfig) {
     if(disposed)return;
     disposed=true;ready=false;listeners.abort();
     if(frame)cancelAnimationFrame(frame);frame=0;clearTimeout(settleTimer);
-    observer?.disconnect();scroll?.dispose();controls?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();
+    observer?.disconnect();scroll?.dispose();controls?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();ui.dispose();
     if(arch)arch.dispose();else disposeObject(hero?.object);
     if(atlas&&!arch?.assetsReady)disposeObject(atlas.object);
+    if(upperMolar&&!arch?.assetsReady)disposeObject(upperMolar.object);
     renderer?.renderLists.dispose();renderer?.dispose();
     canvas.dataset.ready='false';canvas.dataset.disposed='true';
   }
@@ -180,18 +225,21 @@ export function createExperience(config=experienceConfig) {
       // A normal wheel always returns to the story and scrolls the document.
       // No event is canceled, including while the explicit orbit mode is active.
       canvas.addEventListener('wheel',()=>{if(exploring){leaveExplore();setProgress(progress);}},{capture:true,passive:true,signal});
-      explore.addEventListener('click',()=>{
-        if(exploring){leaveExplore();setProgress(progress);return;}
-        if(!arch.assetsReady||storyProgress<config.reveal.exploreStart)return;
-        controls.target.copy(rig.target);controls.update();
-        const distance=rig.camera.position.distanceTo(rig.target);
-        controls.minDistance=distance*config.interaction.minimumDistanceFraction;controls.maxDistance=distance*config.interaction.maximumDistanceFraction;
-        controls.saveState();exploring=true;controls.enabled=true;
-        canvas.style.touchAction='pan-y';canvas.style.cursor='grab';
-        explore.textContent='Späť na prezentáciu';explore.setAttribute('aria-pressed','true');reset.hidden=false;orbitHint.hidden=false;
-        updateUI();requestRender();
+      canvas.addEventListener('keydown',(event)=>{
+        if(event.altKey||event.metaKey||event.ctrlKey)return;
+        if(event.key==='Escape'){if(exploring){event.preventDefault();leaveExplore();setProgress(progress);explore.focus({preventScroll:true});}return;}
+        if(event.key==='Home'){event.preventDefault();resetView();return;}
+        if(['+','=','-','_'].includes(event.key)){event.preventDefault();zoom(['+','='].includes(event.key)?.88:1/.88);return;}
+        if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+        event.preventDefault();if(!enterExplore())return;
+        const spherical=new THREE.Spherical().setFromVector3(rig.camera.position.clone().sub(controls.target));
+        if(event.key==='ArrowLeft')spherical.theta-=config.interaction.keyboardAzimuthStep;
+        if(event.key==='ArrowRight')spherical.theta+=config.interaction.keyboardAzimuthStep;
+        if(event.key==='ArrowUp')spherical.phi-=config.interaction.keyboardPolarStep;
+        if(event.key==='ArrowDown')spherical.phi+=config.interaction.keyboardPolarStep;
+        spherical.phi=THREE.MathUtils.clamp(spherical.phi,controls.minPolarAngle,controls.maxPolarAngle);
+        rig.camera.position.setFromSpherical(spherical).add(controls.target);controls.update();requestRender();
       },{signal});
-      reset.addEventListener('click',()=>{controls.reset();requestRender();},{signal});
       ready=true;canvas.dataset.ready='true';canvas.dataset.profile=profile.name;canvas.dataset.revision=config.revision;
       resize();scroll=createScrollDriver({section,stage,onProgress:setProgress});
       Object.assign(controller,{scene,renderer,rig,controls,arch,profile});
@@ -201,17 +249,22 @@ export function createExperience(config=experienceConfig) {
       requestAnimationFrame(async()=>{
         if(disposed)return;
         try {
-          atlas=await loadModel(config,profile.compact?config.assets.compact:config.assets.desktop,signal);
-          if(disposed){disposeObject(atlas.object);return;}
-          arch.attachAtlas(atlas);
+          const results=await Promise.allSettled([
+            loadModel(config,profile.compact?config.assets.compact:config.assets.desktop,signal),
+            loadModel(config,profile.compact?config.assets.upperCompact:config.assets.upperDesktop,signal),
+          ]);
+          if(results[0].status==='fulfilled')atlas=results[0].value;
+          if(results[1].status==='fulfilled')upperMolar=results[1].value;
+          if(disposed){disposeObject(atlas?.object);disposeObject(upperMolar?.object);return;}
+          for(const result of results)if(result.status==='rejected')throw result.reason;
+          arch.attachAtlas(atlas,upperMolar);
           await renderer.compileAsync(scene,rig.camera);
           if(disposed)return;
           canvas.dataset.assetsReady='true';setProgress(progress);
         }catch(error){
           if(disposed)return;
-          atlasError=true;disposeObject(atlas?.object);
+          atlasError=true;disposeObject(atlas?.object);disposeObject(upperMolar?.object);
           showError('Ďalšie zuby sa nepodarilo načítať. Skúste to znova.',error,{upcoming:true});
-          hint.hidden=true;
         }
       });
       return controller;

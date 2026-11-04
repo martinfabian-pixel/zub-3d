@@ -11,6 +11,7 @@ const status = document.querySelector('#status');
 const statusMessage = document.querySelector('#status-message');
 const controlsElement = document.querySelector('#controls');
 const retry = document.querySelector('#retry');
+const legacyAssetBase = new URL('../', document.baseURI);
 retry.addEventListener('click', () => window.location.reload());
 
 function showError(message, error) {
@@ -99,7 +100,7 @@ async function loadStudioEnvironment(renderer) {
   try {
     // Local, unmodified Poly Haven Studio Small 09, Sergej Majboroda, CC0.
     // This capture supplies real softbox gradients, white cyc bounce and flags.
-    hdr = await new HDRLoader().loadAsync(`${import.meta.env.BASE_URL}environment/studio-small-09-1k.hdr?v=${__ASSET_REVISION__}`);
+    hdr = await new HDRLoader().loadAsync(new URL(`environment/studio-small-09-1k.hdr?v=${__ASSET_REVISION__}`, legacyAssetBase).href);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     return {
       target: pmrem.fromEquirectangular(hdr),
@@ -435,12 +436,12 @@ async function start() {
   let loadedVariant = variant;
   const modelPromise = (async () => {
     try {
-      return await loader.loadAsync(`${import.meta.env.BASE_URL}models/${variant}?v=${__ASSET_REVISION__}`, progress);
+      return await loader.loadAsync(new URL(`models/${variant}?v=${__ASSET_REVISION__}`, legacyAssetBase).href, progress);
     } catch (error) {
       if (!compact) throw error;
       // A full-quality fallback also keeps a partially cached deployment usable.
       loadedVariant = 'molar.glb';
-      return loader.loadAsync(`${import.meta.env.BASE_URL}models/molar.glb?v=${__ASSET_REVISION__}`, progress);
+      return loader.loadAsync(new URL(`models/molar.glb?v=${__ASSET_REVISION__}`, legacyAssetBase).href, progress);
     }
   })();
   const [gltf, environment] = await Promise.all([modelPromise, environmentPromise]);

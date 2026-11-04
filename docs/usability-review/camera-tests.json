@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "scope": "synthetic transformed arches; camera math and native scroll lifecycle",
+  "views": [
+    {
+      "width": 1440,
+      "height": 900,
+      "coverage": {
+        "hero": 0.893,
+        "neighbors": 0.901,
+        "arch": 0.826,
+        "full": 0.874
+      },
+      "fullyVisibleBy": {
+        "hero": 0,
+        "neighbors": 0.3,
+        "arch": 0.55,
+        "full": 0.8
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "coverage": {
+        "hero": 0.893,
+        "neighbors": 0.917,
+        "arch": 0.88,
+        "full": 0.87
+      },
+      "fullyVisibleBy": {
+        "hero": 0,
+        "neighbors": 0.35,
+        "arch": 0.6,
+        "full": 0.61
+      }
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "coverage": {
+        "hero": 0.893,
+        "neighbors": 0.917,
+        "arch": 0.876,
+        "full": 0.871
+      },
+      "fullyVisibleBy": {
+        "hero": 0,
+        "neighbors": 0.35,
+        "arch": 0.6,
+        "full": 0.61
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "coverage": {
+        "hero": 0.893,
+        "neighbors": 0.901,
+        "arch": 0.826,
+        "full": 0.874
+      },
+      "fullyVisibleBy": {
+        "hero": 0,
+        "neighbors": 0.3,
+        "arch": 0.55,
+        "full": 0.8
+      }
+    }
+  ]
+}
