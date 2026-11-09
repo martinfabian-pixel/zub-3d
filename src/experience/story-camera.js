@@ -43,6 +43,9 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   // the filaments behind the grip. The cavity view stays on the 36 side
   // of this angle to keep the proximal opening in view.
   const brushDirection = adjustDirection(macro, settings.brushYawDegrees, settings.brushPitchDegrees);
+  const brushSideDirection = adjustDirection(macro,
+    settings.brushYawDegrees + (settings.brushSweepYawDegrees ?? 0),
+    settings.brushPitchDegrees + (settings.brushSweepPitchDegrees ?? 0));
   const lesionDirection = adjustDirection(macro, settings.lesionYawDegrees, settings.lesionPitchDegrees);
   const specs = [
     ['hero', 0.045, 'hero', base.camera.directions.hero],
@@ -52,6 +55,11 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     ['lesion', 0.47, 'detail', lesionDirection, settings.detailDistanceCm],
     ['lesion-hold', 0.48, 'detail', lesionDirection, settings.detailDistanceCm],
     ['brush', 0.515, 'cleaning', brushDirection, settings.cleaningDistanceCm],
+    // The orbit starts after the first cleaning strokes. Both poses use the
+    // same measured contact region and return before the result close-up.
+    ['brush-orbit-start', 0.62, 'cleaning', brushDirection, settings.cleaningDistanceCm],
+    ['brush-orbit-side', 0.667, 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
+    ['brush-orbit-hold', 0.676, 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
     ['withdrawn', 0.72, 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['result', 0.76, 'result', lesionDirection, settings.resultDistanceCm],
     ['result-hold', 0.80, 'result', lesionDirection, settings.resultDistanceCm],

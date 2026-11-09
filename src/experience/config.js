@@ -90,7 +90,7 @@ export const experienceConfig = {
     cleaningDistanceCm: 2.27, resultDistanceCm: 1.58,
     spaceOcclusalShiftCm: 0.035, spaceOcclusalAngle: 0.77,
     lesionYawDegrees: 4, lesionPitchDegrees: 0,
-    brushYawDegrees: 19, brushPitchDegrees: 5,
+    brushYawDegrees: 19, brushPitchDegrees: 5, brushSweepYawDegrees: -60, brushSweepPitchDegrees: 3,
     cleaningEntryFraction: 0.63, resultApicalShiftCm: 0.014,
     compact: {
       smileDistanceCm: 6.6,
