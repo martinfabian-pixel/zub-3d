@@ -2,6 +2,8 @@
 
 The current main page and `/experience/` use the native lower molar FDI 36 and the complete Dundee dentition described below. The opening upper-molar attribution in this document applies to the preserved `/prototype/` and `/legacy/` viewers.
 
+The final smile also uses `public/dentition-assets/crowns.glb`, an adaptation of the Dundee tooth meshes listed below. Each source tooth is segmented at its estimated cervical boundary and closed for this stylized display. The adapted geometry is distributed under CC BY 4.0; it is not a clinical model. See [the crown finale documentation](docs/CROWN_FINALE.md).
+
 The displayed tooth is adapted from **Maxillary First Molar (Left)**, the permanent upper left first molar **FDI 26 / UL6**, by **University of Dundee, School of Dentistry**.
 
 - Created by **Emily McDougall**, in ZBrush using CT data.

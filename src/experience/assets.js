@@ -15,6 +15,18 @@ export async function loadStoryData(config,path,signal) {
   return response.json();
 }
 
+// The prepared crown-only atlas shares the Dundee source meshes. Its materials
+// are replaced by the scene's existing enamel materials after loading.
+export async function loadCrownAtlas(config, signal) {
+  const url=assetURL(config,'dentition-assets/crowns.glb');
+  const bytes=await loadBinary(url,signal);
+  const loaded=await new GLTFLoader().parseAsync(bytes,new URL('.',url).href);
+  if(signal?.aborted){disposeObject(loaded.scene);throw new DOMException('Journey disposed','AbortError');}
+  const meshes=new Map();
+  loaded.scene.traverse(object=>{if(object.isMesh)meshes.set(object.name,object);});
+  return {object:loaded.scene,meshes};
+}
+
 export async function loadManifest(config, signal) {
   const response = await fetch(assetURL(config, config.assets.manifest), { signal });
   if (!response.ok) throw new Error(`Dentition manifest HTTP ${response.status}`);

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { prepareJourneyMaterial } from './materials.js';
 import { disposeObject } from './scene.js';
 import { sampleDentalStory } from './dental-story.js';
+import { createFloatingTeeth, floatingAmount } from './floating-teeth.js';
 
 const smooth = (a,b,value) => { const t=THREE.MathUtils.clamp((value-a)/(b-a),0,1); return t*t*(3-2*t); };
 
@@ -34,6 +35,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const proxies = [];
   let disposed=false, assetsReady=false, visibleCount=1;
   let finalView='smile', smileWeight=1, sceneProgress=0, closureCm=0;
+  let floating;
   for (const entry of manifest.teeth) {
     const upper = entry.fdi < 30;
     const matrix = new THREE.Matrix4().fromArray(entry.matrix);
@@ -81,6 +83,35 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       attach(fdi,source);
     }
     assetsReady=true; object.updateMatrixWorld(true);
+    floating=createFloatingTeeth(teeth);
+  }
+  function attachCrowns(atlas) {
+    sourceObjects.add(atlas.object);
+    const mirroredCrowns=new Map();
+    const smileConfig={...config,material:{...config.material,
+      enamel:{...config.material.enamel,color:config.smileMaterial.enamelColor,roughness:config.smileMaterial.roughness},
+      occlusionStrength:config.smileMaterial.occlusionStrength}};
+    for(const item of teeth.values()) {
+      const source=atlas.meshes.get('FDI_'+item.entry.source);
+      if(!source)throw new Error('Missing crown '+item.entry.source);
+      let geometry=source.geometry;
+      if(item.entry.reflected) {
+        if(!mirroredCrowns.has(item.entry.source))mirroredCrowns.set(item.entry.source,mirrorGeometry(geometry));
+        geometry=mirroredCrowns.get(item.entry.source);
+      }
+      const crown=new THREE.Mesh(geometry,source.material);
+      item.crownFinish=prepareJourneyMaterial(crown,smileConfig,profile,renderer,clay);
+      crown.material.polygonOffset=true;
+      crown.material.polygonOffsetFactor=-2;
+      crown.material.polygonOffsetUnits=-2;
+      crown.name='Smile crown '+item.entry.fdi;
+      crown.userData.smileFdi=item.entry.fdi;
+      crown.matrixAutoUpdate=false;
+      crown.matrix.copy(item.mesh.matrix);
+      crown.visible=false;
+      object.add(crown);
+      item.crown=crown;
+    }
   }
   const sampled={brushPose:{}};
   function updateClosure() {
@@ -104,6 +135,9 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   function setState(state) {
     sceneProgress=state.sceneProgress??0;
     updateClosure();
+    const dispersed = floatingAmount(sceneProgress);
+    floating?.update(sceneProgress,closureCm);
+    const crownMix=smooth(.80,.825,sceneProgress)*smileWeight;
     visibleCount=0;
     for (const [fdi,item] of teeth) {
       let reveal=0;
@@ -114,8 +148,17 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       } else {
         reveal=state.upperReveal;
       }
+      reveal=Math.max(reveal,dispersed);
       item.reveal=reveal;
-      item.finish?.setReveal(reveal);
+      item.finish?.setReveal(reveal*(1-crownMix));
+      if(item.crown) {
+        // Keep the shared crown surface opaque while only the roots recede.
+        // This avoids two translucent copies of the same enamel shimmering.
+        const opacity=crownMix>.001?reveal:0;
+        item.crownFinish.setReveal(opacity);
+        item.crown.matrix.copy(item.mesh.matrix);
+        item.crown.updateMatrixWorld(true);
+      }
       if(item.mesh&&reveal>.00001)visibleCount++;
     }
   }
@@ -160,11 +203,11 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   }
   function dispose() {
     if(disposed)return; disposed=true;
-    for(const item of teeth.values())item.finish?.dispose();
+    for(const item of teeth.values()){item.finish?.dispose();item.crownFinish?.dispose();}
     const owned=new THREE.Group();owned.add(object,...sourceObjects);
     disposeObject(owned);sourceObjects.clear();
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
     mirrored.clear(); teeth.clear();
   }
-  return { object,teeth,landmarks,attachAtlas,setState,setProgress,setFinalView,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
+  return { object,teeth,landmarks,attachAtlas,attachCrowns,setState,setProgress,setFinalView,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

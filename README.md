@@ -24,6 +24,8 @@ Otvorte **http://127.0.0.1:5173/**. Produkčná zostava: `pnpm build`; lokálny 
 
 ## Dokumentácia a zdroje
 
+[Aktuálne korunkové finále, pôvod assetu a zábery](docs/CROWN_FINALE.md).
+
 Text, 3D model a popisky patria do jednej plochy na ľadovomodrom pozadí. Sedem navigačných bodiek, šípky a počítadlo kapitoly fungujú na počítači aj mobile. Pri otočení ostávajú popisky pripojené k označeným miestam zubov; zakryté sa skryjú. Podrobné vysvetlenia otvára tlačidlo **Výučbová ukážka · poznámky**. [Snímky všetkých kapitol a kontroly](docs/SHARED_STAGE_QA.md) · [Príbeh a architektúra](docs/DENTAL_STORY.md) · [Geometria dutiny a dráha kefky](docs/PROXIMAL_SITE.md) · [Odborné zdroje a hranice ilustrácie](docs/DENTAL_STORY_SOURCES.md) · [Dolná šestka a jej export](docs/LOWER_HERO.md) · [Pôvod anatomických predlôh](docs/DENTITION_SOURCES.md) · [Licencie a atribúcia](ATTRIBUTION.md).
 
 Geometria vychádza zo 14 odlišných anatomických modelov **University of Dundee, School of Dentistry**, pod licenciou **CC BY 4.0**. Opačné strany používajú zrkadlené predlohy s vlastnými polohami. Horné a dolné zuby majú rozdielnu pôvodnú geometriu. HDR **Studio Small 09**, Sergej Majboroda / Poly Haven: **CC0**. Kód: MIT. Bez platených assetov a služieb.

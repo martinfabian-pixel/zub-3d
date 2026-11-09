@@ -56,19 +56,19 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
   for(let i=0;i<2;i++){
     const curve=new WireStrand(span,wr*.49,pitch,i*Math.PI);
     part('Brush · steel strand '+(i+1),new TubeGeometry(curve,
-      Math.max(28,Math.ceil(span/pitch*(compact?7:11))),wr*.51*mm,compact?4:6,false),steel);
+      Math.max(28,Math.ceil(span/pitch*(compact?7:11))),wr*.30*mm,compact?4:6,false),steel);
   }
   const cap=part('Brush · rounded wire end',new SphereGeometry(wr*mm,10,6),steel);
   cap.scale.y=.82;
 
-  const pairs=compact?104:172,filamentCount=pairs*2;
+  const pairs=compact?176:200,filamentCount=pairs*2;
   const bristles=new InstancedMesh(new CylinderGeometry(.76,1,1,compact?4:5,1,false),nylon,filamentCount*2);
   bristles.name='Brush · tapered nylon fibres';bristles.userData.kind='interdental-brush';
   bristles.instanceMatrix.setUsage(DynamicDrawUsage);bristles.frustumCulled=false;
   bristles.castShadow=false;bristles.receiveShadow=true;object.add(bristles);
   geometries.add(bristles.geometry);materials.add(nylon);
   const fibres=[],sample=makePathSample(),station=makePathSample();
-  const color=new Color(),baseTone=new Color('#a2a6ae'),tipTone=new Color('#d3d2ce');
+  const color=new Color(),baseTone=new Color('#c1c6ca'),tipTone=new Color('#efeeeb');
   for(let i=0;i<pairs;i++){
     const t=(i+.5)/pairs,back=dims.tipMarginMm+t*length;
     const angle=TAU*back/pitch+Math.PI*.5+(noise(i+2)-.5)*.19;

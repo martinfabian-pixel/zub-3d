@@ -54,7 +54,7 @@ export async function measureSharedStage(page) {
       if(state.story.brush.tipWorld){point.fromArray(state.story.brush.tipWorld);sample('brush tip');}
     } else if(chapter==='dentition'){
       for(const fdi of [11,12,13,21,22,23,31,32,33,41,42,43]){
-        const item=app.arch.teeth.get(fdi),m=item.mesh;
+        const item=app.arch.teeth.get(fdi),m=item.crown?.visible?item.crown:item.mesh;
         if(!m?.visible)continue;
         const attrs=m.geometry.attributes.position;
         let y=-Infinity;
@@ -120,6 +120,12 @@ export async function sampleCopyTransition(page) {
     const frame=()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)));
     async function at(p) {
       window.scrollTo({top:origin+travel*p,behavior:'instant'});await frame();
+      const deadline=performance.now()+2000;
+      while(performance.now()<deadline) {
+        const state=window.__dentalExperience.report();
+        if(Math.abs(state.renderProgress-state.storyProgress)<.00002)break;
+        await frame();
+      }
       const title=document.querySelector('#journey-title');
       let opacity=1;const transforms=[];
       for(let e=title;e&&e!==stage;e=e.parentElement){const s=getComputedStyle(e);opacity*=Number(s.opacity);transforms.push(s.transform);}

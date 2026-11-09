@@ -1,0 +1,141 @@
+{
+  "passed": true,
+  "browser": "156.0.8078.80",
+  "results": [
+    {
+      "width": 1440,
+      "height": 900,
+      "motion": {
+        "samples": 120,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 17,
+        "over33ms": 3
+      },
+      "stages": [
+        {
+          "name": "brush",
+          "chapter": "brush",
+          "lesion": 1,
+          "crowns": 0,
+          "anatomy": 3
+        },
+        {
+          "name": "result",
+          "chapter": "result",
+          "lesion": 1,
+          "crowns": 0,
+          "anatomy": 3
+        },
+        {
+          "name": "floating",
+          "chapter": "dentition",
+          "lesion": 1,
+          "crowns": 28,
+          "anatomy": 0
+        },
+        {
+          "name": "smile",
+          "chapter": "dentition",
+          "lesion": 1,
+          "crowns": 28,
+          "anatomy": 0
+        }
+      ],
+      "anatomy": {
+        "crowns": 0,
+        "anatomy": 28
+      },
+      "errors": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "motion": {
+        "samples": 120,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 17,
+        "over33ms": 1
+      },
+      "stages": [
+        {
+          "name": "brush",
+          "chapter": "brush",
+          "lesion": 1,
+          "crowns": 0,
+          "anatomy": 3
+        },
+        {
+          "name": "result",
+          "chapter": "result",
+          "lesion": 1,
+          "crowns": 0,
+          "anatomy": 3
+        },
+        {
+          "name": "floating",
+          "chapter": "dentition",
+          "lesion": 1,
+          "crowns": 28,
+          "anatomy": 0
+        },
+        {
+          "name": "smile",
+          "chapter": "dentition",
+          "lesion": 1,
+          "crowns": 28,
+          "anatomy": 0
+        }
+      ],
+      "anatomy": {
+        "crowns": 0,
+        "anatomy": 28
+      },
+      "errors": []
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "motion": {
+        "samples": 120,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 17,
+        "over33ms": 1
+      },
+      "stages": [
+        {
+          "name": "brush",
+          "chapter": "brush",
+          "lesion": 1,
+          "crowns": 0,
+          "anatomy": 3
+        },
+        {
+          "name": "result",
+          "chapter": "result",
+          "lesion": 1,
+          "crowns": 0,
+          "anatomy": 3
+        },
+        {
+          "name": "floating",
+          "chapter": "dentition",
+          "lesion": 1,
+          "crowns": 28,
+          "anatomy": 0
+        },
+        {
+          "name": "smile",
+          "chapter": "dentition",
+          "lesion": 1,
+          "crowns": 28,
+          "anatomy": 0
+        }
+      ],
+      "anatomy": {
+        "crowns": 0,
+        "anatomy": 28
+      },
+      "errors": []
+    }
+  ]
+}

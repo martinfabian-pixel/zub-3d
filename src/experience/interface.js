@@ -50,7 +50,6 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
       byId('journey-meta').textContent=step.meta;byId('journey-subject').textContent=step.subject;
       byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+step.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');
       byId('journey-mobile-previous').disabled=index===0;byId('journey-mobile-next').disabled=final;
-      byId('journey-final-views').hidden=!final;
       buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
       if(liveReady)byId('journey-stage-live').textContent='Kapitola '+(index+1)+' zo '+steps.length+'. '+step.title;
       const labels=byId('journey-result-labels');labels.textContent=step.resultLabels?.join('. ')??'';labels.setAttribute('aria-hidden',String(step.id!=='result'));
@@ -68,6 +67,7 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
       byId('journey-note').textContent=note;byId('journey-note').hidden=!note;
       byId('journey-instruction').textContent=instruction;byId('journey-instruction').hidden=!instruction;
     }
+    byId('journey-final-views').hidden=!final || (!reducedMotion && (state?.sceneProgress??0)<.94);
     typography.update(step,state?.progress??progress,{mobile:small,reducedMotion,free:exploring});
     heroExplore.hidden=active!==0||exploring;
     freeExplore.hidden=active===0&&!exploring;

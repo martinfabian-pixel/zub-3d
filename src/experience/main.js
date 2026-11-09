@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { experienceConfig } from './config.js';
 import { createScene, disposeObject, releaseRendererLuts } from './scene.js';
-import { loadManifest, loadModel, loadStoryData } from './assets.js';
+import { loadManifest, loadModel, loadStoryData, loadCrownAtlas } from './assets.js';
 import { createArch } from './arch.js';
 import { createLighting } from './lighting.js';
 import { createTimeline } from './timeline.js';
@@ -39,6 +39,7 @@ export function createExperience(configuration=experienceConfig) {
   let frame=0,renderedFrames=0,lastFrame=0,settleTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
   let logicalWidth=0,logicalHeight=0,fittedRig=null;
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
+  let renderProgress=0,progressFrame=0;
   let inspectionProgress=0,manualProgress=0,manualChapter=null,finalView='smile';
   const finalTimelines={};let smileWeight=1,jawTransition=null;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
@@ -71,8 +72,11 @@ export function createExperience(configuration=experienceConfig) {
     const travel=Math.max(1,section.getBoundingClientRect().height-stage.getBoundingClientRect().height);
     if(Math.abs(progress-next)*travel<1)setProgress(next);
     else if(view)applyState(dentalState.progress,true);
-    view?.reset(performance.now(),reducedMotion);updateUI();
-    ui.scrollTo(next,window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if(view?.modified)view.reset(performance.now(),reducedMotion);
+    updateUI();
+    // Navigation changes the native scroll target immediately. The single
+    // render-progress follower owns the visible transition.
+    ui.scrollTo(next,true);
     requestRender();
   }
   function enterExplore(focus=false) {
@@ -120,25 +124,20 @@ export function createExperience(configuration=experienceConfig) {
     }
     // First paint does not wait for all 28 surfaces. If the visitor jumps far
     // ahead on a slow connection, hold the hero composition with a loading cue.
-    const applied=storyReady?storyProgress:Math.min(storyProgress,.045);
-    const pose=applyState(applied,true);
-    if(view.modified&&manualChapter&&dentalState.chapterId!==manualChapter&&Math.abs(progress-manualProgress)*travel>(config.interaction.handoverScrollPx??64)){
-      manualChapter=null;view.reset(performance.now(),reducedMotion);
-    }
-    canvas.dataset.stage=dentalState.chapterId;canvas.dataset.sceneProgress=dentalState.sceneProgress.toFixed(6);
+    if(reducedMotion)renderProgress=storyProgress;
     clearTimeout(settleTimer);
     scrolling=true;
     adaptive?.beginInteraction();
     settleTimer=setTimeout(()=>{scrolling=false;if(!interaction){adaptive?.endInteraction();lastFrame=0;}},120);
-    updateUI();requestRender();
-    return pose;
+    requestRender();
+    return rig.pose;
   }
   function applyState(p,moveCamera) {
     (reducedMotion?sampleReducedDentalStory:sampleDentalStory)(p,dentalState);
     arch.setFinalView?.(finalView,smileWeight);
     arch.setState(dentalState);
     caries?.setProgress(dentalState.lesionProgress);
-    plaque?.setState({visible:true,opacity:dentalState.plaqueDeposition,progress:dentalState.cleaningProgress,lesionProgress:dentalState.lesionProgress});
+    plaque?.setState({visible:dentalState.sceneProgress<.80,opacity:dentalState.plaqueDeposition,progress:dentalState.cleaningProgress,lesionProgress:dentalState.lesionProgress});
     brush?.setPose(dentalState.brushPose);
     if(!moveCamera)return null;
     const pose=rig.setProgress(dentalState.sceneProgress,{reducedMotion:false});
@@ -150,7 +149,7 @@ export function createExperience(configuration=experienceConfig) {
   function report() {
     const teeth=arch?.report()??[];
     return {
-      progress,storyProgress,sceneProgress:Number(canvas.dataset.sceneProgress),stage:canvas.dataset.stage,
+      progress,storyProgress,renderProgress,sceneProgress:Number(canvas.dataset.sceneProgress),stage:canvas.dataset.stage,
       ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,reducedMotion,view:view?.report(),
       composition:rig?{focus:[rig.pose.screenX,rig.pose.screenY],opticalZoom:rig.pose.opticalZoom,fullSensor:[rig.camera.view?.fullWidth,rig.camera.view?.fullHeight]}:null,
       typography:ui.report(),annotations:annotations?.report(),
@@ -168,9 +167,27 @@ export function createExperience(configuration=experienceConfig) {
   function render(now) {
     frame=0;
     if(disposed||document.hidden||!ready){lastFrame=0;return;}
+    const target=storyReady?storyProgress:Math.min(storyProgress,.045);
+    let following=false;
+    if(!exploring) {
+      const dt=progressFrame?Math.min(50,Math.max(0,now-progressFrame)):16.67;
+      renderProgress=reducedMotion?target:renderProgress+(target-renderProgress)*(1-Math.exp(-dt/85));
+      if(Math.abs(target-renderProgress)<.00002)renderProgress=target;
+      following=renderProgress!==target;
+      applyState(renderProgress,true);
+      const travel=Math.max(1,section.getBoundingClientRect().height-stage.getBoundingClientRect().height);
+      if(view?.modified&&manualChapter&&dentalState.chapterId!==manualChapter&&Math.abs(progress-manualProgress)*travel>(config.interaction.handoverScrollPx??64)){
+        manualChapter=null;view.reset(now,reducedMotion);
+      }
+      canvas.dataset.stage=dentalState.chapterId;
+      canvas.dataset.sceneProgress=dentalState.sceneProgress.toFixed(6);
+      updateUI();
+    }
+    progressFrame=now;
     if(jawTransition){
       const t=THREE.MathUtils.clamp((now-jawTransition.start)/(config.interaction.returnDurationMs??480),0,1),s=t*t*(3-2*t);
       smileWeight=THREE.MathUtils.lerp(jawTransition.from,jawTransition.to,s);arch.setFinalView(finalView,smileWeight);
+      arch.setState(dentalState);
       if(t===1)jawTransition=null;
     }
     // Canvas and DOM use the same full-stage dimensions in every chapter.
@@ -186,8 +203,8 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
-    if(changing||interaction||jawTransition){adaptive.beginInteraction();requestRender();}
-    else if(!scrolling){adaptive.endInteraction();lastFrame=0;}
+    if(changing||interaction||jawTransition||following){adaptive.beginInteraction();requestRender();}
+    else if(!scrolling){adaptive.endInteraction();lastFrame=0;progressFrame=0;}
   }
   function resize() {
     if(disposed||!renderer)return;
@@ -224,7 +241,7 @@ export function createExperience(configuration=experienceConfig) {
   retry.addEventListener('click',()=>location.reload(),{signal});
   window.addEventListener('pagehide',(e)=>{if(!e.persisted)dispose();},{signal});
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;adaptive?.endInteraction();}
+    if(document.hidden){if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;adaptive?.endInteraction();}
     else {scroll?.refresh();requestRender();}
   },{signal});
   canvas.addEventListener('webglcontextlost',(e)=>{
@@ -279,12 +296,14 @@ export function createExperience(configuration=experienceConfig) {
             loadModel(config,profile.compact?config.assets.upperCompact:config.assets.upperDesktop,signal),
             loadStoryData(config,config.assetsStory.site,signal),
             loadStoryData(config,config.assetsStory.caries,signal),
+            loadCrownAtlas(config,signal),
           ]);
           if(results[0].status==='fulfilled')atlas=results[0].value;
           if(results[1].status==='fulfilled')upperMolar=results[1].value;
           if(disposed||contextLost){disposeObject(atlas?.object);disposeObject(upperMolar?.object);atlas=undefined;upperMolar=undefined;return;}
           for(const result of results)if(result.status==='rejected')throw result.reason;
           arch.attachAtlas(atlas,upperMolar);
+          arch.attachCrowns(results[4].value);
           site=results[2].value;
           caries=createCaries({arch,data:results[3].value,config,clay});
           path=createCleaningPath(site);

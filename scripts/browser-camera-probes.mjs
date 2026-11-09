@@ -58,7 +58,7 @@ export async function projectedFootprints(page) {
     };
     const measured=b=>b.vertices?{...b,width:b.right-b.left,height:b.bottom-b.top}:null;
     const whole=bounds(),floor=bounds(),affected=bounds(),matrices={};
-    for(const [fdi,item]of a.arch.teeth){const m=item.mesh;if(!m)continue;matrices[fdi]=m.matrixWorld.toArray();if(!m.visible)continue;
+    for(const [fdi,item]of a.arch.teeth){const original=item.mesh;if(!original)continue;matrices[fdi]=original.matrixWorld.toArray();const m=original.visible?original:item.crown;if(!m?.visible)continue;
       const n=m.geometry.attributes.position.count,region=m.geometry.getAttribute('lesionRegion'),delta=m.geometry.morphAttributes.position?.[0];
       for(let i=0;i<n;i++){m.getVertexPosition(i,v).applyMatrix4(m.matrixWorld).project(cam);include(whole,v);
         if(fdi===36&&region){if(region.getY(i)>.50)include(floor,v);

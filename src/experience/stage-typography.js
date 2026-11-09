@@ -19,7 +19,12 @@ export function sampleStageTypography(chapter,progress,{mobile=false,reducedMoti
   // Direct jumps and backward scroll reconstruct exactly the same layout.
   const incoming=chapter.start===0?1:smooth((progress-chapter.start)/.008);
   const outgoing=chapter.end===1?1:smooth((chapter.end-progress)/.004);
-  const opacity=reducedMotion?1:Math.min(incoming,outgoing);
+  let opacity=reducedMotion?1:Math.min(incoming,outgoing);
+  if (chapter.id==='dentition' && !reducedMotion) {
+    const dispersing=smooth((progress-.80)/.025);
+    const settling=smooth((progress-.88)/.065);
+    opacity *= 1 - .88*dispersing*(1-settling);
+  }
   return {x,y,width,font,opacity:opacity*(free ? .58 : 1),shift:reducedMotion?0:(1-opacity)*8};
 }
 

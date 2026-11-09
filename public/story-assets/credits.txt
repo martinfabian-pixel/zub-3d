@@ -12,6 +12,10 @@ https://sketchfab.com/3d-models/permanent-dentition-2f69d7b59c3e4a6a8bcae041bd8e
 Licencia pôvodnej geometrie a odvodených geometrických údajov: CC BY 4.0.
 https://creativecommons.org/licenses/by/4.0/
 
+Finálna korunková zostava je úpravou tých istých anatomických modelov
+University of Dundee, School of Dentistry. Korunky sú oddelené a uzavreté
+pre štylizované zobrazenie úsmevu. Úprava je dostupná pod CC BY 4.0.
+
 Úpravy pre tento príbeh: výber konkrétnych povrchových trojuholníkov,
 meranie priestoru medzi pevne umiestnenými zubami, ilustračné masky
 povlaku a nekavitovanej zmeny, miestna geometrická priehlbina na 36.

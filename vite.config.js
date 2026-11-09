@@ -20,7 +20,7 @@ for (const path of ['molar.glb', 'molar-mobile.glb']) {
 }
 
 const dentitionHash = createHash('sha256');
-for (const path of ['manifest.json', 'dentition.glb', 'dentition-mobile.glb', 'hero-36.glb', 'hero-36-mobile.glb']) {
+for (const path of ['manifest.json', 'dentition.glb', 'dentition-mobile.glb', 'hero-36.glb', 'hero-36-mobile.glb', 'crowns.glb']) {
   const file = new URL(`./public/dentition-assets/${path}`, import.meta.url);
   dentitionHash.update(path);
   if (existsSync(file)) dentitionHash.update(readFileSync(file));

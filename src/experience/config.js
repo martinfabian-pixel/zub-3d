@@ -51,7 +51,7 @@ export const experienceConfig = {
       result:    {desktop:[.69,.53,.68],portrait:[.61,.57,.68]},
       arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
-      smile:     {desktop:[.70,.50,.43],portrait:[.46,.58,.34]},
+      smile:     {desktop:[.68,.52,.34],portrait:[.46,.58,.34]},
     },
   },
   material: {
@@ -99,6 +99,7 @@ export const experienceConfig = {
     },
   },
   caries: {chalk:'#f8f2df',floor:'#927157',margin:'#c5ad84'},
+  smileMaterial: {enamelColor:'#f5f4f0',roughness:.27,occlusionStrength:.24},
   plaque: {tint:'#b88f9b',warmTint:'#cda6ac'},
   brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
   assetsStory: {site:'story-assets/site.json',caries:'story-assets/caries-36.json'},

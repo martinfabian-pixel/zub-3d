@@ -67,6 +67,7 @@ async function ready(page) {
 }
 async function at(page,p) {
   await page.waitForFunction(p=>Math.abs(Number(document.querySelector('#journey-canvas')?.dataset.progress)-p)<.002,p);
+  await page.waitForFunction(()=>{const r=window.__dentalExperience.report();return r.exploring||Math.abs(r.renderProgress-r.storyProgress)<.00002;});
   await threeFrames(page);
 }
 async function scroll(page,p) {
@@ -86,7 +87,9 @@ async function read(page) {
     if(deepest>=0){const base=geom.attributes.position;m36.getVertexPosition(deepest,v);depthLocal=Math.hypot(v.x-base.getX(deepest),v.y-base.getY(deepest),v.z-base.getZ(deepest));
       lesionNDC=v.applyMatrix4(m36.matrixWorld).project(cam).toArray();}
     const visible=[],meshFDIs=[],kinds={};
-    app.scene.traverse(n=>{if(!n.isMesh)return;const fdi=Number(n.userData.fdi);if(!fdi){const k=n.userData.kind||n.name||'unnamed';kinds[k]=(kinds[k]||0)+1;return;}
+    app.scene.traverse(n=>{if(!n.isMesh)return;const fdi=Number(n.userData.fdi);
+      if(n.userData.smileFdi){for(let a=n;a;a=a.parent)if(!a.visible)return;visible.push(Number(n.userData.smileFdi));return;}
+      if(!fdi){const k=n.userData.kind||n.name||'unnamed';kinds[k]=(kinds[k]||0)+1;return;}
       meshFDIs.push(fdi);for(let a=n;a;a=a.parent)if(!a.visible)return;visible.push(fdi);});
     const box=sel=>{const el=document.querySelector(sel);if(!el||el.getClientRects().length===0)return null;const r=el.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
     const canvas=box('#journey-canvas');
@@ -134,10 +137,10 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' title uses the two approved block lines',a.titleLines.length===2&&
     a.titleLines.every((line,i)=>line.text===chapters[index].titleLines[i]&&line.display==='block'),a.titleLines);
   check(label+' transparent WebGL sits over the common ice-blue stage',a.surface.webglAlpha&&a.surface.clearAlpha===0&&
-    a.surface.sceneBackground===null&&a.surface.sceneColorToken==='#dcecf7'&&
-    a.surface.stageBackground.includes('rgb(220, 236, 247)')&&a.surface.canvasColor==='rgba(0, 0, 0, 0)',a.surface);
+    a.surface.sceneBackground===null&&a.surface.sceneColorToken==='#e6f3fc'&&
+    a.surface.stageBackground.includes('rgb(230, 243, 252)')&&a.surface.canvasColor==='rgba(0, 0, 0, 0)',a.surface);
   check(label+' hero CTA and final views are active only at their respective chapters',
-    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===6)&&a.controls.finalInCopy,a.controls);
+    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===6&&p>=.94)&&a.controls.finalInCopy,a.controls);
   if(index===2)check(label+' plaque color explanation is visible',a.controls.noteVisible,a.controls);
   check(label+' one canvas fills the fixed stage beneath the overlay',l.overflowX<=1&&['left','top','right','bottom'].every(k=>near(a.stage[k],b[k],1)),{stage:a.stage,canvas:b});
   const f=a.framing;
@@ -147,7 +150,7 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' the sole active H1 and educational copy fit and clear controls',a.headingCount===1&&a.role==='H1'&&a.unclippedCopy&&a.blockedControls.length===0,a);
   check(label+' copy passes input through to the actual 3D canvas',a.hit?.isCanvas===true,a.hit);
   check(label+' actual educational focus stays clear of every rendered text line',a.protected.sampleCount>0&&a.protected.covered.length===0,a.protected);
-  check(label+' protected healthy 46 and fixed 36 pose',s.healthyMolar.morphBuffers===0&&!s.healthyMolar.lesionAttribute&&s.geometry36!==s.geometry46&&equal(s.pose36,base.pose36));
+  check(label+' protected healthy 46 and teaching-site pose',s.healthyMolar.morphBuffers===0&&!s.healthyMolar.lesionAttribute&&s.geometry36!==s.geometry46&&(p>=.80&&p<.975||equal(s.pose36,base.pose36)));
   if(index>=3)check(label+' actual mature 36 morphology persists',s.lesion===1&&s.caries.morphInfluence===1&&s.depthLocal>0&&s.caries.isolated,{lesion:s.lesion,influence:s.caries.morphInfluence,depth:s.depthLocal});
   else check(label+' healthy geometry before lesion',s.lesion===0&&s.depthLocal===0,{lesion:s.lesion,depth:s.depthLocal});
   if(index>=2&&index<=5)check(label+' proximal lesion site projects into view',s.lesionNDC?.every(n=>Math.abs(n)<1.001),s.lesionNDC);
@@ -160,7 +163,7 @@ async function saveView(page,label,p,index,expected,base) {
 }
 const three=[35,36,37], lower=allFDI.slice(14);
 const standard=[['hero',0,0,[36]],['space',.21,1,three],['plaque',.33,2,three],['caries',.475,3,three],['brush',.62,4,three],['result',.76,5,three],['full',.98,6,allFDI]];
-const extra=[['brush-align',.51,4,three],['brush-entry',.542,4,three],['brush-insert',.58,4,three],['brush-stroke',.64,4,three],['lower',.876,6,lower]];
+const extra=[['brush-align',.51,4,three],['brush-entry',.542,4,three],['brush-insert',.58,4,three],['brush-stroke',.64,4,three],['lower',.876,6,allFDI]];
 const stamp=s=>({p:s.progress,chapter:s.chapter,visible:s.visible,lesion:s.lesion,deform:s.depthLocal,deposit:s.deposit,clean:s.clean,brush:s.brushPose,insertion:s.brush.insertion,tip:s.brush.tipWorld,removed:s.plaque.patches.map(x=>x.currentWeightedRemoval),camera:s.camera,pose36:s.pose36,lights:s.lights});
 
 const drift=(a,b)=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
@@ -340,9 +343,11 @@ async function desktop() {
       [states['brush-align'],states['brush-entry'],states['brush-stroke']].every((s,i)=>s.instruction.includes(chapters[4].instructions[i])));
     // Physically scroll the document across chapter boundaries over successive
     // rendered frames, including reverse motion and a fast endpoint jump.
+    await scroll(page,0);
     const track=await page.evaluate(async()=>{const app=window.__dentalExperience,sec=document.querySelector('#dental-journey'),stage=document.querySelector('#journey-stage'),samples=[],seen=new Set();
       const r=sec.getBoundingClientRect(),base=scrollY+r.top,len=r.height-stage.getBoundingClientRect().height;
       for(let i=0;i<=70;i++){window.scrollTo({top:base+len*i/70,behavior:'instant'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const a=app.report();seen.add(a.story.chapterId);samples.push([a.progress,a.story.caries.morphInfluence,a.story.plaque.cleaningProgress]);}
+      await new Promise(r=>setTimeout(r,800));seen.add(app.report().story.chapterId);
       return {seen:[...seen],samples};});report.forwardScroll=track;
     check('Native gradual scrolling visits seven chapters',equal(track.seen,chapters.map(c=>c.id)),track.seen);
     for(const name of ['result','brush','caries','space','full','hero','brush','result']){
