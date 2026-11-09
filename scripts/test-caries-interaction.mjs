@@ -14,7 +14,8 @@ const distance = (a, b) => Math.hypot(...a.map((value, i) => value - b[i]));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 
 try {
-  for (const [width, height, reduced] of [[390, 844, false], [1440, 900, false], [390, 844, true]]) {
+  const scenarios = [[390, 844, false], [1440, 900, false], [390, 844, true]];
+  for (const [width, height, reduced] of scenarios.filter(([, , isReduced]) => process.env.DENTAL_REDUCED_ONLY !== '1' || isReduced)) {
     const mobile = width < 700;
     const context = await browser.newContext({
       viewport: { width, height }, deviceScaleFactor: mobile ? 2 : 1,
@@ -24,6 +25,7 @@ try {
       const page = await context.newPage();
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
+      page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
       page.on('response', response => {
         if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
       });
@@ -58,10 +60,15 @@ try {
           const height = document.querySelector('#journey-stage').clientHeight;
           scrollTo({ top: scrollY + rect.top + (rect.height - height) * value, behavior: 'instant' });
         }, progress);
-        await page.waitForFunction(value => {
-          const state = window.__dentalExperience.report();
-          return Math.abs(state.progress - value) < .002 && Math.abs(state.renderProgress - state.storyProgress) < .00002;
-        }, progress, { timeout: 15000 });
+        try {
+          await page.waitForFunction(value => {
+            const state = window.__dentalExperience.report();
+            return Math.abs(state.progress - value) < .002 && Math.abs(state.renderProgress - state.storyProgress) < .00002;
+          }, progress, { timeout: 15000 });
+        } catch (error) {
+          console.error('Seek failed:', { progress, state: await report() });
+          throw error;
+        }
         await page.waitForTimeout(700); // camera handover and input damping
         return report();
       }
@@ -76,16 +83,26 @@ try {
       if (mobile) await page.touchscreen.tap(...anchor.point);
       else await page.mouse.click(...anchor.point);
       await page.waitForFunction(() => window.__dentalExperience.report().detailOpen, null, { timeout: 12000 });
+      await page.waitForFunction(() => {
+        const microbes = window.__dentalExperience.report().microbes;
+        return microbes?.visible && microbes.reveal > .95;
+      }, null, { timeout: 5000 });
       const zoomed = await report();
       if (!reduced) assert.ok(distance(zoomed.camera, zoomed.target) < radius * .8, 'The camera approaches the clicked cavity');
-      assert.equal(await page.locator('#cavity-detail-dialog').isVisible(), true);
+      assert.equal(await page.locator('canvas').count(), 1, 'The close-up uses the existing Three.js canvas');
+      assert.equal(await page.locator('#cavity-detail-dialog').count(), 0, 'The 3D close-up is not replaced by a dialog illustration');
+      assert.equal(zoomed.microbes?.visible, true, 'Cartoon bacteria appear in the 3D close-up');
+      assert.equal(await page.locator('.cavity-detail-return').isVisible(), true);
       if (screenshotDir && !reduced) await page.screenshot({ path: `${screenshotDir}/${width}-cavity-detail.png` });
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !window.__dentalExperience.report().detailOpen);
-      await page.waitForTimeout(700);
+      await page.waitForFunction(before => {
+        const after = window.__dentalExperience.report().camera;
+        return Math.hypot(...after.map((value, i) => value - before[i])) < .04;
+      }, cavity.camera, { timeout: 5000 });
       const restored = await report();
       assert.equal(restored.exploring, false);
-      assert.ok(distance(cavity.camera, restored.camera) < .04, 'Closing restores the original camera');
+      assert.ok(distance(cavity.camera, restored.camera) < .04, `Closing restores the original camera: ${JSON.stringify({before:cavity.camera,after:restored.camera,view:restored.view,exploring:restored.exploring})}`);
 
       if (!reduced) {
         await page.evaluate(() => {
@@ -122,6 +139,7 @@ try {
       const brushing = await seek(.62);
       assert.equal(brushing.story.lesionProgress, 1, 'The earlier example remains in story data');
       assert.equal(brushing.story.lesionDisplay, 0);
+      assert.equal(brushing.microbes?.visible, false, 'The bacteria do not carry over into the healthy brushing example');
       assert.equal(brushing.story.caries.morphInfluence, 0, 'The brush uses the healthy example');
       assert.match(await page.locator('#journey-description').innerText(), /zdravom zube/);
       assert.equal(await page.locator('.cavity-detail-trigger').isVisible(), false);

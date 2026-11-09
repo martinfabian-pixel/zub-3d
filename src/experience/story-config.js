@@ -53,7 +53,9 @@ export const DENTAL_STORY = Object.freeze({
   chapters: DENTAL_CHAPTERS,
   fdi: Object.freeze({ hero: 36, distalNeighbor: 37, neighbors: Object.freeze([35, 36, 37]) }),
   neighbors: range(.10, .16), gapFocus: range(.16, .22), gapRelease: range(.80, .875),
-  deposition: range(.22, .33), lesion: range(.34, .47),
+  // The camera approaches first; the cavity develops only at the end of the
+  // macro move. This remains reversible with the same story progress.
+  deposition: range(.22, .33), lesion: range(.43, .47),
   brush: Object.freeze({
     appear: range(.48, .502), align: range(.48, .515), enter: range(.515, .56),
     work: range(.56, .68), withdraw: range(.68, .714), fade: range(.708, .72),

@@ -54,7 +54,10 @@ export function createViewController({camera,config}) {
       desired.pitch=MathUtils.clamp(desired.pitch+pitch,-Math.PI/2+.04-basePitch,Math.PI/2-.04-basePitch);
     },
     zoomBy(factor,now=performance.now()){
-      if(!valid)return;interrupt(now);desired.zoom=MathUtils.clamp(desired.zoom+Math.log(factor),minimum,maximum);
+      if(!valid)return;interrupt(now);
+      // A guided close-up may be closer than the regular manual zoom limit.
+      // Permit a gradual zoom out from that position rather than snapping to it.
+      desired.zoom=MathUtils.clamp(desired.zoom+Math.log(factor),Math.min(minimum,desired.zoom),maximum);
     },
     capture(){return { ...desired, focus:desiredFocus.toArray() };},
     restore(snapshot){

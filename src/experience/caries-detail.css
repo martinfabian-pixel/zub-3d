@@ -1,4 +1,4 @@
-.cavity-detail-trigger {
+.cavity-detail-trigger, .cavity-detail-return {
   display: inline-flex;
   align-items: center;
   min-height: 42px;
@@ -13,72 +13,12 @@
   font-weight: 650;
   pointer-events: auto;
 }
-.cavity-detail-trigger:hover { background: #225265; }
-.cavity-detail-trigger[hidden] { display: none; }
-
-dialog.cavity-detail {
-  width: min(620px, calc(100vw - 32px));
-  max-width: none;
-  max-height: min(760px, calc(100dvh - 32px));
-  padding: clamp(20px, 3vw, 32px);
-  border: 1px solid #d6e7ef;
-  border-radius: 24px;
-  background: #f6fbfe;
-  color: var(--text-primary);
-  overflow: auto;
-}
-.cavity-detail::backdrop { background: rgb(16 42 58 / 55%); }
-.cavity-detail-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.cavity-detail-eyebrow { color: #688697; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
-.cavity-detail-close {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #d9e8ef;
-  border-radius: 50%;
-  background: #fff;
-  color: var(--accent);
-  font-size: 24px;
-  line-height: 1;
-}
-dialog.cavity-detail h2 { margin: 8px 0 10px; font-size: clamp(26px, 4vw, 38px); line-height: 1.08; letter-spacing: -.04em; }
-#cavity-detail-description, .cavity-detail-note { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.5; }
-.cavity-detail-art {
-  margin: 20px 0 15px;
-  overflow: hidden;
-  border-radius: 18px;
-  background: radial-gradient(ellipse at 50% 24%, #f4fcff, #d9edf6);
-}
-.cavity-detail-art svg { display: block; width: 100%; height: auto; }
-.cavity-germ { transform-box: fill-box; transform-origin: center; animation: cavity-float 3.4s ease-in-out infinite; }
-.cavity-germ-b { animation-delay: -.9s; animation-duration: 3s; }
-.cavity-germ-c { animation-delay: -1.6s; animation-duration: 3.8s; }
-.cavity-acid { animation: cavity-acid-fall 2.6s ease-in-out infinite; }
-.cavity-pit { transform-box: fill-box; transform-origin: center top; }
-.cavity-detail[open] .cavity-pit { animation: cavity-erosion 6s ease-out both; }
-.cavity-detail-note { font-size: 13px; }
-.cavity-detail-return {
-  min-height: 44px;
-  margin-top: 18px;
-  padding: 0 19px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 650;
-  font-size: 13px;
-}
-.cavity-detail-return span { margin-left: 8px; }
-@keyframes cavity-float { 0%, 100% { translate: 0 0; rotate: -4deg; } 50% { translate: 0 -8px; rotate: 4deg; } }
-@keyframes cavity-acid-fall { 0%, 100% { translate: 0 -4px; opacity: .4; } 50% { translate: 0 5px; opacity: 1; } }
-@keyframes cavity-erosion { 0% { scale: .55; opacity: .25; } 100% { scale: 1; opacity: 1; } }
+.cavity-detail-trigger:hover, .cavity-detail-return:hover { background: #225265; }
+.cavity-detail-trigger[hidden], .cavity-detail-info[hidden] { display: none; }
+.cavity-detail-info { pointer-events: none; max-width: 260px; }
+.cavity-detail-info p { color: var(--text-secondary); font-size: 13px; line-height: 1.4; }
+.cavity-detail-return { margin-top: 8px; }
 @media (max-width: 700px) {
-  .cavity-detail-trigger { min-height: 40px; margin-top: 12px; padding-inline: 14px; font-size: 12px; }
-  dialog.cavity-detail { padding: 20px; }
-  #cavity-detail-description { font-size: 14px; }
-  .cavity-detail-art { margin: 14px 0 12px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .cavity-germ, .cavity-acid, .cavity-detail[open] .cavity-pit { animation: none; }
+  .cavity-detail-trigger, .cavity-detail-return { min-height: 40px; margin-top: 12px; padding-inline: 14px; font-size: 12px; }
+  .cavity-detail-info p { font-size: 12px; }
 }
