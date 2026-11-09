@@ -3,7 +3,7 @@ import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 import { sampleStageTypography,TYPE_COMPOSITIONS } from '../src/experience/stage-typography.js';
 
 const names=['Začína sa to jedným zubom.','Aj medzi zubami.','Nenápadný povlak.','Keď sa poškodí zub.',
-  'Jemne tam a späť.','Povlak preč. Dutina zostáva.','Malý návyk. Veľký rozdiel.'];
+  'Jemne tam a späť.','Čistý priestor. Zdravý zub.','Malý návyk. Veľký rozdiel.'];
 assert.deepEqual(DENTAL_CHAPTERS.map(c=>c.title),names);
 for(const chapter of DENTAL_CHAPTERS){
   assert.equal(chapter.titleLines.length,2);

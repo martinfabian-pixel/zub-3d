@@ -2,7 +2,7 @@
 
 **[Otvoriť interaktívnu prezentáciu](https://martinfabian-pixel.github.io/zub-3d/)**
 
-Začnite pri dolnej ľavej šestke **FDI 36 s dvoma koreňmi**. Jedna súvislá 3D scéna potom ukáže susedov 35 a 37, povlak v priestore 36–37, vznik priestorovej dutiny a bočné použitie medzizubnej kefky. Povlak ubúda iba v dosahu štetín; dutina zostáva aj pri záverečnom oddialení na 28 zubov.
+Začnite pri dolnej ľavej šestke **FDI 36 s dvoma koreňmi**. Scéna ukáže povlak a príklad kazovej dutiny. Kliknutie na kaz otvorí krátku animovanú ilustráciu. Nasleduje samostatný príklad preventívneho čistenia na zdravom zube; povlak ubúda iba v dosahu štetín. Vzniknutú dutinu kefka neopraví a treba ju odborne ošetriť.
 
 Sedem kapitol **Zub / Priestor / Povlak / Kaz / Čistenie / Výsledok / Chrup** ovláda prirodzený zvislý posun stránky alebo priama navigácia. **Model môžete rovno chytiť a otočiť**, už od prvého zuba. Na mobile vodorovne otáčate a zvislo posúvate príbeh. **Voľné 3D** pozastaví ukážku, umožní obe osi a zoom kolieskom alebo dvoma prstami. **Pokračovať v príbehu** sa plynulo vráti do pripravenej kompozície. Záver má dva pohľady: **Úsmev** na korunky a **Anatómia** na všetky zachované korene.
 

@@ -59,6 +59,10 @@ function evaluate(progress, reduced, out) {
   out.upperReveal = ramp(story.upper, p);
   out.plaqueDeposition = ramp(story.deposition, p);
   out.lesionProgress = ramp(story.lesion, p); // Independent of any cleaning or material effect.
+  // The cavity is an earlier example. During a brief scene fade we switch to
+  // a separate healthy-tooth example; brushing never reverses the lesion.
+  out.lesionDisplay = p < .487 ? out.lesionProgress : 0;
+  out.exampleOpacity = (1 - smooth(.478, .484, p)) + smooth(.490, .503, p);
   const pose = out.brushPose ?? (out.brushPose = {});
   out.cleaningProgress = sampleBrush(p, pose);
   // Remaining fraction in the reachable subset only; NOT the full biofilm's

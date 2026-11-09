@@ -8,9 +8,9 @@ Na hlavnej stránke aj v `/experience/` spája jedno priehľadné plátno zuby, 
 | Priestor | 0,10–0,22 | Susedia 35 a 37 v pôvodných polohách; kamera prejde ku konkrétnemu priestoru 36–37. |
 | Povlak | 0,22–0,34 | Tenká vrstva na skutočných protiľahlých povrchoch, farebne zvýraznená pre názornosť. |
 | Kaz | 0,34–0,48 | Skorá kriedová zmena a následná lokálna priestorová kavitácia iba na 36. |
-| Čistenie | 0,48–0,72 | Fialová medzizubná kefka sa zarovná zboku, jemne zasunie, urobí tri ilustračné axiálne priechody a vysunie sa. Kamera počas pracovných pohybov stojí. |
-| Výsledok | 0,72–0,80 | V dosahu kefky ubudol povlak, nezasiahnutý zvyšok aj vzniknutá dutina zostávajú. |
-| Chrup | 0,80–1 | Od rovnakého miesta cez 14 dolných zubov k obom oblúkom s 28 zubami. Lézia sa nevymaže. |
+| Čistenie | 0,48–0,72 | Po stlmenom prechode na označený zdravý príklad kefka jemne vyčistí dosiahnuteľný povlak. Kamera obíde priestor a vráti sa. |
+| Výsledok | 0,72–0,80 | Na zdravom príklade ubudol zasiahnutý povlak; nezasiahnutý zvyšok môže zostať. |
+| Chrup | 0,80–1 | Zdravý príklad pokračuje k obom oblúkom s 28 zubami. |
 
 ## Spustenie a ovládanie
 
@@ -47,7 +47,7 @@ Pri rovnakom progress vznikne rovnaký stav, bez kreslenia do trvalej textúry a
 
 [Geometrický rozbor](PROXIMAL_SITE.md) uvádza súradnice, mierku, údaje o kontrolách aj obmedzenia merania. Základné GLB sú v metroch, spoločná scéna v centimetroch a rozmery pomôcky v milimetroch. Všetky nové kotvy vychádzajú z jedného overeného `site.json`, nie z nesúvisiacich súradníc v rôznych moduloch.
 
-Kaz má riedky relatívny morph so zmenou pozícií a normál, bez výpočtu CSG počas renderovania. Teraz sa pôvodná lokálna sieť predpočíta jemnejšie: 4 197 nových stredových bodov hrán, spolu 31 938 vrcholov a 63 578 trojuholníkov na súkromnej kópii 36. Morph posúva 1 236 vrcholov a 1 904 záznamov nesie aj susedné normály a materiálovú masku. Dno má 1 267 plôch namiesto pôvodných 59. Rozsah približne 2,41 × 1,48 mm a hĺbka 0,769 mm zachovávajú veľkosť a stred verzie `510a734`; účelom je ostrý okraj a hĺbka, nie ďalšie zväčšovanie. Po kapitole kazu zostáva geometrický aj materiálový stav konštantný počas čistenia a záveru. [Aktuálne priestorové kontroly](proximal-reframe-review/GEOMETRY-AUDIT.md).
+Kaz má riedky relatívny morph so zmenou pozícií a normál, bez výpočtu CSG počas renderovania. Pôvodná lokálna sieť sa predpočíta jemnejšie: 4 197 nových stredových bodov hrán, spolu 31 938 vrcholov a 63 578 trojuholníkov na súkromnej kópii 36. Morph posúva 1 236 vrcholov a 1 904 záznamov nesie aj susedné normály a materiálovú masku. Dno má 1 267 plôch namiesto pôvodných 59. Rozsah približne 2,41 × 1,48 mm a hĺbka 0,769 mm zachovávajú veľkosť a stred verzie `510a734`. Po stlmení scény sa zobrazí samostatný zdravý príklad čistenia; údaje kazového príkladu ostávajú zachované pre spätný návrat. [Priestorové kontroly](proximal-reframe-review/GEOMETRY-AUDIT.md).
 
 Povlak používa pôvodné trojuholníky zubov s posunom 20–36 µm nad povrch. Pevná nepravidelná hustota zvýrazňuje pracovný pás; mimo neho zostáva slabší, ale nenulový film. Táto počiatočná hustota sa pri čistení nemení. Odstránenie má samostatnú masku podľa vzdialenosti od dráhy a najhlbšieho dovtedy dosiahnutého bodu. Mimo polomeru štetín sa neodstraňuje nič. Dutina má vlastnú masku, aby cez ňu neležala pôvodná zdravá plocha povlaku. Nejde o globálne stlmenie vrstvy ani zmenu tkaniva kefkou.
 

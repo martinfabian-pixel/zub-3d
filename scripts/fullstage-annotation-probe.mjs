@@ -17,7 +17,7 @@ const chapters = {
   plaque: ['plaque'],
   caries: ['caries'],
   brush: [],
-  result: ['cleaned', 'persistent'],
+  result: ['cleaned'],
   dentition: [],
 };
 

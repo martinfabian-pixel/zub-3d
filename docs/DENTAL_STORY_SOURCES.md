@@ -1,6 +1,6 @@
 # Medicínsky obsah príbehu: povlak, kaz a medzizubné čistenie
 
-Príbeh rozlišuje **povlak na povrchu zuba** a **stratu tkaniva zuba**. Kefka zobrazená medzi dolnou ľavou šestkou a sedmičkou odstraňuje povlak iba zo zasiahnutého povrchu. Dutina v šestke zostáva po čistení rovnaká. Časť s rozvojom kazu zhusťuje dlhší biologický dej do ilustrácie; nejde o zmenu počas jedného čistenia.
+Príbeh rozlišuje **povlak na povrchu zuba** a **stratu tkaniva zuba**. Kaz a preventívne čistenie zdravého zuba sú dva oddelené príklady; zmena je označená a prebieha pri krátkom stlmení scény. Kefka odstraňuje povlak iba zo zasiahnutého povrchu a vzniknutú dutinu neopraví. Časť s rozvojom kazu zhusťuje dlhší biologický dej do ilustrácie; nejde o zmenu počas jedného čistenia.
 
 ## Čo podporujú zdroje
 

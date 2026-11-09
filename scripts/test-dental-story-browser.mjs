@@ -29,7 +29,7 @@ async function closeContext(ctx){closingContexts.add(ctx);await ctx.close();}
 const q = '#journey-canvas', allFDI=[1,2,3,4].flatMap(k=>Array.from({length:7},(_,i)=>k*10+i+1));
 const finaleAt=chapters.at(-1).at;
 const requestedTitles=['Začína sa to jedným zubom.','Aj medzi zubami.','Nenápadný povlak.','Keď sa poškodí zub.',
-  'Jemne tam a späť.','Povlak preč. Dutina zostáva.','Malý návyk. Veľký rozdiel.'];
+  'Jemne tam a späť.','Čistý priestor. Zdravý zub.','Malý návyk. Veľký rozdiel.'];
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
 const equal = (a,b) => JSON.stringify(a) === JSON.stringify(b);
 const dist = (a,b) => Math.hypot(...a.map((n,i)=>n-b[i]));
@@ -64,6 +64,7 @@ async function open(settings={},allowedOrigin=site.origin) {
 async function ready(page) {
   await page.waitForSelector(q+'[data-ready="true"][data-assets-ready="true"]',{timeout:60000});
   await page.waitForFunction(()=>{const d=window.__dentalExperience?.report();return d?.story?.caries && d.story.plaque && d.story.brush;},null,{timeout:30000});
+  await page.waitForFunction(()=>['done','paused'].includes(window.__dentalExperience.report().heroSpin.state),null,{timeout:12000});
   await threeFrames(page);
 }
 async function at(page,p) {
@@ -128,7 +129,7 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' educational chapter title matches the requested Slovak wording',normalize(s.title)===requestedTitles[index],s.title);
   check(label+' chapter copy matches the displayed clinical state',normalize(s.description)===normalize(chapters[index].text),s.description);
   if(index===2)check(label+' clinical illustration note stays available',normalize(s.note)===normalize(chapters[index].note),s.note);
-  if(index===5)check(label+' cleaned surface and irreversible cavity carry separate labels',chapters[5].resultLabels.every(x=>s.resultLabels?.includes(x)),s.resultLabels);
+  if(index===5)check(label+' healthy example labels the cleaned surface',chapters[5].resultLabels.every(x=>s.resultLabels?.includes(x)),s.resultLabels);
   check(label+' actual tooth mesh visibility',equal(s.visible,expected),s.visible);
   const a=s.stageAudit;
   check(label+' seven real chapter dots, current counter and persistent arrows stay synchronized',
@@ -152,7 +153,8 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' copy passes input through to the actual 3D canvas',a.hit?.isCanvas===true,a.hit);
   check(label+' actual educational focus stays clear of every rendered text line',a.protected.sampleCount>0&&a.protected.covered.length===0,a.protected);
   check(label+' protected healthy 46 and teaching-site pose',s.healthyMolar.morphBuffers===0&&!s.healthyMolar.lesionAttribute&&s.geometry36!==s.geometry46&&(p>=.80&&p<.975||equal(s.pose36,base.pose36)));
-  if(index>=3)check(label+' actual mature 36 morphology persists',s.lesion===1&&s.caries.morphInfluence===1&&s.depthLocal>0&&s.caries.isolated,{lesion:s.lesion,influence:s.caries.morphInfluence,depth:s.depthLocal});
+  if(index===3)check(label+' cavity example has mature isolated geometry',s.lesion===1&&s.caries.morphInfluence===1&&s.depthLocal>0&&s.caries.isolated,{lesion:s.lesion,influence:s.caries.morphInfluence,depth:s.depthLocal});
+  else if(index>3)check(label+' separate healthy example keeps cavity data but displays healthy enamel',s.lesion===1&&s.caries.morphInfluence===0&&s.depthLocal===0&&s.caries.isolated,{lesion:s.lesion,influence:s.caries.morphInfluence,depth:s.depthLocal});
   else check(label+' healthy geometry before lesion',s.lesion===0&&s.depthLocal===0,{lesion:s.lesion,depth:s.depthLocal});
   if(index>=2&&index<=5)check(label+' proximal lesion site projects into view',s.lesionNDC?.every(n=>Math.abs(n)<1.001),s.lesionNDC);
   if(index===1)check(label+' contact established before deposits',s.deposit===0&&!s.plaque.visible&&!s.brush.visible);
@@ -237,7 +239,7 @@ async function desktopInputs(page) {
   checkHandover('Continue from a rotated/zoomed brush',evidence.continueTrace);
   check('Guided user offsets survive an actual viewport resize',guided(s.beforeResize)&&guided(s.afterResize)&&Math.abs(s.beforeResize.manual?.desiredYaw)>.02&&s.beforeResize.manual?.desiredZoom<.99&&sameOffsets(s.beforeResize,s.afterResize));
   checkHandover('Selecting another chapter after dragging',evidence.chapterTrace);
-  check('Direct chapter destination renders the cleaned patch and persistent cavity',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.clean===1&&s.navigated.story.influence===1);
+  check('Direct chapter destination renders the cleaned patch on the healthy example',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.clean===1&&s.navigated.story.influence===0);
   checkHandover('Native wheel chapter crossing after a drag',evidence.wheelTrace);
   check('Purposeful native chapter crossing returns manual offsets to the authored view',guided(s.afterWheelHandover)&&s.beforeWheelHandover.story.chapter==='caries'&&s.afterWheelHandover.story.chapter==='brush'&&
     s.afterWheelHandover.nativeY-s.beforeWheelHandover.nativeY>64&&Math.abs(s.beforeWheelHandover.manual?.desiredYaw)>.05&&near(s.afterWheelHandover.manual?.desiredYaw,0,1e-5));
@@ -258,7 +260,7 @@ async function mobileInputs(ctx,page){
   check('Free touch drag orbits horizontally and vertically without page movement',free(s.freeX)&&free(s.freeY)&&drift(s.freeStart.yaw,s.freeX.yaw)>.02&&Math.abs(s.freeY.pitch-s.freeX.pitch)>.02&&Math.abs(s.freeY.nativeY-s.freeStart.nativeY)<=1);
   check('Two fingers pinch-zoom the model, not the browser or the lesson',free(s.freePinch)&&zoomTravel(s.freeY,s.freePinch)>.002&&near(s.freePinch.pageScale,1,.01)&&sameStory(s.freePinch,s.freeStart));
   check('Mobile frozen scene survives outside-canvas document scroll',free(s.freeNativeJump)&&Math.abs(s.freeNativeJump.nativeP-s.freeStart.nativeP)>.2&&sameStory(s.freeNativeJump,s.freeStart));
-  check('Mobile chapter navigation explicitly leaves free mode',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.influence===1&&s.navigated.story.clean===1);
+  check('Mobile chapter navigation explicitly leaves free mode',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.influence===0&&s.navigated.story.clean===1);
   report.mobileInput=evidence;
 }
 async function finalViews(page,label) {
@@ -287,8 +289,8 @@ async function finalViews(page,label) {
   check(label+' final smile and anatomical overview both retain all 28 opaque surfaces',smile.finalView==='smile'&&anatomy.finalView==='anatomy'&&equal(smile.story.visible,allFDI)&&equal(anatomy.story.visible,allFDI)&&anatomyOptics.translucentTeeth===0);
   const modeMeshes=await page.evaluate(()=>[...window.__dentalExperience.arch.teeth.values()]
     .every(item=>item.mesh.visible&&!item.crown.visible));
-  check(label+' Anatomy restores the rooted seats and preserves the teaching lesion',modeMeshes&&near(anatomy.closureCm,0,.0005)&&
-    smile.story.influence===1&&anatomy.story.influence===1);
+  check(label+' Anatomy restores the rooted seats of the healthy example',modeMeshes&&near(anatomy.closureCm,0,.0005)&&
+    smile.story.influence===0&&anatomy.story.influence===0);
   check(label+' Anatomy fits both whole arches within the same full-stage canvas',near(anatomy.raster.rect.height,smile.raster.rect.height,1)&&anatomyProjection.geometry?.clipped===0&&
     !anatomyOptics.effects.length&&anatomyOptics.fog===null&&anatomyOptics.clippingPlanes===0,{bounds:anatomyProjection.geometry,optics:anatomyOptics});
   await page.locator('#journey-view-smile').click();await restingRaster(page);const restored=await cameraProbe(page);
@@ -329,7 +331,7 @@ async function desktop() {
   const {ctx,page}=await open();try {
     await goto(page);await ready(page);const base=await read(page), states={};
     for(const [name,p,i,fdi] of [...standard,...extra])states[name]=await saveView(page,'desktop-'+name,p,i,fdi,base);
-    check('Identical displaced refined floor vertex at and after cleaning',states.caries.depthLocal>0&&['brush','result','full'].every(k=>near(states[k].depthLocal,states.caries.depthLocal,1e-12)));
+    check('Cavity geometry is shown only in its example, and the healthy example stays intact',states.caries.depthLocal>0&&['brush','result','full'].every(k=>states[k].depthLocal===0));
     const recipe=JSON.parse(await readFile(new URL('../public/story-assets/caries-36.json',import.meta.url),'utf8'));
     const bindings=await page.evaluate(()=>{const a=window.__dentalExperience,n=a.arch.teeth.get(36).mesh.geometry,h=a.arch.teeth.get(46).mesh.geometry;
       const r=n.userData.lesionRefinement;return{vertices:n.attributes.position.count,faces:n.index.count/3,morphVertices:n.morphAttributes.position[0].count,sourceVertices:r?.sourceVertexCount,
@@ -428,7 +430,7 @@ async function reduced() {
     for(const c of chapters){const span=c.end-c.start;await scroll(page,c.start+.10*span);const a=await read(page);await scroll(page,c.start+.86*span);const b=await read(page);
       check('Reduced motion keeps one pose and material state within '+c.id,equal(still(a),still(b)),{a:still(a),b:still(b)});poses.push(still(a));}
     check('Seven meaningfully different reduced-motion scenes',new Set(poses.map(x=>JSON.stringify(x))).size===7);
-    await scroll(page,.56);const brush=await read(page);check('Reduced brush depicts a fixed live contact and a persistent lesion',brush.brush.visible&&brush.brush.insertion>.1&&brush.depthLocal>0&&brush.clean>0&&brush.clean<1);
+    await scroll(page,.56);const brush=await read(page);check('Reduced brush depicts a fixed contact on the healthy example',brush.brush.visible&&brush.brush.insertion>.1&&brush.depthLocal===0&&brush.clean>0&&brush.clean<1);
     report.reducedMotion=poses;
     const copyTransition=await sampleCopyTransition(page);report.reducedCopyTransition=copyTransition;
     check('Reduced-motion chapter copy remains legible at the sampled transition positions',

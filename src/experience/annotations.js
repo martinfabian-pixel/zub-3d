@@ -3,7 +3,7 @@ import { anchorWorld, createSurfaceAnchors, createVisibilityTest } from './annot
 import './annotations.css';
 
 const labels={space:'Medzizubný priestor',plaque:'Povlak',caries:'Kaz',cleaned:'Vyčistený povrch',persistent:'Kaz vyžaduje ošetrenie'};
-const chapterLabels={space:['space'],plaque:['plaque'],caries:['caries'],result:['persistent','cleaned']};
+const chapterLabels={space:['space'],plaque:['plaque'],caries:['caries'],result:['cleaned']};
 const namespace='http://www.w3.org/2000/svg';
 const overlaps=(a,b,p=0)=>a.x<b.x+b.width+p&&a.x+a.width>b.x-p&&a.y<b.y+b.height+p&&a.y+a.height>b.y-p;
 const relative=(r,base)=>({x:r.left-base.left,y:r.top-base.top,width:r.width,height:r.height});

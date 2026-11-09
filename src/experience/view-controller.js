@@ -56,6 +56,13 @@ export function createViewController({camera,config}) {
     zoomBy(factor,now=performance.now()){
       if(!valid)return;interrupt(now);desired.zoom=MathUtils.clamp(desired.zoom+Math.log(factor),minimum,maximum);
     },
+    capture(){return { ...desired, focus:desiredFocus.toArray() };},
+    restore(snapshot){
+      if(!valid||!snapshot)return;
+      returning.cancel();
+      for(const key of offsetKeys)desired[key]=snapshot[key];
+      desiredFocus.fromArray(snapshot.focus);
+    },
     reset(now=performance.now(),instant=false){
       if(!valid)return;
       const position=camera.position.clone(),rotation=camera.quaternion.clone(),focus=target.clone();

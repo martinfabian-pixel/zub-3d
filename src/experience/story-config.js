@@ -29,16 +29,16 @@ export const DENTAL_CHAPTERS = Object.freeze([
     }),
   chapter('brush', 'Čistenie', .48, .72, .620, .620,
     ['Jemne tam', 'a späť.'],
-    'Medzizubná kefka odstraňuje povlak medzi zubami.', {
+    'Na zdravom zube ukazujeme, ako kefka odstraňuje povlak.', {
       instructions: Object.freeze(['Vhodná veľkosť.', 'Jemné zasunutie.', 'Pohyb tam a späť.']),
       note: 'Ďasná nie sú zobrazené pre lepšiu názornosť.',
       education:'S výberom vhodnej veľkosti pomôže zubný lekár alebo dentálna hygienička. Zasúvajte jemne, bez násilia. Počet pohybov v ukážke nie je univerzálny liečebný predpis. Ďasná nie sú zobrazené pre lepšiu názornosť; prázdny priestor medzi koreňmi nie je návod na zavádzanie kefky.',
     }),
   chapter('result', 'Výsledok', .72, .80, .760, .760,
-    ['Povlak preč.', 'Dutina zostáva.'],
-    'Čistenie nenahrádza ošetrenie vzniknutého kazu.', {
-      resultLabels: Object.freeze(['Vyčistený povrch', 'Kaz vyžaduje ošetrenie']),
-      education:'V dosahu kefky ubudol povlak. Nedosiahnutá vrstva môže zostať. Vzniknutá dutina zostáva na rovnakom mieste a vyžaduje odborné ošetrenie.',
+    ['Čistý priestor.', 'Zdravý zub.'],
+    'Kefka odstránila časť povlaku.', {
+      resultLabels: Object.freeze(['Vyčistený povrch']),
+      education:'Ide o ukážku prevencie na zdravom zube. Kefka odstraňuje povlak v dosahu štetiniek. Ak už v zube vznikla dutina, vyžaduje odborné ošetrenie.',
     }),
   chapter('dentition', 'Chrup', .80, 1, .995, .995,
     ['Malý návyk.', 'Veľký rozdiel.'],

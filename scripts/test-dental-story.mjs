@@ -6,7 +6,7 @@ import { getDentalChapter, sampleDentalStory, sampleReducedDentalStory } from '.
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
 const ids = ['hero', 'space', 'plaque', 'caries', 'brush', 'result', 'dentition'];
 const visual = s => [s.sceneProgress, s.neighborsReveal, s.gapFocus, s.lowerReveal, s.upperReveal,
-  s.plaqueDeposition, s.plaqueCoverage, s.lesionProgress, s.cleaningProgress, { ...s.brushPose }];
+  s.plaqueDeposition, s.plaqueCoverage, s.lesionProgress, s.lesionDisplay, s.exampleOpacity, s.cleaningProgress, { ...s.brushPose }];
 assert.deepEqual(DENTAL_CHAPTERS.map(c => c.id), ids);
 assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Zub', 'Priestor', 'Povlak', 'Kaz', 'Čistenie', 'Výsledok', 'Chrup']);
 for (const [i, c] of DENTAL_CHAPTERS.entries()) {
@@ -33,7 +33,7 @@ for (let i = 1; i <= 10000; ++i) {
   const p = i / 10000, s = sampleDentalStory(p);
   maxReach = Math.max(maxReach, s.brushPose.insertion);
   for (const k of ['neighborsReveal', 'lowerReveal', 'upperReveal', 'plaqueDeposition', 'plaqueCoverage',
-    'lesionProgress', 'cleaningProgress', 'brushVisibility', 'brushAlignment', 'brushInsertion', 'brushStroke']) {
+    'lesionProgress', 'lesionDisplay', 'exampleOpacity', 'cleaningProgress', 'brushVisibility', 'brushAlignment', 'brushInsertion', 'brushStroke']) {
     assert.ok(Number.isFinite(s[k]) && s[k] >= 0 && s[k] <= 1, `${k} is normalized`);
   }
   assert.ok(s.lesionProgress >= previous.lesionProgress && s.cleaningProgress >= previous.cleaningProgress);
@@ -47,6 +47,8 @@ for (let i = 1; i <= 10000; ++i) {
   if (p >= .68) assert.equal(s.cleaningProgress, 1);
   if (p <= .34) assert.equal(s.lesionProgress, 0);
   if (p >= .48) assert.equal(s.lesionProgress, 1, 'A formed cavity must persist through cleaning and final arch reveal');
+  if (p >= .487) assert.equal(s.lesionDisplay, 0, 'The cleaning example shows a healthy surface');
+  if (previous.lesionDisplay > 0 && s.lesionDisplay === 0) assert.equal(s.exampleOpacity, 0, 'The example changes only while the scene is hidden');
   if (p < .48 || p >= .72) assert.equal(s.brushVisibility, 0);
   if (p <= .80) assert.equal(s.lowerReveal + s.upperReveal, 0);
   if (s.upperReveal > 0) assert.equal(s.lowerReveal, 1);
@@ -63,11 +65,14 @@ const clean = sampleDentalStory(.76);
 assert.equal(clean.plaqueCoverage, 0, 'Depicted reachable subset has been swept');
 assert.equal(clean.plaqueDeposition, 1, 'Unreached spatial patches can remain; do not globally fade plaque');
 assert.equal(clean.lesionProgress, 1);
+assert.equal(clean.lesionDisplay, 0);
 
 const reducedPlaque = sampleReducedDentalStory(.23), reducedCaries = sampleReducedDentalStory(.35);
 assert.equal(reducedPlaque.plaqueDeposition, 1); assert.equal(reducedPlaque.lesionProgress, 0);
 assert.equal(reducedCaries.lesionProgress, 1); assert.equal(reducedCaries.cleaningProgress, 0);
+assert.equal(reducedCaries.lesionDisplay, 1);
 const reducedBrush = sampleReducedDentalStory(.49);
+assert.equal(reducedBrush.lesionDisplay, 0); assert.equal(reducedBrush.exampleOpacity, 1);
 assert.equal(reducedBrush.brushVisibility, 1); assert.ok(reducedBrush.brushInsertion > .6);
 assert.ok(reducedBrush.cleaningProgress > 0 && reducedBrush.cleaningProgress < 1);
 assert.equal(sampleReducedDentalStory(.81).upperReveal, 1);
