@@ -51,7 +51,9 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     ['hero', 0.045, 'hero', base.camera.directions.hero],
     ['neighbors', 0.145, 'neighbors', settings.neighborDirection],
     ['space', 0.21, 'space', spaceDirection, settings.spaceDistanceCm],
-    ['plaque', 0.33, 'plaque', adjustDirection(macro, -4, 4), settings.plaqueDistanceCm],
+    // Look slightly across the contact so the deliberately disclosed,
+    // brush-reachable film is visible instead of hidden behind tooth 37.
+    ['plaque', 0.33, 'plaque', adjustDirection(macro, -21, 4), settings.plaqueDistanceCm],
     ['lesion', 0.47, 'detail', lesionDirection, settings.detailDistanceCm],
     ['lesion-hold', 0.48, 'detail', lesionDirection, settings.detailDistanceCm],
     ['brush', 0.515, 'cleaning', brushDirection, settings.cleaningDistanceCm],

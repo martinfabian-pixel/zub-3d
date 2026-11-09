@@ -45,13 +45,14 @@ export function createHeroAnatomyControls({ stage, onToggle }) {
   }, { signal: abort.signal });
 
   return {
-    update({ chapterId, enabled = true, active = pressed, weight = active ? 1 : 0 }) {
+    update({ chapterId, enabled = true, active = pressed, weight = active ? 1 : 0, archWeight = 0 }) {
       container.hidden = chapterId !== 'hero';
       button.disabled = !enabled;
       if (Boolean(active) !== pressed) setPressed(active);
       // The renderer's same anatomy weight drives the backdrop: no separate
       // animation, timer, layout measurement, or transition can drift from it.
-      const opacity = chapterId === 'hero' ? Math.max(0, Math.min(1, weight)) : 0;
+      const opacity = chapterId === 'hero' ? Math.max(0, Math.min(1, weight)) :
+        chapterId === 'dentition' ? Math.max(0, Math.min(1, archWeight)) * .65 : 0;
       backdrop.style.opacity = String(opacity);
     },
     setPressed,

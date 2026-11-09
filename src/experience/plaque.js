@@ -186,7 +186,14 @@ export function createPlaque({site,path,arch,compact=false,profile,options={}}) 
         // A less dense extension can share the same physical support and
         // lift. This weighting is identical before and after every pass.
         const depositionScale=raw.depositionWeight&&e>0?saturate(raw.depositionWeight[i]/e):1;
-        const density=densityAtSurface(p)*depositionScale;
+        // This teaching example deliberately discloses the deposit on the
+        // contact surfaces reached by the bristles. The original patch still
+        // extends beyond the sweep, but its far edge is barely disclosed: we
+        // never claim that an unreachable surface was scrubbed clean.
+        // Smooth this fixed initial distribution, not the cleaning progress,
+        // so reverse scroll cannot make residue vanish or repaint it later.
+        const emphasis=.004+.996*threshold.reach*threshold.reach;
+        const density=densityAtSurface(p)*depositionScale*emphasis;
         sweep.set([threshold.start,threshold.end,threshold.reach,raw.pathDistanceMm[i]],4*i);edge.set([e,ex,density],3*i);
         if(e>.001) {
           const r=path.removedFraction(1,threshold);
@@ -271,7 +278,7 @@ export function createPlaque({site,path,arch,compact=false,profile,options={}}) 
   function report() {
     const cleaned=uniforms.cleaned.value,lesion=uniforms.lesionAmount.value;
     return {visible:object.visible,deposition:uniforms.deposit.value,cleaningProgress:cleaned,lesionProgress:lesion,
-      maxFilmThicknessMm:.036,initialDensityProfile:{basis:'native proximal boundary and cervical height',peripheral},disposed,patches:patches.map(d=>{
+      maxFilmThicknessMm:.036,initialDensityProfile:{basis:'contact-side disclosure with faint unreachable residue',peripheral},disposed,patches:patches.map(d=>{
         let totalWeight=0,removedWeight=0,outsideRemoved=0;
         for(let i=0;i<d.vertices;i++){
           threshold.start=d.sweep[4*i];threshold.end=d.sweep[4*i+1];threshold.reach=d.sweep[4*i+2];

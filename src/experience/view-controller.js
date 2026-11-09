@@ -13,6 +13,7 @@ export function createViewController({camera,config}) {
   const returning=createInspectionReturn(camera,settings.returnDurationMs??480);
   let baseYaw=0,basePitch=0,baseRadius=1,last=0,valid=false,disposed=false;
   const minimum=Math.log(settings.minimumDistanceFraction),maximum=Math.log(settings.maximumDistanceFraction);
+  let guidedMinimum=null;
   function writeBase(){camera.position.copy(basePosition);camera.lookAt(baseTarget);camera.updateMatrixWorld(true);}
   function interrupt(now){
     if(!returning.active)return;
@@ -57,14 +58,19 @@ export function createViewController({camera,config}) {
       if(!valid)return;interrupt(now);
       // A guided close-up may be closer than the regular manual zoom limit.
       // Permit a gradual zoom out from that position rather than snapping to it.
-      desired.zoom=MathUtils.clamp(desired.zoom+Math.log(factor),Math.min(minimum,desired.zoom),maximum);
+      const nearLimit=guidedMinimum===null?Math.min(minimum,desired.zoom):Math.min(minimum,guidedMinimum);
+      desired.zoom=MathUtils.clamp(desired.zoom+Math.log(factor),nearLimit,maximum);
+    },
+    setGuidedZoomMinimum(fraction=null){
+      guidedMinimum=Number.isFinite(fraction)&&fraction>0&&fraction<1?Math.log(fraction):null;
     },
     capture(){return { ...desired, focus:desiredFocus.toArray() };},
-    restore(snapshot){
+    restore(snapshot,{instant=false}={}){
       if(!valid||!snapshot)return;
       returning.cancel();
       for(const key of offsetKeys)desired[key]=snapshot[key];
       desiredFocus.fromArray(snapshot.focus);
+      if(instant){for(const key of offsetKeys)current[key]=desired[key];focusOffset.copy(desiredFocus);}
     },
     reset(now=performance.now(),instant=false){
       if(!valid)return;

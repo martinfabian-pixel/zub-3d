@@ -1,0 +1,20 @@
+.full-arch-anatomy-control { position: relative; display: flex; align-items: center; gap: 9px; margin-top: 10px; width: 290px; max-width: calc(100vw - 35px); pointer-events: none; }
+.full-arch-anatomy-control[hidden], .full-arch-anatomy-note[hidden] { display: none; }
+.full-arch-anatomy-toggle {
+  min-height: 40px; padding: 0 15px; border: 1px solid var(--control-line);
+  border-radius: 999px; background: var(--control-surface); color: var(--accent);
+  font: inherit; font-size: 13px; font-weight: 620; pointer-events: auto; white-space: nowrap; flex: none;
+}
+.full-arch-anatomy-toggle:hover, .full-arch-anatomy-toggle[aria-pressed="true"] { background: #d4e9f5; }
+.full-arch-anatomy-note { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.35; }
+.full-arch-focus-return { min-height: 38px; padding: 0 12px; border: 1px solid var(--control-line); border-radius: 999px; background: var(--control-surface); color: var(--accent); font: inherit; font-size: 12px; white-space: nowrap; pointer-events: auto; }
+.full-arch-focus-return[hidden], .full-arch-focus-select[hidden], .full-arch-focus-caption[hidden] { display: none; }
+.full-arch-focus-caption { position: absolute; top: 100%; left: 0; margin: 5px 0 0; color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
+/* Keyboard users can choose an FDI tooth without relying on a pointer. */
+.full-arch-focus-select { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); pointer-events: auto; }
+.full-arch-focus-select:focus { position: absolute; top: 100%; left: 0; z-index: 2; width: 150px; height: 38px; clip-path: none; }
+@media (max-width: 700px) {
+  .full-arch-anatomy-control { max-width: calc(100vw - 35px); margin-top: 8px; }
+  .full-arch-anatomy-toggle { flex: none; min-height: 38px; font-size: 12px; }
+  .full-arch-anatomy-note { font-size: 11px; }
+}
