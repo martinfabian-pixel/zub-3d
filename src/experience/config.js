@@ -53,7 +53,7 @@ export const experienceConfig = {
       arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
       flight:    {desktop:[.55,.50,.76],portrait:[.50,.52,.87]},
-      smile:     {desktop:[.69,.51,.73],portrait:[.50,.57,.315]},
+      smile:     {desktop:[.67,.51,.83],portrait:[.50,.57,.315]},
     },
   },
   material: {
@@ -101,7 +101,7 @@ export const experienceConfig = {
     },
   },
   caries: {chalk:'#f8f2df',floor:'#927157',margin:'#c5ad84'},
-  smileMaterial: {enamelColor:'#f5f4f0',roughness:.27,occlusionStrength:.24},
+  smileMaterial: {enamelColor:'#f7f6f3',roughness:.27,occlusionStrength:.18},
   plaque: {tint:'#b88f9b',warmTint:'#cda6ac'},
   brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
   assetsStory: {site:'story-assets/site.json',caries:'story-assets/caries-36.json'},

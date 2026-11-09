@@ -68,7 +68,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
     minimumFitAspect: ['detail','cleaning','result'].includes(landmark) ? .72 : undefined,
-    portraitFitAspect: landmark==='smile' ? 2.15 : undefined,
+    portraitFitAspect: landmark==='smile' ? 2.20 : undefined,
   }));
   return { landmarks, camera: { ...base.camera, keyframes } };
 }

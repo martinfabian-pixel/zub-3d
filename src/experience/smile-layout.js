@@ -3,23 +3,27 @@ import { Box3, Euler, Matrix4, Quaternion, Vector3 } from 'three';
 // Presentation seating in centimetres, from central incisor to second molar.
 // The educational anatomy keeps its native positions and proportions.
 const UPPER = {
-  yaw: [7, 22, 39, 58, 70, 80, 86],
-  pitch: [15, 16, 18, 16, 17, 20, 18],
-  width: [1.055, 1.04, 1.01, 1, 1, 1, 1],
-  height: [.95, .94, .95, .96, .94, .89, .91],
-  edge: [-.63, -.56, -.59, -.51, -.50, -.49, -.45],
+  yaw: [5, 20, 38, 58, 73, 83, 89],
+  pitch: [12, 13, 15, 15, 16, 18, 18],
+  width: [1.035, 1.045, 1.04, 1.025, 1.02, 1.01, 1],
+  height: [1.12, 1.10, 1.07, 1.06, 1.05, 1.02, 1.01],
+  edge: [-.63, -.59, -.60, -.55, -.54, -.52, -.49],
   front: 2.03,
 };
 const LOWER = {
-  yaw: [6, 20, 38, 57, 70, 81, 88],
+  yaw: [5, 18, 36, 55, 70, 82, 89],
   pitch: [12, 13, 14, 12, 11, 10, 10],
-  width: [1.075, 1.04, 1.005, 1, 1, 1, 1],
-  height: [.75, .80, .83, .87, .91, .95, .96],
-  edge: [-.52, -.50, -.44, -.478, -.488, -.37, -.35],
-  front: 1.72,
+  width: [1.09, 1.07, 1.04, 1.025, 1.02, 1.01, 1],
+  height: [.96, .97, .98, 1.00, 1.00, 1.01, 1.01],
+  edge: [-.50, -.49, -.46, -.46, -.46, -.42, -.40],
+  // Set the lower crowns slightly behind the upper row to keep the stylized
+  // bite visually close without intersections between opposite teeth.
+  front: 1.34,
 };
 const rad = Math.PI / 180;
-const contactGap = .006;
+// Slight overlap of neighboring support planes closes the visible contact
+// without replacing individual crowns with a single continuous surface.
+const contactGap = -.008;
 
 export function createSmileLayout(teeth) {
   const layout = new Map();
@@ -64,9 +68,8 @@ export function createSmileLayout(teeth) {
       const matrix = new Matrix4().compose(position.set(0, 0, 0), turn, scale);
       const height = outline(crown, matrix, up);
 
-      // Pair each crown's projected support with the neighboring support on a
-      // plane normal to the local arch. This closes the smile without letting
-      // adjacent meshes occupy the same space, even where crown widths differ.
+      // Pair each crown's projected support with its neighbor on a plane
+      // normal to the local arch, keeping differently shaped teeth in contact.
       const yaw = (i === 0 ? 0 : (style.yaw[i - 1] + style.yaw[i]) / 2) * rad;
       axis.set(side * Math.cos(yaw), 0, -Math.sin(yaw));
       const inner = outline(crown, matrix, axis).min;
