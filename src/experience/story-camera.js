@@ -61,6 +61,12 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
       finalView === 'anatomy' ? base.camera.directions.full : settings.smileDirection,
       finalView === 'anatomy' ? undefined : settings.smileDistanceCm],
   ];
-  const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({ key, at, landmark, direction, distance }));
+  // The macro sightlines were checked at the original working distances.
+  // On a narrow full-stage display use an off-axis lens to compose them
+  // rather than backing the camera away to fit the whole neighboring crowns.
+  const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({
+    key, at, landmark, direction, distance,
+    minimumFitAspect: ['detail','cleaning','result'].includes(landmark) ? .72 : undefined,
+  }));
   return { landmarks, camera: { ...base.camera, keyframes } };
 }

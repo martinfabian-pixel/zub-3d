@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#DCECF7" />
   <meta name="description" content="Čo sa deje medzi zubami: povlak, vznik kazu a jemné medzizubné čistenie v jednej interaktívnej 3D ukážke." />
   <link rel="icon" href="data:," />
   <title>ZUB — Čo sa deje medzi zubami</title>
@@ -12,24 +12,25 @@
   <a class="skip-link" href="#journey-canvas">Prejsť na 3D model</a>
   <main id="dental-journey" aria-label="Interaktívna prezentácia ľudského chrupu">
     <div id="journey-stage">
-      <header class="site-header">
+      <header class="site-header" data-annotation-obstacle>
         <button class="brand" id="journey-home" type="button" aria-label="ZUB — späť na začiatok">ZUB<span class="brand-dot">.</span><span class="brand-caption">Čo sa deje medzi zubami</span></button>
         <div class="header-actions">
           <button id="journey-help" class="text-button" type="button" aria-haspopup="dialog">Ovládanie <span aria-hidden="true">?</span></button>
           <button id="journey-show-all" class="outline-button" type="button">Celý chrup <span aria-hidden="true">↗</span></button>
         </div>
       </header>
-      <section class="journey-copy" aria-labelledby="journey-title">
-        <p class="eyebrow"><span id="journey-step-number">01 / 07</span><span class="eyebrow-divider"></span><span id="journey-eyebrow">DETAIL ZUBA</span></p>
-        <h1 id="journey-title">Začína sa to jedným zubom.</h1>
-        <p id="journey-description">Pozrite sa zblízka. Potom objavte priestor medzi zubami.</p>
-        <p id="journey-instruction" hidden></p><p id="journey-note" hidden></p>
-        <p id="journey-meta">FDI 36 · dolná ľavá · 2 korene</p>
-        <div class="copy-actions">
-          <button id="journey-previous" class="previous-button" type="button" aria-label="Predchádzajúci krok" disabled>←</button>
-          <button id="journey-next" class="primary-button" type="button">Pokračovať <span aria-hidden="true">→</span></button>
+      <section class="journey-copy" data-annotation-obstacle aria-labelledby="journey-title">
+        <p id="journey-step-number" aria-hidden="true">01 / 07</p>
+        <h1 id="journey-title"><span>Začína sa to</span> <span>jedným zubom.</span></h1>
+        <p id="journey-description">Pozrite sa bližšie.</p>
+        <p id="journey-instruction" class="sr-only" hidden></p>
+        <p id="journey-note" hidden></p>
+        <button id="journey-hero-explore" class="primary-button" type="button" disabled>Preskúmať v 3D <span aria-hidden="true">↗</span></button>
+        <div id="journey-final-views" role="group" aria-label="Pohľad na chrup" hidden>
+          <button id="journey-view-smile" type="button" aria-pressed="true">Úsmev</button>
+          <button id="journey-view-anatomy" type="button" aria-pressed="false">Anatómia</button>
         </div>
-        <p id="journey-hint">Posúvajte stránku alebo vyberte krok.</p>
+        <p id="journey-meta" class="sr-only">FDI 36 · dolná ľavá · 2 korene</p>
       </section>
       <section class="view-shell" aria-label="Interaktívny 3D model">
         <div class="journey-scene-area"><div id="journey-viewport">
@@ -40,10 +41,12 @@
             <button id="journey-retry" class="outline-button" type="button" hidden>Skúsiť znova</button>
           </div>
         </div>
-        </div><div class="journey-context"><div id="journey-result-labels" aria-hidden="true"><span>Vyčistený povrch</span><span>Kaz vyžaduje ošetrenie</span></div><div id="journey-final-views" role="group" aria-label="Pohľad na chrup" hidden><button id="journey-view-smile" type="button" aria-pressed="true">Úsmev</button><button id="journey-view-anatomy" type="button" aria-pressed="false">Anatómia</button></div></div>
+        </div>
+      </section>
+      <div id="journey-annotations" aria-hidden="true"></div>
+      <div class="journey-dock">
         <div id="journey-inspect">
-          <div class="view-caption"><span class="view-status-dot" aria-hidden="true"></span><span id="journey-subject">Dolná ľavá prvá stolička</span></div>
-          <div class="model-controls" role="group" aria-label="Ovládanie 3D modelu">
+          <div class="model-controls" data-annotation-obstacle role="group" aria-label="Ovládanie 3D modelu">
             <button id="journey-explore" type="button" aria-pressed="false" disabled>Voľné 3D</button>
             <span class="control-separator" aria-hidden="true"></span>
             <button id="journey-zoom-out" class="icon-button" type="button" aria-label="Oddialiť model" title="Oddialiť" disabled>−</button>
@@ -51,13 +54,17 @@
             <button id="journey-reset" class="icon-button" type="button" aria-label="Obnoviť pohľad aktuálneho kroku" title="Obnoviť pohľad" disabled>↺</button>
           </div>
         </div>
-        <p id="journey-orbit-hint">Ťahaním otáčate · kolieskom pokračujete v príbehu.</p>
-      </section>
-      <div class="journey-footer">
-        <nav class="journey-steps" aria-label="Kapitoly príbehu"></nav>
-        <nav class="mobile-chapter-nav" aria-label="Kapitoly príbehu"><button id="journey-mobile-previous" type="button" aria-label="Predchádzajúca kapitola">←</button><label class="sr-only" for="journey-chapter-select">Aktuálna kapitola</label><select id="journey-chapter-select"></select><button id="journey-mobile-next" type="button" aria-label="Ďalšia kapitola">→</button></nav>
-        <button id="journey-cleaning-link" class="text-button" type="button" hidden>Späť na ukážku čistenia ↶</button>
-        <div class="footer-meta"><span>Výučbová vizualizácia · ďasná nie sú zobrazené</span><a class="journey-credit" href="story-assets/credits.txt" target="_blank" rel="noopener">Modely: Dundee · CC BY 4.0 ↗</a></div>
+      </div>
+      <p id="journey-orbit-hint" class="sr-only">Ťahaním otáčate · kolieskom pokračujete v príbehu.</p>
+      <p id="journey-subject" class="sr-only">Dolná ľavá prvá stolička</p>
+      <p id="journey-result-labels" class="sr-only" aria-hidden="true"></p>
+      <div class="journey-footer" data-annotation-obstacle>
+        <nav class="chapter-navigation" aria-label="Kapitoly príbehu">
+          <button id="journey-mobile-previous" class="chapter-arrow" type="button" aria-label="Predchádzajúca kapitola">←</button>
+          <div class="journey-steps" role="group" aria-label="Prejsť na kapitolu"></div>
+          <button id="journey-mobile-next" class="chapter-arrow" type="button" aria-label="Ďalšia kapitola">→</button>
+        </nav>
+        <div class="footer-meta"><button id="journey-notes" class="text-button" type="button" aria-haspopup="dialog">Výučbová ukážka · poznámky</button><a class="journey-credit" href="story-assets/credits.txt" target="_blank" rel="noopener">Modely: Dundee · CC BY 4.0 ↗</a></div>
       </div>
       <p id="journey-stage-live" class="sr-only" role="status" aria-live="polite"></p>
       <noscript><p class="no-script">Pre interaktívne zobrazenie chrupu povoľte JavaScript.</p></noscript>
@@ -72,6 +79,13 @@
       <div><dt>Priblíženie</dt><dd>Použite + a −. Vo Voľnom 3D približuje aj koliesko či gesto dvoma prstami; príbeh je pozastavený. Tlačidlo „Pokračovať v príbehu“ vás plynulo vráti.</dd></div>
       <div><dt>Klávesnica</dt><dd>Po zameraní modelu ho otáčajú šípky. + a − menia priblíženie, Home obnoví pohľad a Escape vráti prezentáciu.</dd></div>
     </dl>
+    <details id="journey-education">
+      <summary>O tejto výučbovej ukážke</summary>
+      <p id="journey-education-current"></p>
+      <p>Medzizubné priestory čistite každý deň. Zuby čistite dvakrát denne fluoridovou pastou. Pomôcku a jej veľkosť prispôsobte konkrétnemu priestoru; s výberom pomôže zubný lekár alebo dentálna hygienička.</p>
+      <p>Ďasná nie sú zobrazené pre lepšiu názornosť. Farba povlaku je ilustračná, fialová rukoväť neurčuje veľkosť. Vývoj kazu predstavuje časovú skratku. Kefka odstraňuje povlak, nie dutinu; tá vyžaduje odborné ošetrenie.</p>
+      <p>Podklady: <a href="https://www.nidcr.nih.gov/health-info/tooth-decay/more-info/tooth-decay-process" target="_blank" rel="noopener">NIDCR</a>, <a href="https://www.nhs.uk/live-well/healthy-teeth-and-gums/how-to-keep-your-teeth-clean/" target="_blank" rel="noopener">NHS</a>. Nie je náhradou individuálneho odborného odporúčania.</p>
+    </details>
     <p class="help-note">Výučbová vizualizácia, nie klinicky validovaný návod. Fialová farba kefky neurčuje veľkosť. Vzniknutú dutinu čistenie neopraví.</p>
     <button id="journey-help-done" class="primary-button" type="button">Rozumiem <span aria-hidden="true">↗</span></button>
   </dialog>

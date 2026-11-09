@@ -1,0 +1,95 @@
+#journey-annotations {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  user-select: none;
+}
+#journey-annotations svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#journey-annotations [data-leader-for] path {
+  fill: none;
+  stroke: #8097a6;
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+#journey-annotations [data-leader-for] circle {
+  fill: #fff;
+  stroke: rgb(72 100 120 / 13%);
+  stroke-width: .75;
+}
+#journey-annotations [data-annotation-id] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: max-content;
+  box-sizing: border-box;
+  min-height: 31px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--text-primary, #102a3a);
+  background: rgb(248 253 255 / 95%);
+  box-shadow: 0 2px 7px rgb(47 78 99 / 9%), 0 1px 2px rgb(47 78 99 / 4%);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.18;
+  text-align: center;
+  white-space: normal;
+}
+#journey-annotations .annotation-copy { text-wrap: balance; }
+#journey-annotations [data-annotation-id="space"] .annotation-copy { max-width: 89px; }
+#journey-annotations [data-annotation-id="cleaned"] {
+  color: #315c4e;
+  background: rgb(233 249 240 / 96%);
+  text-align: left;
+}
+#journey-annotations [data-annotation-id="persistent"] {
+  color: #684c57;
+  background: rgb(251 234 239 / 96%);
+  text-align: left;
+}
+#journey-annotations [data-annotation-id="cleaned"] .annotation-copy { max-width: 77px; }
+#journey-annotations [data-annotation-id="persistent"] .annotation-copy { max-width: 108px; }
+#journey-annotations [data-annotation-id="cleaned"]::before {
+  content: "";
+  flex: 0 0 5px;
+  width: 5px;
+  height: 9px;
+  margin: -3px 3px 0 1px;
+  border: solid #619b80;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+#journey-annotations [data-annotation-id="persistent"]::before {
+  content: "!";
+  flex: 0 0 7px;
+  color: #b47c8f;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+}
+#journey-annotations [hidden] { display: none; }
+.journey-annotation-description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  #journey-annotations [data-annotation-id] {
+    min-height: 29px;
+    padding: 7px 12px;
+    gap: 7px;
+    font-size: 11px;
+  }
+  #journey-annotations [data-annotation-id="space"] .annotation-copy { max-width: 82px; }
+  #journey-annotations [data-annotation-id="cleaned"] .annotation-copy { max-width: 71px; }
+  #journey-annotations [data-annotation-id="persistent"] .annotation-copy { max-width: 100px; }
+}

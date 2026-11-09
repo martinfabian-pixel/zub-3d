@@ -8,13 +8,15 @@ import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
 import { DENTAL_CHAPTERS as chapters } from '../src/experience/story-config.js';
 import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
+import { measureSharedStage,readWebGLPixels,sampleCopyTransition } from './shared-stage-probes.mjs';
+import { auditAnnotations } from './fullstage-annotation-probe.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const site = new URL(process.env.DENTAL_STORY_TEST_URL || process.env.EXPERIENCE_TEST_URL || 'http://127.0.0.1:4173/');
 if (!['localhost', '127.0.0.1', '[::1]'].includes(site.hostname) || !['http:', 'https:'].includes(site.protocol)) throw new Error('Use a loopback HTTP(S) preview URL.');
 if (!site.pathname.endsWith('/')) site.pathname += '/';
-const out = resolve(process.env.DENTAL_STORY_REVIEW_DIR || 'docs/visual-polish-review');
+const out = resolve(process.env.DENTAL_STORY_REVIEW_DIR || '../professional-review/ice-blue-storyboard-2026-11-09/regression');
 const perfOnly=process.env.DENTAL_STORY_BENCHMARK_ONLY==='1';
 const prefixOnly=process.env.DENTAL_STORY_PREFIX_ONLY==='1';
 await mkdir(out, { recursive: true });
@@ -25,6 +27,8 @@ const report = { date: new Date().toISOString(), browser:browser.version(), site
 const closingContexts=new WeakSet();
 async function closeContext(ctx){closingContexts.add(ctx);await ctx.close();}
 const q = '#journey-canvas', allFDI=[1,2,3,4].flatMap(k=>Array.from({length:7},(_,i)=>k*10+i+1));
+const requestedTitles=['Začína sa to jedným zubom.','Aj medzi zubami.','Nenápadný povlak.','Keď sa poškodí zub.',
+  'Jemne tam a späť.','Povlak preč. Dutina zostáva.','Malý návyk. Veľký rozdiel.'];
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
 const equal = (a,b) => JSON.stringify(a) === JSON.stringify(b);
 const dist = (a,b) => Math.hypot(...a.map((n,i)=>n-b[i]));
@@ -40,7 +44,7 @@ async function scenario(name,fn) {
   catch(error) { report.scenarios.push({name,completed:false});check(name+' completed',false,String(error.stack||error).slice(0,2000)); }
 }
 async function open(settings={},allowedOrigin=site.origin) {
-  const ctx=await browser.newContext({viewport:{width:1280,height:900},deviceScaleFactor:1,serviceWorkers:'block',...settings});
+  const ctx=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1,serviceWorkers:'block',...settings});
   await ctx.route('**/*',r=>{
     if(new URL(r.request().url()).origin===allowedOrigin)return r.continue();
     report.failedRequests.push({external:r.request().url()});return r.abort('blockedbyclient');
@@ -85,29 +89,20 @@ async function read(page) {
     app.scene.traverse(n=>{if(!n.isMesh)return;const fdi=Number(n.userData.fdi);if(!fdi){const k=n.userData.kind||n.name||'unnamed';kinds[k]=(kinds[k]||0)+1;return;}
       meshFDIs.push(fdi);for(let a=n;a;a=a.parent)if(!a.visible)return;visible.push(fdi);});
     const box=sel=>{const el=document.querySelector(sel);if(!el||el.getClientRects().length===0)return null;const r=el.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
-    const canvas=box('#journey-canvas'),copy=box('.journey-copy'),tools=box('#journey-inspect');
-    const overlap=(a,b)=>a&&b?Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)):0;
-    const clippedText=[];
-    const walker=document.createTreeWalker(document.querySelector('.journey-copy'),NodeFilter.SHOW_TEXT);
-    for(let node=walker.nextNode();node;node=walker.nextNode()){
-      if(!node.textContent.trim()||!node.parentElement?.checkVisibility({visibilityProperty:true,opacityProperty:true}))continue;
-      const rng=document.createRange();rng.selectNodeContents(node);
-      for(const r of rng.getClientRects())if(r.width>1&&r.height>1&&(r.top < -2 || r.left < -2 || r.right>innerWidth+2 || r.bottom>innerHeight+2 || overlap(r,canvas)>2)){
-        clippedText.push(node.textContent.trim().slice(0,95));break;
-      }
-    }
+    const canvas=box('#journey-canvas');
     const gl=app.renderer.getContext(), ex=gl.getExtension('WEBGL_debug_renderer_info');
     const lights=app.scene.children.filter(o=>o.isLight).map(o=>({type:o.type,position:o.position.toArray(),rotation:o.quaternion.toArray(),intensity:o.intensity,color:o.color.toArray(),
       width:o.width??null,height:o.height??null,target:o.target?.position.toArray()??null,shadowCamera:o.shadow?.camera?['left','right','top','bottom','near','far'].map(k=>o.shadow.camera[k]):null}));
     return {progress:d.progress,sceneProgress:d.sceneProgress,chapter:s.chapterId,exploring:d.exploring,mode:d.mode,view:d.view,finalView:d.finalView,closureCm:d.closureCm,shaderErrors:d.shaderErrors,canvasCount:document.querySelectorAll('canvas').length,
+      bundle:[...document.querySelectorAll('script[type="module"][src]')].map(n=>new URL(n.src).pathname).find(p=>/\/assets\/main-[^/]+\.js$/.test(p))??null,
       visible:visible.sort((a,b)=>a-b),meshFDIs:meshFDIs.sort((a,b)=>a-b),kinds,camera:cam.position.toArray(),quaternion:cam.quaternion.toArray(),target:d.target??app.rig.target.toArray(),
       pose36:m36.matrixWorld.toArray(),geometry36:geom.uuid,geometry46:m46.geometry.uuid,depthLocal,lesionNDC,healthyMolar:{morphBuffers:m46.geometry.morphAttributes.position?.length||0,lesionAttribute:Boolean(m46.geometry.getAttribute('lesionRegion'))},
       lesion:s.lesionProgress,clean:s.cleaningProgress,deposit:s.plaqueDeposition,brushPose:s.brushPose,caries:s.caries,plaque:s.plaque,brush:s.brush,
       active:document.querySelector('.journey-step[aria-current="step"]')?.innerText,activeCount:document.querySelectorAll('.journey-step[aria-current="step"]').length,
       title:document.querySelector('#journey-title')?.innerText,description:document.querySelector('#journey-description')?.innerText,
-      note:document.querySelector('#journey-note')?.innerText,instruction:document.querySelector('#journey-instruction')?.innerText,
+      note:document.querySelector('#journey-note')?.textContent,instruction:document.querySelector('#journey-instruction')?.textContent,
       resultLabels:document.querySelector('#journey-result-labels')?.innerText,
-      layout:{width:innerWidth,height:innerHeight,overflowX:document.documentElement.scrollWidth-innerWidth,canvas,copy,tools,clippedText,copyOverlap:overlap(canvas,copy),toolsOverlap:overlap(canvas,tools)},
+      layout:{width:innerWidth,height:innerHeight,overflowX:document.documentElement.scrollWidth-innerWidth,canvas},
       lights,gpu:gl.getParameter(ex?ex.UNMASKED_RENDERER_WEBGL:gl.RENDERER)};
   });
 }
@@ -117,25 +112,41 @@ async function saveView(page,label,p,index,expected,base) {
   if(/^(desktop|mobile)-(hero|caries|brush|full)$/.test(label)){
     const {matrices,...footprint}=await projectedFootprints(page);s.projectedFootprint=footprint;
   }
-  const png=await page.screenshot({path:resolve(out,label+'.png'),scale:'css',animations:'disabled'});
-  // Sample only the 3D viewport in the screenshot: navigation typography or
-  // coloured controls outside the canvas cannot make an empty WebGL frame pass.
-  const fraction=await page.evaluate(async({bytes,b})=>{const im=await createImageBitmap(new Blob([Uint8Array.from(atob(bytes),c=>c.charCodeAt(0))],{type:'image/png'}));
-    const o=new OffscreenCanvas(im.width,im.height),cx=o.getContext('2d');cx.drawImage(im,0,0);im.close();const a=cx.getImageData(0,0,o.width,o.height).data;
-    let body=0,n=0;for(let y=Math.max(0,Math.ceil(b.top+3));y<Math.min(o.height,b.bottom-3);y+=3)for(let x=Math.max(0,Math.ceil(b.left+3));x<Math.min(o.width,b.right-3);x+=3){const k=4*(o.width*y+x);if(Math.min(a[k],a[k+1],a[k+2])<239)body++;n++;}return body/Math.max(n,1);}, {bytes:png.toString('base64'),b:s.layout.canvas});
+  await page.screenshot({path:resolve(out,label+'.png'),scale:'css',animations:'disabled'});
+  const fraction=await readWebGLPixels(page);
+  s.stageAudit=await measureSharedStage(page);
   report.views.push({name:label,nonwhiteCanvasFraction:fraction,...s});
   const l=s.layout,b=l.canvas;
   check(label+' settled frame uses full device profile with no mask, alpha filter, fog or clipping planes',
     raster.dpr===raster.fullDpr&&!s.optics.effects.length&&s.optics.fog===null&&s.optics.clippingPlanes===0,{raster,optics:s.optics});
   check(label+' active chapter and nonblank WebGL',s.chapter===chapters[index].id&&s.canvasCount===1&&s.shaderErrors===0&&fraction>.012,{chapter:s.chapter,fraction,shaderErrors:s.shaderErrors});
   const normalize=t=>String(t||'').trim().replace(/\s+/g,' ');
-  check(label+' educational chapter title matches its state',normalize(s.title)===normalize(chapters[index].title),s.title);
-  if(index!==4)check(label+' chapter copy matches the displayed clinical state',normalize(s.description)===normalize(chapters[index].text),s.description);
-  if(chapters[index].note)check(label+' clinical illustration note stays available',normalize(s.note)===normalize(chapters[index].note),s.note);
+  check(label+' educational chapter title matches the requested Slovak wording',normalize(s.title)===requestedTitles[index],s.title);
+  check(label+' chapter copy matches the displayed clinical state',normalize(s.description)===normalize(chapters[index].text),s.description);
+  if(index===2)check(label+' clinical illustration note stays available',normalize(s.note)===normalize(chapters[index].note),s.note);
   if(index===5)check(label+' cleaned surface and irreversible cavity carry separate labels',chapters[5].resultLabels.every(x=>s.resultLabels?.includes(x)),s.resultLabels);
   check(label+' actual tooth mesh visibility',equal(s.visible,expected),s.visible);
-  check(label+' dedicated model area fits without UI over it',b.width>40&&b.height>45&&b.left>=-1&&b.top>=-1&&b.right<=l.width+1&&b.bottom<=l.height+1&&l.overflowX<=1&&l.copyOverlap<1&&l.toolsOverlap<1,l);
-  check(label+' visible educational copy stays on screen outside the canvas',l.clippedText.length===0,l.clippedText);
+  const a=s.stageAudit;
+  check(label+' seven real chapter dots, current counter and persistent arrows stay synchronized',
+    a.navigation.dots.length===7&&a.navigation.dots.every(d=>d.visible&&d.name&&d.tag==='BUTTON')&&
+    a.navigation.dots.filter(d=>d.current).length===1&&a.navigation.dots[index].current&&
+    a.navigation.counter===`${String(index+1).padStart(2,'0')} / 07`&&a.navigation.arrows.length===2&&a.navigation.arrows.every(d=>d.visible),a.navigation);
+  check(label+' title uses the two approved block lines',a.titleLines.length===2&&
+    a.titleLines.every((line,i)=>line.text===chapters[index].titleLines[i]&&line.display==='block'),a.titleLines);
+  check(label+' transparent WebGL sits over the common ice-blue stage',a.surface.webglAlpha&&a.surface.clearAlpha===0&&
+    a.surface.sceneBackground===null&&a.surface.sceneColorToken==='#dcecf7'&&
+    a.surface.stageBackground.includes('rgb(220, 236, 247)')&&a.surface.canvasColor==='rgba(0, 0, 0, 0)',a.surface);
+  check(label+' hero CTA and final views are active only at their respective chapters',
+    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===6)&&a.controls.finalInCopy,a.controls);
+  if(index===2)check(label+' plaque color explanation is visible',a.controls.noteVisible,a.controls);
+  check(label+' one canvas fills the fixed stage beneath the overlay',l.overflowX<=1&&['left','top','right','bottom'].every(k=>near(a.stage[k],b[k],1)),{stage:a.stage,canvas:b});
+  const f=a.framing;
+  check(label+' off-axis projection uses the entire sensor and lands the subject on the authored screen point',
+    f.view?.enabled&&near(f.view.width,f.view.fullWidth,1e-3)&&near(f.view.height,f.view.fullHeight,1e-3)&&
+    f.requested.every((v,i)=>near(v,f.projectedFocus[i],.002)),f);
+  check(label+' the sole active H1 and educational copy fit and clear controls',a.headingCount===1&&a.role==='H1'&&a.unclippedCopy&&a.blockedControls.length===0,a);
+  check(label+' copy passes input through to the actual 3D canvas',a.hit?.isCanvas===true,a.hit);
+  check(label+' actual educational focus stays clear of every rendered text line',a.protected.sampleCount>0&&a.protected.covered.length===0,a.protected);
   check(label+' protected healthy 46 and fixed 36 pose',s.healthyMolar.morphBuffers===0&&!s.healthyMolar.lesionAttribute&&s.geometry36!==s.geometry46&&equal(s.pose36,base.pose36));
   if(index>=3)check(label+' actual mature 36 morphology persists',s.lesion===1&&s.caries.morphInfluence===1&&s.depthLocal>0&&s.caries.isolated,{lesion:s.lesion,influence:s.caries.morphInfluence,depth:s.depthLocal});
   else check(label+' healthy geometry before lesion',s.lesion===0&&s.depthLocal===0,{lesion:s.lesion,depth:s.depthLocal});
@@ -160,6 +171,53 @@ const sameOffsets=(a,b)=>['desiredYaw','desiredPitch','desiredZoom'].every(k=>ne
 function checkHandover(name,t) {
   check(name+' leaves the click-handler view continuous',t.clickAngleJump<.035&&t.clickPositionJump<.025,{clickAngle:t.clickAngleJump,clickPosition:t.clickPositionJump});
   check(name+' visibly traverses intermediate frames',t.movingFrames>=3&&t.largestFrameAngle<.45, {movingFrames:t.movingFrames,maxAngle:t.largestFrameAngle,endpointRotation:t.endpointRotation});
+}
+async function dragFromText(page,label) {
+  await scroll(page,0);await page.locator('#journey-reset').click();await restingRaster(page);
+  const stage=await measureSharedStage(page),before=await cameraProbe(page),hit=stage.hit;
+  check(label+' heading exposes a genuine pointer location over the canvas',hit?.isCanvas,hit);
+  if(!hit?.isCanvas)return;
+  const dx=48;
+  if(label==='desktop'){
+    await page.mouse.move(hit.x,hit.y);await page.mouse.down();
+    await page.mouse.move(hit.x+dx,hit.y,{steps:12});await page.mouse.up();
+  }else{
+    const cdp=await page.context().newCDPSession(page);
+    try {
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:hit.x,y:hit.y}]});
+      for(let i=1;i<=10;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:hit.x+dx*i/10,y:hit.y}]});await page.waitForTimeout(16);}
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    } finally {await cdp.detach();}
+  }
+  await page.waitForTimeout(180);const after=await cameraProbe(page);
+  check(label+' a real horizontal drag starting on visible typography rotates the model without moving the page',
+    Math.abs(after.nativeY-before.nativeY)<=1&&drift(after.yaw,before.yaw)>.02&&sameStory(before,after),{hit,before,after});
+  await page.locator('#journey-reset').click();await restingRaster(page);
+}
+async function annotationScenario(page,label){
+  const result=await auditAnnotations(page);
+  for(const t of result.checks)check(label+' annotation '+t.name,t.passed,t.detail);
+  (report.annotations??=[]).push({label,...result});
+}
+async function storyboardNavigation(page,label){
+  await scroll(page,0);await restingRaster(page);
+  const before=await cameraProbe(page);
+  await page.locator('#journey-hero-explore').click();await threeFrames(page);
+  const entered=await cameraProbe(page);
+  check(label+' hero CTA enters the same Free 3D state without advancing the narrative',
+    free(entered)&&sameStory(before,entered)&&near(entered.nativeP,before.nativeP,.001),{before,entered});
+  await page.locator('#journey-explore').click();await page.waitForTimeout(650);
+  check(label+' hero CTA returns through the common continue action',guided(await cameraProbe(page)));
+  for(let i=1;i<7;i++){
+    await page.locator('#journey-mobile-next').click();await at(page,chapters[i].at);
+    check(label+' persistent forward arrow lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);
+  }
+  check(label+' final forward arrow is disabled',await page.locator('#journey-mobile-next').isDisabled());
+  for(let i=5;i>=0;i--){
+    await page.locator('#journey-mobile-previous').click();await at(page,chapters[i].at);
+    check(label+' persistent backward arrow lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);
+  }
+  check(label+' initial backward arrow is disabled',await page.locator('#journey-mobile-previous').isDisabled());
 }
 async function desktopInputs(page) {
   const evidence=await desktopInputSequence(page,p=>scroll(page,p)),s=evidence.states;
@@ -202,14 +260,15 @@ async function mobileInputs(ctx,page){
 async function finalViews(page,label) {
   await scroll(page,.98);await restingRaster(page);
   const smile=await cameraProbe(page),smileProjection=await projectedFootprints(page),smileOptics=await opticalState(page);
-  const aspect=smile.raster.rect.width/smile.raster.rect.height,expectedAspect=label==='desktop'?2.70:2.32;
-  check(label+' frontal composition uses an actual wide camera viewport',near(aspect,expectedAspect,.025)&&
+  const aspect=smile.raster.rect.width/smile.raster.rect.height;
+  const expectedAspect=await page.locator('#journey-stage').evaluate(e=>e.clientWidth/e.clientHeight);
+  check(label+' frontal composition keeps the full shared stage with opaque surfaces',near(aspect,expectedAspect,.025)&&
     smile.computedMask==='none'&&!smileOptics.effects.length&&smileOptics.fog===null&&smileOptics.clippingPlanes===0&&smileOptics.translucentTeeth===0,
     {aspect,expectedAspect,smileOptics});
   await page.locator('#journey-explore').click();await restingRaster(page);
   const freeSmile=await cameraProbe(page);
-  check(label+' Free 3D expands the actual camera viewport at the frozen final chapter',free(freeSmile)&&
-    freeSmile.raster.rect.height>smile.raster.rect.height*1.2&&sameStory(freeSmile,smile)&&freeSmile.computedMask==='none',
+  check(label+' Free 3D keeps the shared viewport at the frozen final chapter',free(freeSmile)&&
+    near(freeSmile.raster.rect.height,smile.raster.rect.height,1)&&sameStory(freeSmile,smile)&&freeSmile.computedMask==='none',
     {freeHeight:freeSmile.raster.rect.height,smileHeight:smile.raster.rect.height});
   await page.locator('#journey-explore').click();await restingRaster(page);
   if(label==='mobile')await touchDrag(page.context(),page,60,0);else await mouseDrag(page,60,0);
@@ -224,7 +283,7 @@ async function finalViews(page,label) {
   check(label+' final smile and anatomical overview both retain all 28 opaque surfaces',smile.finalView==='smile'&&anatomy.finalView==='anatomy'&&equal(smile.story.visible,allFDI)&&equal(anatomy.story.visible,allFDI)&&anatomyOptics.translucentTeeth===0);
   check(label+' smile translates upper arch only; lower and tooth morphology stay fixed',near(smile.closureCm,.58,.0005)&&near(anatomy.closureCm,0,.0005)&&allFDI.every(fdi=>{
     const a=anatomyProjection.matrices[fdi],s=smileProjection.matrices[fdi];return a.every((v,i)=>near(v-s[i],fdi<30&&i===13?.58:0,1e-5));})&&smile.story.influence===1&&anatomy.story.influence===1);
-  check(label+' Anatomy expands the viewport and fits both whole arches',anatomy.raster.rect.height>smile.raster.rect.height*1.2&&anatomyProjection.geometry?.clipped===0&&
+  check(label+' Anatomy fits both whole arches within the same full-stage canvas',near(anatomy.raster.rect.height,smile.raster.rect.height,1)&&anatomyProjection.geometry?.clipped===0&&
     !anatomyOptics.effects.length&&anatomyOptics.fog===null&&anatomyOptics.clippingPlanes===0,{bounds:anatomyProjection.geometry,optics:anatomyOptics});
   await page.locator('#journey-view-smile').click();await restingRaster(page);const restored=await cameraProbe(page);
   check(label+' returning to smile reproduces frontal pose and viewport',restored.finalView==='smile'&&near(restored.closureCm,smile.closureCm,.0005)&&dist(smile.pos,restored.pos)<.008&&
@@ -247,7 +306,7 @@ async function lightingHistory(page) {
   // Identical destination after a near/far jump: measuring only the camera
   // misses illumination accidentally calculated using the previous VIEW pose.
   async function take(from){await scroll(page,from);await scroll(page,.475);await restingRaster(page);
-    return {state:await read(page),png:await page.locator(q).screenshot({scale:'css',animations:'disabled'})};}
+    return {state:await read(page),png:Buffer.from(await readWebGLPixels(page,{png:true}),'base64')};}
   const a=await take(0),b=await take(.98);
   const pixels=await page.evaluate(async([aa,bb])=>{
     async function read(s){const im=await createImageBitmap(new Blob([Uint8Array.from(atob(s),c=>c.charCodeAt(0))],{type:'image/png'}));const c=new OffscreenCanvas(im.width,im.height),ctx=c.getContext('2d');ctx.drawImage(im,0,0);im.close();return ctx.getImageData(0,0,c.width,c.height).data;}
@@ -293,10 +352,23 @@ async function desktop() {
     // Navigation, semantics, help and manual camera return through real inputs.
     const buttons=page.locator('.journey-step');check('Seven focusable desktop chapters',await buttons.count()===7);
     for(let i=0;i<chapters.length;i++){await buttons.nth(i).click();await at(page,chapters[i].at);const a=await read(page);check('Direct chapter '+chapters[i].label,a.chapter===chapters[i].id&&a.activeCount===1&&(await buttons.nth(i).getAttribute('aria-current'))==='step');}
-    await page.locator('#journey-home').click();await at(page,0);await page.locator('#journey-next').click();await at(page,chapters[1].at);
-    await page.locator('#journey-previous').click();await at(page,0);
+    await page.locator('#journey-home').click();await at(page,0);await buttons.nth(1).click();await at(page,chapters[1].at);
+    await buttons.first().click();await at(page,0);
     await page.locator('#journey-help').click();check('Help opens an accessible modal',await page.locator('#journey-help-dialog').evaluate(d=>d.open&&Boolean(d.getAttribute('aria-labelledby'))));
     await page.keyboard.press('Escape');check('Escape dismisses the help dialog',!(await page.locator('#journey-help-dialog').isVisible()));
+    await buttons.nth(3).click();await at(page,chapters[3].at);await page.locator('#journey-notes').click();
+    const medical=await page.locator('#journey-education-current').innerText();
+    check('Detailed education stays accessible from the minimal cavity chapter',await page.locator('#journey-help-dialog').isVisible()
+      &&await page.locator('#journey-education').evaluate(e=>e.open)&&medical.includes('odborné ošetrenie'),medical);
+    await page.keyboard.press('Escape');check('Closing the educational notes restores keyboard focus',await page.locator('#journey-notes').evaluate(e=>e===document.activeElement));
+    await storyboardNavigation(page,'desktop');await dragFromText(page,'desktop');await annotationScenario(page,'desktop');
+    const copyTransition=await sampleCopyTransition(page);report.copyTransition=copyTransition;
+    check('Chapter typography has one semantic heading while native progress changes its opacity or position',
+      copyTransition.forward.every(t=>t.count===1)&&copyTransition.forward.some(f=>copyTransition.forward.some(r=>
+        f.title===r.title&&(Math.abs(f.opacity-r.opacity)>.08||Math.hypot(...f.position.map((v,k)=>v-r.position[k]))>2))),copyTransition);
+    check('Forward and reverse scroll reconstruct the same title, position and compositing',
+      copyTransition.forward.every((f,i)=>{const r=copyTransition.reverse[i];return f.title===r.title&&
+        near(f.opacity,r.opacity,.012)&&f.position.every((v,k)=>near(v,r.position[k],1.1));}),copyTransition);
     await lightingHistory(page);await macroZoom(page,'desktop');await desktopInputs(page);
     await finalViews(page,'desktop');
   }finally{await closeContext(ctx);}
@@ -326,17 +398,18 @@ async function mobile() {
     await goto(page);await ready(page);const base=await read(page);
     await adaptiveBuffers(page);
     for(const [n,p,i,f]of standard)await saveView(page,'mobile-'+n,p,i,f,base);
-    const selector=page.locator('#journey-chapter-select');check('Compact chapter selector is visible and contains all seven destinations',await selector.isVisible()&&await selector.locator('option').count()===7);
-    for(const i of [0,4,5,6]){await selector.selectOption({index:i});await at(page,chapters[i].at);check('Native mobile selector lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);}
+    const dots=page.locator('.journey-step');check('Seven focusable mobile chapter dots replace the select',await dots.count()===7&&await page.locator('#journey-chapter-select').count()===0);
+    for(const i of [0,4,5,6]){await dots.nth(i).tap();await at(page,chapters[i].at);check('Mobile chapter dot lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);}
+    await storyboardNavigation(page,'mobile');await dragFromText(page,'mobile');await annotationScenario(page,'mobile');
     await macroZoom(page,'mobile');await mobileInputs(ctx,page);
     await finalViews(page,'mobile');
-    for(const [label,size]of [['phone-360',{width:360,height:780}],['landscape',{width:844,height:390}],['small-phone',{width:320,height:568}]]){
+    for(const [label,size]of [['phone-360',{width:360,height:800}],['landscape',{width:844,height:390}],['small-phone',{width:320,height:568}]]){
       await page.setViewportSize(size);await threeFrames(page);
       for(const [n,p,i,f]of standard){await saveView(page,label+'-'+n,p,i,f,base);}
     }
-    const warmCleanup=await page.evaluate(()=>{const a=window.__dentalExperience,r=a.renderer,area=document.querySelector('.journey-scene-area'),before={...r.info.memory},composedHeight=area.style.maxHeight;a.dispose();return {before,after:{...r.info.memory},disposed:a.report().disposed,composedHeight,restoredHeight:area.style.maxHeight};});
+    const warmCleanup=await page.evaluate(()=>{const a=window.__dentalExperience,r=a.renderer,area=r.domElement.parentElement,before={...r.info.memory},composedHeight=area.style.maxHeight;a.dispose();return {before,after:{...r.info.memory},disposed:a.report().disposed,composedHeight,restoredHeight:area.style.maxHeight};});
     check('Successfully rendered brush and full arch release tracked GPU resources on dispose',warmCleanup.before.geometries>1&&warmCleanup.before.textures>3&&warmCleanup.disposed&&warmCleanup.after.geometries===0&&warmCleanup.after.textures===0,warmCleanup);
-    check('Dispose restores the native height of the photographic viewport',warmCleanup.composedHeight.endsWith('px')&&!warmCleanup.restoredHeight,warmCleanup);
+    check('Shared viewport leaves no photographic clipping-height override on dispose',!warmCleanup.composedHeight&&!warmCleanup.restoredHeight,warmCleanup);
     report.successfulSceneCleanup=warmCleanup;
   }finally{await closeContext(ctx);}
 }
@@ -349,6 +422,9 @@ async function reduced() {
     check('Seven meaningfully different reduced-motion scenes',new Set(poses.map(x=>JSON.stringify(x))).size===7);
     await scroll(page,.56);const brush=await read(page);check('Reduced brush depicts a fixed live contact and a persistent lesion',brush.brush.visible&&brush.brush.insertion>.1&&brush.depthLocal>0&&brush.clean>0&&brush.clean<1);
     report.reducedMotion=poses;
+    const copyTransition=await sampleCopyTransition(page);report.reducedCopyTransition=copyTransition;
+    check('Reduced-motion chapter copy remains legible at the sampled transition positions',
+      copyTransition.forward.every(t=>t.count===1&&near(t.opacity,1,.01)&&t.title.trim()),copyTransition);
   }finally{await closeContext(ctx);}
 }
 async function aliases() {
@@ -428,7 +504,7 @@ async function pendingAssetsWithInput() {
       await page.route('**/story-assets/caries-36.json*',async r=>{noticed();await gate;return r.continue();});
       await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
       let timer;try{await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Story data gate not reached')),15000);})]);}finally{clearTimeout(timer);}
-      if(mode==='free')await page.locator('#journey-explore').click();
+      if(mode==='free')await page.locator('#journey-hero-explore').click();
       await mouseDrag(page,65,-40);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(450);
       const held=await cameraProbe(page);release();await ready(page);await page.waitForTimeout(180);const after=await cameraProbe(page);
       check('Completing background assets keeps real user rotation/zoom in '+mode,
@@ -526,7 +602,7 @@ try {
   }
   if(!perfOnly)await scenario('strict GitHub Pages subdirectory mount',pagesPrefix);
   if(perfOnly||process.env.DENTAL_STORY_BENCHMARK==='1'){
-    await scenario('isolated desktop timing',()=>benchmark('desktop-1280x900',{}));
+    await scenario('isolated desktop timing',()=>benchmark('desktop-1440x900',{}));
     await scenario('isolated emulated mobile timing',()=>benchmark('emulated-390x844',{viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2}));
   }
   // The offline BVH audit is stronger evidence of numerical surface clearance
@@ -536,6 +612,12 @@ try {
   report.offlineEvidence={morphAudit:'docs/proximal-reframe-review/independent-geometry.json',summary:audit.summary,
     rigidEnvelope:siteData.brush.rigidEnvelope,note:'Precomputed hard-tooth surface/path checks only; no gingiva is modelled. This run does not validate clinical fit.'};
   const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+  const protectedHashes=await Promise.all(Object.entries(audit.assetComparison).map(async([path,source])=>({
+    path,expected:source.currentSha256,actual:digest(await readFile(new URL('../'+path,import.meta.url))),
+  })));
+  check('Every audited native GLB, registered source and placement manifest preserves its release hash',
+    protectedHashes.length>=7&&protectedHashes.every(v=>v.expected===v.actual),protectedHashes);
+  report.protectedAssets=protectedHashes;
   const auditedHashes=await Promise.all(['site.json','caries-36.json'].map(async n=>({name:n,expected:audit.changedStoryJson[n]?.currentSha256,actual:digest(await readFile(new URL('../public/story-assets/'+n,import.meta.url)))})));
   check('Companion audit describes these exact refined lesion data and unchanged source tooth assets',
     audit.passed&&audit.checks.healthyRefinementIsClosedAndConforming&&audit.summary.sourceAssetsAllByteIdenticalTo510a734&&auditedHashes.every(x=>x.actual===x.expected),auditedHashes);
@@ -544,6 +626,8 @@ try {
   check('Documented wire diameter is within the conservative hard-tooth path bound',env.wireRadialMarginLowerBoundMm>0&&env.illustrativeWireDiameterMm<2*env.continuousLowerBoundRadiusMm,env);
   check('No unexpected WebGL or JavaScript errors',report.errors.length===0,report.errors);
   check('No unexpected 404/network failures/external requests',report.failedRequests.length===0,report.failedRequests);
+  if(report.views.length)check('Every full-story frame comes from one frozen production build',
+    report.views.every(v=>v.bundle)&&new Set(report.views.map(v=>v.bundle)).size===1,[...new Set(report.views.map(v=>v.bundle))]);
 }finally{
   await browser.close();report.passed=report.issues.length===0;
   await writeFile(resolve(out,perfOnly?'performance.json':prefixOnly?'prefix.json':'report.json'),JSON.stringify(report,null,2)+'\n');

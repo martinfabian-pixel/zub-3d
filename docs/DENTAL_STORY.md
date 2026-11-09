@@ -1,6 +1,6 @@
 # Čo sa deje medzi zubami
 
-Hlavná stránka a konzistentný alias [`/experience/`](https://martinfabian-pixel.github.io/zub-3d/experience/) používajú jednu scénu, kameru a canvas. Príbeh vznikol na funkčnej verzii `333c359`; jeho prvú publikáciu `f3257d1` uchováva tag `backup/before-controls-smile-2026-11-04`. Pôvodné zdravé GLB, vzájomné polohy zubov v oblúkoch, `/prototype/` a `/legacy/` zostávajú zachované. Aktuálny ostrý detail, kompozície a porovnania opisuje [VISUAL_POLISH.md](VISUAL_POLISH.md); staršiu verziu ovládania uchováva [CONTROLS_AND_SMILE.md](CONTROLS_AND_SMILE.md).
+Na hlavnej stránke aj v `/experience/` spája jedno priehľadné plátno zuby, nástroj a sedem kapitol nad ľadovomodrým pozadím. Názov kapitoly je dvojriadkový HTML nadpis priamo nad scénou. V priestore medzi 36 a 37 pribúdajú popisky naviazané na konkrétne plochy zubov. Ich poloha sa mení spolu s pohľadom. [Otvoriť príbeh](https://martinfabian-pixel.github.io/zub-3d/experience/) · [Aktuálne snímky a overenie](SHARED_STAGE_QA.md).
 
 | Kapitola | Poloha príbehu | Akcia v scéne |
 |---|---:|---|
@@ -23,20 +23,21 @@ pnpm dev
 
 Otvorte `http://127.0.0.1:5173/` alebo `http://127.0.0.1:5173/experience/`. Produkčná zostava: `pnpm build`, náhľad: `pnpm preview`. Blender ani Python nie sú potrebné na spustenie či build.
 
-Zvislý posun stránky riadi celý príbeh bez zachytávania scrollu. Kapitoly možno preskočiť priamo; na mobile sú dostupné v jednom kompaktnom výbere. Priame ťahanie funguje bez prepínača. Na dotyku je v základnom režime vodorovné, aby zvislý pohyb zostal stránke. **Voľné 3D** drží aktuálny dej a umožní obe osi aj pinch či koliesko na zoom; iba táto 3D plocha používa `touch-action:none`. **Pokračovať v príbehu** alebo Escape obnoví držanú polohu stránky a plynulo odovzdá kameru príbehu. Malý scroll, resize ani načítanie ručný pohľad nerušia. Pri zámernom prechode do inej kapitoly sa kamera preberie plynulo. Pri obmedzenom pohybe je návrat okamžitý a príbeh používa sedem pokojných stavov.
+Zvislý posun stránky riadi celý príbeh bez zachytávania scrollu. Na každom rozmere obrazovky je sedem bodiek na priamy výber kapitoly a dve šípky pre susedné kapitoly. Číslo pri nadpise ukazuje aktívny krok. Priame ťahanie funguje bez prepínača. Na dotyku je v základnom režime vodorovné, aby zvislý pohyb zostal stránke. **Preskúmať v 3D** pri prvom zube a **Voľné 3D** v ďalších kapitolách držia aktuálny dej a umožnia obe osi aj pinch či koliesko na zoom; iba táto 3D plocha používa `touch-action:none`. **Pokračovať v príbehu** alebo Escape obnoví držanú polohu stránky a plynulo odovzdá kameru príbehu. Malý scroll, resize ani načítanie ručný pohľad nerušia. Pri zámernom prechode do inej kapitoly sa kamera preberie plynulo. Pri obmedzenom pohybe je návrat okamžitý a príbeh používa sedem pokojných stavov.
 
-Šípky na zameranej 3D ploche otáčajú, +/− približujú, Home resetuje pohľad. Tlačidlá zoomu nemenia režim. Záver ponúka **Úsmev**, **Anatómia**, to isté **Voľné 3D** aj **Späť na ukážku čistenia**.
+Šípky na zameranej 3D ploche otáčajú, +/− približujú, Home resetuje pohľad. Tlačidlá zoomu nemenia režim. Záver ponúka **Úsmev**, **Anatómia** a to isté **Voľné 3D**. K čisteniu sa možno vrátiť jeho bodkou.
 
 ## Architektúra a zmenené súbory
 
 - `src/experience/story-config.js`: sedem kapitol, slovenské texty a hranice jednotlivých dejov; `config.js`: spoločné materiálové a kamerové parametre.
 - `dental-story.js`: čisté `sampleDentalStory(progress, out)` a znížený pohyb. Oddelené `plaqueDeposition`, `plaqueCoverage`, `lesionProgress`, `brushPose` a `cleaningProgress`; žiadny spoločný parameter „špiny“.
 - `arch.js`: pôvodné pevné anatomické transformácie a odhaľovanie zostavy. Spravuje vlastníctvo vypožičaných GLTF zdrojov aj pri čiastočnej chybe načítania.
-- `story-camera.js`, `timeline.js`, `camera.js`: zmerané lokálne miesto záujmu, všeobecná postupnosť kamerových bodov a vzorkovanie základnej pózy. `view-controller.js` ako jediný zapisuje výslednú polohu a orientáciu kamery; pridáva orbit/zoom a návrat z `inspection.js`. `gestures.js` rieši vlastníctvo gest, nie kameru. `viewport-composition.js` nastavuje skutočný rozmer fotografického poľa; žiadne korene ani obrazové pixely nevymazáva.
+- `story-camera.js` vychádza zo zmeraného miesta záujmu. `timeline.js` a `camera.js` vzorkujú umiestnenie objektu v obraze, optické zväčšenie a kamerovú pózu. Posun projekcie zachováva celé plátno. `view-controller.js` zapisuje výslednú polohu a orientáciu kamery a pridáva ručné otáčanie, priblíženie aj návrat podľa `inspection.js`. Gestá spracúva `gestures.js`.
 - `caries.js`: súkromná kópia geometrie a shaderové rozšírenie iba zuba 36. Zdravý pôvodný súbor a zrkadlená 46 sa nemenia.
 - `plaque.js`: priliehajúce povrchové výrezy a deterministická priestorová maska zásahu. `cleaning-path.js`: zmeraná dráha a dosah; `interdental-brush.js`: vlastný neznačkový model, instancované vlákna a obmedzené ohnutie.
 - `main.js`, `assets.js`, `scene.js`: jedna renderovacia slučka, postupné načítanie, synchronizácia všetkých vrstiev a uvoľnenie zdrojov vrátane troch svetelných LUT v pripnutej verzii Three.js.
-- `scroll.js`, `interface.js`, `style.css`, `index.html`, `experience/index.html`: prirodzený posun, zachovanie polohy po resize, sedem dynamických kapitol, pomoc a responzívne rozhranie mimo 3D detailu.
+- `stage-typography.js` odvodzuje polohu, veľkosť, priehľadnosť a nepatrný zvislý posun nadpisu z rovnakého priebehu ako kamera. `interface.js` aktualizuje jeden sémantický nadpis, ovládanie a podrobnosti v poznámkach. `stage.css` vrství tieto prvky nad plátno. `scroll.js` používa prirodzený posun dokumentu a zachováva polohu pri zmene rozmerov.
+- `annotation-surfaces.js` získava kotvy z trojuholníkov živých povrchov. `annotations.js` premieta kotvy cez aktuálnu kameru, kontroluje ich zakrytie a umiestňuje HTML popisky s čiarami SVG. Architektúru používajú oba vstupy `index.html` aj `experience/index.html`.
 - `public/story-assets/`: údaje miesta, riedky morph a kredity; `assets/source/proximal-story/`, prípravné a validačné skripty: reprodukovateľný pôvod priestorových úprav. `vite.config.js` verzionuje tieto údaje samostatným obsahovým hashom.
 - `.github/workflows/pages.yml`: pôvodné validačné kroky doplnené o údaje lézie, stav príbehu a lokálny dosah čistenia.
 
@@ -68,6 +69,7 @@ node scripts/validate-lower-hero.mjs
 node scripts/test-journey.mjs
 node scripts/validate-proximal-site.mjs
 node scripts/test-dental-story.mjs
+node scripts/test-stage-typography.mjs
 node scripts/test-cleaning-path.mjs
 node scripts/test-inspection-return.mjs
 node scripts/test-view-controller.mjs
@@ -82,7 +84,7 @@ node scripts/test-dental-story-browser.mjs
 
 Premenné `DENTAL_STORY_TEST_URL`, `DENTAL_STORY_REVIEW_DIR`, `PLAYWRIGHT_MODULE_PATH` a `DENTAL_STORY_BENCHMARK_ONLY=1` umožňujú zvoliť lokálnu adresu, výstup a samostatné meranie časovania. Skript používa vlastný nový profil a povoľuje iba loopback preview. Nevyužíva osobný profil používateľa. [Výsledný report a snímky](story-review/README.md) odlišujú skutočné renderovanie na desktopovom GPU od emulácie rozmerov a dotyku mobilu.
 
-Prvá publikácia príbehu `f3257d1` prešla 389 prehliadačovými kontrolami; jej [report](story-review/README.md) zostáva historickým dôkazom. Ovládanie verzie `510a734` dokumentuje [INTERACTION_QA.md](INTERACTION_QA.md). Aktuálna vizuálna verzia a nové vstupné testy sú v [VISUAL_POLISH.md](VISUAL_POLISH.md). Mobilné viewporty sa renderujú na desktopovom GPU, nie na fyzickom iPhone.
+Aktuálne kontroly pokrývajú rozloženie, nadpisy, kotvy popisiek, gestá a prechody kamery. Mobilné rozmery aj dotyk emuluje Chrome na počítači. Predchádzajúce vydania majú vlastné samostatné záznamy. [Aktuálne QA](SHARED_STAGE_QA.md) · [Podrobná dutina vo verzii `3f52ac5`](VISUAL_POLISH.md) · [Ovládanie verzie `510a734`](INTERACTION_QA.md).
 
 Voliteľné priestorové overenie všetkých reálnych vlákien a pevných častí používa `node scripts/audit-brush-contact.mjs` s Blenderom; podrobnosti a výsledky sú v dokumente kefky. Nezávislý offline audit morpha skúša viac stavov dutiny a obe úrovne detailu. Nie je to náhrada vizuálnej kontroly webu.
 

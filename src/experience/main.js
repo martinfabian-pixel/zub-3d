@@ -16,9 +16,9 @@ import { createInterdentalBrush } from './interdental-brush.js';
 import { createPlaque } from './plaque.js';
 import { createViewController } from './view-controller.js';
 import { createModelGestures } from './gestures.js';
-import { createViewportComposition } from './viewport-composition.js';
+import { createAnnotations } from './annotations.js';
 import { chooseQuality, createAdaptiveQuality } from '../prototype/quality.js';
-import './style.css';
+import './stage.css';
 
 export function createExperience(configuration=experienceConfig) {
   const config={...configuration,assetBaseURL:new URL(document.body.dataset.assetBase??'./',document.baseURI).href};
@@ -33,7 +33,7 @@ export function createExperience(configuration=experienceConfig) {
   const profile=chooseQuality(config);
   const query=new URLSearchParams(location.search), qa=query.has('qa'), clay=query.get('material')==='clay';
   let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
-  let site,caries,plaque,brush,path,view,composition,storyReady=false;
+  let site,caries,plaque,brush,path,view,annotations,storyReady=false;
   const dentalState={brushPose:{}};
   sampleDentalStory(0,dentalState);
   let frame=0,renderedFrames=0,lastFrame=0,settleTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
@@ -50,12 +50,12 @@ export function createExperience(configuration=experienceConfig) {
     status.hidden=false;status.classList.add('error');status.classList.toggle('is-upcoming',upcoming);
     status.setAttribute('role','alert');message.textContent=text;retry.hidden=false;
     canvas.dataset.error=error?.message??text;
-    if(!upcoming){ready=false;canvas.dataset.ready='false';}
+    if(!upcoming){ready=false;canvas.dataset.ready='false';document.querySelector('#journey-annotations').hidden=true;}
     updateUI();
   }
   function updateUI() {
     const complete=storyReady;
-    ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,state:dentalState});
+    ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,state:dentalState,reducedMotion});
     if(!complete&&progress>.09&&!atlasError&&ready) {
       status.hidden=false;status.classList.add('is-upcoming');message.textContent='Pripravujem medzizubnú ukážku…';
     }else if(ready&&!atlasError)status.hidden=true;
@@ -151,7 +151,9 @@ export function createExperience(configuration=experienceConfig) {
     const teeth=arch?.report()??[];
     return {
       progress,storyProgress,sceneProgress:Number(canvas.dataset.sceneProgress),stage:canvas.dataset.stage,
-      ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,reducedMotion,view:view?.report(),composition:composition?.report(),
+      ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,reducedMotion,view:view?.report(),
+      composition:rig?{focus:[rig.pose.screenX,rig.pose.screenY],opticalZoom:rig.pose.opticalZoom,fullSensor:[rig.camera.view?.fullWidth,rig.camera.view?.fullHeight]}:null,
+      typography:ui.report(),annotations:annotations?.report(),
       profile:profile.name,frames:renderedFrames,teeth,
       visibleTeeth:teeth.filter((t)=>t.loaded&&t.reveal>.00001).map((t)=>t.fdi),
       fullyVisibleTeeth:teeth.filter((t)=>t.loaded&&t.reveal>.99999).map((t)=>t.fdi),
@@ -171,12 +173,10 @@ export function createExperience(configuration=experienceConfig) {
       smileWeight=THREE.MathUtils.lerp(jawTransition.from,jawTransition.to,s);arch.setFinalView(finalView,smileWeight);
       if(t===1)jawTransition=null;
     }
-    const composing=composition?.update({progress:dentalState.sceneProgress,finalView,free:exploring,now,reducedMotion})??false;
-    // A changing photographic field changes the *real* canvas size. Apply its
-    // projection and drawing buffer before this render; the later observer
-    // sees an unchanged size and cannot clear a just-rendered frame.
+    // Canvas and DOM use the same full-stage dimensions in every chapter.
     resize();
     const changing=view?.update(now)??false;
+    annotations?.update({state:dentalState,camera:rig.camera,brush,free:exploring});
     if(lastFrame&&(interaction||changing||scrolling))adaptive.recordFrame(now-lastFrame);
     lastFrame=now;
     try {
@@ -186,7 +186,7 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
-    if(changing||interaction||jawTransition||composing){adaptive.beginInteraction();requestRender();}
+    if(changing||interaction||jawTransition){adaptive.beginInteraction();requestRender();}
     else if(!scrolling){adaptive.endInteraction();lastFrame=0;}
   }
   function resize() {
@@ -197,8 +197,8 @@ export function createExperience(configuration=experienceConfig) {
     if(!changed&&fittedRig===rig)return;
     if(changed){renderer.setSize(width,height,false);logicalWidth=width;logicalHeight=height;}
     if(!rig)return;
-    // The canvas has its own real layout region. Copy and controls never
-    // cover the object, so camera fitting uses its actual visible dimensions.
+    // The actual sensor is the entire shared stage. Chapter keyframes compose
+    // the model beside the HTML type without an inner cropped viewport.
     rig.resize(width,height);
     fittedRig=rig;
     applyState(exploring?inspectionProgress:dentalState.progress,true);
@@ -210,7 +210,7 @@ export function createExperience(configuration=experienceConfig) {
     disposed=true;ready=false;listeners.abort();
     if(frame)cancelAnimationFrame(frame);frame=0;clearTimeout(settleTimer);
     releaseRendererLuts(renderer,scene);
-    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();composition?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();ui.dispose();
+    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();ui.dispose();
     brush?.dispose();plaque?.dispose();caries?.dispose();
     const atlasOwned=arch?.ownsSource(atlas),upperOwned=arch?.ownsSource(upperMolar);
     if(arch)arch.dispose();else disposeObject(hero?.object);
@@ -251,14 +251,13 @@ export function createExperience(configuration=experienceConfig) {
       const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:config.camera});
       rig=createJourneyCamera({timeline,config,sampleOnly:true});
       view=createViewController({camera:rig.camera,config});view.setStoryPose(rig.pose);view.update();
-      composition=createViewportComposition({area:document.querySelector('.journey-scene-area'),viewport:document.querySelector('#journey-viewport'),settings:config.viewportComposition,compact:profile.compact});
       adaptive=createAdaptiveQuality({renderer,profile,requestRender,config});
       controls=createModelGestures({canvas,view,config,signal,
         onStart(){interaction=true;adaptive.beginInteraction();requestRender();},
         onEnd(){interaction=false;requestRender();},onChange:markManual});
       canvas.addEventListener('keydown',(event)=>{
         if(event.altKey||event.metaKey||event.ctrlKey)return;
-        if(event.key==='Escape'){if(exploring){event.preventDefault();toggleExplore();explore.focus({preventScroll:true});}else if(view.modified){event.preventDefault();resetView();}return;}
+        if(event.key==='Escape'){if(exploring){event.preventDefault();toggleExplore();(explore.hidden?document.querySelector('#journey-hero-explore'):explore).focus({preventScroll:true});}else if(view.modified){event.preventDefault();resetView();}return;}
         if(event.key==='Home'){event.preventDefault();resetView();return;}
         if(['+','=','-','_'].includes(event.key)){event.preventDefault();zoom(['+','='].includes(event.key)?.88:1/.88);return;}
         if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
@@ -288,9 +287,11 @@ export function createExperience(configuration=experienceConfig) {
           arch.attachAtlas(atlas,upperMolar);
           site=results[2].value;
           caries=createCaries({arch,data:results[3].value,config,clay});
-          path=createCleaningPath(site);brush=createInterdentalBrush({path,compact:profile.compact});
-          plaque=createPlaque({site,path,arch,compact:profile.compact});
+          path=createCleaningPath(site);
+          brush=createInterdentalBrush({path,compact:profile.compact,options:config.brush});
+          plaque=createPlaque({site,path,arch,compact:profile.compact,options:config.plaque});
           scene.add(brush.object,plaque.object);
+          annotations=createAnnotations({layer:document.querySelector('#journey-annotations'),canvas,site,arch,path,compact:profile.compact,requestRender});
           for(const name of ['smile','anatomy']){
             const cameraConfig=createStoryCameraConfig(site,config,{finalView:name,compact:profile.compact});
             finalTimelines[name]=createTimeline({landmarks:{...arch.landmarks,...cameraConfig.landmarks},cameraOptions:cameraConfig.camera});
@@ -299,7 +300,7 @@ export function createExperience(configuration=experienceConfig) {
           rig=createJourneyCamera({timeline:expanded,config,camera:previous.camera,sampleOnly:true});previous.dispose();
           rig.resize(canvas.clientWidth,canvas.clientHeight);
           applyState(exploring?inspectionProgress:Math.min(storyProgress,.045),true);
-          Object.assign(controller,{rig,site,caries,plaque,brush,path,timeline:expanded});
+          Object.assign(controller,{rig,site,caries,plaque,brush,path,annotations,timeline:expanded});
           await renderer.compileAsync(scene,rig.camera);
           if(disposed||contextLost)return;
           if(shaderError)throw new Error('Dental surface shader failed to compile.');

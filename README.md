@@ -24,10 +24,10 @@ Otvorte **http://127.0.0.1:5173/**. Produkčná zostava: `pnpm build`; lokálny 
 
 ## Dokumentácia a zdroje
 
-[Aktuálne vizuálne úpravy a porovnania pred/po](docs/VISUAL_POLISH.md) · [Príbeh a architektúra](docs/DENTAL_STORY.md) · [Geometria dutiny a dráha kefky](docs/PROXIMAL_SITE.md) · [Odborné zdroje a hranice ilustrácie](docs/DENTAL_STORY_SOURCES.md) · [Dolná šestka a jej export](docs/LOWER_HERO.md) · [Pôvod anatomických predlôh](docs/DENTITION_SOURCES.md) · [Licencie a atribúcia](ATTRIBUTION.md).
+Text, 3D model a popisky patria do jednej plochy na ľadovomodrom pozadí. Sedem navigačných bodiek, šípky a počítadlo kapitoly fungujú na počítači aj mobile. Pri otočení ostávajú popisky pripojené k označeným miestam zubov; zakryté sa skryjú. Podrobné vysvetlenia otvára tlačidlo **Výučbová ukážka · poznámky**. [Snímky všetkých kapitol a kontroly](docs/SHARED_STAGE_QA.md) · [Príbeh a architektúra](docs/DENTAL_STORY.md) · [Geometria dutiny a dráha kefky](docs/PROXIMAL_SITE.md) · [Odborné zdroje a hranice ilustrácie](docs/DENTAL_STORY_SOURCES.md) · [Dolná šestka a jej export](docs/LOWER_HERO.md) · [Pôvod anatomických predlôh](docs/DENTITION_SOURCES.md) · [Licencie a atribúcia](ATTRIBUTION.md).
 
 Geometria vychádza zo 14 odlišných anatomických modelov **University of Dundee, School of Dentistry**, pod licenciou **CC BY 4.0**. Opačné strany používajú zrkadlené predlohy s vlastnými polohami. Horné a dolné zuby majú rozdielnu pôvodnú geometriu. HDR **Studio Small 09**, Sergej Majboroda / Poly Haven: **CC0**. Kód: MIT. Bez platených assetov a služieb.
 
 Ide o výučbovú ilustráciu, nie individuálny pacientsky sken alebo klinicky validovaný návod. Geometrická kontrola tvrdých povrchov neoveruje bezpečnosť dráhy v živých ústach: ďasná a papila nie sú zobrazené. Pred klinickým použitím má scénu posúdiť zubný lekár alebo dentálna hygienička. Materiály a mikropovrch sú vizualizačné aproximácie. Mobilné browser testy používajú emuláciu, nie fyzický iPhone.
 
-Pred aktuálnou vizuálnou úpravou bol uložený tag `backup/before-visual-polish-2026-11-04` na `510a734`. Staršie funkčné verzie uchovávajú `backup/before-controls-smile-2026-11-04` na `f3257d1` a `backup/before-interdental-story-2026-11-04` na `333c359`. `/prototype/` a `/legacy/` sa nemenia.
+Východiskom spoločnej scény je verzia `3f52ac5` pod tagom `backup/before-shared-stage-2026-11-04`. [Predchádzajúca vizuálna úprava](docs/VISUAL_POLISH.md) dokumentuje vznik podrobnejšieho okraja dutiny a vrstvy povlaku.

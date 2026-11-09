@@ -1,0 +1,211 @@
+{
+  "bundle": "/assets/main-BPz8oJ6Y.js",
+  "audit": {
+    "stage": {
+      "left": 0,
+      "top": 0,
+      "right": 1265,
+      "bottom": 900,
+      "width": 1265,
+      "height": 900
+    },
+    "canvas": {
+      "left": 0,
+      "top": 0,
+      "right": 1265,
+      "bottom": 900,
+      "width": 1265,
+      "height": 900
+    },
+    "headingCount": 1,
+    "heading": "Jemne tam\na späť.",
+    "role": "H1",
+    "titleLines": [
+      {
+        "text": "Jemne tam",
+        "display": "block"
+      },
+      {
+        "text": "a späť.",
+        "display": "block"
+      }
+    ],
+    "navigation": {
+      "dots": [
+        {
+          "id": "",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "1. Zub",
+          "current": false,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "2. Priestor",
+          "current": false,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "3. Povlak",
+          "current": false,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "4. Kaz",
+          "current": false,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "5. Čistenie",
+          "current": true,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "6. Výsledok",
+          "current": false,
+          "disabled": false
+        },
+        {
+          "id": "",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "7. Chrup",
+          "current": false,
+          "disabled": false
+        }
+      ],
+      "counter": "05 / 07",
+      "arrows": [
+        {
+          "id": "journey-mobile-previous",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "Predchádzajúca kapitola",
+          "current": false,
+          "disabled": false
+        },
+        {
+          "id": "journey-mobile-next",
+          "visible": true,
+          "tag": "BUTTON",
+          "name": "Ďalšia kapitola",
+          "current": false,
+          "disabled": false
+        }
+      ]
+    },
+    "surface": {
+      "webglAlpha": true,
+      "clearAlpha": 0,
+      "sceneBackground": null,
+      "stageColor": "rgba(0, 0, 0, 0)",
+      "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+      "sceneColorToken": "#dcecf7",
+      "canvasColor": "rgba(0, 0, 0, 0)"
+    },
+    "controls": {
+      "heroVisible": false,
+      "finalVisible": false,
+      "finalInCopy": true,
+      "noteVisible": false
+    },
+    "framing": {
+      "projectedFocus": [
+        0.6199999999999993,
+        0.57
+      ],
+      "requested": [
+        0.62,
+        0.57
+      ],
+      "view": {
+        "enabled": true,
+        "fullWidth": 1265,
+        "fullHeight": 900,
+        "offsetX": -151.79999999999998,
+        "offsetY": -62.99999999999996,
+        "width": 1265,
+        "height": 900
+      }
+    },
+    "textRanges": [
+      {
+        "left": 84.75,
+        "top": 234.1875,
+        "right": 382.328125,
+        "bottom": 318.1875,
+        "width": 297.578125,
+        "height": 84,
+        "text": "Jemne tam"
+      },
+      {
+        "left": 84.75,
+        "top": 296.90625,
+        "right": 263.953125,
+        "bottom": 380.90625,
+        "width": 179.203125,
+        "height": 84,
+        "text": "a späť."
+      },
+      {
+        "left": 84.75,
+        "top": 390.625,
+        "right": 305.125,
+        "bottom": 412.625,
+        "width": 220.375,
+        "height": 22,
+        "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+      },
+      {
+        "left": 84.75,
+        "top": 415.265625,
+        "right": 247.125,
+        "bottom": 437.265625,
+        "width": 162.375,
+        "height": 22,
+        "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+      }
+    ],
+    "hit": {
+      "x": 233.5390625,
+      "y": 276.1875,
+      "node": "journey-canvas",
+      "isCanvas": true
+    },
+    "blockedControls": [],
+    "unclippedCopy": true,
+    "protected": {
+      "sampleCount": 2,
+      "covered": [],
+      "clipped": 0,
+      "region": {
+        "left": 712.2260463170686,
+        "right": 1099.0989132595503,
+        "top": 422.13880968637096,
+        "bottom": 527.2138499873837
+      }
+    },
+    "overflow": -15
+  },
+  "tooth35": {
+    "vertices": 9630,
+    "overlaps": [],
+    "caption": "Conservative projection of every native 35 vertex against actual rendered educational text ranges; depth occlusion does not excuse overlap."
+  },
+  "passed": true
+}

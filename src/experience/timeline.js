@@ -154,7 +154,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
     yaws.push(angle);
   }
   const yaw = track(yaws, knots), elevation = track(dirs.map((d) => Math.asin(d.y)), knots);
-  let measured, xyz, logDistance, lastAspect;
+  let measured, xyz, logDistance, screenTracks, lastAspect;
 
   function refreshLandmarks() {
     measured = frames.map((frame,i)=>measure(landmarks[frame.landmark??frame.key],frame.precise===false?'bounds':frame.landmark??frame.key,dirs[i],frame.targetOffset??cameraOptions.targetOffsets?.[frame.key]??[0,0,0]));
@@ -164,6 +164,20 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
   function fit(aspect) {
     if (lastAspect === aspect) return;
     const targets = [];
+    const responsiveWeight=MathUtils.smoothstep(aspect,.67,1.25);
+    const composition=frames.map(frame=>{
+      const optical=cameraOptions.framing?.[frame.landmark??frame.key];
+      if(!optical)return [.5,.5,1];
+      // Short phones need room for the complete root silhouette under the
+      // title. This optional optical preset is continuous in aspect and
+      // disappears as the desktop composition takes over.
+      const shortWeight=optical.shortPortrait?MathUtils.smoothstep(aspect,.49,.56):0;
+      return optical.desktop.map((v,i)=>{
+        const portrait=MathUtils.lerp(optical.portrait[i],optical.shortPortrait?.[i]??optical.portrait[i],shortWeight);
+        return MathUtils.lerp(portrait,v,responsiveWeight);
+      });
+    });
+    screenTracks=[0,1,2].map(axis=>track(composition.map(c=>c[axis]),knots));
     const distances = measured.map(({ projected, target, offset, right, vertical, direction }, index) => {
       const frame=frames[index],name=frame.key;
       // Blend the framing margins through square aspect rather than popping
@@ -172,7 +186,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
       const portrait = frame.portraitPadding??cameraOptions.portraitPadding?.[name]??portraitPadding[frame.landmark??name]??1.08;
       const margin = MathUtils.lerp(portrait, desktop, MathUtils.smoothstep(aspect, 0.65, 1.35));
       if (!(margin >= 1)) throw new RangeError('Camera padding must be at least one: ' + name);
-      const kx = tanY * aspect / margin, ky = tanY / margin;
+      const kx = tanY * Math.max(aspect,frame.minimumFitAspect??0) / margin, ky = tanY / margin;
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxDepth = -Infinity;
       for (let i = 0; i < projected.length; i += 3) {
         const x = projected[i], y = projected[i + 1], z = projected[i + 2];
@@ -223,6 +237,9 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
     const azimuth = yaw(i, t), pitch = elevation(i, t), cosPitch = Math.cos(pitch);
     out.position.set(Math.sin(azimuth)*cosPitch, Math.sin(pitch), Math.cos(azimuth)*cosPitch)
       .multiplyScalar(Math.exp(logDistance(i, t))).add(out.target);
+    out.screenX=screenTracks[0](i,t);
+    out.screenY=screenTracks[1](i,t);
+    out.opticalZoom=screenTracks[2](i,t);
     out.progress = p;
     out.sceneProgress = sceneProgress;
     return getStage(sceneProgress, stops, out);

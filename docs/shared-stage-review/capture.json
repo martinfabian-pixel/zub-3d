@@ -1,0 +1,5125 @@
+{
+  "scope": "Actual settled frames from the full browser regression; no separate capture/render pass.",
+  "browser": "156.0.8078.80",
+  "frames": [
+    {
+      "chapter": "hero",
+      "progress": 0,
+      "width": 1440,
+      "height": 900,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Začína sa to\njedným zubom.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 1425,
+        "bottom": 900,
+        "width": 1425,
+        "height": 900
+      },
+      "camera": [
+        5.685607564852393,
+        0.6641475777280286,
+        0.43413894796631225
+      ],
+      "target": [
+        2.716787874727432,
+        -1.2655852208531955,
+        -0.6049479435774241
+      ],
+      "quaternion": [
+        -0.22158384658181166,
+        0.55687516667554,
+        0.1572095301692506,
+        0.784904969596996
+      ],
+      "raster": {
+        "frame": 26,
+        "dpr": 1,
+        "fullDpr": 1,
+        "buffer": [
+          1425,
+          900
+        ],
+        "idleMs": 250.29999999999973
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "headingCount": 1,
+        "heading": "Začína sa to\njedným zubom.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Začína sa to",
+            "display": "block"
+          },
+          {
+            "text": "jedným zubom.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "01 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": true
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": true,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.7300000000000002,
+            0.52
+          ],
+          "requested": [
+            0.73,
+            0.52
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 1425,
+            "fullHeight": 900,
+            "offsetX": -327.75,
+            "offsetY": -18.000000000000014,
+            "width": 1425,
+            "height": 900
+          }
+        },
+        "textRanges": [
+          {
+            "left": 95.46875,
+            "top": 242.1875,
+            "right": 446.5,
+            "bottom": 336.1875,
+            "width": 351.03125,
+            "height": 94,
+            "text": "Začína sa to"
+          },
+          {
+            "left": 95.46875,
+            "top": 312.1875,
+            "right": 562.421875,
+            "bottom": 406.1875,
+            "width": 466.953125,
+            "height": 94,
+            "text": "jedným zubom."
+          },
+          {
+            "left": 95.46875,
+            "top": 414.1875,
+            "right": 221.6875,
+            "bottom": 436.1875,
+            "width": 126.21875,
+            "height": 22,
+            "text": "Pozrite sa bližšie."
+          }
+        ],
+        "hit": {
+          "x": 270.984375,
+          "y": 289.1875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 3,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 924.6310630754762,
+            "right": 1126.9695951353606,
+            "top": 181.44089440576332,
+            "bottom": 762.0413100468785
+          }
+        },
+        "overflow": -15
+      },
+      "sha256": "840534362ad47bfaafbf462271144191bd9a523342b35c1fd71a312330b5b53a"
+    },
+    {
+      "chapter": "space",
+      "progress": 0.20993265993265994,
+      "width": 1440,
+      "height": 900,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Aj medzi\nzubami.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 1425,
+        "bottom": 900,
+        "width": 1425,
+        "height": 900
+      },
+      "camera": [
+        5.673769010878834,
+        1.5235182941552163,
+        -0.5005549052843971
+      ],
+      "target": [
+        3.1609433971341128,
+        -0.6078077054362101,
+        -1.1120309393881311
+      ],
+      "quaternion": [
+        -0.26564829513998334,
+        0.5815491507980526,
+        0.20875702077175098,
+        0.7400351848214968
+      ],
+      "raster": {
+        "frame": 29,
+        "dpr": 1,
+        "fullDpr": 1,
+        "buffer": [
+          1425,
+          900
+        ],
+        "idleMs": 250.00000000000045
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "headingCount": 1,
+        "heading": "Aj medzi\nzubami.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Aj medzi",
+            "display": "block"
+          },
+          {
+            "text": "zubami.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "02 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.680000017161432,
+            0.5399999999999999
+          ],
+          "requested": [
+            0.680000017161432,
+            0.54
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 1425,
+            "fullHeight": 900,
+            "offsetX": -256.5000244550406,
+            "offsetY": -36.00000000000003,
+            "width": 1425,
+            "height": 900
+          }
+        },
+        "textRanges": [
+          {
+            "left": 95.46875,
+            "top": 225.1875,
+            "right": 333.96875,
+            "bottom": 310.1875,
+            "width": 238.5,
+            "height": 85,
+            "text": "Aj medzi"
+          },
+          {
+            "left": 95.46875,
+            "top": 289.1875,
+            "right": 311.453125,
+            "bottom": 374.1875,
+            "width": 215.984375,
+            "height": 85,
+            "text": "zubami."
+          },
+          {
+            "left": 95.46875,
+            "top": 384.1875,
+            "right": 322.390625,
+            "bottom": 406.1875,
+            "width": 226.921875,
+            "height": 22,
+            "text": "Pozornosť si zaslúžia aj plochy medzi zubami."
+          },
+          {
+            "left": 95.46875,
+            "top": 408.828125,
+            "right": 203.875,
+            "bottom": 430.828125,
+            "width": 108.40625,
+            "height": 22,
+            "text": "Pozornosť si zaslúžia aj plochy medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 214.71875,
+          "y": 267.6875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 1,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 962.4172327085848,
+            "right": 962.4172327085848,
+            "top": 456.02064081181,
+            "bottom": 456.02064081181
+          }
+        },
+        "overflow": -15
+      },
+      "sha256": "d4dc655ad7940df7b21b807eff6ae7afb819b61d46cb63db67781e4f9b5059db"
+    },
+    {
+      "chapter": "plaque",
+      "progress": 0.32996632996632996,
+      "width": 1440,
+      "height": 900,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Nenápadný\npovlak.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 1425,
+        "bottom": 900,
+        "width": 1425,
+        "height": 900
+      },
+      "camera": [
+        5.245987445939866,
+        -0.027697022672543592,
+        -1.3086834361737496
+      ],
+      "target": [
+        3.2442513717573527,
+        -0.7338636301468673,
+        -1.0348624349316684
+      ],
+      "quaternion": [
+        -0.1100127974838248,
+        0.7428775768830892,
+        0.12608615021847192,
+        0.6481761896870154
+      ],
+      "raster": {
+        "frame": 32,
+        "dpr": 1,
+        "fullDpr": 1,
+        "buffer": [
+          1425,
+          900
+        ],
+        "idleMs": 266.3000000000002
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "headingCount": 1,
+        "heading": "Nenápadný\npovlak.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Nenápadný",
+            "display": "block"
+          },
+          {
+            "text": "povlak.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "03 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": true
+        },
+        "framing": {
+          "projectedFocus": [
+            0.689999997638627,
+            0.5400000000000001
+          ],
+          "requested": [
+            0.6899999976386267,
+            0.54
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 1425,
+            "fullHeight": 900,
+            "offsetX": -270.7499966350431,
+            "offsetY": -36.00000000000003,
+            "width": 1425,
+            "height": 900
+          }
+        },
+        "textRanges": [
+          {
+            "left": 95.46875,
+            "top": 225.1875,
+            "right": 413.03125,
+            "bottom": 310.1875,
+            "width": 317.5625,
+            "height": 85,
+            "text": "Nenápadný"
+          },
+          {
+            "left": 95.46875,
+            "top": 289.1875,
+            "right": 296.234375,
+            "bottom": 374.1875,
+            "width": 200.765625,
+            "height": 85,
+            "text": "povlak."
+          },
+          {
+            "left": 95.46875,
+            "top": 384.1875,
+            "right": 358.328125,
+            "bottom": 406.1875,
+            "width": 262.859375,
+            "height": 22,
+            "text": "Na povrchu medzi zubami sa môže hromadiť povlak."
+          },
+          {
+            "left": 95.46875,
+            "top": 408.828125,
+            "right": 223.53125,
+            "bottom": 430.828125,
+            "width": 128.0625,
+            "height": 22,
+            "text": "Na povrchu medzi zubami sa môže hromadiť povlak."
+          },
+          {
+            "left": 95.46875,
+            "top": 444.46875,
+            "right": 279.625,
+            "bottom": 460.46875,
+            "width": 184.15625,
+            "height": 16,
+            "text": "Farebne zvýraznený pre názornosť."
+          }
+        ],
+        "hit": {
+          "x": 254.25,
+          "y": 267.6875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 2,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 1039.750817156449,
+            "right": 1064.491235272465,
+            "top": 464.7892106083887,
+            "bottom": 474.386170637663
+          }
+        },
+        "overflow": -15
+      },
+      "sha256": "7f1319f892006830487e72c897c5e4c2558630c31c26532620fe2924e32a6346"
+    },
+    {
+      "chapter": "caries",
+      "progress": 0.4750841750841751,
+      "width": 1440,
+      "height": 900,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Keď sa\npoškodí zub.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 1425,
+        "bottom": 900,
+        "width": 1425,
+        "height": 900
+      },
+      "camera": [
+        4.578120521902329,
+        -0.3261920056917305,
+        -1.4097475925788343
+      ],
+      "target": [
+        3.2413545223541975,
+        -0.7052956873223418,
+        -1.0316774125511032
+      ],
+      "quaternion": [
+        -0.08011908538837796,
+        0.7904778935692727,
+        0.10592143942139097,
+        0.5979182892383508
+      ],
+      "raster": {
+        "frame": 35,
+        "dpr": 1,
+        "fullDpr": 1,
+        "buffer": [
+          1425,
+          900
+        ],
+        "idleMs": 250.30000000000018
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "headingCount": 1,
+        "heading": "Keď sa\npoškodí zub.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Keď sa",
+            "display": "block"
+          },
+          {
+            "text": "poškodí zub.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "04 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6900000000000004,
+            0.53
+          ],
+          "requested": [
+            0.69,
+            0.53
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 1425,
+            "fullHeight": 900,
+            "offsetX": -270.74999999999994,
+            "offsetY": -27.000000000000025,
+            "width": 1425,
+            "height": 900
+          }
+        },
+        "textRanges": [
+          {
+            "left": 95.46875,
+            "top": 171.1875,
+            "right": 274.828125,
+            "bottom": 254.1875,
+            "width": 179.359375,
+            "height": 83,
+            "text": "Keď sa"
+          },
+          {
+            "left": 95.46875,
+            "top": 233.1875,
+            "right": 431.390625,
+            "bottom": 316.1875,
+            "width": 335.921875,
+            "height": 83,
+            "text": "poškodí zub."
+          },
+          {
+            "left": 95.46875,
+            "top": 326.1875,
+            "right": 341.984375,
+            "bottom": 348.1875,
+            "width": 246.515625,
+            "height": 22,
+            "text": "Vzniknutú dutinu kefka neopraví."
+          }
+        ],
+        "hit": {
+          "x": 185.1484375,
+          "y": 212.6875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 128,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 907.3876404088962,
+            "right": 1002.1117313058969,
+            "top": 408.99626281996575,
+            "bottom": 487.5146105147411
+          }
+        },
+        "overflow": -15
+      },
+      "sha256": "4d201e10444462c509807bfba2f8c1a0220af43ed690d133518f4e06060ddc77"
+    },
+    {
+      "chapter": "brush",
+      "progress": 0.62003367003367,
+      "width": 1440,
+      "height": 900,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Jemne tam\na späť.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 1425,
+        "bottom": 900,
+        "width": 1425,
+        "height": 900
+      },
+      "camera": [
+        5.39221293317858,
+        0.013386885827705308,
+        -2.0611143072966223
+      ],
+      "target": [
+        3.5629071463344393,
+        -0.7728180823718772,
+        -0.9709665713466583
+      ],
+      "quaternion": [
+        -0.08690282911792872,
+        0.855902181897157,
+        0.1529524115869131,
+        0.4862971448659075
+      ],
+      "raster": {
+        "frame": 38,
+        "dpr": 1,
+        "fullDpr": 1,
+        "buffer": [
+          1425,
+          900
+        ],
+        "idleMs": 266.6999999999998
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "headingCount": 1,
+        "heading": "Jemne tam\na späť.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Jemne tam",
+            "display": "block"
+          },
+          {
+            "text": "a späť.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "05 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6199999999999999,
+            0.57
+          ],
+          "requested": [
+            0.62,
+            0.57
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 1425,
+            "fullHeight": 900,
+            "offsetX": -171,
+            "offsetY": -62.99999999999996,
+            "width": 1425,
+            "height": 900
+          }
+        },
+        "textRanges": [
+          {
+            "left": 95.46875,
+            "top": 234.1875,
+            "right": 399.125,
+            "bottom": 319.1875,
+            "width": 303.65625,
+            "height": 85,
+            "text": "Jemne tam"
+          },
+          {
+            "left": 95.46875,
+            "top": 298.1875,
+            "right": 278.328125,
+            "bottom": 383.1875,
+            "width": 182.859375,
+            "height": 85,
+            "text": "a späť."
+          },
+          {
+            "left": 95.46875,
+            "top": 393.1875,
+            "right": 315.84375,
+            "bottom": 415.1875,
+            "width": 220.375,
+            "height": 22,
+            "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+          },
+          {
+            "left": 95.46875,
+            "top": 417.828125,
+            "right": 257.84375,
+            "bottom": 439.828125,
+            "width": 162.375,
+            "height": 22,
+            "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 247.296875,
+          "y": 276.6875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 2,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 813.228892978995,
+            "right": 1199.7573291594567,
+            "top": 422.13880968637085,
+            "bottom": 527.2138499873837
+          }
+        },
+        "overflow": -15
+      },
+      "sha256": "b59bfc0a3f6bd6f9ad0efeafe0f7f626622f13e23e4734c8c6e71b8d3941a4c6"
+    },
+    {
+      "chapter": "result",
+      "progress": 0.7599326599326599,
+      "width": 1440,
+      "height": 900,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Povlak preč.\nDutina zostáva.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 1425,
+        "bottom": 900,
+        "width": 1425,
+        "height": 900
+      },
+      "camera": [
+        4.7096208449340295,
+        -0.3048324839170604,
+        -1.4480532560848518
+      ],
+      "target": [
+        3.2428881894981605,
+        -0.7207958777566215,
+        -1.0332217990553745
+      ],
+      "quaternion": [
+        -0.08011918920651558,
+        0.7904785190403439,
+        0.10592182142499454,
+        0.597917380749788
+      ],
+      "raster": {
+        "frame": 41,
+        "dpr": 1,
+        "fullDpr": 1,
+        "buffer": [
+          1425,
+          900
+        ],
+        "idleMs": 266.60000000000036
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "headingCount": 1,
+        "heading": "Povlak preč.\nDutina zostáva.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Povlak preč.",
+            "display": "block"
+          },
+          {
+            "text": "Dutina zostáva.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "06 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6899994054906256,
+            0.5300003397196426
+          ],
+          "requested": [
+            0.6899994054906251,
+            0.5300003397196427
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 1425,
+            "fullHeight": 900,
+            "offsetX": -270.74915282414077,
+            "offsetY": -27.0003057476784,
+            "width": 1425,
+            "height": 900
+          }
+        },
+        "textRanges": [
+          {
+            "left": 95.46875,
+            "top": 162.1875,
+            "right": 413.984375,
+            "bottom": 245.1875,
+            "width": 318.515625,
+            "height": 83,
+            "text": "Povlak preč."
+          },
+          {
+            "left": 95.46875,
+            "top": 224.1875,
+            "right": 499.90625,
+            "bottom": 307.1875,
+            "width": 404.4375,
+            "height": 83,
+            "text": "Dutina zostáva."
+          },
+          {
+            "left": 95.46875,
+            "top": 317.1875,
+            "right": 320.484375,
+            "bottom": 339.1875,
+            "width": 225.015625,
+            "height": 22,
+            "text": "Čistenie nenahrádza ošetrenie vzniknutého kazu."
+          },
+          {
+            "left": 95.46875,
+            "top": 341.828125,
+            "right": 229.71875,
+            "bottom": 363.828125,
+            "width": 134.25,
+            "height": 22,
+            "text": "Čistenie nenahrádza ošetrenie vzniknutého kazu."
+          }
+        ],
+        "hit": {
+          "x": 254.7265625,
+          "y": 203.6875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 128,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 914.2625304482941,
+            "right": 999.6061364000844,
+            "top": 405.55857074082525,
+            "bottom": 476.2180524663064
+          }
+        },
+        "overflow": -15
+      },
+      "sha256": "74450eb8f71db6235e5587f8417d650dd16ec5e7d47d46ffc9f8f02309987eec"
+    },
+    {
+      "chapter": "dentition",
+      "progress": 0.9799663299663299,
+      "width": 1440,
+      "height": 900,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Malý návyk.\nVeľký rozdiel.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 1425,
+        "bottom": 900,
+        "width": 1425,
+        "height": 900
+      },
+      "camera": [
+        0.3320604836260662,
+        -0.30708529609016444,
+        5.198328873322209
+      ],
+      "target": [
+        0.08841418643094764,
+        -0.488079688292252,
+        1.7315901303745236
+      ],
+      "quaternion": [
+        -0.025997737520418215,
+        0.03506380852926764,
+        0.0009124497547205055,
+        0.9990464525790015
+      ],
+      "raster": {
+        "frame": 44,
+        "dpr": 1,
+        "fullDpr": 1,
+        "buffer": [
+          1425,
+          900
+        ],
+        "idleMs": 250
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 1425,
+          "bottom": 900,
+          "width": 1425,
+          "height": 900
+        },
+        "headingCount": 1,
+        "heading": "Malý návyk.\nVeľký rozdiel.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Malý návyk.",
+            "display": "block"
+          },
+          {
+            "text": "Veľký rozdiel.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": true,
+              "disabled": false
+            }
+          ],
+          "counter": "07 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": true
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": true,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.7,
+            0.5
+          ],
+          "requested": [
+            0.7,
+            0.5
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 1425,
+            "fullHeight": 900,
+            "offsetX": -284.99999999999994,
+            "offsetY": 0,
+            "width": 1425,
+            "height": 900
+          }
+        },
+        "textRanges": [
+          {
+            "left": 95.46875,
+            "top": 252.1875,
+            "right": 426.328125,
+            "bottom": 337.1875,
+            "width": 330.859375,
+            "height": 85,
+            "text": "Malý návyk."
+          },
+          {
+            "left": 95.46875,
+            "top": 316.1875,
+            "right": 460.671875,
+            "bottom": 401.1875,
+            "width": 365.203125,
+            "height": 85,
+            "text": "Veľký rozdiel."
+          },
+          {
+            "left": 95.46875,
+            "top": 411.1875,
+            "right": 352.921875,
+            "bottom": 433.1875,
+            "width": 257.453125,
+            "height": 22,
+            "text": "Starostlivosť o celý chrup začína aj medzi zubami."
+          },
+          {
+            "left": 95.46875,
+            "top": 435.828125,
+            "right": 203.875,
+            "bottom": 457.828125,
+            "width": 108.40625,
+            "height": 22,
+            "text": "Starostlivosť o celý chrup začína aj medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 260.8984375,
+          "y": 294.6875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 12,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 641.0598449279354,
+            "right": 1367.6535489478147,
+            "top": 434.14671977457937,
+            "bottom": 497.7154974604485
+          }
+        },
+        "overflow": -15
+      },
+      "sha256": "ce093fa4ef9c1a9414516e2dc67bb194a5ec13fedc119a26503b9bc8af2fa1f9"
+    },
+    {
+      "chapter": "hero",
+      "progress": 0,
+      "width": 390,
+      "height": 844,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Začína sa to\njedným zubom.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "camera": [
+        7.482516884262159,
+        1.8240749329612327,
+        1.0133918718795691
+      ],
+      "target": [
+        2.7314314182918973,
+        -1.264130619919436,
+        -0.6494880412100221
+      ],
+      "quaternion": [
+        -0.22158384658181166,
+        0.55687516667554,
+        0.1572095301692506,
+        0.784904969596996
+      ],
+      "raster": {
+        "frame": 27,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          780,
+          1688
+        ],
+        "idleMs": 250
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "headingCount": 1,
+        "heading": "Začína sa to\njedným zubom.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Začína sa to",
+            "display": "block"
+          },
+          {
+            "text": "jedným zubom.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "01 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": true
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": true,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.5950000000000004,
+            0.47
+          ],
+          "requested": [
+            0.595,
+            0.47
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 390,
+            "fullHeight": 844,
+            "offsetX": -37.04999999999999,
+            "offsetY": 25.32000000000002,
+            "width": 390,
+            "height": 844
+          }
+        },
+        "textRanges": [
+          {
+            "left": 23.390625,
+            "top": 101.234375,
+            "right": 183.859375,
+            "bottom": 144.234375,
+            "width": 160.46875,
+            "height": 43,
+            "text": "Začína sa to"
+          },
+          {
+            "left": 23.390625,
+            "top": 134.34375,
+            "right": 236.859375,
+            "bottom": 177.34375,
+            "width": 213.46875,
+            "height": 43,
+            "text": "jedným zubom."
+          },
+          {
+            "left": 23.390625,
+            "top": 185.453125,
+            "right": 134.765625,
+            "bottom": 205.453125,
+            "width": 111.375,
+            "height": 20,
+            "text": "Pozrite sa bližšie."
+          }
+        ],
+        "hit": {
+          "x": 103.625,
+          "y": 122.734375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 3,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 143.7636753137908,
+            "right": 285.41239064377083,
+            "top": 204.74594399307782,
+            "bottom": 609.7761019339623
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "db4913b917b00661e8969f77a80d3a079b5901d7c5454e151c0aef35def277c2"
+    },
+    {
+      "chapter": "space",
+      "progress": 0.2099380391203985,
+      "width": 390,
+      "height": 844,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Aj medzi\nzubami.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "camera": [
+        7.016326072206311,
+        1.863673846108677,
+        -0.26989781777731037
+      ],
+      "target": [
+        3.1654055347409438,
+        -0.6966199782670366,
+        -1.101487783392444
+      ],
+      "quaternion": [
+        -0.22113263142123316,
+        0.6021675565154854,
+        0.17847722138766606,
+        0.7460834233828204
+      ],
+      "raster": {
+        "frame": 30,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          780,
+          1688
+        ],
+        "idleMs": 250.20000000000027
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "headingCount": 1,
+        "heading": "Aj medzi\nzubami.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Aj medzi",
+            "display": "block"
+          },
+          {
+            "text": "zubami.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "02 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6499999059007134,
+            0.5800000272429172
+          ],
+          "requested": [
+            0.6499999059007134,
+            0.5800000272429172
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 390,
+            "fullHeight": 844,
+            "offsetX": -58.49996330127824,
+            "offsetY": -67.52002299302212,
+            "width": 390,
+            "height": 844
+          }
+        },
+        "textRanges": [
+          {
+            "left": 23.390625,
+            "top": 161.84375,
+            "right": 150.09375,
+            "bottom": 207.84375,
+            "width": 126.703125,
+            "height": 46,
+            "text": "Aj medzi"
+          },
+          {
+            "left": 23.390625,
+            "top": 197.03125,
+            "right": 138.140625,
+            "bottom": 243.03125,
+            "width": 114.75,
+            "height": 46,
+            "text": "zubami."
+          },
+          {
+            "left": 23.390625,
+            "top": 251.21875,
+            "right": 223.625,
+            "bottom": 271.21875,
+            "width": 200.234375,
+            "height": 20,
+            "text": "Pozornosť si zaslúžia aj plochy medzi zubami."
+          },
+          {
+            "left": 23.390625,
+            "top": 272.21875,
+            "right": 119.046875,
+            "bottom": 292.21875,
+            "width": 95.65625,
+            "height": 20,
+            "text": "Pozornosť si zaslúžia aj plochy medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 86.7421875,
+          "y": 184.84375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 1,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 251.491092806319,
+            "right": 251.491092806319,
+            "top": 454.3451931397387,
+            "bottom": 454.3451931397387
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "85231bbeaa937d39cc5d301bd3e498fe9f50c7d09fcb797f95847b073b916799"
+    },
+    {
+      "chapter": "plaque",
+      "progress": 0.3300877634494449,
+      "width": 390,
+      "height": 844,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Nenápadný\npovlak.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "camera": [
+        5.854612207486387,
+        0.18578879940521875,
+        -1.3831679727579425
+      ],
+      "target": [
+        3.245652393074538,
+        -0.7343186938036201,
+        -1.0257959005543829
+      ],
+      "quaternion": [
+        -0.10996866962815113,
+        0.7429433954837749,
+        0.12605892772740057,
+        0.6481135313719901
+      ],
+      "raster": {
+        "frame": 33,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          780,
+          1688
+        ],
+        "idleMs": 266.5999999999999
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "headingCount": 1,
+        "heading": "Nenápadný\npovlak.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Nenápadný",
+            "display": "block"
+          },
+          {
+            "text": "povlak.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "03 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": true
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6399876208016095,
+            0.579999988215504
+          ],
+          "requested": [
+            0.6399876208016092,
+            0.5799999882155039
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 390,
+            "fullHeight": 844,
+            "offsetX": -54.59517211262759,
+            "offsetY": -67.51999005388531,
+            "width": 390,
+            "height": 844
+          }
+        },
+        "textRanges": [
+          {
+            "left": 23.390625,
+            "top": 129.09375,
+            "right": 187.140625,
+            "bottom": 173.09375,
+            "width": 163.75,
+            "height": 44,
+            "text": "Nenápadný"
+          },
+          {
+            "left": 23.390625,
+            "top": 163.234375,
+            "right": 126.90625,
+            "bottom": 207.234375,
+            "width": 103.515625,
+            "height": 44,
+            "text": "povlak."
+          },
+          {
+            "left": 23.390625,
+            "top": 215.375,
+            "right": 214.875,
+            "bottom": 235.375,
+            "width": 191.484375,
+            "height": 20,
+            "text": "Na povrchu medzi zubami sa môže hromadiť povlak."
+          },
+          {
+            "left": 23.390625,
+            "top": 236.375,
+            "right": 176.828125,
+            "bottom": 256.375,
+            "width": 153.4375,
+            "height": 20,
+            "text": "Na povrchu medzi zubami sa môže hromadiť povlak."
+          },
+          {
+            "left": 23.390625,
+            "top": 265.375,
+            "right": 192.203125,
+            "bottom": 280.375,
+            "width": 168.8125,
+            "height": 15,
+            "text": "Farebne zvýraznený pre názornosť."
+          }
+        ],
+        "hit": {
+          "x": 105.265625,
+          "y": 151.09375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 2,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 295.43675596093277,
+            "right": 313.63376379786604,
+            "top": 473.297195872658,
+            "bottom": 480.65638164763976
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "d334c23885b42d6297234029e1eae07df24d399f44511a7b7429dfbe1f8eee62"
+    },
+    {
+      "chapter": "caries",
+      "progress": 0.4750449809373391,
+      "width": 390,
+      "height": 844,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Keď sa\npoškodí zub.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "camera": [
+        4.577459695616269,
+        -0.32737960312102055,
+        -1.4042870440785822
+      ],
+      "target": [
+        3.2428842899053985,
+        -0.7058620375109452,
+        -1.0268364176650973
+      ],
+      "quaternion": [
+        -0.08011908538837796,
+        0.7904778935692724,
+        0.10592143942139093,
+        0.597918289238351
+      ],
+      "raster": {
+        "frame": 36,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          780,
+          1688
+        ],
+        "idleMs": 250.29999999999973
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "headingCount": 1,
+        "heading": "Keď sa\npoškodí zub.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Keď sa",
+            "display": "block"
+          },
+          {
+            "text": "poškodí zub.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "04 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.5699999999999995,
+            0.57
+          ],
+          "requested": [
+            0.57,
+            0.57
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 390,
+            "fullHeight": 844,
+            "offsetX": -27.29999999999998,
+            "offsetY": -59.079999999999956,
+            "width": 390,
+            "height": 844
+          }
+        },
+        "textRanges": [
+          {
+            "left": 23.390625,
+            "top": 133.3125,
+            "right": 115.96875,
+            "bottom": 176.3125,
+            "width": 92.578125,
+            "height": 43,
+            "text": "Keď sa"
+          },
+          {
+            "left": 23.390625,
+            "top": 166.421875,
+            "right": 196.765625,
+            "bottom": 209.421875,
+            "width": 173.375,
+            "height": 43,
+            "text": "poškodí zub."
+          },
+          {
+            "left": 23.390625,
+            "top": 217.53125,
+            "right": 240.90625,
+            "bottom": 237.53125,
+            "width": 217.515625,
+            "height": 20,
+            "text": "Vzniknutú dutinu kefka neopraví."
+          }
+        ],
+        "hit": {
+          "x": 69.6796875,
+          "y": 154.8125,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 128,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 155.58820756420883,
+            "right": 243.10348805834568,
+            "top": 417.7415741147249,
+            "bottom": 490.41278898801426
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "b42f724857c82c9a393d6f6e27c83426a2e9bc1a46ba4a213a47c20ecc3e84f6"
+    },
+    {
+      "chapter": "brush",
+      "progress": 0.6200021984252333,
+      "width": 390,
+      "height": 844,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Jemne tam\na späť.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "camera": [
+        5.233471099411252,
+        -0.05336501585141773,
+        -1.9799950560042991
+      ],
+      "target": [
+        3.557279012787547,
+        -0.7737642818668939,
+        -0.9810931657946407
+      ],
+      "quaternion": [
+        -0.08690282911792874,
+        0.855902181897157,
+        0.1529524115869131,
+        0.4862971448659075
+      ],
+      "raster": {
+        "frame": 39,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          780,
+          1688
+        ],
+        "idleMs": 250
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "headingCount": 1,
+        "heading": "Jemne tam\na späť.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Jemne tam",
+            "display": "block"
+          },
+          {
+            "text": "a späť.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "05 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.5599999999999987,
+            0.5700000000000001
+          ],
+          "requested": [
+            0.56,
+            0.57
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 390,
+            "fullHeight": 844,
+            "offsetX": -23.40000000000002,
+            "offsetY": -59.079999999999956,
+            "width": 390,
+            "height": 844
+          }
+        },
+        "textRanges": [
+          {
+            "left": 23.390625,
+            "top": 124.859375,
+            "right": 179.96875,
+            "bottom": 168.859375,
+            "width": 156.578125,
+            "height": 44,
+            "text": "Jemne tam"
+          },
+          {
+            "left": 23.390625,
+            "top": 159,
+            "right": 117.6875,
+            "bottom": 203,
+            "width": 94.296875,
+            "height": 44,
+            "text": "a späť."
+          },
+          {
+            "left": 23.390625,
+            "top": 211.140625,
+            "right": 217.84375,
+            "bottom": 231.140625,
+            "width": 194.453125,
+            "height": 20,
+            "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+          },
+          {
+            "left": 23.390625,
+            "top": 232.140625,
+            "right": 166.671875,
+            "bottom": 252.140625,
+            "width": 143.28125,
+            "height": 20,
+            "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 101.6796875,
+          "y": 146.859375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 2,
+          "covered": [],
+          "clipped": 1,
+          "region": {
+            "left": 164.29851809760268,
+            "right": 426.644670044025,
+            "top": 419.4932029349113,
+            "bottom": 490.3126409044818
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "4be779312fa1a8949bce6f9c2a7aed9d37379fe3cf2ae409a2d625edae00dc52"
+    },
+    {
+      "chapter": "result",
+      "progress": 0.7599608911721656,
+      "width": 390,
+      "height": 844,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Povlak preč.\nDutina zostáva.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "camera": [
+        4.692928533311964,
+        -0.30860267446524653,
+        -1.4375909618181666
+      ],
+      "target": [
+        3.244348639884176,
+        -0.7194170041465128,
+        -1.027895898965224
+      ],
+      "quaternion": [
+        -0.08011912042170004,
+        0.7904781046334477,
+        0.10592156832775576,
+        0.5979179826706618
+      ],
+      "raster": {
+        "frame": 42,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          780,
+          1688
+        ],
+        "idleMs": 266.60000000000036
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "headingCount": 1,
+        "heading": "Povlak preč.\nDutina zostáva.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Povlak preč.",
+            "display": "block"
+          },
+          {
+            "text": "Dutina zostáva.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "06 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6099998567028011,
+            0.5700000000000001
+          ],
+          "requested": [
+            0.6099998567028001,
+            0.57
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 390,
+            "fullHeight": 844,
+            "offsetX": -42.89994411409204,
+            "offsetY": -59.079999999999956,
+            "width": 390,
+            "height": 844
+          }
+        },
+        "textRanges": [
+          {
+            "left": 23.390625,
+            "top": 133.3125,
+            "right": 182.65625,
+            "bottom": 174.3125,
+            "width": 159.265625,
+            "height": 41,
+            "text": "Povlak preč."
+          },
+          {
+            "left": 23.390625,
+            "top": 165.390625,
+            "right": 225.609375,
+            "bottom": 206.390625,
+            "width": 202.21875,
+            "height": 41,
+            "text": "Dutina zostáva."
+          },
+          {
+            "left": 23.390625,
+            "top": 215.46875,
+            "right": 221.9375,
+            "bottom": 235.46875,
+            "width": 198.546875,
+            "height": 20,
+            "text": "Čistenie nenahrádza ošetrenie vzniknutého kazu."
+          },
+          {
+            "left": 23.390625,
+            "top": 236.46875,
+            "right": 141.84375,
+            "bottom": 256.46875,
+            "width": 118.453125,
+            "height": 20,
+            "text": "Čistenie nenahrádza ošetrenie vzniknutého kazu."
+          }
+        ],
+        "hit": {
+          "x": 103.0234375,
+          "y": 153.8125,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 128,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 175.94013194395913,
+            "right": 256.7903348392594,
+            "top": 414.117238409723,
+            "bottom": 481.18290152231464
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "3cb8a9b9a22c66dc2430cc8596171ee861185165a7fb5ed7f151ca0dddb5e85c"
+    },
+    {
+      "chapter": "dentition",
+      "progress": 0.9800811103204494,
+      "width": 390,
+      "height": 844,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Malý návyk.\nVeľký rozdiel.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "width": 390,
+        "height": 844
+      },
+      "camera": [
+        0.5795614817383817,
+        -0.11309373070142581,
+        8.977336063844644
+      ],
+      "target": [
+        0.07052060962931987,
+        -0.4912383785538707,
+        1.7344116549785658
+      ],
+      "quaternion": [
+        -0.025997737520418205,
+        0.03506380852926763,
+        0.0009124497547205051,
+        0.9990464525790017
+      ],
+      "raster": {
+        "frame": 45,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          780,
+          1688
+        ],
+        "idleMs": 250
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "width": 390,
+          "height": 844
+        },
+        "headingCount": 1,
+        "heading": "Malý návyk.\nVeľký rozdiel.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Malý návyk.",
+            "display": "block"
+          },
+          {
+            "text": "Veľký rozdiel.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": true,
+              "disabled": false
+            }
+          ],
+          "counter": "07 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": true
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": true,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.46,
+            0.5800000000000001
+          ],
+          "requested": [
+            0.46,
+            0.58
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 390,
+            "fullHeight": 844,
+            "offsetX": 15.599999999999993,
+            "offsetY": -67.51999999999997,
+            "width": 390,
+            "height": 844
+          }
+        },
+        "textRanges": [
+          {
+            "left": 23.390625,
+            "top": 129.09375,
+            "right": 188.828125,
+            "bottom": 172.09375,
+            "width": 165.4375,
+            "height": 43,
+            "text": "Malý návyk."
+          },
+          {
+            "left": 23.390625,
+            "top": 162.203125,
+            "right": 206,
+            "bottom": 205.203125,
+            "width": 182.609375,
+            "height": 43,
+            "text": "Veľký rozdiel."
+          },
+          {
+            "left": 23.390625,
+            "top": 213.3125,
+            "right": 235.171875,
+            "bottom": 233.3125,
+            "width": 211.78125,
+            "height": 20,
+            "text": "Starostlivosť o celý chrup začína aj medzi zubami."
+          },
+          {
+            "left": 23.390625,
+            "top": 234.3125,
+            "right": 134.421875,
+            "bottom": 254.3125,
+            "width": 111.03125,
+            "height": 20,
+            "text": "Starostlivosť o celý chrup začína aj medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 106.109375,
+          "y": 150.59375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 12,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 48.12553904267729,
+            "right": 313.8871590781114,
+            "top": 483.4407191289408,
+            "bottom": 504.5806443789217
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "abc7f44341807d9efaacdce36893a854f7f74334c39ad424b7c578bfe033aaad"
+    },
+    {
+      "chapter": "hero",
+      "progress": 0,
+      "width": 360,
+      "height": 800,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Začína sa to\njedným zubom.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 360,
+        "bottom": 800,
+        "width": 360,
+        "height": 800
+      },
+      "camera": [
+        7.609524508356541,
+        1.9063243335316002,
+        1.0563369113472127
+      ],
+      "target": [
+        2.731901503047253,
+        -1.264130619919436,
+        -0.6508311405110381
+      ],
+      "quaternion": [
+        -0.22158384658181163,
+        0.5568751666755399,
+        0.15720953016925054,
+        0.784904969596996
+      ],
+      "raster": {
+        "frame": 1368,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          720,
+          1600
+        ],
+        "idleMs": 250.09999999999854
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "headingCount": 1,
+        "heading": "Začína sa to\njedným zubom.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Začína sa to",
+            "display": "block"
+          },
+          {
+            "text": "jedným zubom.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "01 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": true
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": true,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.5949999999999991,
+            0.47000000000000036
+          ],
+          "requested": [
+            0.595,
+            0.47
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 360,
+            "fullHeight": 800,
+            "offsetX": -34.19999999999999,
+            "offsetY": 24.00000000000002,
+            "width": 360,
+            "height": 800
+          }
+        },
+        "textRanges": [
+          {
+            "left": 21.59375,
+            "top": 97.1875,
+            "right": 172.046875,
+            "bottom": 137.1875,
+            "width": 150.453125,
+            "height": 40,
+            "text": "Začína sa to"
+          },
+          {
+            "left": 21.59375,
+            "top": 128.234375,
+            "right": 221.71875,
+            "bottom": 168.234375,
+            "width": 200.125,
+            "height": 40,
+            "text": "jedným zubom."
+          },
+          {
+            "left": 21.59375,
+            "top": 177.28125,
+            "right": 132.96875,
+            "bottom": 197.28125,
+            "width": 111.375,
+            "height": 20,
+            "text": "Pozrite sa bližšie."
+          }
+        ],
+        "hit": {
+          "x": 96.8203125,
+          "y": 117.1875,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 3,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 132.47198530064472,
+            "right": 263.31638675317197,
+            "top": 198.97429339801235,
+            "bottom": 573.1928450395943
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "c256a60da5ff60b0628dc0f758fc009e15487b07b47ac2fe793c33b672fd0ca1"
+    },
+    {
+      "chapter": "space",
+      "progress": 0.2099609375,
+      "width": 360,
+      "height": 800,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Aj medzi\nzubami.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 360,
+        "bottom": 800,
+        "width": 360,
+        "height": 800
+      },
+      "camera": [
+        7.114914078748541,
+        1.9290764747000848,
+        -0.24830698843430632
+      ],
+      "target": [
+        3.1652997353723458,
+        -0.6966189554421535,
+        -1.1008599500842664
+      ],
+      "quaternion": [
+        -0.22111422830033428,
+        0.6022016947942983,
+        0.1784778057787421,
+        0.7460611835998627
+      ],
+      "raster": {
+        "frame": 1371,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          720,
+          1600
+        ],
+        "idleMs": 250
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "headingCount": 1,
+        "heading": "Aj medzi\nzubami.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Aj medzi",
+            "display": "block"
+          },
+          {
+            "text": "zubami.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "02 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6499999625919363,
+            0.5800000108303024
+          ],
+          "requested": [
+            0.6499999625919364,
+            0.5800000108303023
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 360,
+            "fullHeight": 800,
+            "offsetX": -53.99998653309709,
+            "offsetY": -64.00000866424182,
+            "width": 360,
+            "height": 800
+          }
+        },
+        "textRanges": [
+          {
+            "left": 21.59375,
+            "top": 155.59375,
+            "right": 140.84375,
+            "bottom": 198.59375,
+            "width": 119.25,
+            "height": 43,
+            "text": "Aj medzi"
+          },
+          {
+            "left": 21.59375,
+            "top": 188.703125,
+            "right": 129.59375,
+            "bottom": 231.703125,
+            "width": 108,
+            "height": 43,
+            "text": "zubami."
+          },
+          {
+            "left": 21.59375,
+            "top": 239.8125,
+            "right": 221.828125,
+            "bottom": 259.8125,
+            "width": 200.234375,
+            "height": 20,
+            "text": "Pozornosť si zaslúžia aj plochy medzi zubami."
+          },
+          {
+            "left": 21.59375,
+            "top": 260.8125,
+            "right": 117.25,
+            "bottom": 280.8125,
+            "width": 95.65625,
+            "height": 20,
+            "text": "Pozornosť si zaslúžia aj plochy medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 81.21875,
+          "y": 177.09375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 1,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 232.26577140981587,
+            "right": 232.26577140981587,
+            "top": 431.4833938898213,
+            "bottom": 431.4833938898213
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "d4ba8c082e5b949ab09d6448103c3c77ab40c0732f475b49f55659a0cb980acb"
+    },
+    {
+      "chapter": "plaque",
+      "progress": 0.330078125,
+      "width": 360,
+      "height": 800,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Nenápadný\npovlak.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 360,
+        "bottom": 800,
+        "width": 360,
+        "height": 800
+      },
+      "camera": [
+        5.923168540167055,
+        0.21000089212959783,
+        -1.392780341408713
+      ],
+      "target": [
+        3.2456173159863098,
+        -0.7343187007637159,
+        -1.0260522336538807
+      ],
+      "quaternion": [
+        -0.10997211496290638,
+        0.7429382068393741,
+        0.12606103325138635,
+        0.6481184850353164
+      ],
+      "raster": {
+        "frame": 1374,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          720,
+          1600
+        ],
+        "idleMs": 250.40000000000146
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "headingCount": 1,
+        "heading": "Nenápadný\npovlak.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Nenápadný",
+            "display": "block"
+          },
+          {
+            "text": "povlak.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "03 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": true
+        },
+        "framing": {
+          "projectedFocus": [
+            0.639988986876213,
+            0.5799999906613597
+          ],
+          "requested": [
+            0.6399889868762135,
+            0.5799999906613597
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 360,
+            "fullHeight": 800,
+            "offsetX": -50.39603527543687,
+            "offsetY": -63.99999252908772,
+            "width": 360,
+            "height": 800
+          }
+        },
+        "textRanges": [
+          {
+            "left": 21.59375,
+            "top": 123.59375,
+            "right": 175.421875,
+            "bottom": 164.59375,
+            "width": 153.828125,
+            "height": 41,
+            "text": "Nenápadný"
+          },
+          {
+            "left": 21.59375,
+            "top": 155.671875,
+            "right": 118.84375,
+            "bottom": 196.671875,
+            "width": 97.25,
+            "height": 41,
+            "text": "povlak."
+          },
+          {
+            "left": 21.59375,
+            "top": 205.75,
+            "right": 213.078125,
+            "bottom": 225.75,
+            "width": 191.484375,
+            "height": 20,
+            "text": "Na povrchu medzi zubami sa môže hromadiť povlak."
+          },
+          {
+            "left": 21.59375,
+            "top": 226.75,
+            "right": 175.03125,
+            "bottom": 246.75,
+            "width": 153.4375,
+            "height": 20,
+            "text": "Na povrchu medzi zubami sa môže hromadiť povlak."
+          },
+          {
+            "left": 21.59375,
+            "top": 255.75,
+            "right": 190.40625,
+            "bottom": 270.75,
+            "width": 168.8125,
+            "height": 15,
+            "text": "Farebne zvýraznený pre názornosť."
+          }
+        ],
+        "hit": {
+          "x": 98.5078125,
+          "y": 144.09375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 2,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 272.7331617452491,
+            "right": 289.5129086694419,
+            "top": 448.98852679447384,
+            "bottom": 455.8057072288035
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "85e05286a8c9d7968f6f47f2464d8337137ac6c4b1a8869e59c6aca552f5fefe"
+    },
+    {
+      "chapter": "caries",
+      "progress": 0.475,
+      "width": 360,
+      "height": 800,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Keď sa\npoškodí zub.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 360,
+        "bottom": 800,
+        "width": 360,
+        "height": 800
+      },
+      "camera": [
+        4.577459695616269,
+        -0.32737960312102055,
+        -1.4042870440785822
+      ],
+      "target": [
+        3.2428842899053985,
+        -0.7058620375109452,
+        -1.0268364176650973
+      ],
+      "quaternion": [
+        -0.08011908538837796,
+        0.7904778935692724,
+        0.10592143942139093,
+        0.597918289238351
+      ],
+      "raster": {
+        "frame": 1377,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          720,
+          1600
+        ],
+        "idleMs": 250
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "headingCount": 1,
+        "heading": "Keď sa\npoškodí zub.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Keď sa",
+            "display": "block"
+          },
+          {
+            "text": "poškodí zub.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "04 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.5699999999999994,
+            0.57
+          ],
+          "requested": [
+            0.57,
+            0.57
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 360,
+            "fullHeight": 800,
+            "offsetX": -25.19999999999998,
+            "offsetY": -55.99999999999996,
+            "width": 360,
+            "height": 800
+          }
+        },
+        "textRanges": [
+          {
+            "left": 21.59375,
+            "top": 127.59375,
+            "right": 108.390625,
+            "bottom": 167.59375,
+            "width": 86.796875,
+            "height": 40,
+            "text": "Keď sa"
+          },
+          {
+            "left": 21.59375,
+            "top": 158.640625,
+            "right": 184.140625,
+            "bottom": 198.640625,
+            "width": 162.546875,
+            "height": 40,
+            "text": "poškodí zub."
+          },
+          {
+            "left": 21.59375,
+            "top": 207.6875,
+            "right": 239.109375,
+            "bottom": 227.6875,
+            "width": 217.515625,
+            "height": 20,
+            "text": "Vzniknutú dutinu kefka neopraví."
+          }
+        ],
+        "hit": {
+          "x": 64.9921875,
+          "y": 147.59375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 128,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 141.9660735205771,
+            "right": 224.91894602686796,
+            "top": 395.9635773599289,
+            "bottom": 464.8462454862694
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "5a2886f65d90a5f31b3530b848f39d2c09b196294fc4660cafc6f442d6bb0082"
+    },
+    {
+      "chapter": "brush",
+      "progress": 0.619921875,
+      "width": 360,
+      "height": 800,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Jemne tam\na späť.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 360,
+        "bottom": 800,
+        "width": 360,
+        "height": 800
+      },
+      "camera": [
+        5.233471099411252,
+        -0.05336501585141773,
+        -1.9799950560042991
+      ],
+      "target": [
+        3.557279012787547,
+        -0.7737642818668939,
+        -0.9810931657946408
+      ],
+      "quaternion": [
+        -0.08690282911792874,
+        0.855902181897157,
+        0.1529524115869131,
+        0.4862971448659075
+      ],
+      "raster": {
+        "frame": 1380,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          720,
+          1600
+        ],
+        "idleMs": 266.59999999999854
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "headingCount": 1,
+        "heading": "Jemne tam\na späť.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Jemne tam",
+            "display": "block"
+          },
+          {
+            "text": "a späť.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "05 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.5599999999999989,
+            0.5700000000000001
+          ],
+          "requested": [
+            0.56,
+            0.57
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 360,
+            "fullHeight": 800,
+            "offsetX": -21.60000000000002,
+            "offsetY": -55.99999999999996,
+            "width": 360,
+            "height": 800
+          }
+        },
+        "textRanges": [
+          {
+            "left": 21.59375,
+            "top": 119.59375,
+            "right": 168.6875,
+            "bottom": 160.59375,
+            "width": 147.09375,
+            "height": 41,
+            "text": "Jemne tam"
+          },
+          {
+            "left": 21.59375,
+            "top": 151.671875,
+            "right": 110.171875,
+            "bottom": 192.671875,
+            "width": 88.578125,
+            "height": 41,
+            "text": "a späť."
+          },
+          {
+            "left": 21.59375,
+            "top": 201.75,
+            "right": 216.046875,
+            "bottom": 221.75,
+            "width": 194.453125,
+            "height": 20,
+            "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+          },
+          {
+            "left": 21.59375,
+            "top": 222.75,
+            "right": 164.875,
+            "bottom": 242.75,
+            "width": 143.28125,
+            "height": 20,
+            "text": "Medzizubná kefka odstraňuje povlak medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 95.140625,
+          "y": 140.09375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 2,
+          "covered": [],
+          "clipped": 1,
+          "region": {
+            "left": 150.31897450009737,
+            "right": 398.98148883116943,
+            "top": 397.6257311510691,
+            "bottom": 464.7513183928737
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "cceaf2739604611f13816bf266d0e3e12d005070f79d1771a2afa68f385ebeee"
+    },
+    {
+      "chapter": "result",
+      "progress": 0.7599609375,
+      "width": 360,
+      "height": 800,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Povlak preč.\nDutina zostáva.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 360,
+        "bottom": 800,
+        "width": 360,
+        "height": 800
+      },
+      "camera": [
+        4.692928529326607,
+        -0.3086026757886744,
+        -1.4375909588304785
+      ],
+      "target": [
+        3.244348637761346,
+        -0.7194170037778365,
+        -1.02789589928272
+      ],
+      "quaternion": [
+        -0.0801191203387762,
+        0.7904781041338588,
+        0.10592156802263421,
+        0.5979179833963079
+      ],
+      "raster": {
+        "frame": 1383,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          720,
+          1600
+        ],
+        "idleMs": 250.20000000000437
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "headingCount": 1,
+        "heading": "Povlak preč.\nDutina zostáva.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Povlak preč.",
+            "display": "block"
+          },
+          {
+            "text": "Dutina zostáva.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": true,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": false,
+              "disabled": false
+            }
+          ],
+          "counter": "06 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": false
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": false,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.6099998570419856,
+            0.5699999999999997
+          ],
+          "requested": [
+            0.6099998570419848,
+            0.57
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 360,
+            "fullHeight": 800,
+            "offsetX": -39.59994853511452,
+            "offsetY": -55.99999999999996,
+            "width": 360,
+            "height": 800
+          }
+        },
+        "textRanges": [
+          {
+            "left": 21.59375,
+            "top": 128.59375,
+            "right": 170.578125,
+            "bottom": 166.59375,
+            "width": 148.984375,
+            "height": 38,
+            "text": "Povlak preč."
+          },
+          {
+            "left": 21.59375,
+            "top": 158.59375,
+            "right": 210.765625,
+            "bottom": 196.59375,
+            "width": 189.171875,
+            "height": 38,
+            "text": "Dutina zostáva."
+          },
+          {
+            "left": 21.59375,
+            "top": 205.59375,
+            "right": 220.140625,
+            "bottom": 225.59375,
+            "width": 198.546875,
+            "height": 20,
+            "text": "Čistenie nenahrádza ošetrenie vzniknutého kazu."
+          },
+          {
+            "left": 21.59375,
+            "top": 226.59375,
+            "right": 140.046875,
+            "bottom": 246.59375,
+            "width": 118.453125,
+            "height": 20,
+            "text": "Čistenie nenahrádza ošetrenie vzniknutého kazu."
+          }
+        ],
+        "hit": {
+          "x": 96.0859375,
+          "y": 147.59375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 128,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 160.8702680215942,
+            "right": 237.50553159763922,
+            "top": 392.52818840737206,
+            "bottom": 456.09753752716983
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "e4dad1cedafd42b5e2d24b7aa868bbf1d563e060904270b4549a2c5e6c85ba62"
+    },
+    {
+      "chapter": "dentition",
+      "progress": 0.980078125,
+      "width": 360,
+      "height": 800,
+      "bundle": "/assets/main-BPz8oJ6Y.js",
+      "heading": "Malý návyk.\nVeľký rozdiel.",
+      "canvas": {
+        "left": 0,
+        "top": 0,
+        "right": 360,
+        "bottom": 800,
+        "width": 360,
+        "height": 800
+      },
+      "camera": [
+        0.5929686763537836,
+        -0.10298593858654354,
+        9.170953176441182
+      ],
+      "target": [
+        0.0703211610131493,
+        -0.4912383785538707,
+        1.7344256724515899
+      ],
+      "quaternion": [
+        -0.025997737520418215,
+        0.03506380852926764,
+        0.0009124497547205056,
+        0.9990464525790015
+      ],
+      "raster": {
+        "frame": 1386,
+        "dpr": 2,
+        "fullDpr": 2,
+        "buffer": [
+          720,
+          1600
+        ],
+        "idleMs": 250
+      },
+      "stageAudit": {
+        "stage": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "canvas": {
+          "left": 0,
+          "top": 0,
+          "right": 360,
+          "bottom": 800,
+          "width": 360,
+          "height": 800
+        },
+        "headingCount": 1,
+        "heading": "Malý návyk.\nVeľký rozdiel.",
+        "role": "H1",
+        "titleLines": [
+          {
+            "text": "Malý návyk.",
+            "display": "block"
+          },
+          {
+            "text": "Veľký rozdiel.",
+            "display": "block"
+          }
+        ],
+        "navigation": {
+          "dots": [
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "1. Zub",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "2. Priestor",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "3. Povlak",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "4. Kaz",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "5. Čistenie",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "6. Výsledok",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "7. Chrup",
+              "current": true,
+              "disabled": false
+            }
+          ],
+          "counter": "07 / 07",
+          "arrows": [
+            {
+              "id": "journey-mobile-previous",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Predchádzajúca kapitola",
+              "current": false,
+              "disabled": false
+            },
+            {
+              "id": "journey-mobile-next",
+              "visible": true,
+              "tag": "BUTTON",
+              "name": "Ďalšia kapitola",
+              "current": false,
+              "disabled": true
+            }
+          ]
+        },
+        "surface": {
+          "webglAlpha": true,
+          "clearAlpha": 0,
+          "sceneBackground": null,
+          "stageColor": "rgba(0, 0, 0, 0)",
+          "stageBackground": "radial-gradient(at 56% 28%, rgb(238, 247, 252), rgba(0, 0, 0, 0) 73%), linear-gradient(155deg, rgb(220, 236, 247), rgb(207, 227, 242))",
+          "sceneColorToken": "#dcecf7",
+          "canvasColor": "rgba(0, 0, 0, 0)"
+        },
+        "controls": {
+          "heroVisible": false,
+          "finalVisible": true,
+          "finalInCopy": true,
+          "noteVisible": false
+        },
+        "framing": {
+          "projectedFocus": [
+            0.45999999999999996,
+            0.58
+          ],
+          "requested": [
+            0.46,
+            0.58
+          ],
+          "view": {
+            "enabled": true,
+            "fullWidth": 360,
+            "fullHeight": 800,
+            "offsetX": 14.399999999999993,
+            "offsetY": -63.99999999999997,
+            "width": 360,
+            "height": 800
+          }
+        },
+        "textRanges": [
+          {
+            "left": 21.59375,
+            "top": 123.59375,
+            "right": 176.6875,
+            "bottom": 163.59375,
+            "width": 155.09375,
+            "height": 40,
+            "text": "Malý návyk."
+          },
+          {
+            "left": 21.59375,
+            "top": 154.640625,
+            "right": 192.796875,
+            "bottom": 194.640625,
+            "width": 171.203125,
+            "height": 40,
+            "text": "Veľký rozdiel."
+          },
+          {
+            "left": 21.59375,
+            "top": 203.6875,
+            "right": 233.375,
+            "bottom": 223.6875,
+            "width": 211.78125,
+            "height": 20,
+            "text": "Starostlivosť o celý chrup začína aj medzi zubami."
+          },
+          {
+            "left": 21.59375,
+            "top": 224.6875,
+            "right": 132.625,
+            "bottom": 244.6875,
+            "width": 111.03125,
+            "height": 20,
+            "text": "Starostlivosť o celý chrup začína aj medzi zubami."
+          }
+        ],
+        "hit": {
+          "x": 99.140625,
+          "y": 143.59375,
+          "node": "journey-canvas",
+          "isCanvas": true
+        },
+        "blockedControls": [],
+        "unclippedCopy": true,
+        "protected": {
+          "sampleCount": 12,
+          "covered": [],
+          "clipped": 0,
+          "region": {
+            "left": 44.27472583860392,
+            "right": 289.82194401132494,
+            "top": 458.38314234487154,
+            "bottom": 477.87074570195654
+          }
+        },
+        "overflow": 0
+      },
+      "sha256": "2f2baf19597a7b13be5e44e4c14331774384494ab22b0e26631ff22d0086abe7"
+    }
+  ],
+  "errors": []
+}

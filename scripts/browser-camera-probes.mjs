@@ -165,6 +165,7 @@ export async function traceHandover(page,action,eventName='click') {
  * the calling E2E suite; the recorder does not repair a failed transition. */
 export async function desktopInputSequence(page,go) {
   const record={},snap=async k=>{record[k]=await cameraProbe(page);};
+  const initialViewport=page.viewportSize();
   await go(0);await snap('initial');
   await mouseDrag(page,100,0);await snap('guidedX');
   await mouseDrag(page,0,68);await snap('guidedY');
@@ -180,7 +181,7 @@ export async function desktopInputSequence(page,go) {
   const continueTrace=await traceHandover(page,()=>page.locator('#journey-explore').click());await snap('continued');
   await go(.475123);await mouseDrag(page,75,-42);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(190);await snap('beforeResize');
   await page.setViewportSize({width:1073,height:811});await page.waitForTimeout(240);await snap('afterResize');
-  await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(240);
+  await page.setViewportSize(initialViewport);await page.waitForTimeout(240);
   const chapterTrace=await traceHandover(page,()=>page.locator('.journey-step').nth(5).click());await snap('navigated');
   await go(.475);await page.locator('#journey-reset').click();await page.waitForTimeout(550);
   await mouseDrag(page,-110,62);await snap('beforeWheelHandover');
@@ -197,6 +198,6 @@ export async function mobileInputSequence(ctx,page,go) {
   await page.locator('#journey-explore').tap();await snap('freeStart');await touchDrag(ctx,page,85,0);await snap('freeX');
   await touchDrag(ctx,page,0,85);await snap('freeY');await pinchOut(ctx,page);await snap('freePinch');
   await nativeJump(page,.20);await snap('freeNativeJump');
-  await page.locator('#journey-chapter-select').selectOption({index:5});await page.waitForTimeout(1000);await snap('navigated');
+  await page.locator('.journey-step').nth(5).tap();await page.waitForTimeout(1000);await snap('navigated');
   return {states:record};
 }

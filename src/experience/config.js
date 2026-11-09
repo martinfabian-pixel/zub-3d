@@ -39,6 +39,20 @@ export const experienceConfig = {
     directions: { hero: [1, 0.65, 0.35], neighbors: [0.8, 0.8, 0.65], arch: [0.32, 1.10, 1], full: [0.58, 0.10, 1] },
     padding: { hero: 1.12, neighbors: 1.12, arch: 1.10, full: 1.10 },
     portraitPadding: { hero: 1.10, neighbors: 1.10, arch: 1.08, full: 1.08 },
+    // Focus x/y are fractions of the whole stage. Optical magnification is
+    // separate from orbital distance so the measured proximal sightline holds.
+    framing: {
+      hero:      {desktop:[.73,.52,.75],portrait:[.595,.47,.88],shortPortrait:[.67,.55,.65]},
+      neighbors: {desktop:[.69,.54,.68],portrait:[.61,.59,.82]},
+      space:     {desktop:[.68,.54,.65],portrait:[.65,.58,.66]},
+      plaque:    {desktop:[.69,.54,.65],portrait:[.64,.58,.67]},
+      detail:    {desktop:[.69,.53,.69],portrait:[.57,.57,.68]},
+      cleaning:  {desktop:[.62,.57,1.02],portrait:[.56,.57,.68]},
+      result:    {desktop:[.69,.53,.68],portrait:[.61,.57,.68]},
+      arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
+      full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
+      smile:     {desktop:[.70,.50,.43],portrait:[.46,.58,.34]},
+    },
   },
   material: {
     ...structuredClone(toothConfig.material),
@@ -67,7 +81,6 @@ export const experienceConfig = {
     minimumDistanceFraction: 0.68, maximumDistanceFraction: 1.7,
     returnDurationMs: 480, dampingMs: 45, handoverScrollPx: 64, gestureRotateSpeed: 0.65,
   },
-  viewportComposition:{aspect:2.7,compactAspect:2.32,arrival:[.90,.96],durationMs:360},
   storyCamera: {
     neighborDirection: [0.84, 0.72, 0.48], smileDirection: [0.070, 0.052, 0.996],
     smileDistanceCm: 3.48,
@@ -86,6 +99,8 @@ export const experienceConfig = {
     },
   },
   caries: {chalk:'#f8f2df',floor:'#927157',margin:'#c5ad84'},
+  plaque: {tint:'#b88f9b',warmTint:'#cda6ac'},
+  brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
   assetsStory: {site:'story-assets/site.json',caries:'story-assets/caries-36.json'},
   presentation: { steps:DENTAL_CHAPTERS.map((ch,i)=>({...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,meta:i===0?'FDI 36 · dolná ľavá · 2 korene':i===6?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',next:i===6?'Späť na ukážku čistenia':'Pokračovať',subject:i===0?'Dolná ľavá prvá stolička':i===6?'Starostlivosť o celý chrup':'Medzizubný priestor 36–37'})) },
 };

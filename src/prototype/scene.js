@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-export function createScene(canvas, config, profile) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: config.renderer.antialias, powerPreference: 'high-performance' });
+export function createScene(canvas, config, profile, { alpha = false } = {}) {
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha, antialias: config.renderer.antialias, powerPreference: 'high-performance' });
   renderer.setPixelRatio(profile.pixelRatio);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = config.renderer.toneMapping === 'aces' ? THREE.ACESFilmicToneMapping : THREE.NeutralToneMapping;
@@ -12,7 +12,7 @@ export function createScene(canvas, config, profile) {
   renderer.shadowMap.autoUpdate = false;
   renderer.info.autoReset = false;
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(config.renderer.background);
+  scene.background = alpha ? null : new THREE.Color(config.renderer.background);
   return { renderer, scene };
 }
 

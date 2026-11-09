@@ -20,7 +20,10 @@ export function releaseRendererLuts(renderer,root) {
 }
 
 export function createScene(canvas, config, profile) {
-  const state = createApprovedScene(canvas, config, profile);
+  // The stage owns the single gradient. Transparent clears keep it continuous
+  // behind the model and type while the studio HDR remains a lighting source.
+  const state = createApprovedScene(canvas, config, profile, { alpha: true });
+  state.renderer.setClearColor(0x000000, 0);
   // The light rig follows the camera composition while teeth stay fixed.
   // On-demand rendering means these maps are refreshed only on visible change.
   state.renderer.shadowMap.autoUpdate = true;

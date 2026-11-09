@@ -1,5 +1,7 @@
 # Ostrý detail, pracovná hlavička a produktový záver
 
+Tento dokument zachytáva vydanie `3f52ac5`. [Novšie spoločné rozloženie modelu, textu a popisiek](SHARED_STAGE_QA.md).
+
 Táto úprava nadväzuje na čistý aktuálny checkout `510a734`, ktorý uchováva tag `backup/before-visual-polish-2026-11-04`. Zachováva sedem kapitol, jednu scénu/kameru/canvas, FDI 36, fyzické polohy 35–37, celý 28-zubový model a funkčné priame ovládanie. Nevznikla nová stránka, kapitola, framework, platený asset ani dekoratívny efekt.
 
 ## Čo sa opravilo

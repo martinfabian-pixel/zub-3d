@@ -1,0 +1,105 @@
+{
+  "note": "JPEG copies of actual settled Chrome frames; overview/comparison panels only resize and arrange the real frames. Source PNG hashes are in capture.json.",
+  "images": [
+    {
+      "file": "1440x900-brush.jpg",
+      "sha256": "97aa768ddc00ecd7fe7cd1e9c141aa477b936134ee38109a59ec73f0d284f1e6"
+    },
+    {
+      "file": "1440x900-caries.jpg",
+      "sha256": "79481e654109b642b7cf9cb5ced0766f50f9038fed5960537aba2dcb1acfad02"
+    },
+    {
+      "file": "1440x900-dentition.jpg",
+      "sha256": "55c089c052e958663dc58ba7a5b14b806ab468cf592f29cbc80568e3a07c1b33"
+    },
+    {
+      "file": "1440x900-hero.jpg",
+      "sha256": "51794082cccadb2d716ea7f3110d123fda0cfbda690de780b97e02ecf49497b2"
+    },
+    {
+      "file": "1440x900-overview.jpg",
+      "sha256": "a74b0479b45102b36fbb296037ae1168da589d7c558746da7a91bcab1448a93a"
+    },
+    {
+      "file": "1440x900-plaque.jpg",
+      "sha256": "6b653cc37336a1d8464421a68aed0d5eed1f8868802b3eb2e753a8c5a8d3f4a3"
+    },
+    {
+      "file": "1440x900-result.jpg",
+      "sha256": "faa33f05ac8eb83d39a333ddd9d545ec28d31f2c3c237fd770e0b670b643a2ec"
+    },
+    {
+      "file": "1440x900-space.jpg",
+      "sha256": "dada91c159ee1e8bf27eb7912e6e05affa2b4b7360b896f97c593ad0a912e013"
+    },
+    {
+      "file": "360x800-brush.jpg",
+      "sha256": "d9e02b22a5df108b8b806421adf639b5ea0e11bd31cee00906220b4efb588f15"
+    },
+    {
+      "file": "360x800-caries.jpg",
+      "sha256": "87b199b2d8559c374971013a23b44cd80bf82b2464546ca32f864392b426bcc6"
+    },
+    {
+      "file": "360x800-dentition.jpg",
+      "sha256": "9cb5dfbdd251693d0a5b859d8d09b144ab04e98e56b292d238c167eace409222"
+    },
+    {
+      "file": "360x800-hero.jpg",
+      "sha256": "ca103886a1132df2247950ab4105937f0a62f3a89e1077ff5374c582a60c1c2e"
+    },
+    {
+      "file": "360x800-overview.jpg",
+      "sha256": "527adab24e83e9b70e06225cd1526b4c0f170ad473349b2ccadd7289ed554cf0"
+    },
+    {
+      "file": "360x800-plaque.jpg",
+      "sha256": "1f42166dbfcb40a9956a0212acf8124b7ae6fbf2940eab86a1d69f16853718f7"
+    },
+    {
+      "file": "360x800-result.jpg",
+      "sha256": "fdc1df57d87cf87abbe1cff84f4728be06536fe88672112ebee4062ee7cbbe31"
+    },
+    {
+      "file": "360x800-space.jpg",
+      "sha256": "88d2a295afbf57479c4d6f55b405342f9c444b123a4bd3695139cdf4c6217a31"
+    },
+    {
+      "file": "390x844-brush.jpg",
+      "sha256": "6e82eb14cdc7abbece34ea58ab1cc70540a74146269cb0b2e530e8169154912c"
+    },
+    {
+      "file": "390x844-caries.jpg",
+      "sha256": "73f750cb91a27cb2c21bbc768d319b6306990fb8fcc430dacd01e299a7f2d47a"
+    },
+    {
+      "file": "390x844-comparison.jpg",
+      "sha256": "fe64b61b0fea52506e1979965ef555802b7882aece475329ff526ebb43e4edb6"
+    },
+    {
+      "file": "390x844-dentition.jpg",
+      "sha256": "57a8579ddcda0bef6890867863d35454628e968bf5d99f0cddd7f72ea8bafb86"
+    },
+    {
+      "file": "390x844-hero.jpg",
+      "sha256": "6bb2eb8119c03e3d45e14bc6bad250d3c2401063c806ce3a1c4488845d75b22d"
+    },
+    {
+      "file": "390x844-overview.jpg",
+      "sha256": "9a024da59569a6bcf25e9b9561fb4693e9b9273da0c127ee32b418dbd03929e4"
+    },
+    {
+      "file": "390x844-plaque.jpg",
+      "sha256": "d044dae230ffc153a92f2ba1777d7643549dae89846810a897e80a21e5c2fee1"
+    },
+    {
+      "file": "390x844-result.jpg",
+      "sha256": "ed64d317e07900313509d720acf763d18e8a645150f337bcfa3e71e8e69788a9"
+    },
+    {
+      "file": "390x844-space.jpg",
+      "sha256": "21b7b5194143bdd3e248efcc4022a99113cdbd55e6ab67b13c65d9b0bbf6fe34"
+    }
+  ]
+}
