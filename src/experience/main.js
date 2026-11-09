@@ -21,6 +21,9 @@ import { createCariesDetail } from './caries-detail.js';
 import { createCariesMicrobes } from './caries-microbes.js';
 import { createCavityJourney } from './cavity-journey.js';
 import { createHeroSpin } from './hero-spin.js';
+import { createHeroAnatomy } from './hero-anatomy.js';
+import { createHeroAnatomyMotion } from './hero-anatomy-motion.js';
+import { createHeroAnatomyControls } from './hero-anatomy-controls.js';
 import { chooseQuality, createAdaptiveQuality } from '../prototype/quality.js';
 import './stage.css';
 
@@ -37,7 +40,7 @@ export function createExperience(configuration=experienceConfig) {
   const profile=chooseQuality(config);
   const query=new URLSearchParams(location.search), qa=query.has('qa'), clay=query.get('material')==='clay';
   let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
-  let site,caries,plaque,brush,path,view,annotations,microbes,storyReady=false;
+  let site,caries,plaque,brush,path,view,annotations,microbes,heroAnatomy,storyReady=false;
   const dentalState={brushPose:{}};
   sampleDentalStory(0,dentalState);
   let frame=0,renderedFrames=0,lastFrame=0,settleTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
@@ -47,12 +50,14 @@ export function createExperience(configuration=experienceConfig) {
   let inspectionProgress=0,manualProgress=0,manualChapter=null,finalView='smile';
   const finalTimelines={};let smileWeight=1,finalViewTransition=null;
   const heroSpin=createHeroSpin();
+  const anatomyMotion=createHeroAnatomyMotion();
   const cavityJourney=createCavityJourney();
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
   let cavityPointer=null,detailPending=false,detailSnapshot=null,detailEnteredExplore=false,microbeStart=0,microbeReveal=0;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
   const ui=createInterface({config,section,stage,signal,navigate,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
   const detail=createCariesDetail({stage,onRequest:openCariesDetail,onClose:closeCariesDetail});
+  const anatomyControls=createHeroAnatomyControls({stage,onToggle(active){anatomyMotion.setActive(active);requestRender();}});
 
   function requestRender() {if(!disposed&&ready&&!document.hidden&&!frame)frame=requestAnimationFrame(render);}
   function showError(text,error,{upcoming=false}={}) {
@@ -199,6 +204,7 @@ export function createExperience(configuration=experienceConfig) {
     return {
       progress,storyProgress,renderProgress,sceneProgress:Number(canvas.dataset.sceneProgress),stage:canvas.dataset.stage,
       heroSpin:{state:heroSpin.state,angle:heroSpin.angle},detailOpen:detail.isOpen,detailPending,
+      heroAnatomy:{weight:heroAnatomy?.weight??0},
       microbes:{visible:Boolean(microbes?.object.visible),reveal:microbeReveal},
       ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,crownMix:arch?.crownMix,reducedMotion,view:view?.report(),
       composition:rig?{focus:[rig.pose.screenX,rig.pose.screenY],opticalZoom:rig.pose.opticalZoom,fullSensor:[rig.camera.view?.fullWidth,rig.camera.view?.fullHeight]}:null,
@@ -243,6 +249,11 @@ export function createExperience(configuration=experienceConfig) {
     progressFrame=now;
     // Canvas and DOM use the same full-stage dimensions in every chapter.
     resize();
+    const anatomyState=anatomyMotion.update(now,{
+      hero:dentalState.chapterId==='hero',reducedMotion,interacting:interaction||exploring||Boolean(view?.modified),
+    });
+    heroAnatomy?.setWeight(anatomyState.weight);
+    anatomyControls.update({chapterId:dentalState.chapterId,enabled:ready,active:anatomyState.active,weight:anatomyState.weight});
     const move=cavityJourney.update(now);
     if(move.snapshot)view.restore(move.snapshot);
     const changing=view?.update(now)??false;
@@ -265,7 +276,7 @@ export function createExperience(configuration=experienceConfig) {
     if(changing||interaction||finalViewTransition||following||move.moving){adaptive.beginInteraction();requestRender();}
     else {
       if(!scrolling)adaptive.endInteraction();
-      if(heroSpinning||microbesMoving||(microbeReveal>0&&microbeReveal<1))requestRender();
+      if(heroSpinning||microbesMoving||anatomyState.moving||(microbeReveal>0&&microbeReveal<1))requestRender();
       else if(!scrolling){lastFrame=0;progressFrame=0;}
     }
   }
@@ -290,7 +301,8 @@ export function createExperience(configuration=experienceConfig) {
     disposed=true;ready=false;listeners.abort();
     if(frame)cancelAnimationFrame(frame);frame=0;clearTimeout(settleTimer);
     releaseRendererLuts(renderer,scene);
-    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();detail.dispose();ui.dispose();
+    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();detail.dispose();anatomyControls.dispose();ui.dispose();
+    heroAnatomy?.dispose();
     microbes?.dispose();brush?.dispose();plaque?.dispose();caries?.dispose();
     const atlasOwned=arch?.ownsSource(atlas),upperOwned=arch?.ownsSource(upperMolar);
     if(arch)arch.dispose();else disposeObject(hero?.object);
@@ -321,7 +333,7 @@ export function createExperience(configuration=experienceConfig) {
   },{signal});
   window.addEventListener('pagehide',(e)=>{if(!e.persisted)dispose();},{signal});
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;adaptive?.endInteraction();}
+    if(document.hidden){if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;anatomyMotion.resetClock();adaptive?.endInteraction();}
     else {scroll?.refresh();requestRender();}
   },{signal});
   canvas.addEventListener('webglcontextlost',(e)=>{
@@ -345,6 +357,7 @@ export function createExperience(configuration=experienceConfig) {
       if(disposed||contextLost){disposeObject(hero?.object);lighting?.dispose();hero=undefined;lighting=undefined;return controller;}
       for(const result of results)if(result.status==='rejected')throw result.reason;
       arch=createArch({manifest,hero,config,renderer,profile,clay});scene.add(arch.object);
+      heroAnatomy=createHeroAnatomy({arch});
       const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:config.camera});
       rig=createJourneyCamera({timeline,config,sampleOnly:true});
       view=createViewController({camera:rig.camera,config});view.setStoryPose(rig.pose);view.update();

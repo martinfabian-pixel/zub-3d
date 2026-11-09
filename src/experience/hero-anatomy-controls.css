@@ -1,0 +1,47 @@
+.hero-anatomy-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 44% 54% at 69% 53%,
+    #285b86 0%, #507ea3 38%, #8fb5cecc 68%, transparent 100%);
+  will-change: opacity;
+}
+.hero-anatomy-control {
+  width: fit-content;
+  max-width: 225px;
+  margin-top: 12px;
+  pointer-events: none;
+}
+.hero-anatomy-control[hidden] { display: none; }
+.hero-anatomy-toggle {
+  min-height: 40px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
+  padding: 0 15px;
+  background: var(--control-surface);
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 620;
+  pointer-events: auto;
+}
+.hero-anatomy-toggle:hover, .hero-anatomy-toggle[aria-pressed="true"] { background: #d4e9f5; }
+.hero-anatomy-note {
+  margin: 7px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.hero-anatomy-note[hidden] { display: none; }
+@media (max-width: 700px) {
+  .hero-anatomy-backdrop {
+    background: radial-gradient(ellipse 66% 32% at 50% 54%,
+      #285b86 0%, #507ea3 38%, #8fb5cecc 68%, transparent 100%);
+  }
+  .hero-anatomy-control { max-width: 175px; margin-top: 13px; }
+  .hero-anatomy-toggle { min-height: 40px; padding-inline: 13px; font-size: 12px; }
+  .hero-anatomy-note { font-size: 11px; }
+  /* Keep the exploration button away from the exposed roots in this view. */
+  .journey-copy:has(.hero-anatomy-toggle[aria-pressed="true"]) #journey-hero-explore { top: 59svh; }
+}
