@@ -190,6 +190,7 @@ export function createExperience(configuration=experienceConfig) {
     // Canvas and DOM use the same full-stage dimensions in every chapter.
     resize();
     const changing=view?.update(now)??false;
+    arch.updateView(rig.camera);
     annotations?.update({state:dentalState,camera:rig.camera,brush,free:exploring});
     if(lastFrame&&(interaction||changing||scrolling))adaptive.recordFrame(now-lastFrame);
     lastFrame=now;

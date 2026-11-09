@@ -42,8 +42,10 @@ try {
   async function readState() {
    const state=await page.evaluate(()=>{
     const {arch,report}=window.__dentalExperience,r=report(),teeth=[...arch.teeth.values()];
+    const backing=arch.object.getObjectByName('Discreet enamel-coloured smile contact backing');
     return {chapter:r.story.chapterId,lesion:r.story.lesionProgress,crownMix:arch.crownMix,
      crowns:teeth.filter(t=>t.crown?.visible).length,anatomy:teeth.filter(t=>t.mesh?.visible).length,
+     backingVisible:backing?.visible??false,backingOpacity:backing?.material.opacity??0,
      matrices:teeth.map(t=>t.mesh.matrix.toArray()),shaderErrors:r.shaderErrors};
    });
    assert.equal(state.lesion,1);
@@ -59,6 +61,7 @@ try {
   const floating=await readState();
   expectMeshes(floating,0,28);
   assert.equal(floating.crownMix,0);
+  assert.equal(floating.backingVisible,false);
   await page.screenshot({path:`${out}/${width}-floating.png`});
 
   await seek(.945);
@@ -80,12 +83,15 @@ try {
   const smile=await readState();
   expectMeshes(smile,28,0);
   assert.equal(smile.crownMix,1);
+  assert.equal(smile.backingVisible,true);
+  assert.equal(smile.backingOpacity,1);
   await page.screenshot({path:`${out}/${width}-smile.png`});
 
   await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(700);
   const anatomy=await readState();
   expectMeshes(anatomy,0,28);
   assert.equal(anatomy.crownMix,0);
+  assert.equal(anatomy.backingVisible,false);
   await page.screenshot({path:`${out}/${width}-anatomy.png`});
   await page.locator('#journey-view-smile').click();await page.waitForTimeout(700);
   expectMeshes(await readState(),28,0);
@@ -96,6 +102,7 @@ try {
   await seek(.875);
   const reversed=await readState();
   expectMeshes(reversed,0,28);
+  assert.equal(reversed.backingVisible,false);
   for(let i=0;i<reversed.matrices.length;i++) for(let j=0;j<16;j++)
    assert.ok(Math.abs(reversed.matrices[i][j]-floating.matrices[i][j])<1e-5,'Reverse restores the same transforms');
   await seek(.62);
