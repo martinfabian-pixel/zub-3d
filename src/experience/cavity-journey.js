@@ -2,7 +2,7 @@
  * The view controller remains the sole writer of the actual camera. This
  * module owns no animation loop and does not alter the scroll timeline.
  */
-export function createCavityJourney({ durationMs = 1150 } = {}) {
+export function createCavityJourney({ durationMs = 1150, revealYaw = -0.30 } = {}) {
   let start = null, destination = null, began = 0, duration = 0;
   let active = false, arrivalPending = false;
 
@@ -14,6 +14,9 @@ export function createCavityJourney({ durationMs = 1150 } = {}) {
       destination = copy(snapshot);
       // zoom is the logarithm of the distance multiplier, not a distance.
       destination.zoom += Math.log(factor);
+      // View the proximal opening from the 36 side: this small orbit reveals
+      // its rim instead of letting the neighboring 37 fill the right side.
+      destination.yaw += revealYaw;
       began = now;
       duration = instant ? 0 : Math.max(0, durationMs);
       active = true;
@@ -26,6 +29,7 @@ export function createCavityJourney({ durationMs = 1150 } = {}) {
       const s = t * t * t * (t * (t * 6 - 15) + 10);
       const snapshot = copy(start);
       snapshot.zoom = start.zoom + (destination.zoom - start.zoom) * s;
+      snapshot.yaw = start.yaw + (destination.yaw - start.yaw) * s;
       if (t === 1) {
         active = false;
         const arrived = arrivalPending;

@@ -51,15 +51,20 @@ def refine_patch(g, site, normalize):
     y = r @ basis['occlusalGingivalTangentOcclusalPositive']
     z = r @ basis['outwardNormal']
     core = ((x/2.04)**2+(y/1.38)**2 < 1) & (abs(z) < .9)
+    fine_core = ((x/1.53)**2+(y/1.06)**2 < 1) & (abs(z) < .9)
     added, replaced = [], set()
-    for _ in range(2):
+    # A third conforming split gives the floor and broken margin enough
+    # vertices to carry real relief in the close-up, without changing the
+    # unmodified tooth or its UV seams.
+    for level in range(3):
         # Select by welded geometric edge so UV seam twins agree on splitting.
         # Each twin receives its own midpoint and retains its own UV and normal.
         _, weld = np.unique(p, axis=0, return_inverse=True)
         edges = f[:, [[0, 1], [1, 2], [2, 0]]]
         geo = np.sort(weld[edges], axis=2)
         key = geo[:, :, 0].astype(np.int64)*len(p)+geo[:, :, 1]
-        wanted = np.isin(key, np.unique(key[core[source_faces]]))
+        selected = core if level < 2 else fine_core
+        wanted = np.isin(key, np.unique(key[selected[source_faces]]))
         changed = wanted.any(axis=1)
         marked_edges, inv = np.unique(np.sort(edges[wanted], axis=1), axis=0, return_inverse=True)
         mids = np.full(wanted.shape, -1, dtype=int)

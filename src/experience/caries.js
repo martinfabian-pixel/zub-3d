@@ -74,23 +74,38 @@ export function createCaries({arch,data,config,clay=false}) {
     shader.fragmentShader=inject(shader.fragmentShader,'diffuseColor.rgb += (toothRegion.b - 0.5) * toothColorVariation;',`
       float chalkStage=smoothstep(0.0,0.28,lesionProgress)*(1.0-smoothstep(0.35,0.8,lesionProgress));
       float matureStage=smoothstep(0.22,1.0,lesionProgress);
+      // Differentiate the continuous local coordinates before branching;
+      // unlike derivatives of a conditional radius these are stable at the
+      // boundary. Skip the expensive irregular outline on healthy enamel.
+      float pixelWidth=clamp(length(fwidth(vLesionMm)/lesionRadii),0.002,0.04);
       float cavityR=2.0;
       if(vLesion.r>0.0001 && lesionProgress>0.0) cavityR=cavityRadius(vLesionMm);
-      float pixelWidth=clamp(fwidth(cavityR),0.004,0.10);
       float cavityEdge=1.0-smoothstep(0.963-pixelWidth,0.986+pixelWidth,cavityR);
-      float wall=clamp(vLesion.g+0.91*vLesion.b,0.0,1.0)*cavityEdge;
-      float lip=smoothstep(0.945-pixelWidth,0.987+pixelWidth,cavityR)*(1.0-smoothstep(1.002,1.061+pixelWidth,cavityR));
+      // Vertex weights are a smooth deformation guide, not an edge mask.
+      // Using them directly as opacity washes the wall into the enamel over
+      // hundreds of pixels in a macro view.  Keep their spatial eligibility,
+      // then resolve the irregular rim per fragment in the authored frame.
+      float supported=smoothstep(0.015,0.11,vLesion.g+vLesion.b);
+      float wall=cavityEdge*supported;
+      float lip=smoothstep(0.87,0.97,cavityR)*(1.0-smoothstep(1.0,1.065+pixelWidth,cavityR))*supported;
       diffuseColor.rgb=mix(diffuseColor.rgb,lesionChalk,0.72*chalkStage*vLesion.r);
       diffuseColor.rgb=mix(diffuseColor.rgb,lesionChalk,0.23*matureStage*lip*vLesion.r);
       float grit=0.0;
       float footprint=max(fwidth(vLesionMm.x),fwidth(vLesionMm.y));
       if(wall*matureStage>0.001){
-        grit=0.63*cavityGrain(vLesionMm*6.8)*(1.0-smoothstep(0.065,0.14,footprint))
-            +0.37*cavityGrain(vLesionMm*15.3+4.31)*(1.0-smoothstep(0.035,0.07,footprint));
+        // Layer two filtered, non-repeating mineral tones only on the exposed
+        // basin; the enamel itself stays smooth. Screen derivatives suppress
+        // details below a pixel instead of aliasing on mobile.
+        grit=0.70*cavityGrain(vLesionMm*6.8)*(1.0-smoothstep(0.065,0.14,footprint))
+            +0.30*cavityGrain(vLesionMm*15.3+4.31)*(1.0-smoothstep(0.035,0.07,footprint));
       }
-      vec3 innerEnamel=mix(diffuseColor.rgb,lesionMargin,0.27);
-      vec3 tissue=mix(innerEnamel,lesionFloor,smoothstep(0.10,0.65,vLesion.g));
-      tissue*=1.0+0.19*(vLesion.a-0.5*vLesion.r)+0.25*grit*vLesion.g;
+      vec3 innerEnamel=mix(diffuseColor.rgb,lesionMargin,0.46);
+      // Read the steep inner wall separately from the rougher basin. Both
+      // follow the precomputed depression rather than a flat colour decal.
+      float basin=smoothstep(0.16,0.78,vLesion.g);
+      vec3 tissue=mix(innerEnamel,lesionFloor,0.27+0.73*basin);
+      tissue*=mix(1.02,0.88,basin);
+      tissue*=1.0+0.22*(vLesion.a-0.5*vLesion.r)+0.55*grit*basin;
       diffuseColor.rgb=mix(diffuseColor.rgb,tissue,matureStage*wall);
     `);
     shader.fragmentShader=inject(shader.fragmentShader,'roughnessFactor = clamp(roughnessFactor, toothRoughnessLimits.x, toothRoughnessLimits.y);',`
