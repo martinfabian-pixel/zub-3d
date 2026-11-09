@@ -55,9 +55,10 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     ['withdrawn', 0.72, 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['result', 0.76, 'result', lesionDirection, settings.resultDistanceCm],
     ['result-hold', 0.80, 'result', lesionDirection, settings.resultDistanceCm],
-    ['neighbors-return', 0.835, 'neighbors', settings.neighborDirection],
-    ['arch', 0.895, 'arch', base.camera.directions.arch],
-    ['full', 0.96, finalView === 'anatomy' ? 'full' : 'smile',
+    ['flight-entry', 0.844, 'flight', [.52,.20,1], 10.8],
+    ['flight-pass', 0.884, 'flight', [.21,.13,1], 12.3],
+    ['flight-approach', 0.931, 'flight', [.09,.075,1], 10.8],
+    ['full', 0.988, finalView === 'anatomy' ? 'full' : 'smile',
       finalView === 'anatomy' ? base.camera.directions.full : settings.smileDirection,
       finalView === 'anatomy' ? undefined : settings.smileDistanceCm],
   ];
@@ -67,6 +68,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
     minimumFitAspect: ['detail','cleaning','result'].includes(landmark) ? .72 : undefined,
+    portraitFitAspect: landmark==='smile' ? 2.15 : undefined,
   }));
   return { landmarks, camera: { ...base.camera, keyframes } };
 }

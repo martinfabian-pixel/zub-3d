@@ -27,6 +27,7 @@ const report = { date: new Date().toISOString(), browser:browser.version(), site
 const closingContexts=new WeakSet();
 async function closeContext(ctx){closingContexts.add(ctx);await ctx.close();}
 const q = '#journey-canvas', allFDI=[1,2,3,4].flatMap(k=>Array.from({length:7},(_,i)=>k*10+i+1));
+const finaleAt=chapters.at(-1).at;
 const requestedTitles=['Začína sa to jedným zubom.','Aj medzi zubami.','Nenápadný povlak.','Keď sa poškodí zub.',
   'Jemne tam a späť.','Povlak preč. Dutina zostáva.','Malý návyk. Veľký rozdiel.'];
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
@@ -140,7 +141,7 @@ async function saveView(page,label,p,index,expected,base) {
     a.surface.sceneBackground===null&&a.surface.sceneColorToken==='#e6f3fc'&&
     a.surface.stageBackground.includes('rgb(230, 243, 252)')&&a.surface.canvasColor==='rgba(0, 0, 0, 0)',a.surface);
   check(label+' hero CTA and final views are active only at their respective chapters',
-    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===6&&p>=.94)&&a.controls.finalInCopy,a.controls);
+    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===6&&p>=.978)&&a.controls.finalInCopy,a.controls);
   if(index===2)check(label+' plaque color explanation is visible',a.controls.noteVisible,a.controls);
   check(label+' one canvas fills the fixed stage beneath the overlay',l.overflowX<=1&&['left','top','right','bottom'].every(k=>near(a.stage[k],b[k],1)),{stage:a.stage,canvas:b});
   const f=a.framing;
@@ -162,7 +163,7 @@ async function saveView(page,label,p,index,expected,base) {
   return s;
 }
 const three=[35,36,37], lower=allFDI.slice(14);
-const standard=[['hero',0,0,[36]],['space',.21,1,three],['plaque',.33,2,three],['caries',.475,3,three],['brush',.62,4,three],['result',.76,5,three],['full',.98,6,allFDI]];
+const standard=[['hero',0,0,[36]],['space',.21,1,three],['plaque',.33,2,three],['caries',.475,3,three],['brush',.62,4,three],['result',.76,5,three],['full',finaleAt,6,allFDI]];
 const extra=[['brush-align',.51,4,three],['brush-entry',.542,4,three],['brush-insert',.58,4,three],['brush-stroke',.64,4,three],['lower',.876,6,allFDI]];
 const stamp=s=>({p:s.progress,chapter:s.chapter,visible:s.visible,lesion:s.lesion,deform:s.depthLocal,deposit:s.deposit,clean:s.clean,brush:s.brushPose,insertion:s.brush.insertion,tip:s.brush.tipWorld,removed:s.plaque.patches.map(x=>x.currentWeightedRemoval),camera:s.camera,pose36:s.pose36,lights:s.lights});
 
@@ -261,7 +262,7 @@ async function mobileInputs(ctx,page){
   report.mobileInput=evidence;
 }
 async function finalViews(page,label) {
-  await scroll(page,.98);await restingRaster(page);
+  await scroll(page,finaleAt);await restingRaster(page);
   const smile=await cameraProbe(page),smileProjection=await projectedFootprints(page),smileOptics=await opticalState(page);
   const aspect=smile.raster.rect.width/smile.raster.rect.height;
   const expectedAspect=await page.locator('#journey-stage').evaluate(e=>e.clientWidth/e.clientHeight);
@@ -284,8 +285,10 @@ async function finalViews(page,label) {
   const anatomy=await cameraProbe(page),anatomyProjection=await projectedFootprints(page),anatomyOptics=await opticalState(page);
   await page.screenshot({path:resolve(out,label+'-anatomy.png'),scale:'css',animations:'disabled'});
   check(label+' final smile and anatomical overview both retain all 28 opaque surfaces',smile.finalView==='smile'&&anatomy.finalView==='anatomy'&&equal(smile.story.visible,allFDI)&&equal(anatomy.story.visible,allFDI)&&anatomyOptics.translucentTeeth===0);
-  check(label+' smile translates upper arch only; lower and tooth morphology stay fixed',near(smile.closureCm,.58,.0005)&&near(anatomy.closureCm,0,.0005)&&allFDI.every(fdi=>{
-    const a=anatomyProjection.matrices[fdi],s=smileProjection.matrices[fdi];return a.every((v,i)=>near(v-s[i],fdi<30&&i===13?.58:0,1e-5));})&&smile.story.influence===1&&anatomy.story.influence===1);
+  const modeMeshes=await page.evaluate(()=>[...window.__dentalExperience.arch.teeth.values()]
+    .every(item=>item.mesh.visible&&!item.crown.visible));
+  check(label+' Anatomy restores the rooted seats and preserves the teaching lesion',modeMeshes&&near(anatomy.closureCm,0,.0005)&&
+    smile.story.influence===1&&anatomy.story.influence===1);
   check(label+' Anatomy fits both whole arches within the same full-stage canvas',near(anatomy.raster.rect.height,smile.raster.rect.height,1)&&anatomyProjection.geometry?.clipped===0&&
     !anatomyOptics.effects.length&&anatomyOptics.fog===null&&anatomyOptics.clippingPlanes===0,{bounds:anatomyProjection.geometry,optics:anatomyOptics});
   await page.locator('#journey-view-smile').click();await restingRaster(page);const restored=await cameraProbe(page);
@@ -553,7 +556,7 @@ async function pagesPrefix() {
         await goto(page,entry,base);await page.waitForSelector(selector+'[data-ready="true"]',{timeout:60000});
         const details=await page.locator(selector).evaluate(el=>({...el.dataset}));
         let valid=details.ready==='true';
-        if(selector===q){await ready(page);await scroll(page,.98);const s=await read(page);valid&&=s.chapter==='dentition'&&equal(s.visible,allFDI)&&s.shaderErrors===0;}
+        if(selector===q){await ready(page);await scroll(page,finaleAt);const s=await read(page);valid&&=s.chapter==='dentition'&&equal(s.visible,allFDI)&&s.shaderErrors===0;}
         else valid&&=selector==='#tooth-canvas'?Number(details.assetTriangles)===388032:Number(details.modelMeshes)===1;
         const modules=await page.locator('script[type="module"][src]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src).pathname));
         const assets=requests.slice(before);valid&&=modules.length>0&&modules.every(x=>x.startsWith(prefix))&&assets.some(x=>x.endsWith('.glb'));

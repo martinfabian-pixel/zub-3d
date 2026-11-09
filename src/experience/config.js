@@ -26,7 +26,8 @@ export const experienceConfig = {
     // The mandibular teaching site stays fixed. Only the complete upper
     // arch approaches it during the final frontal composition.
     upperOffset: [0, 0.32, 0], lowerOffset: [0, -0.48, 0],
-    smileClosureCm: 0.58, smileClosureRange: [0.89, 0.96],
+    smileClosureCm: 0.58, smileClosureRange: [0.90, 0.968],
+    crownHandoverRange: [0.953, 0.99],
   },
   reveal: {
     neighbors: { start: 0.12, end: 0.33 },
@@ -51,7 +52,8 @@ export const experienceConfig = {
       result:    {desktop:[.69,.53,.68],portrait:[.61,.57,.68]},
       arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
-      smile:     {desktop:[.68,.52,.34],portrait:[.46,.58,.34]},
+      flight:    {desktop:[.55,.50,.76],portrait:[.50,.52,.87]},
+      smile:     {desktop:[.69,.51,.73],portrait:[.50,.57,.315]},
     },
   },
   material: {
@@ -82,8 +84,8 @@ export const experienceConfig = {
     returnDurationMs: 480, dampingMs: 45, handoverScrollPx: 64, gestureRotateSpeed: 0.65,
   },
   storyCamera: {
-    neighborDirection: [0.84, 0.72, 0.48], smileDirection: [0.070, 0.052, 0.996],
-    smileDistanceCm: 3.48,
+    neighborDirection: [0.84, 0.72, 0.48], smileDirection: [0.040, 0.018, 1],
+    smileDistanceCm: 6.6,
     spaceDistanceCm: 3.35, plaqueDistanceCm: 2.14, detailDistanceCm: 1.44,
     cleaningDistanceCm: 2.27, resultDistanceCm: 1.58,
     spaceOcclusalShiftCm: 0.035, spaceOcclusalAngle: 0.77,
@@ -91,7 +93,7 @@ export const experienceConfig = {
     brushYawDegrees: 19, brushPitchDegrees: 5,
     cleaningEntryFraction: 0.63, resultApicalShiftCm: 0.014,
     compact: {
-      smileDistanceCm: 3.24,
+      smileDistanceCm: 6.6,
       spaceDistanceCm: 3.54, plaqueDistanceCm: 2.01, detailDistanceCm: 1.28,
       cleaningDistanceCm: 2.08, resultDistanceCm: 1.41,
       spaceOcclusalShiftCm: -0.040, spaceOcclusalAngle: 0.60,

@@ -40,7 +40,7 @@ export const DENTAL_CHAPTERS = Object.freeze([
       resultLabels: Object.freeze(['Vyčistený povrch', 'Kaz vyžaduje ošetrenie']),
       education:'V dosahu kefky ubudol povlak. Nedosiahnutá vrstva môže zostať. Vzniknutá dutina zostáva na rovnakom mieste a vyžaduje odborné ošetrenie.',
     }),
-  chapter('dentition', 'Chrup', .80, 1, .980, .980,
+  chapter('dentition', 'Chrup', .80, 1, .995, .995,
     ['Malý návyk.', 'Veľký rozdiel.'],
     'Starostlivosť o celý chrup začína aj medzi zubami.', {
       note: 'Pomôcku a jej veľkosť prispôsobte konkrétnemu priestoru.',

@@ -186,7 +186,11 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
       const portrait = frame.portraitPadding??cameraOptions.portraitPadding?.[name]??portraitPadding[frame.landmark??name]??1.08;
       const margin = MathUtils.lerp(portrait, desktop, MathUtils.smoothstep(aspect, 0.65, 1.35));
       if (!(margin >= 1)) throw new RangeError('Camera padding must be at least one: ' + name);
-      const kx = tanY * Math.max(aspect,frame.minimumFitAspect??0) / margin, ky = tanY / margin;
+      // An off-axis portrait beauty shot can use a wider virtual fit sensor.
+      // The optical track compensates for it while keeping the near crowns prominent.
+      const fitAspect=frame.portraitFitAspect===undefined ? aspect
+        : MathUtils.lerp(frame.portraitFitAspect,aspect,responsiveWeight);
+      const kx = tanY * Math.max(fitAspect,frame.minimumFitAspect??0) / margin, ky = tanY / margin;
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxDepth = -Infinity;
       for (let i = 0; i < projected.length; i += 3) {
         const x = projected[i], y = projected[i + 1], z = projected[i + 2];

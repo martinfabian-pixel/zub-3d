@@ -22,7 +22,7 @@ export function sampleStageTypography(chapter,progress,{mobile=false,reducedMoti
   let opacity=reducedMotion?1:Math.min(incoming,outgoing);
   if (chapter.id==='dentition' && !reducedMotion) {
     const dispersing=smooth((progress-.80)/.025);
-    const settling=smooth((progress-.88)/.065);
+    const settling=smooth((progress-.925)/.055);
     opacity *= 1 - .88*dispersing*(1-settling);
   }
   return {x,y,width,font,opacity:opacity*(free ? .58 : 1),shift:reducedMotion?0:(1-opacity)*8};

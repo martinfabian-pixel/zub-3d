@@ -67,7 +67,7 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
       byId('journey-note').textContent=note;byId('journey-note').hidden=!note;
       byId('journey-instruction').textContent=instruction;byId('journey-instruction').hidden=!instruction;
     }
-    byId('journey-final-views').hidden=!final || (!reducedMotion && (state?.sceneProgress??0)<.94);
+    byId('journey-final-views').hidden=!final || (!reducedMotion && (state?.sceneProgress??0)<.978);
     typography.update(step,state?.progress??progress,{mobile:small,reducedMotion,free:exploring});
     heroExplore.hidden=active!==0||exploring;
     freeExplore.hidden=active===0&&!exploring;

@@ -41,7 +41,7 @@ export function createExperience(configuration=experienceConfig) {
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
   let renderProgress=0,progressFrame=0;
   let inspectionProgress=0,manualProgress=0,manualChapter=null,finalView='smile';
-  const finalTimelines={};let smileWeight=1,jawTransition=null;
+  const finalTimelines={};let smileWeight=1,finalViewTransition=null;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
   const ui=createInterface({config,section,stage,signal,navigate,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
 
@@ -106,11 +106,9 @@ export function createExperience(configuration=experienceConfig) {
   }
   function selectFinalView(next){
     if(!storyReady||!finalTimelines[next]||next===finalView)return;
-    finalView=next;const previous=rig;
-    rig=createJourneyCamera({timeline:finalTimelines[next],config,camera:previous.camera,sampleOnly:true});previous.dispose();
-    rig.resize(canvas.clientWidth,canvas.clientHeight);
+    finalView=next;
     const now=performance.now(),to=next==='smile'?1:0;
-    if(reducedMotion){smileWeight=to;jawTransition=null;}else jawTransition={from:smileWeight,to,start:now};
+    if(reducedMotion){smileWeight=to;finalViewTransition=null;}else finalViewTransition={from:smileWeight,to,start:now};
     applyState(exploring?inspectionProgress:dentalState.progress,true);view.reset(now,reducedMotion);manualChapter=null;
     Object.assign(controller,{rig,timeline:finalTimelines[next]});updateUI();requestRender();
   }
@@ -118,7 +116,6 @@ export function createExperience(configuration=experienceConfig) {
     if(disposed||!rig)return null;
     progress=THREE.MathUtils.clamp(next,0,1);reducedMotion=Boolean(motion);
     storyProgress=THREE.MathUtils.lerp(config.story.startProgress,config.story.endProgress,progress);
-    const travel=Math.max(1,section.getBoundingClientRect().height-stage.getBoundingClientRect().height);
     if(exploring){
       applyState(inspectionProgress,false);updateUI();requestRender();return null;
     }
@@ -140,7 +137,7 @@ export function createExperience(configuration=experienceConfig) {
     plaque?.setState({visible:dentalState.sceneProgress<.80,opacity:dentalState.plaqueDeposition,progress:dentalState.cleaningProgress,lesionProgress:dentalState.lesionProgress});
     brush?.setPose(dentalState.brushPose);
     if(!moveCamera)return null;
-    const pose=rig.setProgress(dentalState.sceneProgress,{reducedMotion:false});
+    const pose=rig.setProgress(dentalState.sceneProgress,{reducedMotion:false,alternateWeight:1-smileWeight});
     view?.setStoryPose(pose);
     const radius=Math.max(1.1,pose.position.distanceTo(pose.target)*Math.tan(THREE.MathUtils.degToRad(config.camera.fov/2))*.68);
     lighting?.update(pose.target,radius);
@@ -150,7 +147,7 @@ export function createExperience(configuration=experienceConfig) {
     const teeth=arch?.report()??[];
     return {
       progress,storyProgress,renderProgress,sceneProgress:Number(canvas.dataset.sceneProgress),stage:canvas.dataset.stage,
-      ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,reducedMotion,view:view?.report(),
+      ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,crownMix:arch?.crownMix,reducedMotion,view:view?.report(),
       composition:rig?{focus:[rig.pose.screenX,rig.pose.screenY],opticalZoom:rig.pose.opticalZoom,fullSensor:[rig.camera.view?.fullWidth,rig.camera.view?.fullHeight]}:null,
       typography:ui.report(),annotations:annotations?.report(),
       profile:profile.name,frames:renderedFrames,teeth,
@@ -167,6 +164,12 @@ export function createExperience(configuration=experienceConfig) {
   function render(now) {
     frame=0;
     if(disposed||document.hidden||!ready){lastFrame=0;return;}
+    if(finalViewTransition){
+      const t=THREE.MathUtils.clamp((now-finalViewTransition.start)/(config.interaction.returnDurationMs??480),0,1);
+      smileWeight=THREE.MathUtils.lerp(finalViewTransition.from,finalViewTransition.to,t*t*(3-2*t));
+      if(exploring)applyState(inspectionProgress,true);
+      if(t===1)finalViewTransition=null;
+    }
     const target=storyReady?storyProgress:Math.min(storyProgress,.045);
     let following=false;
     if(!exploring) {
@@ -184,12 +187,6 @@ export function createExperience(configuration=experienceConfig) {
       updateUI();
     }
     progressFrame=now;
-    if(jawTransition){
-      const t=THREE.MathUtils.clamp((now-jawTransition.start)/(config.interaction.returnDurationMs??480),0,1),s=t*t*(3-2*t);
-      smileWeight=THREE.MathUtils.lerp(jawTransition.from,jawTransition.to,s);arch.setFinalView(finalView,smileWeight);
-      arch.setState(dentalState);
-      if(t===1)jawTransition=null;
-    }
     // Canvas and DOM use the same full-stage dimensions in every chapter.
     resize();
     const changing=view?.update(now)??false;
@@ -203,7 +200,7 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
-    if(changing||interaction||jawTransition||following){adaptive.beginInteraction();requestRender();}
+    if(changing||interaction||finalViewTransition||following){adaptive.beginInteraction();requestRender();}
     else if(!scrolling){adaptive.endInteraction();lastFrame=0;progressFrame=0;}
   }
   function resize() {
@@ -316,7 +313,7 @@ export function createExperience(configuration=experienceConfig) {
             finalTimelines[name]=createTimeline({landmarks:{...arch.landmarks,...cameraConfig.landmarks},cameraOptions:cameraConfig.camera});
           }
           const previous=rig,expanded=finalTimelines[finalView];
-          rig=createJourneyCamera({timeline:expanded,config,camera:previous.camera,sampleOnly:true});previous.dispose();
+          rig=createJourneyCamera({timeline:finalTimelines.smile,alternateTimeline:finalTimelines.anatomy,config,camera:previous.camera,sampleOnly:true});previous.dispose();
           rig.resize(canvas.clientWidth,canvas.clientHeight);
           applyState(exploring?inspectionProgress:Math.min(storyProgress,.045),true);
           Object.assign(controller,{rig,site,caries,plaque,brush,path,annotations,timeline:expanded});

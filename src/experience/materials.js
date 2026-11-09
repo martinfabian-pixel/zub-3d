@@ -33,3 +33,25 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
     dispose() {introductionDepth.dispose();mesh.customDepthMaterial=undefined;},
   };
 }
+
+// Both opaque representations sample the same coverage at each screen pixel.
+// A pixel belongs to exactly one representation, even where their surfaces overlap.
+export function addSmileDissolve(material, mix, crown) {
+  const compile = material.onBeforeCompile;
+  const key = material.customProgramCacheKey();
+  const reject = crown ? 'coverage >= smileMix' : 'coverage < smileMix';
+  material.onBeforeCompile = function (shader, renderer) {
+    compile.call(this, shader, renderer);
+    shader.uniforms.smileMix = mix;
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float smileMix;')
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+        if (smileMix > 0.0 && smileMix < 1.0) {
+          float coverage = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+          if (${reject}) discard;
+        }
+      `);
+  };
+  material.customProgramCacheKey = () => `${key}-smile-${crown ? 'crown' : 'root'}`;
+  material.needsUpdate = true;
+}
