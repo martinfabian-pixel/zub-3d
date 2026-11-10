@@ -3,6 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { nativeJump } from './browser-camera-probes.mjs';
+import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
@@ -11,6 +12,8 @@ assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(url.hostname), 'Use a loc
 url.searchParams.set('qa', '1');
 const screenshotDir = process.env.DENTAL_STORY_REVIEW_DIR;
 if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
+const anatomyChapter = DENTAL_CHAPTERS.find(chapter => chapter.id === 'anatomy');
+assert.equal(DENTAL_CHAPTERS[1], anatomyChapter, 'Healthy anatomy follows the hero');
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
@@ -39,14 +42,15 @@ try {
       const report = () => page.evaluate(() => window.__dentalExperience.report());
       const wait = (predicate, arg, timeout = 15000) => page.waitForFunction(predicate, arg, { timeout });
       const activate = button => mobile ? button.tap() : button.click();
+      const at = (progress, chapter) => wait(({ progress, chapter }) => {
+        const state = window.__dentalExperience.report();
+        return Math.abs(state.progress - progress) < .003
+          && Math.abs(state.renderProgress - state.storyProgress) < .00002
+          && state.story.chapterId === chapter;
+      }, { progress, chapter });
       const seek = async (progress, chapter) => {
         await nativeJump(page, progress);
-        await wait(({ progress, chapter }) => {
-          const state = window.__dentalExperience.report();
-          return Math.abs(state.progress - progress) < .003
-            && Math.abs(state.renderProgress - state.storyProgress) < .00002
-            && state.story.chapterId === chapter;
-        }, { progress, chapter });
+        await at(progress, chapter);
       };
       const expectSpread = spread => wait(spread => {
         const state = window.__dentalExperience.report().healthyAnatomy;
@@ -79,16 +83,58 @@ try {
         return page.evaluate(() => window.__stopAnatomyTrace());
       };
 
-      await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+      const startup = page.locator('#journey-startup');
+      let releaseHero;
+      if (width === 390) {
+        const gate = new Promise(resolve => { releaseHero = resolve; });
+        await page.route('**/dentition-assets/hero-36*.glb*', async route => {
+          await gate;
+          await route.continue();
+        });
+      }
+      try {
+        await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+        if (releaseHero) {
+          await startup.waitFor({ state: 'visible' });
+          assert.equal(await page.locator('body[data-journey-loading]').count(), 1);
+          for (const selector of ['#journey-title', '#journey-home', '#journey-mobile-next', '#journey-zoom-in', '#journey-status', '#journey-canvas']) {
+            assert.equal(await page.locator(selector).isVisible(), false, `${selector} stays hidden during the startup`);
+          }
+          const tooth = startup.locator('.startup-tooth');
+          assert.equal(await tooth.isVisible(), true);
+          const animations = await tooth.evaluate(element => element.getAnimations({ subtree: true }).length);
+          assert.equal(animations > 0, !reduced, 'Only the normal-motion loader animates');
+          if (!reduced) {
+            const spin = await tooth.evaluate(element => {
+              const style = getComputedStyle(element);
+              return { frame: style.backgroundPositionX, turns: style.animationDuration.split(',').map(parseFloat) };
+            });
+            assert.ok(spin.turns.length > 1 && spin.turns.every((duration, index) => !index || duration > spin.turns[index - 1]),
+              'Each startup revolution is slower than the previous one');
+            await wait(frame => getComputedStyle(document.querySelector('.startup-tooth')).backgroundPositionX !== frame, spin.frame);
+          }
+          if (screenshotDir && !reduced) {
+            await page.screenshot({ path: join(screenshotDir, `${width}-nacitavanie-zuba.png`) });
+          }
+        }
+      } finally {
+        releaseHero?.();
+      }
       await wait(() => window.__dentalExperience?.report().ready, null, 90000);
-      await nativeJump(page, .475);
+      await startup.waitFor({ state: 'hidden' });
+      assert.equal(await page.locator('body[data-journey-loading]').count(), 0);
+      assert.equal(await page.locator('#journey-title').isVisible(), true);
+      assert.equal(await page.locator('.journey-step').first().getAttribute('aria-current'), 'step');
+      await activate(page.locator('#journey-mobile-next'));
       await wait(() => window.__dentalExperience?.report().assetsReady, null, 90000);
-      await seek(.475, 'anatomy');
+      await at(anatomyChapter.at, anatomyChapter.id);
       const plate = page.locator('#healthy-anatomy');
       const toggle = plate.locator('.healthy-anatomy-toggle');
       const labels = plate.locator('.healthy-anatomy-layer');
       await plate.waitFor({ state: 'visible' });
       await expectSpread(0);
+      assert.match(await plate.locator('.healthy-anatomy-eyebrow').innerText(), /^02\s*\/\s*07/);
+      assert.equal(await page.locator('.journey-step').nth(1).getAttribute('aria-current'), 'step');
       assert.match(await toggle.innerText(), /Rozložiť zub/);
       assert.equal(await toggle.getAttribute('aria-pressed'), 'false');
       assert.equal(await labels.first().isVisible(), false);
@@ -97,6 +143,11 @@ try {
         const { geometry } = window.__dentalExperience.arch.teeth.get(36).mesh;
         return geometry.hasAttribute('lesionRegion') || !!geometry.morphAttributes.position?.length;
       }), false, 'The tooth uses the healthy native mesh');
+      assert.equal(await page.evaluate(() => {
+        const { scene, arch } = window.__dentalExperience;
+        const intact = scene.getObjectByName('FDI 36 · intact hero');
+        return intact?.visible && intact.geometry === arch.teeth.get(36).mesh.geometry;
+      }), true, 'The intact model uses the exact geometry from the opening screen');
       assert.equal(await page.locator('canvas').count(), 1);
       assert.ok((await report()).drawCalls > 0, 'The assembled tooth draws on the shared canvas');
       const assembled = await partPositions();
@@ -109,6 +160,9 @@ try {
       assert.match(await toggle.innerText(), /Zložiť zub/);
       assert.equal(await toggle.getAttribute('aria-pressed'), 'true');
       await labels.first().waitFor({ state: 'visible' });
+      assert.equal(await page.evaluate(() =>
+        window.__dentalExperience.scene.getObjectByName('FDI 36 · intact hero').visible), false,
+      'The intact model clears the separated anatomy');
       const exploded = await partPositions();
       assert.ok(exploded[0][1] - exploded.at(-1)[1] > assembled[0][1] - assembled.at(-1)[1] + 1,
         'The actual tooth meshes move apart vertically');
@@ -165,10 +219,9 @@ try {
         await activate(toggle);
         await expectSpread(1);
         await activate(page.locator('#journey-mobile-next'));
-        await wait(() => {
-          const state = window.__dentalExperience.report();
-          return state.story.chapterId === 'brush' && !state.healthyAnatomy.active;
-        });
+        const spaceChapter = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space');
+        await at(spaceChapter.at, spaceChapter.id);
+        assert.equal((await report()).healthyAnatomy.active, false);
         await seek(.62, 'brush');
         await activate(page.locator('.manual-cleaning-start'));
         await wait(() => window.__dentalExperience.report().manualCleaning?.transition === 'active');
@@ -186,7 +239,7 @@ try {
           };
         });
         assert.deepEqual(finale, { view: 'smile', crowns: 28, anatomy: false, manualCleaning: null });
-        await seek(.475, 'anatomy');
+        await seek(anatomyChapter.at, anatomyChapter.id);
         await expectSpread(0);
         assert.match(await toggle.innerText(), /Rozložiť zub/);
       }

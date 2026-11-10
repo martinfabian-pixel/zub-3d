@@ -8,7 +8,7 @@ const layers = [
   { id: 'bone', name: 'Kosť', color: '#6c5138', description: 'Alveolárna kosť tvorí lôžko, v ktorom je zub ukotvený.' },
 ];
 
-export function createHealthyAnatomyUI({ stage, signal, onToggle }) {
+export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCount, onToggle }) {
   const doc = stage.ownerDocument;
   const footer = stage.querySelector('.journey-footer');
   const anatomy = doc.createElement('section');
@@ -16,9 +16,10 @@ export function createHealthyAnatomyUI({ stage, signal, onToggle }) {
   anatomy.className = 'healthy-anatomy';
   anatomy.setAttribute('aria-labelledby', 'healthy-anatomy-title');
   anatomy.hidden = true;
+  const count = [chapterNumber, chapterCount].map(value => String(value).padStart(2, '0')).join(' / ');
   anatomy.innerHTML = `
     <div class="healthy-anatomy-copy">
-      <p class="healthy-anatomy-eyebrow">04 / 07 <span aria-hidden="true">·</span> FDI 36 <span aria-hidden="true">·</span> Ilustračný model</p>
+      <p class="healthy-anatomy-eyebrow">${count} <span aria-hidden="true">·</span> FDI 36 <span aria-hidden="true">·</span> Ilustračný model</p>
       <h2 id="healthy-anatomy-title">Stavba zdravého zuba.</h2>
       <p class="healthy-anatomy-description" aria-live="polite" aria-atomic="true">Rozložte zub a preskúmajte jeho jednotlivé vrstvy.</p>
     </div>

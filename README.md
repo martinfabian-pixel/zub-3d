@@ -2,9 +2,9 @@
 
 **[Otvoriť interaktívnu prezentáciu](https://martinfabian-pixel.github.io/zub-3d/)**
 
-Začnite pri dolnej ľavej šestke **FDI 36 s dvoma koreňmi**. Scéna ukáže povlak a stavbu zdravého zuba. Tlačidlami **Rozložiť zub** a **Zložiť zub** sa dá preskúmať päť označených častí 3D ilustrácie. Pri preventívnom čistení povlak ubúda v dosahu štetín.
+Začnite pri dolnej ľavej šestke **FDI 36 s dvoma koreňmi**. V druhej kapitole môžete tlačidlami **Rozložiť zub** a **Zložiť zub** preskúmať päť označených častí 3D ilustrácie. Nasleduje ukážka medzizubného priestoru, povlaku a jeho čistenia v dosahu štetín.
 
-Sedem kapitol **Zub / Priestor / Povlak / Stavba zuba / Čistenie / Výsledok / Chrup** ovláda prirodzený zvislý posun stránky alebo priama navigácia. **Model môžete rovno chytiť a otočiť**, už od prvého zuba. Na mobile vodorovne otáčate a zvislo posúvate príbeh. **Voľné 3D** pozastaví ukážku, umožní obe osi a zoom kolieskom alebo dvoma prstami. **Pokračovať v príbehu** sa plynulo vráti do pripravenej kompozície. Záver ponúka **Úsmev** s korunkami a **Anatómiu** s celými zubami vrátane koreňov.
+Sedem kapitol **Zub / Stavba zuba / Priestor / Povlak / Čistenie / Výsledok / Chrup** ovláda prirodzený zvislý posun stránky alebo priama navigácia. **Model môžete rovno chytiť a otočiť**, už od prvého zuba. Na mobile vodorovne otáčate a zvislo posúvate príbeh. **Voľné 3D** pozastaví ukážku, umožní obe osi a zoom kolieskom alebo dvoma prstami. **Pokračovať v príbehu** sa plynulo vráti do pripravenej kompozície. Záver ponúka **Úsmev** s korunkami a **Anatómiu** s celými zubami vrátane koreňov.
 
 ## Spustenie
 

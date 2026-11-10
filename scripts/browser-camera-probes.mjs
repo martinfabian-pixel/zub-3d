@@ -1,7 +1,10 @@
 // Real user inputs for the localhost-only WebGL test runner. These helpers do
 // not reposition the camera, change story state, dispatch synthetic DOM mouse
 // events, or read Three.js controls' requested angles instead of the live view.
+import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
+
 const canvas = '#journey-canvas';
+const plaqueAt = DENTAL_CHAPTERS.find(chapter=>chapter.id==='plaque').at;
 export const distance = (a,b) => Math.hypot(...a.map((x,i)=>x-b[i]));
 export const angular = (a,b) => 2*Math.acos(Math.min(1,Math.abs(a.reduce((s,x,i)=>s+x*b[i],0))));
 export const zoomTravel = (from,to) => to.pos.reduce((s,x,i)=>s+(x-from.pos[i])*from.direction[i],0);
@@ -179,11 +182,11 @@ export async function desktopInputSequence(page,go) {
   await wheelOnCanvas(page,-145);await snap('freeWheel');
   await nativeJump(page,.20);await snap('freeNativeJump');
   const continueTrace=await traceHandover(page,()=>page.locator('#journey-explore').click());await snap('continued');
-  await go(.330123);await mouseDrag(page,75,-42);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(190);await snap('beforeResize');
+  await go(plaqueAt+.000123);await mouseDrag(page,75,-42);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(190);await snap('beforeResize');
   await page.setViewportSize({width:1073,height:811});await page.waitForTimeout(240);await snap('afterResize');
   await page.setViewportSize(initialViewport);await page.waitForTimeout(240);
   const chapterTrace=await traceHandover(page,()=>page.locator('.journey-step').nth(5).click());await snap('navigated');
-  await go(.33);await page.locator('#journey-reset').click();await page.waitForTimeout(550);
+  await go(plaqueAt);await page.locator('#journey-reset').click();await page.waitForTimeout(550);
   await mouseDrag(page,-110,62);await snap('beforeWheelHandover');
   const wheelTrace=await traceHandover(page,()=>wheelOnCanvas(page,188),'wheel');await snap('afterWheelHandover');
   return {states:record,continueTrace,chapterTrace,wheelTrace};

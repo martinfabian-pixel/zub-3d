@@ -1,0 +1,56 @@
+#journey-startup { display: none; }
+
+body[data-journey-loading] {
+  margin: 0;
+  overflow: hidden;
+}
+
+body[data-journey-loading] :is(.skip-link, #journey-stage > :not(#journey-startup, noscript)) {
+  visibility: hidden;
+}
+
+body[data-journey-loading] #journey-startup {
+  display: grid;
+  position: fixed;
+  z-index: 7;
+  inset: 0;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 56% 28%, var(--scene-bg-light, #f4fbff), transparent 73%),
+    linear-gradient(155deg, var(--scene-bg, #e6f3fc), var(--scene-bg-deep, #d6edfa));
+}
+
+.startup-status-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.startup-tooth {
+  width: clamp(145px, 35vmin, 200px);
+  aspect-ratio: 1;
+  background: url('./startup-tooth.webp') 0% 0% / 3100% 100% no-repeat;
+  animation:
+    startup-tooth-turn 330ms steps(30, end),
+    startup-tooth-turn 510ms steps(30, end) 330ms,
+    startup-tooth-turn 780ms steps(30, end) 840ms,
+    startup-tooth-turn 1150ms steps(30, end) 1620ms,
+    startup-tooth-turn 1850ms steps(30, end) 2770ms infinite;
+}
+
+/* The last cell repeats the first so each new turn starts without a jump. */
+@keyframes startup-tooth-turn {
+  from { background-position-x: 0%; }
+  to { background-position-x: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-tooth { animation: none; }
+}
+
+@media (scripting: none) {
+  body[data-journey-loading] #journey-startup { display: none; }
+}

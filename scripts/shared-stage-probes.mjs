@@ -1,5 +1,7 @@
 // Browser-only measurements from the delivered renderer and semantic copy.
 // CSS text ranges exclude the unoccupied space around a heading or paragraph.
+import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
+
 export async function measureSharedStage(page) {
   return page.evaluate(()=>{
     const app=window.__dentalExperience, state=app.report(), camera=app.rig.camera;
@@ -112,10 +114,11 @@ export async function readWebGLPixels(page,{ png=false }={}) {
 /** Sample the copy compositing during native scrolling in both directions.
  * The heading remains semantic HTML throughout; no helper sets its styles. */
 export async function sampleCopyTransition(page) {
-  return page.evaluate(async()=>{
+  const boundary = DENTAL_CHAPTERS.find(chapter=>chapter.id==='plaque').start;
+  const requested = [-.027,-.016,-.008,-.003,0,.003,.009,.015,.024].map(offset=>boundary+offset);
+  return page.evaluate(async requested=>{
     const section=document.querySelector('#dental-journey'),stage=document.querySelector('#journey-stage');
     const origin=section.getBoundingClientRect().top+scrollY,travel=section.getBoundingClientRect().height-stage.clientHeight;
-    const requested=[.193,.204,.212,.217,.22,.223,.229,.235,.244];
     const frame=()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)));
     async function at(p) {
       window.scrollTo({top:origin+travel*p,behavior:'instant'});await frame();
@@ -135,5 +138,5 @@ export async function sampleCopyTransition(page) {
     for(const p of requested)forward.push(await at(p));
     for(const p of requested.toReversed())reverse.unshift(await at(p));
     return {forward,reverse};
-  });
+  },requested);
 }

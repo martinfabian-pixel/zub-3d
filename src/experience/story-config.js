@@ -10,21 +10,21 @@ export const DENTAL_CHAPTERS = Object.freeze([
   chapter('hero', 'Zub', 0, .10, 0, .045,
     ['Začína sa to', 'jedným zubom.'],
     'Pozrite sa bližšie.'),
-  chapter('space', 'Priestor', .10, .22, .210, .210,
+  chapter('anatomy', 'Stavba zuba', .10, .22, .170, .170,
+    ['Stavba', 'zdravého zuba'],
+    'Rozložte si zdravú stoličku a pozrite sa, čo je pod jej povrchom.', {
+      education:'Ilustračný model zdravej dolnej stoličky ukazuje sklovinu, dentín, dreň, koreňový cement a kostné lôžko.',
+    }),
+  chapter('space', 'Priestor', .22, .34, .330, .330,
     ['Aj medzi', 'zubami.'],
     'Pozornosť si zaslúžia aj plochy medzi zubami.', {
       education:'Medzi dolnou šestkou a sedmičkou sa pri krčkoch zubov otvára medzizubný priestor. Ďasná nie sú zobrazené pre lepšiu názornosť.',
     }),
-  chapter('plaque', 'Povlak', .22, .34, .330, .330,
+  chapter('plaque', 'Povlak', .34, .48, .455, .455,
     ['Nenápadný', 'povlak.'],
     'Na povrchu medzi zubami sa môže hromadiť povlak.', {
       note: 'Farebne zvýraznený pre názornosť.',
       education:'Baktérie v povlaku vytvárajú z cukrov kyseliny, ktoré môžu postupne poškodzovať sklovinu. Farba zvýrazňuje tenkú vrstvu povlaku; nejde o zubný kameň.',
-    }),
-  chapter('anatomy', 'Stavba zuba', .34, .48, .475, .475,
-    ['Stavba', 'zdravého zuba'],
-    'Rozložte si zdravú stoličku a pozrite sa, čo je pod jej povrchom.', {
-      education:'Ilustračný model zdravej dolnej stoličky ukazuje sklovinu, dentín, dreň, koreňový cement a kostné lôžko.',
     }),
   chapter('brush', 'Čistenie', .48, .72, .620, .620,
     ['Jemne tam', 'a späť.'],
@@ -51,8 +51,8 @@ const range = (a, b) => Object.freeze([a, b]);
 export const DENTAL_STORY = Object.freeze({
   chapters: DENTAL_CHAPTERS,
   fdi: Object.freeze({ hero: 36, distalNeighbor: 37, neighbors: Object.freeze([35, 36, 37]) }),
-  neighbors: range(.10, .16), gapFocus: range(.16, .22), gapRelease: range(.80, .875),
-  deposition: range(.22, .33),
+  neighbors: range(.22, .28), gapFocus: range(.28, .33), gapRelease: range(.80, .875),
+  deposition: range(.34, .455),
   brush: Object.freeze({
     appear: range(.48, .502), align: range(.48, .515), enter: range(.515, .56),
     work: range(.56, .68), withdraw: range(.68, .714), fade: range(.708, .72),

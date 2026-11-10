@@ -88,7 +88,8 @@ export function createExperience(configuration=experienceConfig) {
       const delta=key==='Home'?-1:key==='End'?1:(key==='ArrowRight'||key==='ArrowUp' ? .08 : -.08);
       manualCleaning.dragBy(delta);manualCleaning.endDrag();requestRender();
     }});
-  const healthyAnatomyUI=createHealthyAnatomyUI({stage,signal,onToggle:toggleAnatomySpread});
+  const chapterNumber=config.presentation.steps.findIndex(step=>step.id==='anatomy')+1;
+  const healthyAnatomyUI=createHealthyAnatomyUI({stage,signal,chapterNumber,chapterCount:config.presentation.steps.length,onToggle:toggleAnatomySpread});
   const anatomyControls=createHeroAnatomyControls({stage,onToggle(active){anatomyMotion.setActive(active);requestRender();}});
   const fullAnatomyControls=createFullArchAnatomyControls({stage,onToggle(active){
     if(!active)cancelFullArchFocus();
@@ -197,7 +198,11 @@ export function createExperience(configuration=experienceConfig) {
     status.hidden=false;status.classList.add('error');status.classList.toggle('is-upcoming',upcoming);
     status.setAttribute('role','alert');message.textContent=text;retry.hidden=false;
     canvas.dataset.error=error?.message??text;
-    if(!upcoming){ready=false;canvas.dataset.ready='false';document.querySelector('#journey-annotations').hidden=true;}
+    if(!upcoming){
+      ready=false;canvas.dataset.ready='false';
+      document.body.removeAttribute('data-journey-loading');
+      document.querySelector('#journey-annotations').hidden=true;
+    }
     updateUI();
   }
   function updateUI() {
@@ -285,7 +290,7 @@ export function createExperience(configuration=experienceConfig) {
   function updateHealthyAnatomy(now) {
     const p=dentalState.sceneProgress;
     const weight=storyReady
-      ? THREE.MathUtils.smoothstep(p,.34,.405)*(1-THREE.MathUtils.smoothstep(p,.476,.510))
+      ? THREE.MathUtils.smoothstep(p,.10,.135)*(1-THREE.MathUtils.smoothstep(p,.205,.236))
       : 0;
     // A short dip switches the shared canvas between the two camera layers.
     // Both directions sample the same scroll progress.
@@ -527,6 +532,7 @@ export function createExperience(configuration=experienceConfig) {
       renderer.info.reset();renderer.render(scene,camera);renderedFrames++;
       if(shaderError)throw new Error('Dental surface shader failed to compile.');
     }catch(error){showError('3D zobrazenie sa nepodarilo vykresliť.',error);return;}
+    if(renderedFrames===1)document.body.removeAttribute('data-journey-loading');
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
@@ -745,7 +751,7 @@ export function createExperience(configuration=experienceConfig) {
           if(disposed||contextLost)return;
           await renderer.compileAsync(scene,rig.camera);
           if(disposed||contextLost)return;
-          anatomyPlate=createExplodedAnatomy(scene,arch.teeth.get(36).mesh);
+          anatomyPlate=createExplodedAnatomy(scene,arch.teeth.get(36).mesh,config);
           await renderer.compileAsync(anatomyPlate.models,anatomyPlate.camera,scene);
           if(disposed||contextLost)return;
           if(shaderError)throw new Error('Dental surface shader failed to compile.');

@@ -1,4 +1,8 @@
 import { Box3, MathUtils, Spherical, Vector3 } from 'three';
+import { DENTAL_CHAPTERS } from './story-config.js';
+
+const spaceAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').at;
+const plaqueAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'plaque').at;
 
 function adjustDirection(direction, yawDegrees, pitchDegrees) {
   const spherical = new Spherical().setFromVector3(direction);
@@ -35,13 +39,12 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const landmarks = {
     space: region(space, new Vector3(0.35, 0.35, 0.49)),
     plaque: region(plaque, new Vector3(0.13, 0.19, 0.32)),
-    detail: region(surface, new Vector3(0.10, 0.14, 0.25)),
     cleaning: region(cleaning, new Vector3(0.19, 0.13, 0.21)),
     result: region(result, new Vector3(0.11, 0.17, 0.27)),
   };
   // Turn toward the side of the working head. Looking along the wire hides
   // the filaments behind the grip. Frame the healthy contact from the same
-  // side before and after the intervening isolated anatomy model.
+  // side before and after the brushing sequence.
   const brushDirection = adjustDirection(macro, settings.brushYawDegrees, settings.brushPitchDegrees);
   const brushSideDirection = adjustDirection(macro,
     settings.brushYawDegrees + (settings.brushSweepYawDegrees ?? 0),
@@ -49,13 +52,12 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const resultDirection = adjustDirection(macro, settings.resultYawDegrees, settings.resultPitchDegrees);
   const specs = [
     ['hero', 0.045, 'hero', base.camera.directions.hero],
-    ['neighbors', 0.145, 'neighbors', settings.neighborDirection],
-    ['space', 0.21, 'space', spaceDirection, settings.spaceDistanceCm],
+    ['hero-hold', 0.19, 'hero', base.camera.directions.hero],
+    ['neighbors', 0.265, 'neighbors', settings.neighborDirection],
+    ['space', spaceAt, 'space', spaceDirection, settings.spaceDistanceCm],
     // Look slightly across the contact so the deliberately disclosed,
     // brush-reachable film is visible instead of hidden behind tooth 37.
-    ['plaque', 0.33, 'plaque', adjustDirection(macro, -21, 4), settings.plaqueDistanceCm],
-    ['anatomy-entry', 0.47, 'detail', resultDirection, settings.detailDistanceCm],
-    ['anatomy-exit', 0.48, 'detail', resultDirection, settings.detailDistanceCm],
+    ['plaque', plaqueAt, 'plaque', adjustDirection(macro, -21, 4), settings.plaqueDistanceCm],
     ['brush', 0.515, 'cleaning', brushDirection, settings.cleaningDistanceCm],
     // The orbit starts after the first cleaning strokes. Both poses use the
     // same measured contact region and return before the result close-up.
@@ -77,7 +79,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   // rather than backing the camera away to fit the whole neighboring crowns.
   const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
-    minimumFitAspect: ['detail','cleaning','result'].includes(landmark) ? .72 : undefined,
+    minimumFitAspect: ['cleaning','result'].includes(landmark) ? .72 : undefined,
     portraitFitAspect: landmark==='smile' ? 2.20 : undefined,
   }));
   return { landmarks, camera: { ...base.camera, keyframes } };

@@ -6,12 +6,17 @@
   <meta name="theme-color" content="#DCECF7" />
   <meta name="description" content="Stavba zdravého zuba, povlak a jemné medzizubné čistenie v jednej interaktívnej 3D ukážke." />
   <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="../src/experience/startup-loader.css" />
   <title>ZUB — Čo sa deje medzi zubami</title>
 </head>
-<body data-asset-base="../">
+<body data-asset-base="../" data-journey-loading>
   <a class="skip-link" href="#journey-canvas">Prejsť na 3D model</a>
   <main id="dental-journey" aria-label="Interaktívna prezentácia ľudského chrupu">
     <div id="journey-stage">
+      <div id="journey-startup" role="status">
+        <span class="startup-tooth" aria-hidden="true"></span>
+        <span class="startup-status-text">Načítavam 3D zub.</span>
+      </div>
       <header class="site-header" data-annotation-obstacle>
         <button class="brand" id="journey-home" type="button" aria-label="ZUB — späť na začiatok">ZUB<span class="brand-dot">.</span><span class="brand-caption">Čo sa deje medzi zubami</span></button>
         <div class="header-actions">

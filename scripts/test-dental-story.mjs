@@ -4,11 +4,11 @@ import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 import { getDentalChapter, sampleDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
 
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
-const ids = ['hero', 'space', 'plaque', 'anatomy', 'brush', 'result', 'dentition'];
+const ids = ['hero', 'anatomy', 'space', 'plaque', 'brush', 'result', 'dentition'];
 const visual = s => [s.sceneProgress, s.neighborsReveal, s.gapFocus, s.lowerReveal, s.upperReveal,
   s.plaqueDeposition, s.plaqueCoverage, s.cleaningProgress, { ...s.brushPose }];
 assert.deepEqual(DENTAL_CHAPTERS.map(c => c.id), ids);
-assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Zub', 'Priestor', 'Povlak', 'Stavba zuba', 'Čistenie', 'Výsledok', 'Chrup']);
+assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Zub', 'Stavba zuba', 'Priestor', 'Povlak', 'Čistenie', 'Výsledok', 'Chrup']);
 for (const [i, c] of DENTAL_CHAPTERS.entries()) {
   assert.strictEqual(getDentalChapter(c.start), c);
   assert.strictEqual(getDentalChapter(c.at), c);
@@ -58,17 +58,24 @@ for (let i = 1; i <= 10000; ++i) {
 }
 assert.deepEqual([forwards, backwards], [3, 2], 'Three forward passes, with two partial returns before complete withdrawal');
 
-const anatomy = sampleDentalStory(.475);
+const anatomy = sampleDentalStory(.17);
 assert.equal(anatomy.chapter.title, 'Stavba zdravého zuba');
 assert.equal(anatomy.cleaningProgress, 0);
 assert.equal(anatomy.brushVisibility, 0);
+assert.equal(anatomy.neighborsReveal, 0);
+assert.equal(anatomy.plaqueDeposition, 0);
+const space = sampleDentalStory(.33);
+assert.equal(space.chapterId, 'space');
+assert.equal(space.neighborsReveal, 1);
+assert.equal(space.gapFocus, 1);
+assert.equal(space.plaqueDeposition, 0);
 assert.equal(sampleDentalStory(.48).chapterId, 'brush');
 const clean = sampleDentalStory(.76);
 assert.equal(clean.plaqueCoverage, 0, 'Depicted reachable subset has been swept');
 assert.equal(clean.plaqueDeposition, 1, 'Unreached spatial patches can remain; do not globally fade plaque');
-const reducedPlaque = sampleReducedDentalStory(.23), reducedAnatomy = sampleReducedDentalStory(.35);
+const reducedPlaque = sampleReducedDentalStory(.35), reducedAnatomy = sampleReducedDentalStory(.11);
 assert.equal(reducedPlaque.plaqueDeposition, 1);
-assert.equal(reducedAnatomy.sceneProgress, .475); assert.equal(reducedAnatomy.cleaningProgress, 0);
+assert.equal(reducedAnatomy.sceneProgress, .17); assert.equal(reducedAnatomy.cleaningProgress, 0);
 const reducedBrush = sampleReducedDentalStory(.49);
 assert.equal(reducedBrush.brushVisibility, 1); assert.ok(reducedBrush.brushInsertion > .6);
 assert.ok(reducedBrush.cleaningProgress > 0 && reducedBrush.cleaningProgress < 1);

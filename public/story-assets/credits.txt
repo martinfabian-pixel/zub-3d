@@ -20,6 +20,7 @@ pre štylizované zobrazenie úsmevu. Úprava je dostupná pod CC BY 4.0.
 zvýraznenie povlaku a rozložený model stavby zdravého zuba. Sklovina,
 dentín a koreňový cement vychádzajú z pôvodného povrchu FDI 36. Dreň,
 ďasno a kostné lôžko sú vytvorené ako ilustračné 3D štruktúry.
+Rotácia pri načítavaní používa vykreslené zábery toho istého modelu FDI 36.
 
 Kefka a jej nástrojové rozmery ilustrujú mechaniku v tejto jednej scéne;
 nejde o kópiu konkrétneho predávaného výrobku. V dátach je overený iba

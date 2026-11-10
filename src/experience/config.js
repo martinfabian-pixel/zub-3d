@@ -48,7 +48,6 @@ export const experienceConfig = {
       neighbors: {desktop:[.69,.54,.68],portrait:[.61,.59,.82]},
       space:     {desktop:[.68,.54,.65],portrait:[.65,.58,.66]},
       plaque:    {desktop:[.69,.54,.65],portrait:[.64,.58,.67]},
-      detail:    {desktop:[.69,.53,.69],portrait:[.57,.57,.68]},
       cleaning:  {desktop:[.62,.57,1.02],portrait:[.56,.57,.68]},
       result:    {desktop:[.69,.53,.68],portrait:[.61,.57,.68]},
       arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
@@ -87,7 +86,7 @@ export const experienceConfig = {
   storyCamera: {
     neighborDirection: [0.84, 0.72, 0.48], smileDirection: [0.040, 0.018, 1],
     smileDistanceCm: 6.6,
-    spaceDistanceCm: 3.35, plaqueDistanceCm: 2.14, detailDistanceCm: 1.44,
+    spaceDistanceCm: 3.35, plaqueDistanceCm: 2.14,
     cleaningDistanceCm: 2.27, resultDistanceCm: 1.58,
     spaceOcclusalShiftCm: 0.035, spaceOcclusalAngle: 0.77,
     resultYawDegrees: -5, resultPitchDegrees: 0,
@@ -95,7 +94,7 @@ export const experienceConfig = {
     cleaningEntryFraction: 0.63, resultApicalShiftCm: 0.014,
     compact: {
       smileDistanceCm: 6.6,
-      spaceDistanceCm: 3.54, plaqueDistanceCm: 2.01, detailDistanceCm: 1.28,
+      spaceDistanceCm: 3.54, plaqueDistanceCm: 2.01,
       cleaningDistanceCm: 2.08, resultDistanceCm: 1.41,
       spaceOcclusalShiftCm: -0.040, spaceOcclusalAngle: 0.60,
       resultApicalShiftCm: 0.012,
