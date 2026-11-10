@@ -26,7 +26,7 @@ for (const path of ['manifest.json', 'dentition.glb', 'dentition-mobile.glb', 'h
   if (existsSync(file)) dentitionHash.update(readFileSync(file));
 }
 const storyHash=createHash('sha256');
-for(const path of ['site.json','caries-36.json']){
+for(const path of ['site.json']){
   const file=new URL(`./public/story-assets/${path}`,import.meta.url);storyHash.update(path);
   if(existsSync(file))storyHash.update(readFileSync(file));
 }

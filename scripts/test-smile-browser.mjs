@@ -43,12 +43,13 @@ try {
    const state=await page.evaluate(()=>{
     const {arch,report}=window.__dentalExperience,r=report(),teeth=[...arch.teeth.values()];
     const backing=arch.object.getObjectByName('Discreet enamel-coloured smile contact backing');
-    return {chapter:r.story.chapterId,lesion:r.story.lesionProgress,crownMix:arch.crownMix,
+    return {chapter:r.story.chapterId,crownMix:arch.crownMix,
      crowns:teeth.filter(t=>t.crown?.visible).length,anatomy:teeth.filter(t=>t.mesh?.visible).length,
+     healthy:teeth.every(t=>!t.mesh.geometry.hasAttribute('lesionRegion')&&!t.mesh.geometry.morphAttributes.position?.length),
      backingVisible:backing?.visible??false,backingOpacity:backing?.material.opacity??0,
      matrices:teeth.map(t=>t.mesh.matrix.toArray()),shaderErrors:r.shaderErrors};
    });
-   assert.equal(state.lesion,1);
+   assert.equal(state.healthy,true);
    assert.equal(state.shaderErrors,0);
    return state;
   }
@@ -127,7 +128,7 @@ try {
   expectMeshes(await readState(),28,0);
   assert.deepEqual(errors,[]);
   const stages=Object.entries({floating,seated,dissolveStart,dissolveEnd,smile,anatomy})
-   .map(([name,{chapter,lesion,crownMix,crowns,anatomy}])=>({name,chapter,lesion,crownMix,crowns,anatomy}));
+   .map(([name,{chapter,crownMix,crowns,anatomy}])=>({name,chapter,crownMix,crowns,anatomy}));
   results.push({width,height,motion,stages,errors});
   console.log(width, 'passed');
   await context.close();

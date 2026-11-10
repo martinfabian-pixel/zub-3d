@@ -58,13 +58,6 @@ function evaluate(progress, reduced, out) {
   out.lowerReveal = ramp(story.lower, p);
   out.upperReveal = ramp(story.upper, p);
   out.plaqueDeposition = ramp(story.deposition, p);
-  out.lesionProgress = ramp(story.lesion, p); // Independent of any cleaning or material effect.
-  // The cavity is an earlier example. During a brief scene fade we switch to
-  // a separate healthy-tooth example; brushing never reverses the lesion.
-  out.lesionDisplay = p < .487 ? out.lesionProgress : 0;
-  // Give the example change room to breathe. Keep the caries chapter's
-  // resting pose fully visible and hide the switch itself in both directions.
-  out.exampleOpacity = (1 - smooth(.4755, .486, p)) + smooth(.490, .510, p);
   const pose = out.brushPose ?? (out.brushPose = {});
   out.cleaningProgress = sampleBrush(p, pose);
   // Remaining fraction in the reachable subset only; NOT the full biofilm's

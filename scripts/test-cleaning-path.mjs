@@ -86,7 +86,7 @@ for(const compact of [false,true]){
   for(let i=0;i<=500;i++){
     const s=sampleDentalStory(i/500,out);
     brush.setPose(s.brushPose);
-    film.setState({visible:true,opacity:s.plaqueDeposition,progress:s.cleaningProgress,lesionProgress:s.lesionProgress});
+    film.setState({visible:true,opacity:s.plaqueDeposition,progress:s.cleaningProgress});
     const br=brush.report(),pl=film.report();
     if(br.visible){
       const expected=path.sample(path.tipArcMm(s.brushInsertion,s.brushAlignment),sample);
@@ -100,20 +100,19 @@ for(const compact of [false,true]){
     }
     assert.ok(pl.patches.every(d=>d.outsideRemovedWeight===0));
     const w=pl.patches.reduce((sum,d)=>sum+d.currentWeightedRemoval,0);
-    if(s.lesionProgress===1){assert.ok(w+1e-7>=prevRemoved,'Partial retraction cannot repaint previously reached plaque.');prevRemoved=w;}
+    assert.ok(w+1e-7>=prevRemoved,'Partial retraction cannot repaint previously reached plaque.');prevRemoved=w;
     if(i%10===0)saved.set(i,{pose:brush.object.position.toArray(),removed:w});
   }
   assert.ok(maxBent>0 && minimumFibrePlaneGap>=-.0001,'Local filament-plane deflection is active and bounded.');
   for(let i=500;i>=0;i-=10){
     const s=sampleDentalStory(i/500,out);brush.setPose(s.brushPose);
-    film.setState({visible:true,opacity:s.plaqueDeposition,progress:s.cleaningProgress,lesionProgress:s.lesionProgress});
+    film.setState({visible:true,opacity:s.plaqueDeposition,progress:s.cleaningProgress});
     const w=film.report().patches.reduce((sum,d)=>sum+d.currentWeightedRemoval,0);
     assert.deepEqual(brush.object.position.toArray(),saved.get(i).pose);
     assert.equal(w,saved.get(i).removed,'Backscroll must reproduce the original patch mask exactly.');
   }
   const final=sampleDentalStory(1,out);
-  film.setState({visible:true,progress:final.cleaningProgress,opacity:final.plaqueDeposition,lesionProgress:final.lesionProgress});
-  assert.equal(film.report().lesionProgress,1);
+  film.setState({visible:true,progress:final.cleaningProgress,opacity:final.plaqueDeposition});
   assert.ok(film.report().initialDensityProfile.peripheral>0 && film.report().initialDensityProfile.peripheral<1);
   assert.ok(film.report().patches.every(d=>d.outsideWeight>0 && d.outsideRemovedWeight===0));
   results.push({compact,minimumLiftMm,maximumLiftMm,reached,residual,maxBent,minimumFibrePlaneGap,

@@ -14,7 +14,7 @@ if (!output) throw Error('Pass the capture output directory.');
 await mkdir(output, { recursive:true });
 const base = new URL(process.env.DENTAL_STORY_TEST_URL || 'http://127.0.0.1:4173/');
 if (!['127.0.0.1','localhost','[::1]'].includes(base.hostname)) throw Error('Use a loopback preview.');
-const chapters = [['hero',0],['space',.21],['plaque',.33],['caries',.475],['brush',.62],['result',.76],['dentition',.98]];
+const chapters = [['hero',0],['space',.21],['plaque',.33],['anatomy',.475],['brush',.62],['result',.76],['dentition',.98]];
 const sizes=(process.env.DENTAL_STORY_CAPTURE_SIZES||'1440x900,390x844,360x800').split(',').map(text=>{
   const match=/^(\d{3,4})x(\d{3,4})$/.exec(text.trim());
   if(!match)throw Error('DENTAL_STORY_CAPTURE_SIZES must list WIDTHxHEIGHT pairs.');

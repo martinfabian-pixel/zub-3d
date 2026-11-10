@@ -7,8 +7,8 @@ from mathutils import Vector
 
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'scripts'));import prepare_dentition as d
 from refine_cavity_surface import extend,faces_after_refinement
-DATA=ROOT/'public/story-assets';OUT=Path(sys.argv[sys.argv.index('--')+1]);OUT.mkdir(parents=True,exist_ok=True)
-site=json.loads((DATA/'site.json').read_text(encoding='utf8'));morph=json.loads((DATA/'caries-36.json').read_text(encoding='utf8'));manifest=json.loads((d.OUT/'manifest.json').read_text(encoding='utf8'));items={v['fdi']:v for v in manifest['teeth']}
+DATA=ROOT/'assets/source/proximal-story';OUT=Path(sys.argv[sys.argv.index('--')+1]);OUT.mkdir(parents=True,exist_ok=True)
+lesion=json.loads((DATA/'lesion-result.json').read_text(encoding='utf8'));morph=json.loads((DATA/'caries-36.json').read_text(encoding='utf8'));manifest=json.loads((d.OUT/'manifest.json').read_text(encoding='utf8'));items={v['fdi']:v for v in manifest['teeth']}
 def B(v):
     q=np.asarray(v).copy()[...,[0,2,1]];q[...,1]*=-1;return q
 def look(o,p):o.rotation_euler=(Vector(p)-o.location).to_track_quat('-Z','Y').to_euler()
@@ -25,7 +25,7 @@ for i in [36,37]:
             D=np.zeros_like(p);N=np.zeros_like(n);region=np.zeros((len(p),4))
         ix=morph['indices'];D[ix]=np.array(morph['positionDelta']).reshape(-1,3);N[ix]=np.array(morph['normalDelta']).reshape(-1,3);region[ix]=np.array(morph['region']).reshape(-1,4)
     mesh=bpy.data.meshes.new('FDI'+str(i));mesh.from_pydata((B(d.affect(M,p))/100).tolist(),[],f.tolist());mesh.update();mesh.polygons.foreach_set('use_smooth',np.ones(len(f),bool));colors=mesh.color_attributes.new(name='Review albedo',type='FLOAT_COLOR',domain='POINT');obj=bpy.data.objects.new(mesh.name,mesh);bpy.context.collection.objects.link(obj);mesh.materials.append(materials[i]);source[i]=(p,n,f,M,D,N,region,mesh,colors)
-target=B(site['lesion']['centerWorldCm'])/100;D=B(site['lesion']['macroCamera']['directionFromLesionToCameraWorld']);u=B(site['lesion']['basisWorld']['buccalLingualTangentBuccalPositive']);v=B(site['lesion']['basisWorld']['occlusalGingivalTangentOcclusalPositive'])
+target=B(lesion['anchor36']['worldCm'])/100;D=B(lesion['macroCamera']['directionFromLesionToCameraWorld']);u=B(lesion['basisWorld']['buccalLingualTangentBuccalPositive']);v=B(lesion['basisWorld']['occlusalGingivalTangentOcclusalPositive'])
 scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=96;scene.cycles.use_denoising=True;scene.cycles.seed=36;scene.cycles.max_bounces=6
 try:
     prefs=bpy.context.preferences.addons['cycles'].preferences;prefs.compute_device_type='OPTIX';prefs.get_devices();devices=[d for d in prefs.devices if d.type=='OPTIX'];assert devices

@@ -1,7 +1,7 @@
-"""Generate sparse educational lesion morph and contact-conforming plaque data.
+"""Generate healthy proximal site data and refresh the archived lesion study.
 
 Inputs: frozen 36/37 GLBs, fixed manifest and captured dual-LOD mesh surveys.
-Only new public/story-assets outputs are written. No source or runtime edits.
+The lesion study is stored with the source audits outside the deployed site.
 """
 from pathlib import Path
 import hashlib,json
@@ -13,8 +13,8 @@ from refine_cavity_surface import refine_patch
 ROOT=dent.ROOT;SRC=ROOT/'assets/source/proximal-story';OUT=ROOT/'public/story-assets'
 def rnd(x,d=8):return np.round(np.asarray(x,dtype=float),d).tolist()
 def flat(x,d=8):return rnd(np.asarray(x).ravel(),d)
-def emit(name,doc):
-    OUT.mkdir(parents=True,exist_ok=True);(OUT/name).write_text(json.dumps(doc,separators=(',',':'),ensure_ascii=False)+'\n',encoding='utf8')
+def emit(name,doc,directory=OUT):
+    directory.mkdir(parents=True,exist_ok=True);(directory/name).write_text(json.dumps(doc,separators=(',',':'),ensure_ascii=False)+'\n',encoding='utf8')
 def record(x):return json.loads((SRC/x).read_text(encoding='utf8'))
 def model(i,lod,manifest):
     suffix='' if lod=='desktop' else '-mobile';filename=('hero-36' if i==36 else 'dentition')+suffix+'.glb';path=dent.OUT/filename;j,b=dent.glb(path);name='ToothExterior' if i==36 else 'FDI_37';pr=next(v for v in j['meshes'] if v['name']==name)['primitives'][0];at=pr['attributes'];p=dent.accessor(j,b,at['POSITION']).astype(float);n=dent.accessor(j,b,at['NORMAL']).astype(float);uv=dent.accessor(j,b,at['TEXCOORD_0']).astype(float);f=dent.accessor(j,b,pr['indices']).reshape(-1,3).astype(int)
@@ -106,7 +106,7 @@ def lesion_morph(source,site,wire):
     exclusion=np.maximum(dent.smooth(.002,.038,depth),(1-dent.smooth(.78,1.09,rr))*dent.smooth(.65,.83,wire_distance))*allowed
     return result,exclusion,end,newN,regions
 
-def patch(g,fdi,origin,axis,L,reference,exclusion=None):
+def patch(g,fdi,origin,axis,L,reference):
     p,n,uv,f,w,N=g['p'],g['n'],g['uv'],g['f'],g['worldMm'],g['worldN'];project=np.clip((w-origin)@axis,0,L);radial=w-(origin+project[:,None]*axis);distance=np.linalg.norm(radial,axis=1);occl=np.array(reference['basisWorld']['occlusal']);distal=np.array(reference['basisWorld']['36DistalToward37']);toward=distal if fdi==36 else -distal
     sc=7.05 if fdi==36 else 6.38;U=(project-sc)/(2.95 if fdi==36 else 2.70);V=(radial@occl-.12-.085*np.sin(3*U))/.96;theta=np.arctan2(V,U);rr=np.sqrt(U*U+V*V)/(1+.095*np.sin(3*theta+.47)+.044*np.cos(5*theta-.58))
     facing=N@toward;eligible=(distance<1.65)&(facing>.46);weight=(1-dent.smooth(.70,1.06,rr))*eligible
@@ -123,7 +123,7 @@ def patch(g,fdi,origin,axis,L,reference,exclusion=None):
         weight=np.maximum(weight,strength*(1-dent.smooth(.45,1.025,extension))*local_surface)
         deposition_weight=original_weight+.43*(np.round(weight,5)-original_weight)
     keep=f[np.max(weight[f],axis=1)>.0001];ids,fi=np.unique(keep,return_inverse=True);faces=fi.reshape(-1,3);assert len(ids)>15 and len(faces)>14
-    q={'fdi':fdi,'positions':flat(p[ids],10),'normals':flat(n[ids],7),'uv':flat(uv[ids],7),'indices':faces.ravel().tolist(),'sourceVertexIndices':ids.tolist(),'pathDistanceMm':flat(distance[ids],5),'nearestArcMm':flat(project[ids],5),'edgeWeight':flat(weight[ids],5),'lesionExclusion':flat(np.zeros(len(ids)) if exclusion is None else exclusion[ids],5)}
+    q={'fdi':fdi,'positions':flat(p[ids],10),'normals':flat(n[ids],7),'uv':flat(uv[ids],7),'indices':faces.ravel().tolist(),'sourceVertexIndices':ids.tolist(),'pathDistanceMm':flat(distance[ids],5),'nearestArcMm':flat(project[ids],5),'edgeWeight':flat(weight[ids],5)}
     if fdi==36:
         q['depositionWeight']=flat(deposition_weight[ids],5)
     m=weight[ids]>.05;q['audit']={'vertices':len(ids),'triangles':len(faces),'positiveWeightVertices':int(m.sum()),'withinFreeBristleEnvelope':int(np.sum(m&(distance[ids]<=.60))),'outsideFreeBristleEnvelope':int(np.sum(m&(distance[ids]>.60))),'positiveWeightDistanceRangeMm':rnd([distance[ids][m].min(),distance[ids][m].max()],5),'maximumPlaqueOffsetMmSuggested':.04};assert q['audit']['withinFreeBristleEnvelope']>0 and q['audit']['outsideFreeBristleEnvelope']>0
@@ -131,19 +131,38 @@ def patch(g,fdi,origin,axis,L,reference,exclusion=None):
 
 def main():
     wire=record('path-result.json');lesion=record('lesion-result.json');manifest=json.loads((dent.OUT/'manifest.json').read_text());hard_sha=wire['assetSha256'];assert all(dent.sha((dent.OUT/file).read_bytes())==value for file,value in hard_sha.items());g=model(36,'desktop',manifest);mg=model(36,'mobile',manifest);assert np.array_equal(g['p'],mg['p']) and np.array_equal(g['f'],mg['f'])
-    shape,ex,end,normals,regions=lesion_morph(g,lesion,wire);emit('caries-36.json',shape);path=wire['path'];A,B=np.asarray(path['controlPointsWorldCm'])*10;ax=dent.norm(B-A);length=float(np.linalg.norm(B-A));samples=[]
+    shape,*_=lesion_morph(g,lesion,wire);emit('caries-36.json',shape,SRC);path=wire['path'];A,B=np.asarray(path['controlPointsWorldCm'])*10;ax=dent.norm(B-A);length=float(np.linalg.norm(B-A));samples=[]
     for t in path['samples']:
         def contacts(lod):return [{'fdi':i,'nearestWorld':rnd(t[lod][str(i)]['nearestWorldCm']),'normalWorld':rnd(t[lod][str(i)]['normalWorld'],7),'distanceMm':round(t[lod][str(i)]['distanceMm'],6)} for i in [36,37]]
         samples.append({'position':rnd(t['worldCm']),'arcLengthMm':round(t['arcMm'],6),'clearanceMm':round(t['limitingRadiusBothLodsMm'],6),'contacts':contacts('desktop'),'contactsMobile':contacts('mobile')})
     dims={'wireRadius':.09,'wireDiameter':.18,'bristleRadius':.60,'bristleDiameter':1.20,'bristledLength':8.0,'bareTipLength':.45,'exposedHeadLength':13.1,'ferruleRadius':.8,'ferruleDiameter':1.6,'handleRadius':1.85,'handleDiameter':3.7};ferrule=next(t for t in path['ferruleStops'] if t['illustrativeDiameterMm']==1.6)
     brush={'centerline':samples,'dimensionsMm':dims,'controlPointsWorldCm':path['controlPointsWorldCm'],'entryTangent':path['unitInsertionDirectionWorld'],'insertionDirectionWorld':path['unitInsertionDirectionWorld'],'lengthMm':length,'maxCurvaturePerMm':0,'contactRangeMm':path['softBristleExample']['contactRangeMm'],'contactRangesByFdiMm':path['softBristleExample']['perToothReachArcRangesMm'],'bilateralWallArcRangesMm':path['bilateralWallArcRangesMm'],'tipRangeMm':[0,length],'maxTipArcMm':length,'maxFerruleNoseArcMm':ferrule['maxNoseCenterArcMm'],'rigidEnvelope':path['rigidEnvelope'],'bristleNote':path['softBristleExample']['meaning'],'maximumIllustrativeBristleDeflectionMm':path['softBristleExample']['peakRadialDeflectionAgainstSimpleCapsuleMm'],'ferruleNote':path['ferruleRule']}
-    patches=[patch(g,36,A,ax,length,wire,ex),patch(model(37,'desktop',manifest),37,A,ax,length,wire)];mobile37=patch(model(37,'mobile',manifest),37,A,ax,length,wire)
-    M=g['M'];bw=lesion['basisWorld'];local={k:rnd(dent.norm(np.linalg.solve(M[:3,:3],v)),8) for k,v in bw.items()};anchor=lesion['anchor36'];site={'schemaVersion':1,'units':'World cm including fixed lower Y−0.48cm. Distances/radii/arc lengths in nominal mm, local patch coordinates/metre morph deltas in original glTF metres. Never apply lower opening twice.','teeth':[36,37],'assetSha256':hard_sha,'displayedMatrixColumnMajor':{str(i):rnd(model(i,'desktop',manifest)['M'].T.ravel(),10) for i in [36,37]},'basisWorld':wire['basisWorld'],'closestProximalPair':wire['closestProximalPair'],'tightestGapFocusWorldCm':wire['siteFocusWorldCm'],'focusWorldCm':path['centerAtClosestSiteBuccalCoordinateWorldCm'],'brush':brush,'plaque':{'patches':patches,'mobile37':mobile37,'contract':'In compact mode replace only the FDI37 patch with mobile37. Positions lie on actual source meshes; UV, normal and indexed faces are native. Tunable render lift 0.02–0.04 mm. edgeWeight gives soft irregular perimeter. Subtract mature lesionExclusion only as cavitation develops. nearestArcMm/pathDistanceMm are exact closest points to finite calibrated path, not a cleaning percentage. Use instantaneous bristle position/radius to reduce ONLY supported, contacted plaque.'},'lesion':{'fdi':36,'asset':'caries-36.json','anchor':anchor,'centerWorldCm':anchor['worldCm'],'centerLocalMetres':anchor['localMetres'],'normalWorld':anchor['normalWorld'],'basisWorld':bw,'basisLocal':local,'macroCamera':lesion['macroCamera'],'footprintVisibilityAudit':{k:v for k,v in lesion['footprintQA'].items() if k!='samples'},'distanceToOpposing37Mm':lesion['distanceToOpposing37Mm'],'heightAboveEstimatedCejMm':lesion['estimatedCrownwardHeightAboveLocalPaintedCejMm'],'buccalOffsetFromTightestMm':lesion['buccalDistanceFromClosestSiteMm'],'apicalOffsetFromTightestMm':lesion['apicalDistanceFromClosestSiteMm'],'wireRelationship':lesion['wireRelationship'],'morphAudit':shape['audit']},'limitations':['Educational hard-surface measurements in an illustrative 21mm reference scale. No gingiva, papilla or bone in this geometry.','No clinical brush size, passage safety, treatment advice or disease timeline can be inferred.','Thickness, plaque, early chalking and mature cavity are authored examples, not conditions in the original Dundee specimen. Brushing does not restore lost tooth structure.']}
-    camera=site['lesion']['macroCamera'];camera.update(direction=camera['directionFromLesionToCameraWorld'],target=camera['lookAtWorldCm'],distanceCm=camera['cameraDistanceMmUsedForFootprintCheck']/10)
-    site['plaque']['verifiedReachableCenters']=lesion.get('brushReachablePlaqueAnchors',{})
-    site['lesion']['footprintVisibilityAudit']['scope']='Fixed healthy 1.2 by 0.8 mm site survey used to select the anchor. This survey covers only part of the enlarged cavity; mature-floor visibility is audited separately.'
+    patches=[patch(g,36,A,ax,length,wire),patch(model(37,'desktop',manifest),37,A,ax,length,wire)];mobile37=patch(model(37,'mobile',manifest),37,A,ax,length,wire)
+    site={
+        'schemaVersion':1,
+        'units':'World cm including fixed lower Y−0.48cm. Distances, radii and arc lengths in nominal mm; local patch coordinates in original glTF metres. Never apply lower opening twice.',
+        'teeth':[36,37],
+        'assetSha256':hard_sha,
+        'displayedMatrixColumnMajor':{str(i):rnd(model(i,'desktop',manifest)['M'].T.ravel(),10) for i in [36,37]},
+        'basisWorld':wire['basisWorld'],
+        'closestProximalPair':wire['closestProximalPair'],
+        'tightestGapFocusWorldCm':wire['siteFocusWorldCm'],
+        'focusWorldCm':path['centerAtClosestSiteBuccalCoordinateWorldCm'],
+        'teachingSurfaceWorldCm':lesion['anchor36']['worldCm'],
+        'brush':brush,
+        'plaque':{
+            'patches':patches,'mobile37':mobile37,
+            'contract':'In compact mode replace only the FDI37 patch with mobile37. Positions lie on actual source meshes; UV, normal and indexed faces are native. Tunable render lift 0.02–0.04 mm. edgeWeight gives soft irregular perimeter. nearestArcMm/pathDistanceMm are exact closest points to finite calibrated path, not a cleaning percentage. Use instantaneous bristle position/radius to reduce ONLY supported, contacted plaque.',
+            'verifiedReachableCenters':lesion.get('brushReachablePlaqueAnchors',{}),
+        },
+        'limitations':[
+            'Educational hard-surface measurements in an illustrative 21mm reference scale. No gingiva, papilla or bone in this geometry.',
+            'No clinical brush size, passage safety, treatment advice or disease timeline can be inferred.',
+            'Plaque and thickness are authored examples, separate from the original Dundee specimen.',
+        ],
+    }
     site['sourceLicense']={'author':'University of Dundee, School of Dentistry','license':'CC-BY-4.0','creditFile':'credits.txt'}
     emit('site.json',site)
-    print(json.dumps({'morph':shape['audit'],'patches':[p['audit'] for p in [*patches,mobile37]],'siteBytes':(OUT/'site.json').stat().st_size,'morphBytes':(OUT/'caries-36.json').stat().st_size},indent=2))
+    print(json.dumps({'morph':shape['audit'],'patches':[p['audit'] for p in [*patches,mobile37]],'siteBytes':(OUT/'site.json').stat().st_size,'morphBytes':(SRC/'caries-36.json').stat().st_size},indent=2))
 
 if __name__=='__main__':main()

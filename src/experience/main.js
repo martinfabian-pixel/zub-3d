@@ -11,16 +11,14 @@ import { createNavigationMotion } from './navigation-motion.js';
 import { createInterface } from './interface.js';
 import { sampleDentalStory, sampleReducedDentalStory } from './dental-story.js';
 import { createStoryCameraConfig } from './story-camera.js';
-import { createCaries } from './caries.js';
 import { createCleaningPath, makePathSample } from './cleaning-path.js';
 import { createInterdentalBrush } from './interdental-brush.js';
 import { createPlaque } from './plaque.js';
 import { createViewController } from './view-controller.js';
 import { createModelGestures } from './gestures.js';
 import { createAnnotations } from './annotations.js';
-import { createCariesDetail } from './caries-detail.js';
-import { createCavityJourney, frameCavityAnatomy } from './cavity-journey.js';
-import { createCariesCutaway } from './caries-cutaway.js';
+import { createHealthyAnatomyUI } from './healthy-anatomy-ui.js';
+import { createExplodedAnatomy } from './exploded-anatomy.js';
 import { createHeroSpin } from './hero-spin.js';
 import { createHeroAnatomy } from './hero-anatomy.js';
 import { createHeroAnatomyMotion } from './hero-anatomy-motion.js';
@@ -47,7 +45,7 @@ export function createExperience(configuration=experienceConfig) {
   const profile=chooseQuality(config);
   const query=new URLSearchParams(location.search), qa=query.has('qa'), clay=query.get('material')==='clay';
   let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
-  let site,caries,cutaway,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy,storyReady=false;
+  let site,anatomyPlate,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy,storyReady=false;
   const dentalState={brushPose:{}};
   sampleDentalStory(0,dentalState);
   let frame=0,renderedFrames=0,lastFrame=0,settleTimer,deferredTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
@@ -66,11 +64,10 @@ export function createExperience(configuration=experienceConfig) {
   let focusedFdi=null,focusOrigin=null,focusReturning=false,focusBlend=0,focusFrame=0,focusSensorApplied=false;
   const heroSpin=createHeroSpin();
   const anatomyMotion=createHeroAnatomyMotion();
-  const cavityJourney=createCavityJourney();
-  const cavityAnatomy={layer:null, framing:null, weight:0, depth:0, time:0, healthy:false, returning:false};
+  const healthyAnatomy={active:false,spread:0,expanded:false,motion:null};
   const fullArchFocus=createFullArchFocus();
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
-  let cavityPointer=null,detailPending=false,detailSnapshot=null,detailEnteredExplore=false;
+  let toothPointer=null;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
   const ui=createInterface({config,section,stage,signal,navigate,navigationTarget:()=>navigationMotion?.target??null,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
   const manualUI=createManualCleaningUI({stage,onStart:startManualCleaning,onExit:exitManualCleaning,
@@ -91,7 +88,7 @@ export function createExperience(configuration=experienceConfig) {
       const delta=key==='Home'?-1:key==='End'?1:(key==='ArrowRight'||key==='ArrowUp' ? .08 : -.08);
       manualCleaning.dragBy(delta);manualCleaning.endDrag();requestRender();
     }});
-  const detail=createCariesDetail({stage,onRequest:openCariesDetail,onClose:closeCariesDetail,onAnatomyChange:selectCavityAnatomy});
+  const healthyAnatomyUI=createHealthyAnatomyUI({stage,signal,onToggle:toggleAnatomySpread});
   const anatomyControls=createHeroAnatomyControls({stage,onToggle(active){anatomyMotion.setActive(active);requestRender();}});
   const fullAnatomyControls=createFullArchAnatomyControls({stage,onToggle(active){
     if(!active)cancelFullArchFocus();
@@ -139,15 +136,15 @@ export function createExperience(configuration=experienceConfig) {
     lighting?.update(pose.target,radius);
   }
   function startManualCleaning() {
-    if(!storyReady||!path||!brush||!plaque||manual||detail.isOpen||detailPending||cavityAnatomy.returning||dentalState.chapterId!=='brush')return;
-    navigationMotion=null;cancelPendingDetail();
+    if(!storyReady||!path||!brush||!plaque||manual||healthyAnatomy.active||dentalState.chapterId!=='brush')return;
+    navigationMotion=null;
     const savedView=view.capture(),wasExploring=exploring;
     const original=exploring?inspectionProgress:renderProgress;
     leaveExplore();interaction=false;controls.enabled=false;
     manualCleaning.reset();
     sampleDentalStory(.62,manualState);
-    arch.setState(manualState);caries.setProgress(0);
-    plaque.setState({visible:true,opacity:1,progress:0,lesionProgress:0});
+    arch.setState(manualState);
+    plaque.setState({visible:true,opacity:1,progress:0});
     brush.setPose(manualCleaning.state.pose);canvas.style.opacity='1';
     document.querySelector('#journey-annotations').hidden=true;
     const now=performance.now();
@@ -206,7 +203,6 @@ export function createExperience(configuration=experienceConfig) {
   function updateUI() {
     const complete=storyReady;
     ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,state:dentalState,reducedMotion});
-    detail.update({chapterId:dentalState.chapterId,lesionProgress:dentalState.lesionDisplay,enabled:storyReady&&!cavityAnatomy.returning});
     if(!complete&&progress>.09&&!atlasError&&ready) {
       status.hidden=false;status.classList.add('is-upcoming');message.textContent='Pripravujem medzizubnú ukážku…';
     }else if(ready&&!atlasError)status.hidden=true;
@@ -219,15 +215,8 @@ export function createExperience(configuration=experienceConfig) {
   function leaveExplore(){if(!exploring)return;exploring=false;controls.setFree(false);interaction=false;}
   function navigate(next) {
     if(manual){exitManualCleaning(next);return;}
-    if(cavityAnatomy.returning||cavityAnatomy.framing){
-      const returning=cavityAnatomy.returning;
-      clearCavityAnatomy();
-      if(returning)finishCariesDetail();
-    }
     cancelFullArchFocus();
     if(next>.035)startDeferredAssets();
-    if(detail.isOpen)detail.close();
-    cancelPendingDetail();
     leaveExplore();
     manualChapter=null;
     const rect=section.getBoundingClientRect();
@@ -247,7 +236,7 @@ export function createExperience(configuration=experienceConfig) {
     requestRender();
   }
   function enterExplore(focus=false) {
-    if(!ready||disposed)return false;
+    if(!ready||disposed||healthyAnatomy.active)return false;
     if(exploring)return true;
     navigationMotion=null;
     exploring=true;inspectionProgress=dentalState.progress;
@@ -257,9 +246,7 @@ export function createExperience(configuration=experienceConfig) {
   }
   function toggleExplore() {
     if(manual){exitManualCleaning();return;}
-    if(cavityAnatomy.returning)return;
-    if(detail.isOpen){detail.close();return;}
-    if(detailPending){cancelPendingDetail();updateUI();requestRender();return;}
+    if(healthyAnatomy.active)return;
     if(exploring){
       cancelFullArchFocus();
       const resume=inspectionProgress;leaveExplore();manualChapter=null;
@@ -269,142 +256,67 @@ export function createExperience(configuration=experienceConfig) {
     requestRender();
   }
   function resetView() {
-    if(!ready)return;
-    if(cavityAnatomy.returning)return;
+    if(!ready||healthyAnatomy.active)return;
     cancelFullArchFocus();
-    if(detail.isOpen){
-      const anatomyOpen=Boolean(cavityAnatomy.framing);
-      detail.close();
-      if(anatomyOpen)return;
-    }
-    cancelPendingDetail();
     heroSpin.release();
     manualChapter=null;view.reset(performance.now(),reducedMotion);
     requestRender();
   }
   function markManual(){
-    if(cavityAnatomy.layer)cavityJourney.cancel();
     manualProgress=progress;manualChapter=dentalState.chapterId;requestRender();
   }
   function zoom(factor) {
-    if(!ready||cavityAnatomy.returning||(cavityAnatomy.framing&&cavityAnatomy.weight<1))return;
-    cancelPendingDetail();
+    if(!ready||healthyAnatomy.active)return;
     if(fullArchFocus.active){fullArchFocus.cancel();focusReturning=false;}
     view.zoomBy(factor);markManual();
   }
-  function cancelPendingDetail() {
-    if(!detailPending)return;
-    cavityJourney.cancel();
-    detailPending=false;detail.setBusy(false);
-    canvas.style.pointerEvents='';
-    if(detailEnteredExplore)leaveExplore();
-    view.restore(detailSnapshot);
-    detailSnapshot=null;detailEnteredExplore=false;
-  }
-  function openCariesDetail() {
-    if(!storyReady||manual||detailPending||detail.isOpen||cavityAnatomy.returning||dentalState.chapterId!=='caries'||dentalState.lesionDisplay<=.5)return;
-    detailSnapshot=view.capture();
-    detailEnteredExplore=!exploring;
-    if(detailEnteredExplore)enterExplore();
-    detail.setBusy(true);
-    detailPending=true;
-    canvas.style.pointerEvents='none';
-    cavityJourney.begin(detailSnapshot,{factor:.55,instant:reducedMotion});
+  function toggleAnatomySpread() {
+    if(!healthyAnatomy.active)return;
+    const {spread}=healthyAnatomy;
+    const expanded=!healthyAnatomy.expanded;
+    const target=Number(expanded);
+    healthyAnatomy.expanded=expanded;
+    healthyAnatomy.motion={from:spread,target,began:performance.now(),duration:420+520*Math.abs(target-spread)};
     requestRender();
   }
-  function closeCariesDetail() {
-    cavityJourney.cancel();
-    detailPending=false;detail.setBusy(false);
-    if(cavityAnatomy.framing){
-      cavityAnatomy.layer=null;
-      cavityAnatomy.returning=true;
-      stage.dataset.cavityAnatomy='returning';
-      controls.enabled=false;
-      cavityJourney.move(view.capture(),detailSnapshot,{instant:reducedMotion,milliseconds:800});
-      updateUI();requestRender();return;
-    }
-    finishCariesDetail();
+  function fitAnatomyPlate() {
+    healthyAnatomyUI.positionLabels(anatomyPlate.layout(logicalWidth,logicalHeight,healthyAnatomyUI.gutters()));
   }
-  function finishCariesDetail() {
-    if(detailEnteredExplore){
-      const resume=inspectionProgress;
-      leaveExplore();ui.scrollTo(resume,true);setProgress(resume);
-    }
-    view.restore(detailSnapshot,{instant:reducedMotion});
-    detailSnapshot=null;detailEnteredExplore=false;
-    updateUI();requestRender();
-  }
-  function selectCavityAnatomy(layer) {
-    if(!cutaway||!detail.isOpen||cavityAnatomy.returning)return;
-    cavityAnatomy.layer=layer;
-    if(!cavityAnatomy.framing){
-      const framing=frameCavityAnatomy(cutaway,rig);
-      cavityAnatomy.framing=framing;
-      controls.enabled=false;
-      view.setInspectionZoomRange(framing.distance*.65,framing.distance*1.6);
-      cavityJourney.move(view.capture(),framing.snapshot,{instant:reducedMotion,milliseconds:850});
-    }
-    requestRender();
-  }
-  function applyCavityContext(weight) {
-    for(const fdi of config.anatomy.neighbors){
-      if(fdi===36)continue;
-      const item=arch.teeth.get(fdi);
-      item.finish.setReveal(item.reveal*(1-weight));
-    }
-    plaque.setState({visible:!cavityAnatomy.healthy,opacity:dentalState.plaqueDeposition,
-      progress:dentalState.cleaningProgress,lesionProgress:dentalState.lesionDisplay});
-    const sensor=rig.camera.view;
-    const framing=cavityAnatomy.framing;
-    if(sensor?.enabled&&framing){
-      const x=THREE.MathUtils.lerp(rig.pose.screenX,framing.x,weight);
-      const y=THREE.MathUtils.lerp(rig.pose.screenY,framing.y,weight);
-      const offsetX=(.5-x)*sensor.fullWidth,offsetY=(.5-y)*sensor.fullHeight;
-      if(sensor.offsetX!==offsetX||sensor.offsetY!==offsetY){
-        rig.camera.setViewOffset(sensor.fullWidth,sensor.fullHeight,offsetX,offsetY,sensor.fullWidth,sensor.fullHeight);
+  function updateHealthyAnatomy(now) {
+    const p=dentalState.sceneProgress;
+    const weight=storyReady
+      ? THREE.MathUtils.smoothstep(p,.34,.405)*(1-THREE.MathUtils.smoothstep(p,.476,.510))
+      : 0;
+    // A short dip switches the shared canvas between the two camera layers.
+    // Both directions sample the same scroll progress.
+    const active=weight>=.5;
+    const opacity=active?THREE.MathUtils.smoothstep(weight,.5,1):1-THREE.MathUtils.smoothstep(weight,0,.5);
+    const value=String(opacity);
+    if(canvas.style.opacity!==value)canvas.style.opacity=value;
+    if(active!==healthyAnatomy.active){
+      healthyAnatomy.active=active;
+      healthyAnatomyUI.setVisible(active);
+      controls.enabled=!active;
+      if(active)fitAnatomyPlate();
+      else{
+        anatomyPlate.setSpread(0);
+        Object.assign(healthyAnatomy,{spread:0,expanded:false,motion:null});
+        healthyAnatomyUI.update(false,false,0);
       }
     }
-  }
-  function clearCavityAnatomy() {
-    if(!cavityAnatomy.framing)return;
-    cavityJourney.cancel();
-    cutaway.setReveal(0,0);
-    setHealthyCavity(false);
-    applyCavityContext(0);
-    canvas.style.opacity=String(dentalState.exampleOpacity);
-    delete stage.dataset.cavityAnatomy;
-    view.setInspectionZoomRange();
-    controls.enabled=true;
-    Object.assign(cavityAnatomy,{layer:null,framing:null,weight:0,depth:0,time:0,returning:false});
-  }
-  function setHealthyCavity(healthy) {
-    if(healthy===cavityAnatomy.healthy)return;
-    cavityAnatomy.healthy=healthy;
-    caries.setProgress(healthy?0:dentalState.lesionDisplay);
-  }
-  function cavitySceneOpacity() {
-    if(!cavityAnatomy.framing)return dentalState.exampleOpacity;
-    const phase=cavityAnatomy.weight;
-    return dentalState.exampleOpacity*(1-THREE.MathUtils.smoothstep(phase,0,.25)+THREE.MathUtils.smoothstep(phase,.45,.82));
-  }
-  function updateCavityAnatomy(now) {
-    if(!cavityAnatomy.framing)return false;
-    const {layer,returning}=cavityAnatomy;
-    const dt=cavityAnatomy.time?Math.min(50,now-cavityAnatomy.time):16.67;
-    cavityAnatomy.time=now;
-    const target=returning?0:1;
-    cavityAnatomy.weight=reducedMotion?target:THREE.MathUtils.clamp(cavityAnatomy.weight+(returning?-dt:dt)/800,0,1);
-    // Swap the two examples while the scene has faded completely to the
-    // background. The cavity never appears to heal or grow on screen.
-    setHealthyCavity(cavityAnatomy.weight>=.35);
-    canvas.style.opacity=String(cavitySceneOpacity());
-    const depth=returning?cavityAnatomy.depth:layer==='pulp'?2:layer==='dentin'?1:0;
-    const nextDepth=reducedMotion?depth:THREE.MathUtils.lerp(cavityAnatomy.depth,depth,1-Math.exp(-dt/100));
-    cavityAnatomy.depth=Math.abs(nextDepth-depth)<.002?depth:nextDepth;
-    cutaway.setReveal(cavityAnatomy.healthy?1:0,cavityAnatomy.depth);
-    applyCavityContext(THREE.MathUtils.smoothstep(cavityAnatomy.weight,0,1));
-    if(cavityAnatomy.weight===1&&!returning)controls.enabled=true;
-    return cavityAnatomy.weight!==target||cavityAnatomy.depth!==depth;
+    if(!active)return false;
+    const motion=healthyAnatomy.motion;
+    if(motion){
+      const t=reducedMotion?1:THREE.MathUtils.clamp((now-motion.began)/motion.duration,0,1);
+      healthyAnatomy.spread=THREE.MathUtils.lerp(motion.from,motion.target,THREE.MathUtils.smootherstep(t,0,1));
+      const points=anatomyPlate.setSpread(healthyAnatomy.spread);
+      if(t===1){
+        healthyAnatomy.motion=null;
+        if(healthyAnatomy.expanded)healthyAnatomyUI.positionLabels(points);
+      }
+    }
+    healthyAnatomyUI.update(healthyAnatomy.expanded,healthyAnatomy.expanded&&!healthyAnatomy.motion,opacity);
+    return Boolean(healthyAnatomy.motion);
   }
   function selectFinalView(next){
     if(next!=='anatomy')cancelFullArchFocus();
@@ -447,10 +359,7 @@ export function createExperience(configuration=experienceConfig) {
     (reducedMotion?sampleReducedDentalStory:sampleDentalStory)(p,dentalState);
     arch.setFinalView?.(finalView,smileWeight);
     arch.setState(dentalState);
-    caries?.setProgress(cavityAnatomy.healthy?0:dentalState.lesionDisplay);
-    plaque?.setState({visible:!cavityAnatomy.healthy&&dentalState.sceneProgress<.80,opacity:dentalState.plaqueDeposition,progress:dentalState.cleaningProgress,lesionProgress:dentalState.lesionDisplay});
-    const opacity=String(cavitySceneOpacity());
-    if(canvas.style.opacity!==opacity)canvas.style.opacity=opacity;
+    plaque?.setState({visible:dentalState.sceneProgress<.80,opacity:dentalState.plaqueDeposition,progress:dentalState.cleaningProgress});
     brush?.setPose(dentalState.brushPose);
     if(!moveCamera)return null;
     const pose=rig.setProgress(dentalState.sceneProgress,{reducedMotion:false,alternateWeight:1-smileWeight});
@@ -467,10 +376,8 @@ export function createExperience(configuration=experienceConfig) {
       manualCleaning:manual?{active:true,transition:manual.phase,position:manualCleaning.state.position,
         target:manualCleaning.state.target,phase:manualCleaning.state.phase,cleaningProgress:manualCleaning.state.cleaningProgress,
         travelled:manualCleaning.state.travelled,passes:manualCleaning.state.completedPasses}:null,
-      heroSpin:{state:heroSpin.state,angle:heroSpin.angle},detailOpen:detail.isOpen,detailPending,
-      cavityAnatomy:{active:Boolean(cavityAnatomy.layer),returning:cavityAnatomy.returning,
-        layer:cavityAnatomy.layer,healthy:cavityAnatomy.healthy,
-        weight:cavityAnatomy.weight,depth:cavityAnatomy.depth},
+      heroSpin:{state:heroSpin.state,angle:heroSpin.angle},
+      healthyAnatomy:{active:healthyAnatomy.active,spread:healthyAnatomy.spread,expanded:healthyAnatomy.expanded},
       heroAnatomy:{weight:heroAnatomy?.weight??0},
       fullAnatomy:fullArchAnatomy?.report()??{weight:0,teeth:0},
       focusedTooth:focusedFdi,focusMoving:fullArchFocus.active,focusReturning,focusHasOrigin:Boolean(focusOrigin),
@@ -485,7 +392,7 @@ export function createExperience(configuration=experienceConfig) {
       pixelRatio:renderer?.getPixelRatio(),gpuGeometries:renderer?.info.memory.geometries,gpuTextures:renderer?.info.memory.textures,
       shaderErrors:shaderError||renderer?.info.programs?.some((p)=>p.diagnostics?.runnable===false)?1:0,
       environment:lighting?.label,heroBytes:hero?.bytes,atlasBytes:atlas?.bytes,upperMolarBytes:upperMolar?.bytes,
-      story:{chapterId:dentalState.chapterId,sceneProgress:dentalState.sceneProgress,lesionProgress:dentalState.lesionProgress,lesionDisplay:dentalState.lesionDisplay,exampleOpacity:dentalState.exampleOpacity,cleaningProgress:dentalState.cleaningProgress,plaqueDeposition:dentalState.plaqueDeposition,plaqueCoverage:dentalState.plaqueCoverage,brushPose:{...dentalState.brushPose},caries:caries?.report(),plaque:plaque?.report(),brush:brush?.report()},
+      story:{chapterId:dentalState.chapterId,sceneProgress:dentalState.sceneProgress,cleaningProgress:dentalState.cleaningProgress,plaqueDeposition:dentalState.plaqueDeposition,plaqueCoverage:dentalState.plaqueCoverage,brushPose:{...dentalState.brushPose},plaque:plaque?.report(),brush:brush?.report()},
     };
   }
   function renderManual(now) {
@@ -513,7 +420,7 @@ export function createExperience(configuration=experienceConfig) {
       alignment:THREE.MathUtils.lerp(original.alignment,state.pose.alignment,amount),
       insertion:THREE.MathUtils.lerp(original.insertion,state.pose.insertion,amount),
       stroke:THREE.MathUtils.lerp(original.stroke,state.pose.stroke,amount),phase:state.pose.phase});
-    plaque.setState({visible:true,opacity:1,progress:THREE.MathUtils.lerp(manual.returnPlaque,state.cleaningProgress,amount),lesionProgress:0});
+    plaque.setState({visible:true,opacity:1,progress:THREE.MathUtils.lerp(manual.returnPlaque,state.cleaningProgress,amount)});
     const grip=updateManualProjection();
     manualUI.update({chapterId:'brush',ready:true,active:true,phase:state.phase,
       started:state.furthestInsertion>.005||state.position>.005,gripX:grip.x,gripY:grip.y,
@@ -593,19 +500,13 @@ export function createExperience(configuration=experienceConfig) {
     fullAnatomyControls.update({visible:finale&&finalView==='anatomy'&&(reducedMotion||dentalState.sceneProgress>=.978),enabled:storyReady,active:fullAnatomyActive,focused:focusedFdi!==null,selectedFdi:focusedFdi});
     if(pendingFinalView&&fullAnatomyWeight===0){const next=pendingFinalView;pendingFinalView=null;selectFinalView(next);}
     const fullAnatomyMoving=fullAnatomyWeight!==fullTarget;
-    const move=cavityJourney.update(now);
-    if(move.snapshot)view.restore(move.snapshot,{instant:reducedMotion});
     const focusMove=fullArchFocus.update(now);
     if(focusMove.snapshot){
       view.restore(focusMove.snapshot,{instant:reducedMotion});
       if(!focusMove.moving&&focusReturning){focusedFdi=null;focusOrigin=null;focusReturning=false;view.setGuidedZoomMinimum();}
     }
     const changing=view?.update(now)??false;
-    const cavityAnatomyMoving=updateCavityAnatomy(now);
-    if(cavityAnatomy.returning&&!move.moving&&!changing&&!cavityAnatomyMoving){
-      clearCavityAnatomy();finishCariesDetail();
-      detail.focusTrigger();
-    }
+    const healthyAnatomyMoving=updateHealthyAnatomy(now);
     // Shift the sensor's aim into the free centre of the stage while the
     // tooth is isolated; the story rig restores its own framing afterwards.
     const sensor=rig.camera.view;
@@ -615,21 +516,21 @@ export function createExperience(configuration=experienceConfig) {
       rig.camera.setViewOffset(sensor.fullWidth,sensor.fullHeight,(.5-sx)*sensor.fullWidth,(.5-sy)*sensor.fullHeight,sensor.fullWidth,sensor.fullHeight);
       focusSensorApplied=focusBlend>.001;
     }
-    if(detailPending&&!cavityJourney.active&&!changing){
-      detailPending=false;canvas.style.pointerEvents='';detail.show();
+    if(!healthyAnatomy.active){
+      arch.updateView(rig.camera);
+      annotations?.update({state:dentalState,camera:rig.camera,brush,free:exploring});
     }
-    arch.updateView(rig.camera);
-    annotations?.update({state:dentalState,camera:rig.camera,brush,free:exploring});
     if(lastFrame&&(interaction||changing||scrolling))adaptive.recordFrame(now-lastFrame);
     lastFrame=now;
     try {
-      renderer.info.reset();renderer.render(scene,rig.camera);renderedFrames++;
+      const camera=healthyAnatomy.active?anatomyPlate.camera:rig.camera;
+      renderer.info.reset();renderer.render(scene,camera);renderedFrames++;
       if(shaderError)throw new Error('Dental surface shader failed to compile.');
     }catch(error){showError('3D zobrazenie sa nepodarilo vykresliť.',error);return;}
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
-    if(changing||interaction||finalViewTransition||following||navigationMotion||move.moving||focusMove.moving||cavityAnatomyMoving){adaptive.beginInteraction();requestRender();}
+    if(changing||interaction||finalViewTransition||following||navigationMotion||focusMove.moving||healthyAnatomyMoving){adaptive.beginInteraction();requestRender();}
     else {
       if(!scrolling)adaptive.endInteraction();
       if(heroSpinning||anatomyState.moving||fullAnatomyMoving||Math.abs(focusTarget-focusBlend)>.002)requestRender();
@@ -650,16 +551,7 @@ export function createExperience(configuration=experienceConfig) {
     fittedRig=rig;
     if(manual){manualCameraPose(manual.cameraProgress);requestRender();return;}
     applyState(exploring?inspectionProgress:dentalState.progress,true);
-    if(cavityAnatomy.layer){
-      const current=view.capture();
-      const framing=frameCavityAnatomy(cutaway,rig);
-      const zoomRatio=Math.exp(current.zoom)/cavityAnatomy.framing.distance;
-      cavityAnatomy.framing=framing;
-      view.setInspectionZoomRange(framing.distance*.65,framing.distance*1.6);
-      const destination={...framing.snapshot,yaw:current.yaw,pitch:current.pitch,
-        zoom:Math.log(framing.distance*THREE.MathUtils.clamp(zoomRatio,.65,1.6))};
-      cavityJourney.move(current,destination,{instant:reducedMotion,milliseconds:450});
-    }
+    if(healthyAnatomy.active)fitAnatomyPlate();
     if(focusOrigin&&focusedFdi!==null&&!focusReturning){
       const mesh=arch.teeth.get(focusedFdi)?.mesh, current=view.capture();
       const destination=fullArchFocus.destination(mesh,rig,rig.camera,current);
@@ -673,11 +565,11 @@ export function createExperience(configuration=experienceConfig) {
     disposed=true;ready=false;listeners.abort();
     if(frame)cancelAnimationFrame(frame);frame=0;clearTimeout(settleTimer);clearTimeout(deferredTimer);
     releaseRendererLuts(renderer,scene);
-    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();detail.dispose();anatomyControls.dispose();fullAnatomyControls.dispose();manualUI.dispose();ui.dispose();
-    cutaway?.dispose();
+    observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();healthyAnatomyUI.dispose();anatomyControls.dispose();fullAnatomyControls.dispose();manualUI.dispose();ui.dispose();
+    anatomyPlate?.dispose();
     fullArchAnatomy?.dispose();
     heroAnatomy?.dispose();
-    brush?.dispose();plaque?.dispose();caries?.dispose();
+    brush?.dispose();plaque?.dispose();
     const atlasOwned=arch?.ownsSource(atlas),upperOwned=arch?.ownsSource(upperMolar);
     if(arch)arch.dispose();else disposeObject(hero?.object);
     if(atlas&&!atlasOwned)disposeObject(atlas.object);
@@ -689,27 +581,21 @@ export function createExperience(configuration=experienceConfig) {
   if(qa)window.__dentalExperience=controller;
   retry.addEventListener('click',()=>location.reload(),{signal});
   canvas.addEventListener('pointerdown',event=>{
-    if(!event.isPrimary){cavityPointer=null;return;}
+    if(!event.isPrimary||dentalState.chapterId!=='dentition'||!fullAnatomyActive){toothPointer=null;return;}
     if(event.pointerType==='mouse'&&event.button!==0)return;
-    cavityPointer={id:event.pointerId,x:event.clientX,y:event.clientY};
+    toothPointer={id:event.pointerId,x:event.clientX,y:event.clientY};
   },{signal});
-  canvas.addEventListener('pointercancel',()=>{cavityPointer=null;},{signal});
+  canvas.addEventListener('pointercancel',()=>{toothPointer=null;},{signal});
   canvas.addEventListener('pointerup',event=>{
-    const start=cavityPointer;cavityPointer=null;
-    if(!start||start.id!==event.pointerId||Math.hypot(event.clientX-start.x,event.clientY-start.y)>9||!storyReady||detailPending||detail.isOpen)return;
+    const start=toothPointer;toothPointer=null;
+    if(!start||start.id!==event.pointerId||Math.hypot(event.clientX-start.x,event.clientY-start.y)>9||!storyReady||
+      dentalState.chapterId!=='dentition'||!fullAnatomyActive||fullAnatomyWeight<=.95)return;
     const box=canvas.getBoundingClientRect();
     pointerNdc.set((event.clientX-box.left)/box.width*2-1,1-(event.clientY-box.top)/box.height*2);
     raycaster.setFromCamera(pointerNdc,rig.camera);
-    if(dentalState.chapterId==='dentition'&&fullAnatomyActive&&fullAnatomyWeight>.95){
-      const candidates=[...arch.teeth.values()].map(item=>item.mesh).filter(mesh=>mesh?.visible);
-      const hit=raycaster.intersectObjects(candidates,false)[0];
-      if(hit?.object.userData.fdi)focusTooth(hit.object.userData.fdi);
-      return;
-    }
-    if(dentalState.chapterId!=='caries'||dentalState.lesionDisplay<=.5)return;
-    const candidates=[36,37].map(id=>arch.teeth.get(id)?.mesh).filter(mesh=>mesh?.visible);
+    const candidates=[...arch.teeth.values()].map(item=>item.mesh).filter(mesh=>mesh?.visible);
     const hit=raycaster.intersectObjects(candidates,false)[0];
-    if(hit?.object===arch.teeth.get(36).mesh && hit.point.distanceTo(new THREE.Vector3().fromArray(site.lesion.centerWorldCm))<.22)detail.request();
+    if(hit?.object.userData.fdi)focusTooth(hit.object.userData.fdi);
   },{signal});
   window.addEventListener('pagehide',(e)=>{if(!e.persisted)dispose();},{signal});
   // Any new user gesture takes precedence over an in-flight button journey.
@@ -753,7 +639,6 @@ export function createExperience(configuration=experienceConfig) {
       adaptive=createAdaptiveQuality({renderer,profile,requestRender,config});
       controls=createModelGestures({canvas,view,config,signal,
         onStart(){
-          if(cavityAnatomy.layer)cavityJourney.cancel();
           if(fullArchFocus.active){fullArchFocus.cancel();focusReturning=false;}
           interaction=true;adaptive.beginInteraction();requestRender();
         },
@@ -809,7 +694,6 @@ export function createExperience(configuration=experienceConfig) {
             loadModel(config,profile.compact?config.assets.compact:config.assets.desktop,signal),
             loadModel(config,profile.compact?config.assets.upperCompact:config.assets.upperDesktop,signal),
             loadStoryData(config,config.assetsStory.site,signal),
-            loadStoryData(config,config.assetsStory.caries,signal),
             loadCrownAtlas(config,signal),
           ]);
           if(results[0].status==='fulfilled')atlas=results[0].value;
@@ -817,9 +701,8 @@ export function createExperience(configuration=experienceConfig) {
           if(disposed||contextLost){disposeObject(atlas?.object);disposeObject(upperMolar?.object);atlas=undefined;upperMolar=undefined;return;}
           for(const result of results)if(result.status==='rejected')throw result.reason;
           arch.attachAtlas(atlas,upperMolar);
-          arch.attachCrowns(results[4].value);
+          arch.attachCrowns(results[3].value);
           site=results[2].value;
-          caries=createCaries({arch,data:results[3].value,config,clay});
           // The visitor may already be inspecting the hero when its atlas
           // arrives. Capture neutral materials for the full arch without
           // showing a transient frame or changing the user's selected view.
@@ -827,7 +710,6 @@ export function createExperience(configuration=experienceConfig) {
           if(previousHeroWeight)heroAnatomy.setWeight(0);
           try { fullArchAnatomy=createFullArchAnatomy({arch}); }
           finally { if(previousHeroWeight)heroAnatomy.setWeight(previousHeroWeight); }
-          cutaway=createCariesCutaway({arch,heroAnatomy,site});
           path=createCleaningPath(site);
           brush=createInterdentalBrush({path,compact:profile.compact,options:config.brush});
           plaque=createPlaque({site,path,arch,compact:profile.compact,options:config.plaque});
@@ -841,7 +723,7 @@ export function createExperience(configuration=experienceConfig) {
           rig=createJourneyCamera({timeline:finalTimelines.smile,alternateTimeline:finalTimelines.anatomy,config,camera:previous.camera,sampleOnly:true});previous.dispose();
           rig.resize(canvas.clientWidth,canvas.clientHeight);
           applyState(exploring?inspectionProgress:Math.min(storyProgress,.045),true);
-          Object.assign(controller,{rig,site,caries,plaque,brush,path,annotations,timeline:expanded});
+          Object.assign(controller,{rig,site,plaque,brush,path,annotations,timeline:expanded});
           // Initiate translucent variants synchronously, then restore the
           // actual view before yielding: no offscreen state can flash on the
           // canvas while the compiler completes in the background.
@@ -862,6 +744,9 @@ export function createExperience(configuration=experienceConfig) {
           await prewarmSmileMaterials({arch,renderer,scene,camera:rig.camera,isAlive:()=>!disposed&&!contextLost});
           if(disposed||contextLost)return;
           await renderer.compileAsync(scene,rig.camera);
+          if(disposed||contextLost)return;
+          anatomyPlate=createExplodedAnatomy(scene,arch.teeth.get(36).mesh);
+          await renderer.compileAsync(anatomyPlate.models,anatomyPlate.camera,scene);
           if(disposed||contextLost)return;
           if(shaderError)throw new Error('Dental surface shader failed to compile.');
           storyReady=true;canvas.dataset.assetsReady='true';setProgress(progress);

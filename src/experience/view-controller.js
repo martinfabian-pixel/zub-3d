@@ -13,7 +13,7 @@ export function createViewController({camera,config}) {
   const returning=createInspectionReturn(camera,settings.returnDurationMs??480);
   let baseYaw=0,basePitch=0,baseRadius=1,last=0,valid=false,disposed=false;
   const minimum=Math.log(settings.minimumDistanceFraction),maximum=Math.log(settings.maximumDistanceFraction);
-  let guidedMinimum=null, inspectionRange=null;
+  let guidedMinimum=null;
   function writeBase(){camera.position.copy(basePosition);camera.lookAt(baseTarget);camera.updateMatrixWorld(true);}
   function interrupt(now){
     if(!returning.active)return;
@@ -58,15 +58,11 @@ export function createViewController({camera,config}) {
       if(!valid)return;interrupt(now);
       // A guided close-up may be closer than the regular manual zoom limit.
       // Permit a gradual zoom out from that position rather than snapping to it.
-      const nearLimit=inspectionRange?.[0]??(guidedMinimum===null?Math.min(minimum,desired.zoom):Math.min(minimum,guidedMinimum));
-      const farLimit=inspectionRange?.[1]??maximum;
-      desired.zoom=MathUtils.clamp(desired.zoom+Math.log(factor),nearLimit,farLimit);
+      const nearLimit=guidedMinimum===null?Math.min(minimum,desired.zoom):Math.min(minimum,guidedMinimum);
+      desired.zoom=MathUtils.clamp(desired.zoom+Math.log(factor),nearLimit,maximum);
     },
     setGuidedZoomMinimum(fraction=null){
       guidedMinimum=Number.isFinite(fraction)&&fraction>0&&fraction<1?Math.log(fraction):null;
-    },
-    setInspectionZoomRange(near,far){
-      inspectionRange=near>0&&Number.isFinite(far)&&far>near?[Math.log(near),Math.log(far)]:null;
     },
     capture(){return { ...desired, focus:desiredFocus.toArray() };},
     restore(snapshot,{instant=false}={}){

@@ -2,7 +2,7 @@ import { Box3, Matrix4, Ray, Triangle, Vector3 } from 'three';
 
 const point = new Vector3(), a = new Vector3(), b = new Vector3(), c = new Vector3();
 const triangle = new Triangle(a,b,c);
-const nearest = new Vector3(), weighted = new Vector3(), delta = new Vector3();
+const nearest = new Vector3(), weighted = new Vector3();
 const inverse = new Matrix4(), ray = new Ray(), boundHit = new Vector3();
 const toleranceCm = 0.001; // 0.01 mm along the ray, below the film thickness.
 
@@ -23,39 +23,11 @@ function bindLocal(mesh, local) {
   return binding;
 }
 
-function cavityMargin(mesh,site) {
-  const g=mesh.geometry,region=g.attributes.lesionRegion,indices=g.index;
-  // Registered refined-mesh triangle on the exposed lip of the FDI 36
-  // cavity. Unlike the deepest wall this point remains visible in the
-  // prepared macro view; its barycentric coordinates follow the morph.
-  const preferred=[32581,32579,18131];
-  const floor=preferred.reduce((sum,i)=>sum+region.getY(i),0)/3;
-  const rim=preferred.reduce((sum,i)=>sum+region.getZ(i),0)/3;
-  if(preferred.every(i=>i<region.count)&&floor>.15&&floor<.55&&rim>.5)
-    return {fdi:36,vertexIndices:preferred,barycentric:[1/3,1/3,1/3]};
-  const outward=new Vector3().fromArray(site.lesion.basisWorld.buccalLingualTangentBuccalPositive)
-    .addScaledVector(new Vector3().fromArray(site.basisWorld.occlusal),.35);
-  let selected,best=-Infinity;
-  for(let i=0;i<indices.count;i+=3) {
-    const ia=indices.getX(i),ib=indices.getX(i+1),ic=indices.getX(i+2);
-    // Use the inner broken lip, where exposed tissue is actually visible.
-    // The outer chalk halo projects noticeably beyond the brown opening.
-    const exposed=(region.getY(ia)+region.getY(ib)+region.getY(ic))/3;
-    if(exposed<.38||exposed>.58||(region.getZ(ia)+region.getZ(ib)+region.getZ(ic))/3<.10)continue;
-    a.fromBufferAttribute(g.attributes.position,ia);b.fromBufferAttribute(g.attributes.position,ib);c.fromBufferAttribute(g.attributes.position,ic);
-    const score=point.copy(a).add(b).add(c).multiplyScalar(1/3).applyMatrix4(mesh.matrixWorld).dot(outward);
-    if(score>best){best=score;selected={fdi:36,vertexIndices:[ia,ib,ic],barycentric:[1/3,1/3,1/3]};}
-  }
-  if(!selected)throw new Error('The refined cavity has no registered margin.');
-  return selected;
-}
-
 /** Fixed source points. A paired air-space landmark has one term on each
- * wall; a surface term uses indices of the actually rendered refined mesh.
+ * wall; a surface term uses indices of the actually rendered mesh.
  */
 export function createSurfaceAnchors(site, arch, compact) {
   const host=fdi=>arch.teeth.get(fdi).mesh;
-  const lesion=cavityMargin(host(36),site);
   const swept=site.plaque.verifiedReachableCenters[36];
   const entrySide=swept.patchBoundary.reduce((a,b)=>a.arcMm<b.arcMm?a:b);
   const cleaned=bindLocal(host(36),new Vector3().fromArray(swept.localMetres)
@@ -66,7 +38,7 @@ export function createSurfaceAnchors(site, arch, compact) {
   // entry, before any viewing direction or screen coordinates are known.
   let best=-Infinity,filmPoint;
   for(let i=0;i<patch.edgeWeight.length;i++) {
-    if(patch.edgeWeight[i]<.30||patch.lesionExclusion[i]>.12)continue;
+    if(patch.edgeWeight[i]<.30)continue;
     const score=patch.edgeWeight[i]-.18*Math.abs(patch.nearestArcMm[i]-4.05);
     if(score>best){best=score;filmPoint=new Vector3().fromArray(patch.positions,3*i);}
   }
@@ -79,7 +51,7 @@ export function createSurfaceAnchors(site, arch, compact) {
     const local=new Vector3().fromArray(wall.nearestWorld).applyMatrix4(inverse.copy(mesh.matrixWorld).invert());
     return bindLocal(mesh,local);
   });
-  return {space:{terms,weights:[.5,.5]},plaque,caries:lesion,cleaned,persistent:lesion};
+  return {space:{terms,weights:[.5,.5]},plaque,cleaned};
 }
 
 function termWorld(term,arch,out) {
@@ -96,11 +68,10 @@ export function anchorWorld(anchor,arch,out) {
   return out;
 }
 
-// Small spatial buckets cover both healthy and mature triangle bounds.
 // The broad-phase bounds are built once. Only intersected buckets require
-// exact triangle tests against the *current* morph, even during an orbit.
+// exact triangle tests, even during an orbit.
 function buildBuckets(g) {
-  const p=g.attributes.position,morph=g.morphAttributes.position?.[0],index=g.index;
+  const p=g.attributes.position,index=g.index;
   if(!g.boundingBox)g.computeBoundingBox();
   const min=g.boundingBox.min,span=g.boundingBox.getSize(new Vector3());
   const scale=11/Math.max(span.x,span.y,span.z),bins=new Map();
@@ -112,11 +83,6 @@ function buildBuckets(g) {
     let bin=bins.get(key);
     if(!bin){bin={box:new Box3(),faces:[]};bins.set(key,bin);}
     bin.faces.push(f);bin.box.expandByPoint(a).expandByPoint(b).expandByPoint(c);
-    if(morph) {
-      bin.box.expandByPoint(a.add(delta.fromBufferAttribute(morph,ia)));
-      bin.box.expandByPoint(b.add(delta.fromBufferAttribute(morph,ib)));
-      bin.box.expandByPoint(c.add(delta.fromBufferAttribute(morph,ic)));
-    }
   }
   return [...bins.values()];
 }

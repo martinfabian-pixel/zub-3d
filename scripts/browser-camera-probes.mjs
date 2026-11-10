@@ -22,7 +22,7 @@ export async function cameraProbe(page) {
       raster:{dpr:app.renderer.getPixelRatio(),fullDpr:app.profile.pixelRatio,buffer:[el.width,el.height],frame:app.renderer.info.render.frame,rect:el.getBoundingClientRect().toJSON()},
       nativeY:scrollY,nativeP:-section.top/Math.max(1,section.height-height),reportedP:r.progress,
       touchAction:getComputedStyle(el).touchAction,pageScale:visualViewport?.scale??1,draws:app.renderer.info.render.frame,
-      story:{chapter:s.chapterId,evaluated:s.sceneProgress,lesion:s.lesionProgress,influence:tooth?.morphTargetInfluences?.[0]??0,
+      story:{chapter:s.chapterId,evaluated:s.sceneProgress,influence:tooth?.morphTargetInfluences?.[0]??0,
         deposition:s.plaqueDeposition,clean:s.cleaningProgress,removed:s.plaque?.patches?.map(x=>x.currentWeightedRemoval)??[],
         brush:s.brushPose?{...s.brushPose}:null,tip:s.brush?.tipWorld??null,visible:[...r.visibleTeeth].sort((a,b)=>a-b),
         pose36:tooth?.matrixWorld.toArray()??null}};
@@ -179,11 +179,11 @@ export async function desktopInputSequence(page,go) {
   await wheelOnCanvas(page,-145);await snap('freeWheel');
   await nativeJump(page,.20);await snap('freeNativeJump');
   const continueTrace=await traceHandover(page,()=>page.locator('#journey-explore').click());await snap('continued');
-  await go(.475123);await mouseDrag(page,75,-42);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(190);await snap('beforeResize');
+  await go(.330123);await mouseDrag(page,75,-42);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(190);await snap('beforeResize');
   await page.setViewportSize({width:1073,height:811});await page.waitForTimeout(240);await snap('afterResize');
   await page.setViewportSize(initialViewport);await page.waitForTimeout(240);
   const chapterTrace=await traceHandover(page,()=>page.locator('.journey-step').nth(5).click());await snap('navigated');
-  await go(.475);await page.locator('#journey-reset').click();await page.waitForTimeout(550);
+  await go(.33);await page.locator('#journey-reset').click();await page.waitForTimeout(550);
   await mouseDrag(page,-110,62);await snap('beforeWheelHandover');
   const wheelTrace=await traceHandover(page,()=>wheelOnCanvas(page,188),'wheel');await snap('afterWheelHandover');
   return {states:record,continueTrace,chapterTrace,wheelTrace};

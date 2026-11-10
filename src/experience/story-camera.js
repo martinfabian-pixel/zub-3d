@@ -17,36 +17,36 @@ function region(center, halfExtent) {
  */
 export function createStoryCameraConfig(site, base, { finalView = 'smile', compact = false } = {}) {
   const settings = compact ? { ...base.storyCamera, ...base.storyCamera.compact } : base.storyCamera;
-  const lesion = new Vector3().fromArray(site.lesion.centerWorldCm);
+  const surface = new Vector3().fromArray(site.teachingSurfaceWorldCm);
   const gap = new Vector3().fromArray(site.tightestGapFocusWorldCm);
   const entry = new Vector3().fromArray(site.brush.centerline[0].position);
   const buccal = new Vector3().fromArray(site.basisWorld.buccal);
   const occlusal = new Vector3().fromArray(site.basisWorld.occlusal);
   const distal = new Vector3().fromArray(site.basisWorld['36DistalToward37']);
-  const macro = new Vector3().fromArray(site.lesion.macroCamera.directionFromLesionToCameraWorld).normalize();
+  const macro = buccal.clone().addScaledVector(occlusal, .2).addScaledVector(distal, .6).normalize();
   const spaceDirection = buccal.clone().addScaledVector(occlusal, settings.spaceOcclusalAngle).addScaledVector(distal, 0.19).normalize().toArray();
 
   // These volumes live at the actual contact and insertion side. No tooth
   // or instrument can be displaced to satisfy the photography.
-  const space = gap.clone().lerp(lesion, 0.45).addScaledVector(occlusal, settings.spaceOcclusalShiftCm);
-  const plaque = lesion.clone().addScaledVector(occlusal, -0.035);
-  const cleaning = lesion.clone().lerp(entry, settings.cleaningEntryFraction);
-  const result = lesion.clone().addScaledVector(occlusal, -settings.resultApicalShiftCm);
+  const space = gap.clone().lerp(surface, 0.45).addScaledVector(occlusal, settings.spaceOcclusalShiftCm);
+  const plaque = surface.clone().addScaledVector(occlusal, -0.035);
+  const cleaning = surface.clone().lerp(entry, settings.cleaningEntryFraction);
+  const result = surface.clone().addScaledVector(occlusal, -settings.resultApicalShiftCm);
   const landmarks = {
     space: region(space, new Vector3(0.35, 0.35, 0.49)),
     plaque: region(plaque, new Vector3(0.13, 0.19, 0.32)),
-    detail: region(lesion, new Vector3(0.10, 0.14, 0.25)),
+    detail: region(surface, new Vector3(0.10, 0.14, 0.25)),
     cleaning: region(cleaning, new Vector3(0.19, 0.13, 0.21)),
     result: region(result, new Vector3(0.11, 0.17, 0.27)),
   };
   // Turn toward the side of the working head. Looking along the wire hides
-  // the filaments behind the grip. The cavity view stays on the 36 side
-  // of this angle to keep the proximal opening in view.
+  // the filaments behind the grip. Frame the healthy contact from the same
+  // side before and after the intervening isolated anatomy model.
   const brushDirection = adjustDirection(macro, settings.brushYawDegrees, settings.brushPitchDegrees);
   const brushSideDirection = adjustDirection(macro,
     settings.brushYawDegrees + (settings.brushSweepYawDegrees ?? 0),
     settings.brushPitchDegrees + (settings.brushSweepPitchDegrees ?? 0));
-  const lesionDirection = adjustDirection(macro, settings.lesionYawDegrees, settings.lesionPitchDegrees);
+  const resultDirection = adjustDirection(macro, settings.resultYawDegrees, settings.resultPitchDegrees);
   const specs = [
     ['hero', 0.045, 'hero', base.camera.directions.hero],
     ['neighbors', 0.145, 'neighbors', settings.neighborDirection],
@@ -54,8 +54,8 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     // Look slightly across the contact so the deliberately disclosed,
     // brush-reachable film is visible instead of hidden behind tooth 37.
     ['plaque', 0.33, 'plaque', adjustDirection(macro, -21, 4), settings.plaqueDistanceCm],
-    ['lesion', 0.47, 'detail', lesionDirection, settings.detailDistanceCm],
-    ['lesion-hold', 0.48, 'detail', lesionDirection, settings.detailDistanceCm],
+    ['anatomy-entry', 0.47, 'detail', resultDirection, settings.detailDistanceCm],
+    ['anatomy-exit', 0.48, 'detail', resultDirection, settings.detailDistanceCm],
     ['brush', 0.515, 'cleaning', brushDirection, settings.cleaningDistanceCm],
     // The orbit starts after the first cleaning strokes. Both poses use the
     // same measured contact region and return before the result close-up.
@@ -63,8 +63,8 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     ['brush-orbit-side', 0.667, 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
     ['brush-orbit-hold', 0.676, 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
     ['withdrawn', 0.72, 'cleaning', brushDirection, settings.cleaningDistanceCm],
-    ['result', 0.76, 'result', lesionDirection, settings.resultDistanceCm],
-    ['result-hold', 0.80, 'result', lesionDirection, settings.resultDistanceCm],
+    ['result', 0.76, 'result', resultDirection, settings.resultDistanceCm],
+    ['result-hold', 0.80, 'result', resultDirection, settings.resultDistanceCm],
     ['flight-entry', 0.844, 'flight', [.52,.20,1], 10.8],
     ['flight-pass', 0.884, 'flight', [.21,.13,1], 12.3],
     ['flight-approach', 0.931, 'flight', [.09,.075,1], 10.8],

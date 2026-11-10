@@ -90,7 +90,7 @@ export const experienceConfig = {
     spaceDistanceCm: 3.35, plaqueDistanceCm: 2.14, detailDistanceCm: 1.44,
     cleaningDistanceCm: 2.27, resultDistanceCm: 1.58,
     spaceOcclusalShiftCm: 0.035, spaceOcclusalAngle: 0.77,
-    lesionYawDegrees: -5, lesionPitchDegrees: 0,
+    resultYawDegrees: -5, resultPitchDegrees: 0,
     brushYawDegrees: 19, brushPitchDegrees: 5, brushSweepYawDegrees: -60, brushSweepPitchDegrees: 3,
     cleaningEntryFraction: 0.63, resultApicalShiftCm: 0.014,
     compact: {
@@ -101,10 +101,9 @@ export const experienceConfig = {
       resultApicalShiftCm: 0.012,
     },
   },
-  caries: {chalk:'#f8f2df',floor:'#927157',margin:'#c5ad84'},
   smileMaterial: {enamelColor:'#f7f6f3',roughness:.27,occlusionStrength:.18},
   plaque: {tint:'#b88f9b',warmTint:'#cda6ac'},
   brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
-  assetsStory: {site:'story-assets/site.json',caries:'story-assets/caries-36.json'},
-  presentation: { steps:DENTAL_CHAPTERS.map((ch,i)=>({...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,meta:i===0?'FDI 36 · dolná ľavá · 2 korene':i===6?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',next:i===6?'Späť na ukážku čistenia':'Pokračovať',subject:i===0?'Dolná ľavá prvá stolička':i===6?'Starostlivosť o celý chrup':'Medzizubný priestor 36–37'})) },
+  assetsStory: {site:'story-assets/site.json'},
+  presentation: { steps:DENTAL_CHAPTERS.map((ch,i)=>({...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,meta:i===0||ch.id==='anatomy'?'FDI 36 · dolná ľavá · 2 korene':i===6?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',next:i===6?'Späť na ukážku čistenia':'Pokračovať',subject:i===0||ch.id==='anatomy'?'Dolná ľavá prvá stolička':i===6?'Starostlivosť o celý chrup':'Medzizubný priestor 36–37'})) },
 };

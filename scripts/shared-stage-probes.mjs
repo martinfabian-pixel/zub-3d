@@ -46,9 +46,8 @@ export async function measureSharedStage(page) {
         for(const i of eligible)point.add(v.fromArray(patch.positions,i*3));
         if(eligible.length){point.multiplyScalar(1/eligible.length).applyMatrix4(m.matrixWorld);sample('reachable deposit '+patch.fdi);}
       }
-    } else if(chapter==='caries'||chapter==='result'){
-      const region=host.geometry.getAttribute('lesionRegion');
-      for(let i=0;i<region.count;i+=5)if(region.getY(i)>.55){host.getVertexPosition(i,point).applyMatrix4(host.matrixWorld);sample('cavity floor');}
+    } else if(chapter==='result'){
+      point.fromArray(app.site.teachingSurfaceWorldCm);sample('cleaned proximal surface');
     } else if(chapter==='brush'){
       point.fromArray(app.site.brush.centerline[0].position);sample('buccal shaft entry');
       if(state.story.brush.tipWorld){point.fromArray(state.story.brush.tipWorld);sample('brush tip');}

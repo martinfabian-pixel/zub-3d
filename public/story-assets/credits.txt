@@ -16,18 +16,16 @@ Finálna korunková zostava je úpravou tých istých anatomických modelov
 University of Dundee, School of Dentistry. Korunky sú oddelené a uzavreté
 pre štylizované zobrazenie úsmevu. Úprava je dostupná pod CC BY 4.0.
 
-Úpravy pre tento príbeh: výber konkrétnych povrchových trojuholníkov,
-meranie priestoru medzi pevne umiestnenými zubami, ilustračné masky
-povlaku a nekavitovanej zmeny, miestna geometrická priehlbina na 36.
-Ide o novú autorskú ilustráciu hypotetickej lézie. Pôvodný Dundee model
-nezobrazuje túto meranú chorobu; zdravé súbory ani jeho zrkadlený zub 46
-sa neupravili. Úbytok tkaniva je prezentovaný v ilustračnej mierke.
+Úpravy pre tento príbeh: meranie medzizubného priestoru, ilustračné
+zvýraznenie povlaku a rozložený model stavby zdravého zuba. Sklovina,
+dentín a koreňový cement vychádzajú z pôvodného povrchu FDI 36. Dreň,
+ďasno a kostné lôžko sú vytvorené ako ilustračné 3D štruktúry.
 
 Kefka a jej nástrojové rozmery ilustrujú mechaniku v tejto jednej scéne;
 nejde o kópiu konkrétneho predávaného výrobku. V dátach je overený iba
 odstup od tvrdých povrchov. Nie sú v nich ďasná, papila ani meranie sily.
 Z tejto scény nemožno predpísať veľkosť kefky, hĺbku zasunutia ani
-klinickú bezpečnosť pre konkrétne ústa. Kefka neobnovuje chýbajúce tkanivo.
+klinickú bezpečnosť pre konkrétne ústa.
 
 Kredity ostatných zubov a HDR: ../dentition-assets/credits.txt.
 Detailný zdravý dolný molár: ../dentition-assets/hero-36-credits.txt.

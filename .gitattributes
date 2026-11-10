@@ -14,3 +14,5 @@ public/dentition-assets/manifest.json -text whitespace=trailing-space,space-befo
 public/dentition-assets/credits.txt -text whitespace=trailing-space,space-before-tab,cr-at-eol
 # Preserve the exact spatial data payloads referenced by the offline audit.
 public/story-assets/*.json -text whitespace=trailing-space,space-before-tab,cr-at-eol
+# Keep the archived research payload byte-identical after moving it out of Pages.
+assets/source/proximal-story/caries-36.json -text whitespace=trailing-space,space-before-tab,cr-at-eol

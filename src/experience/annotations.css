@@ -48,13 +48,7 @@
   background: rgb(233 249 240 / 96%);
   text-align: left;
 }
-#journey-annotations [data-annotation-id="persistent"] {
-  color: #684c57;
-  background: rgb(251 234 239 / 96%);
-  text-align: left;
-}
 #journey-annotations [data-annotation-id="cleaned"] .annotation-copy { max-width: 77px; }
-#journey-annotations [data-annotation-id="persistent"] .annotation-copy { max-width: 108px; }
 #journey-annotations [data-annotation-id="cleaned"]::before {
   content: "";
   flex: 0 0 5px;
@@ -64,14 +58,6 @@
   border: solid #619b80;
   border-width: 0 1.5px 1.5px 0;
   transform: rotate(45deg);
-}
-#journey-annotations [data-annotation-id="persistent"]::before {
-  content: "!";
-  flex: 0 0 7px;
-  color: #b47c8f;
-  font-size: 15px;
-  font-weight: 500;
-  text-align: center;
 }
 #journey-annotations [hidden] { display: none; }
 .journey-annotation-description {
@@ -91,5 +77,4 @@
   }
   #journey-annotations [data-annotation-id="space"] .annotation-copy { max-width: 82px; }
   #journey-annotations [data-annotation-id="cleaned"] .annotation-copy { max-width: 71px; }
-  #journey-annotations [data-annotation-id="persistent"] .annotation-copy { max-width: 100px; }
 }

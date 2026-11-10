@@ -21,11 +21,10 @@ export const DENTAL_CHAPTERS = Object.freeze([
       note: 'Farebne zvýraznený pre názornosť.',
       education:'Baktérie v povlaku vytvárajú z cukrov kyseliny, ktoré môžu postupne poškodzovať sklovinu. Farba zvýrazňuje tenkú vrstvu povlaku; nejde o zubný kameň.',
     }),
-  chapter('caries', 'Kaz', .34, .48, .475, .475,
-    ['Keď sa', 'poškodí zub.'],
-    'Vzniknutú dutinu kefka neopraví.', {
-      note: 'Ilustrácia vývoja v čase, nie zmena počas jedného čistenia.',
-      education:'Ilustrácia vývoja v čase, nie zmena počas jedného čistenia. Vzniknutá dutina vyžaduje odborné ošetrenie. Spätný scroll vracia výučbovú sekvenciu, neukazuje biologické liečenie kazu.',
+  chapter('anatomy', 'Stavba zuba', .34, .48, .475, .475,
+    ['Stavba', 'zdravého zuba'],
+    'Rozložte si zdravú stoličku a pozrite sa, čo je pod jej povrchom.', {
+      education:'Ilustračný model zdravej dolnej stoličky ukazuje sklovinu, dentín, dreň, koreňový cement a kostné lôžko.',
     }),
   chapter('brush', 'Čistenie', .48, .72, .620, .620,
     ['Jemne tam', 'a späť.'],
@@ -38,13 +37,13 @@ export const DENTAL_CHAPTERS = Object.freeze([
     ['Čistý priestor.', 'Zdravý zub.'],
     'Kefka odstránila časť povlaku.', {
       resultLabels: Object.freeze(['Vyčistený povrch']),
-      education:'Ide o ukážku prevencie na zdravom zube. Kefka odstraňuje povlak v dosahu štetiniek. Ak už v zube vznikla dutina, vyžaduje odborné ošetrenie.',
+      education:'Ide o ukážku čistenia zdravého zuba. Kefka odstraňuje povlak v dosahu štetiniek.',
     }),
   chapter('dentition', 'Chrup', .80, 1, .995, .995,
     ['Malý návyk.', 'Veľký rozdiel.'],
     'Starostlivosť o celý chrup začína aj medzi zubami.', {
       note: 'Pomôcku a jej veľkosť prispôsobte konkrétnemu priestoru.',
-      education:'Medzizubné priestory čistite každý deň. Zuby čistite dvakrát denne fluoridovou pastou. Pomôcku a jej veľkosť prispôsobte konkrétnemu priestoru. Medzizubná kefka nenahrádza bežné čistenie ani odborné ošetrenie a neprisľubuje úplnú ochranu pred kazom.',
+      education:'Medzizubné priestory čistite každý deň. Zuby čistite dvakrát denne fluoridovou pastou. Pomôcku a jej veľkosť prispôsobte konkrétnemu priestoru. Medzizubná kefka dopĺňa bežné čistenie.',
     }),
 ]);
 
@@ -53,9 +52,7 @@ export const DENTAL_STORY = Object.freeze({
   chapters: DENTAL_CHAPTERS,
   fdi: Object.freeze({ hero: 36, distalNeighbor: 37, neighbors: Object.freeze([35, 36, 37]) }),
   neighbors: range(.10, .16), gapFocus: range(.16, .22), gapRelease: range(.80, .875),
-  // The camera approaches first; the cavity develops only at the end of the
-  // macro move. This remains reversible with the same story progress.
-  deposition: range(.22, .33), lesion: range(.43, .47),
+  deposition: range(.22, .33),
   brush: Object.freeze({
     appear: range(.48, .502), align: range(.48, .515), enter: range(.515, .56),
     work: range(.56, .68), withdraw: range(.68, .714), fade: range(.708, .72),

@@ -39,7 +39,7 @@ try {
       let s=await state();
       assert.equal(s.manualCleaning.phase,'ready');
       assert.equal(s.manualCleaning.cleaningProgress,0);
-      assert.equal(s.story.caries.morphInfluence,0);
+      assert.equal(s.healthyAnatomy.active,false);
       if(out&&mobile)await page.screenshot({path:`${out}/01-before.png`});
       const axis=await page.evaluate(()=>{
         const e=window.__dentalExperience,path=e.path,camera=e.rig.camera,rect=document.querySelector('canvas').getBoundingClientRect();

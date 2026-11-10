@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Interactive dental education — plaque, persistent cavity and interdental brushing, Three.js.",
+  "description": "Interactive dental education — healthy tooth anatomy, plaque and interdental brushing, Three.js.",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",

@@ -4,11 +4,11 @@ import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 import { getDentalChapter, sampleDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
 
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
-const ids = ['hero', 'space', 'plaque', 'caries', 'brush', 'result', 'dentition'];
+const ids = ['hero', 'space', 'plaque', 'anatomy', 'brush', 'result', 'dentition'];
 const visual = s => [s.sceneProgress, s.neighborsReveal, s.gapFocus, s.lowerReveal, s.upperReveal,
-  s.plaqueDeposition, s.plaqueCoverage, s.lesionProgress, s.lesionDisplay, s.exampleOpacity, s.cleaningProgress, { ...s.brushPose }];
+  s.plaqueDeposition, s.plaqueCoverage, s.cleaningProgress, { ...s.brushPose }];
 assert.deepEqual(DENTAL_CHAPTERS.map(c => c.id), ids);
-assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Zub', 'Priestor', 'Povlak', 'Kaz', 'Čistenie', 'Výsledok', 'Chrup']);
+assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Zub', 'Priestor', 'Povlak', 'Stavba zuba', 'Čistenie', 'Výsledok', 'Chrup']);
 for (const [i, c] of DENTAL_CHAPTERS.entries()) {
   assert.strictEqual(getDentalChapter(c.start), c);
   assert.strictEqual(getDentalChapter(c.at), c);
@@ -33,10 +33,10 @@ for (let i = 1; i <= 10000; ++i) {
   const p = i / 10000, s = sampleDentalStory(p);
   maxReach = Math.max(maxReach, s.brushPose.insertion);
   for (const k of ['neighborsReveal', 'lowerReveal', 'upperReveal', 'plaqueDeposition', 'plaqueCoverage',
-    'lesionProgress', 'lesionDisplay', 'exampleOpacity', 'cleaningProgress', 'brushVisibility', 'brushAlignment', 'brushInsertion', 'brushStroke']) {
+    'cleaningProgress', 'brushVisibility', 'brushAlignment', 'brushInsertion', 'brushStroke']) {
     assert.ok(Number.isFinite(s[k]) && s[k] >= 0 && s[k] <= 1, `${k} is normalized`);
   }
-  assert.ok(s.lesionProgress >= previous.lesionProgress && s.cleaningProgress >= previous.cleaningProgress);
+  assert.ok(s.cleaningProgress >= previous.cleaningProgress);
   assert.ok(s.cleaningProgress <= maxReach + 1e-9, 'Removal front may not outrun previous physical contact');
   if (s.cleaningProgress > previous.cleaningProgress + 1e-10) {
     assert.ok(s.brushPose.visibility > .99 && s.brushPose.phase === 'stroke', 'Only actual engaged passes remove plaque');
@@ -45,10 +45,6 @@ for (let i = 1; i <= 10000; ++i) {
   if (p <= .56) assert.equal(s.cleaningProgress, 0);
   if (p < .68) assert.ok(s.cleaningProgress < 1);
   if (p >= .68) assert.equal(s.cleaningProgress, 1);
-  if (p <= .34) assert.equal(s.lesionProgress, 0);
-  if (p >= .48) assert.equal(s.lesionProgress, 1, 'A formed cavity must persist through cleaning and final arch reveal');
-  if (p >= .487) assert.equal(s.lesionDisplay, 0, 'The cleaning example shows a healthy surface');
-  if (previous.lesionDisplay > 0 && s.lesionDisplay === 0) assert.equal(s.exampleOpacity, 0, 'The example changes only while the scene is hidden');
   if (p < .48 || p >= .72) assert.equal(s.brushVisibility, 0);
   if (p <= .80) assert.equal(s.lowerReveal + s.upperReveal, 0);
   if (s.upperReveal > 0) assert.equal(s.lowerReveal, 1);
@@ -62,39 +58,18 @@ for (let i = 1; i <= 10000; ++i) {
 }
 assert.deepEqual([forwards, backwards], [3, 2], 'Three forward passes, with two partial returns before complete withdrawal');
 
-// The diseased and healthy examples share the tooth geometry. Switch their
-// state only while the canvas is fully hidden, including in reverse. Opacity
-// must remain continuous and the parked caries chapter fully visible.
-assert.equal(sampleDentalStory(.475).exampleOpacity, 1, 'The selected caries detail is fully visible');
-assert.equal(sampleDentalStory(.4865).exampleOpacity, 0);
-assert.equal(sampleDentalStory(.487).exampleOpacity, 0);
-assert.equal(sampleDentalStory(.4895).exampleOpacity, 0);
-assert.equal(sampleDentalStory(.510).exampleOpacity, 1);
-const transition = Array.from({ length: 4001 }, (_, i) => sampleDentalStory(.474 + i * .00001));
-for (let i = 1; i < transition.length; i++) {
-  const a = transition[i - 1], b = transition[i];
-  assert.ok(Math.abs(b.exampleOpacity - a.exampleOpacity) < .002, 'Example fade is continuous');
-  if ((a.lesionDisplay === 0) !== (b.lesionDisplay === 0)) {
-    assert.equal(a.exampleOpacity, 0, 'Before the example swap the canvas is hidden');
-    assert.equal(b.exampleOpacity, 0, 'After the example swap the canvas is hidden');
-  }
-}
-for (let i = transition.length - 1; i >= 0; --i) {
-  const p = .474 + i * .00001;
-  assert.deepEqual(sampleDentalStory(p), transition[i], 'Reverse reconstructs the identical example and fade');
-}
+const anatomy = sampleDentalStory(.475);
+assert.equal(anatomy.chapter.title, 'Stavba zdravého zuba');
+assert.equal(anatomy.cleaningProgress, 0);
+assert.equal(anatomy.brushVisibility, 0);
+assert.equal(sampleDentalStory(.48).chapterId, 'brush');
 const clean = sampleDentalStory(.76);
 assert.equal(clean.plaqueCoverage, 0, 'Depicted reachable subset has been swept');
 assert.equal(clean.plaqueDeposition, 1, 'Unreached spatial patches can remain; do not globally fade plaque');
-assert.equal(clean.lesionProgress, 1);
-assert.equal(clean.lesionDisplay, 0);
-
-const reducedPlaque = sampleReducedDentalStory(.23), reducedCaries = sampleReducedDentalStory(.35);
-assert.equal(reducedPlaque.plaqueDeposition, 1); assert.equal(reducedPlaque.lesionProgress, 0);
-assert.equal(reducedCaries.lesionProgress, 1); assert.equal(reducedCaries.cleaningProgress, 0);
-assert.equal(reducedCaries.lesionDisplay, 1);
+const reducedPlaque = sampleReducedDentalStory(.23), reducedAnatomy = sampleReducedDentalStory(.35);
+assert.equal(reducedPlaque.plaqueDeposition, 1);
+assert.equal(reducedAnatomy.sceneProgress, .475); assert.equal(reducedAnatomy.cleaningProgress, 0);
 const reducedBrush = sampleReducedDentalStory(.49);
-assert.equal(reducedBrush.lesionDisplay, 0); assert.equal(reducedBrush.exampleOpacity, 1);
 assert.equal(reducedBrush.brushVisibility, 1); assert.ok(reducedBrush.brushInsertion > .6);
 assert.ok(reducedBrush.cleaningProgress > 0 && reducedBrush.cleaningProgress < 1);
 assert.equal(sampleReducedDentalStory(.81).upperReveal, 1);
@@ -109,4 +84,4 @@ for (const i of [...fresh.keys()].reverse().concat([8, 499, 120, 351, 310, 20, 3
   assert.strictEqual(reusable.brushPose, pose);
   assert.deepEqual(reusable, fresh[i], 'One absolute story position always reconstructs the same scene');
 }
-console.log('Dental story: 7 static reduced-motion chapters, 10,001 trajectory samples, persistent cavity, spatial cleaning-front bounds and reverse/jump checks passed.');
+console.log('Dental story: 7 static reduced-motion chapters, 10,001 trajectory samples, healthy anatomy, spatial cleaning-front bounds and reverse/jump checks passed.');

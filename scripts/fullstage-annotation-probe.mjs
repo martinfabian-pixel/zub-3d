@@ -7,15 +7,13 @@ import { nativeJump, restingRaster } from './browser-camera-probes.mjs';
 const captions = {
   space: 'Medzizubný priestor',
   plaque: 'Povlak',
-  caries: 'Kaz',
   cleaned: 'Vyčistený povrch',
-  persistent: 'Kaz vyžaduje ošetrenie',
 };
 const chapters = {
   hero: [],
   space: ['space'],
   plaque: ['plaque'],
-  caries: ['caries'],
+  anatomy: [],
   brush: [],
   result: ['cleaned'],
   dentition: [],
@@ -97,22 +95,12 @@ function inspectFrame(eligibleIds) {
       }
     }
     if (face < 0) throw Error(`FDI ${fdi} anchor does not reference one indexed triangle`);
-    const local = vec(),
-      native = vec(),
-      region = mesh.geometry.getAttribute('lesionRegion');
-    let floor = 0,
-      chalk = 0,
-      margin = 0;
+    const local = vec(), native = vec();
     for (let i = 0; i < 3; i++) {
       mesh.getVertexPosition(ids[i], A);
       local.addScaledVector(A, w[i]);
       A.fromBufferAttribute(mesh.geometry.attributes.position, ids[i]);
       native.addScaledVector(A, w[i]);
-      if (region) {
-        floor += region.getY(ids[i]) * w[i];
-        chalk += region.getX(ids[i]) * w[i];
-        margin += region.getZ(ids[i]) * w[i];
-      }
     }
     const world = local.clone().applyMatrix4(mesh.matrixWorld);
     const nativeLocalMetres = native.toArray();
@@ -124,9 +112,6 @@ function inspectFrame(eligibleIds) {
       worldCm: world.toArray(),
       weight: [...w],
       sourceVertices: [...ids],
-      floor,
-      chalk,
-      margin,
       morphWeight: mesh.morphTargetInfluences?.[0] ?? 0,
       currentDeformationMm: world.distanceTo(native.applyMatrix4(mesh.matrixWorld)) * 10,
     };
@@ -246,8 +231,6 @@ function inspectFrame(eligibleIds) {
           triangle: i / 3,
           localGapMetres: gap,
           edgeWeight: w * patch.edgeWeight[a] + u * patch.edgeWeight[b] + v * patch.edgeWeight[c],
-          lesionExclusion:
-            w * patch.lesionExclusion[a] + u * patch.lesionExclusion[b] + v * patch.lesionExclusion[c],
         };
     }
     return best;
@@ -545,22 +528,6 @@ export async function auditAnnotations(page) {
             v,
           );
       }
-      if (['caries', 'persistent'].includes(x.id))
-        check(
-          `${name}/${x.id}: actual FDI36 lesion, not generic tooth center`,
-          x.terms?.length === 1 &&
-            x.terms[0].fdi === 36 &&
-            x.terms[0].chalk > 0.05 &&
-            Math.max(x.terms[0].floor, x.terms[0].margin) > 0.4 &&
-            x.terms[0].morphWeight > 0.5,
-          x.terms?.map((t) => ({
-            fdi: t.fdi,
-            floor: t.floor,
-            margin: t.margin,
-            chalk: t.chalk,
-            morphWeight: t.morphWeight,
-          })),
-        );
     }
     if (visible.length === 2) {
       const [[x, y, w, h], [a, b, c, d]] = visible.map((r) => r.domRect);
@@ -593,7 +560,7 @@ export async function auditAnnotations(page) {
     });
   };
   try {
-    for (const id of ['hero', 'space', 'plaque', 'caries', 'brush', 'result', 'dentition']) {
+    for (const id of Object.keys(chapters)) {
       await go(id);
       await read(id, `guided-${id}`);
     }
@@ -609,8 +576,8 @@ export async function auditAnnotations(page) {
       offscreen.length > 0 && offscreen.every((p) => p.reason === 'offscreen' && p.forward && p.outside),
       offscreen,
     );
-    await go('caries');
-    const base = await read('caries', 'orbit-start');
+    await go('plaque');
+    const base = await read('plaque', 'orbit-start');
     // Keyboard orbit uses normal public UI, works on touch-capable test devices,
     // and does not pretend that an arbitrary screen drag always crosses a tooth.
     await page.locator('#journey-explore').click();
@@ -618,8 +585,8 @@ export async function auditAnnotations(page) {
     let observed = false;
     for (let turn = 1; turn <= 6 && !observed; turn++) {
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
-      const s = await read('caries', `manual-orbit-${turn}`, true),
-        label = s.labels.find((x) => x.id === 'caries');
+      const s = await read('plaque', `manual-orbit-${turn}`, true),
+        label = s.labels.find((x) => x.id === 'plaque');
       observed = !!(
         label?.inCanvas &&
         label.reason === 'occluded' &&
@@ -635,7 +602,7 @@ export async function auditAnnotations(page) {
       states
         .filter((s) => s.name.startsWith('manual-orbit'))
         .map((s) => {
-          const x = s.labels.find((x) => x.id === 'caries');
+          const x = s.labels.find((x) => x.id === 'plaque');
           return { reason: x?.reason, visible: x?.on, hit: x?.firstHit, worldCm: x?.worldCm };
         }),
     );
