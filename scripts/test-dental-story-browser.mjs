@@ -474,7 +474,7 @@ async function malformedStoryOwnership() {
     const home=await cameraProbe(page);
     await page.locator('#journey-zoom-in').click();await threeFrames(page);
     const inspect=await page.evaluate(()=>{const a=window.__dentalExperience;return {frame:a.renderer.info.render.frame,camera:a.rig.camera.position.toArray(),target:a.rig.target.toArray(),errors:a.report().shaderErrors};});
-    check('Healthy 36 still renders and responds to zoom after returning home',!inspect.errors&&dist(inspect.camera,inspect.target)<dist(home.camera,home.target)-.001,inspect);
+    check('Healthy 36 still renders and responds to zoom after returning home',inspect.frame>home.draws&&!inspect.errors&&dist(inspect.camera,inspect.target)<dist(home.pos,home.target)-.001,inspect);
     const cleanup=await page.evaluate(()=>{
       const a=window.__dentalExperience,measure=()=>({gpu:{...a.renderer.info.memory},bitmaps:window.__qaBitmapDisposals(),disposed:a.report().disposed});
       const uniforms=a.renderer.properties.get(a.arch.teeth.get(36).mesh.material).uniforms;
