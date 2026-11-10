@@ -24,7 +24,7 @@ export function createCariesDetail({ stage, onRequest, onClose, onAnatomyChange 
   info.className = 'cavity-detail-info';
   info.hidden = true;
   info.innerHTML = `
-    <p>Ilustračné baktérie v povlaku vytvárajú z cukrov kyseliny, ktoré poškodzujú sklovinu.</p>
+    <p>Baktérie v povlaku vytvárajú z cukrov kyseliny, ktoré poškodzujú sklovinu.</p>
     <div class="cavity-detail-actions">
       <button type="button" class="cavity-anatomy-trigger" aria-controls="cavity-anatomy">Pozrieť pod povrch <span aria-hidden="true">↗</span></button>
       <button type="button" class="cavity-detail-return">Späť k zubu</button>

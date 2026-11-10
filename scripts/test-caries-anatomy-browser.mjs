@@ -95,11 +95,14 @@ try {
       assert.equal(original.story.influence, 1);
       await activate(page.getByRole('button', { name: /Pozrieť sa na kaz bližšie/ }));
       await wait(() => window.__dentalExperience.report().detailOpen);
-      await wait(() => window.__dentalExperience.report().microbes?.reveal > .95);
       await wait(originalRadius => {
         const { camera, target } = window.__dentalExperience.report();
         return Math.hypot(...camera.map((value, i) => value - target[i])) < .8 * originalRadius;
       }, distance(original.pos, original.target));
+      assert.equal((await report()).story.caries.morphInfluence, 1, 'The original cavity remains visible in the close-up');
+      const hasCartoonBacteria = await page.evaluate(() =>
+        Boolean(window.__dentalExperience.scene.getObjectByName('Illustrative bacteria at FDI 36 lesion')));
+      assert.equal(hasCartoonBacteria, false, 'The close-up scene contains no cartoon bacteria');
       await startExchangeProbe();
       await activate(page.getByRole('button', { name: 'Pozrieť pod povrch' }));
       const pulpName = 'Healthy FDI 36 · schematic pulp and root canals';
@@ -134,7 +137,7 @@ try {
             lesionTint: uniforms?.lesionProgress?.value, pulpVisible,
             capVisible: cap?.parent === tooth && cap.visible,
             progressionTint: (uniforms?.sectionIllustration?.value?.x ?? -1) >= 0,
-            microbesVisible: state.microbes.visible, plaqueVisible: state.story.plaque.visible,
+            plaqueVisible: state.story.plaque.visible,
             storyLesion: state.story.lesionDisplay, storyChapter: state.story.chapterId,
             shaderErrors: state.shaderErrors,
           };
@@ -142,7 +145,7 @@ try {
         assert.deepEqual(rendered, {
           toothVisible: true, lesionMorph: 0, lesionTint: 0, pulpVisible: depth === 2, progressionTint: false,
           capVisible: depth > 0,
-          microbesVisible: false, plaqueVisible: false, storyLesion: 1, storyChapter: 'caries', shaderErrors: 0,
+          plaqueVisible: false, storyLesion: 1, storyChapter: 'caries', shaderErrors: 0,
         }, `The visible FDI 36 is healthy in the ${layer} layer while preserving the story lesion`);
         assert.equal(await page.locator('.cavity-progression, .cavity-progression-toggle').count(), 0);
       }

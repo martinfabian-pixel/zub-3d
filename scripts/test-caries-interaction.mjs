@@ -83,15 +83,14 @@ try {
       if (mobile) await page.touchscreen.tap(...anchor.point);
       else await page.mouse.click(...anchor.point);
       await page.waitForFunction(() => window.__dentalExperience.report().detailOpen, null, { timeout: 12000 });
-      await page.waitForFunction(() => {
-        const microbes = window.__dentalExperience.report().microbes;
-        return microbes?.visible && microbes.reveal > .95;
-      }, null, { timeout: 5000 });
       const zoomed = await report();
       if (!reduced) assert.ok(distance(zoomed.camera, zoomed.target) < radius * .8, 'The camera approaches the clicked cavity');
       assert.equal(await page.locator('canvas').count(), 1, 'The close-up uses the existing Three.js canvas');
       assert.equal(await page.locator('#cavity-detail-dialog').count(), 0, 'The 3D close-up is not replaced by a dialog illustration');
-      assert.equal(zoomed.microbes?.visible, true, 'Cartoon bacteria appear in the 3D close-up');
+      assert.equal(zoomed.story.caries.morphInfluence, 1, 'The original cavity remains visible in the close-up');
+      const hasCartoonBacteria = await page.evaluate(() =>
+        Boolean(window.__dentalExperience.scene.getObjectByName('Illustrative bacteria at FDI 36 lesion')));
+      assert.equal(hasCartoonBacteria, false, 'The close-up scene contains no cartoon bacteria');
       assert.equal(await page.locator('.cavity-detail-return').isVisible(), true);
       if (screenshotDir && !reduced) await page.screenshot({ path: `${screenshotDir}/${width}-cavity-detail.png` });
       await page.keyboard.press('Escape');
@@ -142,7 +141,6 @@ try {
       const brushing = await seek(.62);
       assert.equal(brushing.story.lesionProgress, 1, 'The earlier example remains in story data');
       assert.equal(brushing.story.lesionDisplay, 0);
-      assert.equal(brushing.microbes?.visible, false, 'The bacteria do not carry over into the healthy brushing example');
       assert.equal(brushing.story.caries.morphInfluence, 0, 'The brush uses the healthy example');
       assert.match(await page.locator('#journey-description').innerText(), /zdravom zube/);
       assert.equal(await page.locator('.cavity-detail-trigger').isVisible(), false);
