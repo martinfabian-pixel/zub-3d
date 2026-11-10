@@ -130,7 +130,8 @@ try {
   try {
     await openStory(mobile);
     const boot = await mobile.evaluate(readProgress);
-    assert.deepEqual(boot.teeth, [36], 'The hero renders while every deferred asset is held');
+    assert.equal(boot.chapter, 'assembly', 'The loader enters the assembly chapter');
+    assert.deepEqual(boot.teeth, [36], 'The seed tooth renders while every deferred asset is held');
     assert.equal(boot.assetsReady, false);
 
     // These native writes model consecutive wheel/inertia updates. Test the
@@ -183,6 +184,10 @@ try {
     await atChapter(mobile, 'dentition');
     assert.equal((await mobile.evaluate(readProgress)).teeth.length, 28,
       'The opening smile and atlas work before the teaching site is ready');
+    await mobile.locator('#journey-mobile-next').tap();
+    await atChapter(mobile, 'hero');
+    assert.deepEqual((await mobile.evaluate(readProgress)).teeth, [36],
+      'The isolated tooth is chapter three, between the atlas and anatomical layers');
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'anatomy');
     await overshoot(mobile);

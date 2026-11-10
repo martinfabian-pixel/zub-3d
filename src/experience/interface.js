@@ -100,8 +100,9 @@ export function createInterface({config,section,stage,signal,navigate,navigation
     }
     byId('journey-final-views').hidden=step.id!=='dentition'||sceneProgress<STORY_TIMING.atlas[0]||sceneProgress>STORY_TIMING.atlas[1];
     typography.update(step,state?.progress??progress,{mobile:small,reducedMotion,free:exploring,sceneProgress});
-    heroExplore.hidden=active!==0||exploring;
-    freeExplore.hidden=active===0&&!exploring;
+    const isHero=step.id==='hero';
+    heroExplore.hidden=!isHero||exploring;
+    freeExplore.hidden=isHero&&!exploring;
     liveReady=ready;
     for(const button of modelButtons)button.disabled=!ready;
     for(const name of ['smile','anatomy']){

@@ -16,12 +16,14 @@ function region(center, halfExtent) {
   return new Box3(center.clone().sub(halfExtent), center.clone().add(halfExtent));
 }
 
-function introFrames(base) {
+function toothFrames(base, keys, range) {
   const direction=base.camera.directions.hero;
-  return [
-    { key:'hero', at:.045, landmark:'hero', direction },
-    { key:'hero-hold', at:.100, landmark:'hero', direction },
-  ];
+  const padding=base.camera.padding?.hero, portraitPadding=base.camera.portraitPadding?.hero;
+  return keys.map((key,index)=>({key,at:range[index],landmark:'hero',direction,padding,portraitPadding}));
+}
+
+function seedFrames(base) {
+  return toothFrames(base,['assembly-seed','assembly-seed-hold'],[0,STORY_TIMING.flight[0]]);
 }
 
 function flightFrames() {
@@ -36,7 +38,7 @@ function flightFrames() {
 }
 
 export function createIntroCameraOptions(base,{flightReady=false}={}) {
-  const keyframes=introFrames(base);
+  const keyframes=seedFrames(base);
   if(flightReady)keyframes.push(...flightFrames());
   return { ...base.camera,keyframes };
 }
@@ -73,9 +75,10 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
   const roots=finalView==='anatomy'||!crownsReady;
   const keyframes=[
-    ...introFrames(base),...flightFrames(),
+    ...seedFrames(base),...flightFrames(),
     archFrame(base,settings,{key:'atlas-open',at:atlasStart,roots}),
     archFrame(base,settings,{key:'atlas-hold',at:atlasEnd,roots}),
+    ...toothFrames(base,['hero','hero-hold'],STORY_TIMING.heroHold),
     ...anatomyFrames(),
   ];
   if(!site)return {landmarks:{},camera:{...base.camera,keyframes}};

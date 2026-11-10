@@ -14,7 +14,8 @@ const screenshotDir = process.env.DENTAL_STORY_REVIEW_DIR;
 if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
 const chapter = id => DENTAL_CHAPTERS.find(c => c.id === id);
 const anatomy = chapter('anatomy');
-assert.equal(DENTAL_CHAPTERS[2].id, 'dentition', 'The atlas precedes the healthy anatomy chapter');
+assert.equal(DENTAL_CHAPTERS[1].id, 'dentition', 'The atlas follows the opening assembly');
+assert.equal(DENTAL_CHAPTERS[2].id, 'hero', 'The isolated tooth precedes the healthy anatomy chapter');
 assert.equal(DENTAL_CHAPTERS[3], anatomy);
 const layerSelector = '.healthy-anatomy-layer';
 const cases = [

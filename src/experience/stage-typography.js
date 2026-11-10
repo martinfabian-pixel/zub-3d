@@ -41,7 +41,7 @@ export function sampleStageTypography(chapter,progress,{mobile=false,reducedMoti
   if(!reducedMotion){
     if(chapter.id==='assembly'){
       const opening=smooth((progress-STORY_TIMING.flight[0])/.035);
-      const landing=smooth((progress-.247)/.04);
+      const landing=smooth((progress-(STORY_TIMING.flight[1]-.038))/.04);
       opacity*=1-.48*opening*(1-landing);
     }
     if(chapter.id==='brush'&&copy===chapter)opacity*=smooth((STORY_TIMING.result[0]-progress)/.009);

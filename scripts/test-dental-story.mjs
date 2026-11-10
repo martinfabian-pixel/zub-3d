@@ -5,7 +5,7 @@ import { getDentalChapter, sampleDentalStory, sampleNeighborEntrance, sampleRedu
 import { createStoryAnatomy } from '../src/experience/story-anatomy.js';
 
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
-const ids = ['hero', 'assembly', 'dentition', 'anatomy', 'space', 'plaque', 'brush'];
+const ids = ['assembly', 'dentition', 'hero', 'anatomy', 'space', 'plaque', 'brush'];
 const visual = s => [s.sceneProgress, s.neighborsReveal, s.gapFocus, s.lowerReveal, s.upperReveal,
   s.assemblyReveal, s.finaleReveal, s.assemblyCrownCoverage, s.finalCrownCoverage,
   s.plaqueDeposition, s.plaqueCoverage, s.cleaningProgress, { ...s.brushPose }];
@@ -17,7 +17,7 @@ const [returnStart, returnEnd] = STORY_TIMING.return;
 const [finalDissolveStart, finalDissolveEnd] = STORY_TIMING.finalCrowns;
 const [resultStart, resultEnd] = STORY_TIMING.result;
 assert.deepEqual(DENTAL_CHAPTERS.map(c => c.id), ids);
-assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Zub', 'Skladanie', 'Chrup', 'Stavba zuba', 'Priestor', 'Povlak', 'Čistenie']);
+assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Skladanie', 'Chrup', 'Zub', 'Stavba zuba', 'Priestor', 'Povlak', 'Čistenie']);
 for (const [i, c] of DENTAL_CHAPTERS.entries()) {
   assert.strictEqual(getDentalChapter(c.start), c);
   assert.strictEqual(getDentalChapter(c.at), c);
@@ -34,7 +34,7 @@ for (const [i, c] of DENTAL_CHAPTERS.entries()) {
 }
 assert.equal(sampleDentalStory(-2).progress, 0);
 assert.equal(sampleDentalStory(4).progress, 1);
-assert.equal(sampleDentalStory(NaN).chapterId, 'hero');
+assert.equal(sampleDentalStory(NaN).chapterId, 'assembly');
 assert.equal(getDentalChapter(1).id, 'brush');
 
 // Inspect the actual sampled axial path independently of its keyframe table.
@@ -80,6 +80,10 @@ assert.deepEqual([forwards, backwards], [3, 2], 'Three forward passes, with two 
 const assembly = sampleDentalStory((dissolveStart + dissolveEnd) / 2);
 assert.ok(assembly.assemblyCrownCoverage > 0 && assembly.assemblyCrownCoverage < 1);
 assert.equal(sampleDentalStory(chapter('dentition').at).assemblyCrownCoverage, 1);
+const hero = sampleDentalStory(chapter('hero').at);
+assert.equal(hero.assemblyReveal, 0, 'Chapter three has released the opening arch');
+assert.equal(hero.assemblyCrownCoverage, 0, 'Chapter three uses the original rooted tooth');
+assert.equal(hero.neighborsReveal, 0);
 const anatomy = sampleDentalStory(chapter('anatomy').at);
 assert.equal(anatomy.chapter.title, 'Stavba zdravého zuba');
 assert.equal(anatomy.cleaningProgress, 0);

@@ -31,11 +31,12 @@ const q = '#journey-canvas', allFDI=[1,2,3,4].flatMap(k=>Array.from({length:7},(
 const finaleAt=1;
 const atlasIndex=chapters.findIndex(chapter=>chapter.id==='dentition');
 const atlasAt=chapters[atlasIndex].at;
+const heroAt=chapters.find(chapter=>chapter.id==='hero').at;
 const anatomyIndex=chapters.findIndex(chapter=>chapter.id==='anatomy');
 const brushIndex=chapters.findIndex(chapter=>chapter.id==='brush');
 const brushAt=chapters[brushIndex].at;
 const plaqueAt=chapters.find(chapter=>chapter.id==='plaque').at;
-const requestedTitles=['Začína sa to jedným zubom.','Jeden po druhom.','Celý chrup.','Stavba zdravého zuba',
+const requestedTitles=['Jeden po druhom.','Celý chrup.','Začína sa to jedným zubom.','Stavba zdravého zuba',
   'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
 if(!chapters.every((chapter,index)=>chapter.title===requestedTitles[index]))throw Error('Slovak story titles do not match the seven chapters.');
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
@@ -72,7 +73,7 @@ async function open(settings={},allowedOrigin=site.origin) {
 async function ready(page) {
   await page.waitForSelector(q+'[data-ready="true"][data-assets-ready="true"]',{timeout:60000});
   await page.waitForFunction(()=>{const d=window.__dentalExperience?.report();return d?.story?.plaque && d.story.brush;},null,{timeout:30000});
-  await page.waitForFunction(()=>['done','paused'].includes(window.__dentalExperience.report().heroSpin.state),null,{timeout:12000});
+  await page.locator('#journey-startup').waitFor({state:'hidden'});
   await threeFrames(page);
 }
 async function at(page,p) {
@@ -116,13 +117,15 @@ async function read(page) {
   });
 }
 async function saveView(page,label,p,index,expected,base) {
-  await scroll(page,p);const raster=await restingRaster(page),s=await read(page);
+  const chapter=chapters[index],copy=getStoryCopy(chapter,p);
+  await scroll(page,p);
+  if(chapter.id==='hero')await page.waitForFunction(()=>['done','paused'].includes(window.__dentalExperience.report().heroSpin.state),null,{timeout:15000});
+  const raster=await restingRaster(page),s=await read(page);
   s.raster=raster;s.optics=await opticalState(page);
   if(/^(desktop|mobile)-(hero|brush|full)$/.test(label)){
     const {matrices,...footprint}=await projectedFootprints(page);s.projectedFootprint=footprint;
   }
   await page.screenshot({path:resolve(out,label+'.png'),scale:'css',animations:'disabled'});
-  const chapter=chapters[index],copy=getStoryCopy(chapter,p);
   if(chapter.id==='anatomy'){
     const stage=await page.locator('#journey-stage').evaluate(e=>getComputedStyle(e).backgroundImage);
     check(label+' opens the animated pulp section of the healthy model on the common canvas',
@@ -156,7 +159,7 @@ async function saveView(page,label,p,index,expected,base) {
     a.surface.sceneBackground===null&&a.surface.sceneColorToken==='#e6f3fc'&&
     a.surface.stageBackground.includes('rgb(230, 243, 252)')&&a.surface.canvasColor==='rgba(0, 0, 0, 0)',a.surface);
   check(label+' hero CTA and atlas views are active only at their respective chapters',
-    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===atlasIndex)&&a.controls.finalInCopy,a.controls);
+    a.controls.heroVisible===(chapter.id==='hero')&&a.controls.finalVisible===(index===atlasIndex)&&a.controls.finalInCopy,a.controls);
   if(chapter.id==='plaque')check(label+' plaque color explanation is visible',a.controls.noteVisible,a.controls);
   check(label+' one canvas fills the fixed stage beneath the overlay',l.overflowX<=1&&['left','top','right','bottom'].every(k=>near(a.stage[k],b[k],1)),{stage:a.stage,canvas:b});
   const f=a.framing;
@@ -223,7 +226,7 @@ async function annotationScenario(page,label){
   (report.annotations??=[]).push({label,...result});
 }
 async function storyboardNavigation(page,label){
-  await scroll(page,0);await restingRaster(page);
+  await scroll(page,heroAt);await restingRaster(page);
   const before=await cameraProbe(page);
   await page.locator('#journey-hero-explore').click();await threeFrames(page);
   const entered=await cameraProbe(page);
@@ -231,6 +234,7 @@ async function storyboardNavigation(page,label){
     free(entered)&&sameStory(before,entered)&&near(entered.nativeP,before.nativeP,.001),{before,entered});
   await page.locator('#journey-explore').click();await page.waitForTimeout(650);
   check(label+' hero CTA returns through the common continue action',guided(await cameraProbe(page)));
+  await scroll(page,0);
   for(let i=1;i<7;i++){
     await page.locator('#journey-mobile-next').click();await at(page,chapters[i].at);
     check(label+' persistent forward arrow lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);
@@ -269,7 +273,7 @@ async function desktopInputs(page) {
   await scroll(page,brushAt);await page.locator('#journey-explore').click();await nativeJump(page,0);
   const held=await cameraProbe(page);await page.locator('#journey-home').click();await page.waitForTimeout(680);
   const home=await cameraProbe(page);
-  check('Clicking an already reached native position reconciles frozen state',free(held)&&held.story.chapter==='brush'&&near(held.nativeP,0,.0005)&&guided(home)&&home.story.chapter==='hero'&&equal(home.story.visible,[36]),{held:held.story.chapter,home:home.story.chapter,native:home.nativeP});
+  check('Clicking an already reached native position reconciles frozen state',free(held)&&held.story.chapter==='brush'&&near(held.nativeP,0,.0005)&&guided(home)&&home.story.chapter==='assembly'&&equal(home.story.visible,[36]),{held:held.story.chapter,home:home.story.chapter,native:home.nativeP});
 }
 async function mobileInputs(ctx,page){
   const evidence=await mobileInputSequence(ctx,page,p=>scroll(page,p)),s=evidence.states;
@@ -373,7 +377,7 @@ async function desktop() {
     const buttons=page.locator('.journey-step');check('Seven focusable desktop chapters',await buttons.count()===7);
     for(let i=0;i<chapters.length;i++){await buttons.nth(i).click();await at(page,chapters[i].at);const a=await read(page);check('Direct chapter '+chapters[i].label,a.chapter===chapters[i].id&&a.activeCount===1&&(await buttons.nth(i).getAttribute('aria-current'))==='step');}
     await page.locator('#journey-home').click();await at(page,0);await buttons.nth(1).click();await at(page,chapters[1].at);
-    await buttons.first().click();await at(page,0);
+    await buttons.first().click();await at(page,chapters[0].at);
     await page.locator('#journey-help').click();check('Help opens an accessible modal',await page.locator('#journey-help-dialog').evaluate(d=>d.open&&Boolean(d.getAttribute('aria-labelledby'))));
     await page.keyboard.press('Escape');check('Escape dismisses the help dialog',!(await page.locator('#journey-help-dialog').isVisible()));
     await buttons.nth(anatomyIndex).click();await at(page,chapters[anatomyIndex].at);await page.locator('#journey-notes').click();
@@ -451,7 +455,7 @@ async function reduced() {
 async function aliases() {
   for(const [entry,selector]of [['experience/?qa=1',q],['legacy/','#tooth-canvas'],['prototype/','#prototype-canvas']]){
     const {ctx,page}=await open();try{await goto(page,entry);await page.waitForSelector(selector+'[data-ready="true"]',{timeout:60000});
-      if(entry.startsWith('experience')){await ready(page);check('/experience/ alias loads same seven-chapter story',(await read(page)).chapter==='hero'&&await page.locator('.journey-step').count()===7);}
+      if(entry.startsWith('experience')){await ready(page);check('/experience/ alias loads same seven-chapter story',(await read(page)).chapter==='assembly'&&await page.locator('.journey-step').count()===7);}
       else{const d=await page.locator(selector).evaluate(el=>({...el.dataset}));check('Preserved '+entry+' loads original model',d.ready==='true'&&(entry==='legacy/'?Number(d.assetTriangles)===388032:Number(d.modelMeshes)===1),d);}
     }finally{await closeContext(ctx);}
   }
@@ -528,8 +532,9 @@ async function pendingAssetsWithInput() {
     try{
       await page.route('**/story-assets/site.json*',async r=>{noticed();await gate;return r.continue();});
       await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
+      await page.locator('#journey-startup').waitFor({state:'hidden'});
       let timer;try{await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Story data gate not reached')),15000);})]);}finally{clearTimeout(timer);}
-      if(mode==='free')await page.locator('#journey-hero-explore').click();
+      if(mode==='free')await page.locator('#journey-explore').click();
       await mouseDrag(page,65,-40);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(450);
       const held=await cameraProbe(page);release();await ready(page);await page.waitForTimeout(180);const after=await cameraProbe(page);
       check('Completing background assets keeps real user rotation/zoom in '+mode,

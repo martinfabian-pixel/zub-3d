@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { DENTAL_CHAPTERS, FINAL_SMILE_COPY, STORY_TIMING } from '../src/experience/story-config.js';
 import { getStoryCopy, sampleStageTypography,TYPE_COMPOSITIONS } from '../src/experience/stage-typography.js';
 
-const names=['Začína sa to jedným zubom.','Jeden po druhom.','Celý chrup.','Stavba zdravého zuba',
+const names=['Jeden po druhom.','Celý chrup.','Začína sa to jedným zubom.','Stavba zdravého zuba',
   'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
 assert.deepEqual(DENTAL_CHAPTERS.map(c=>c.title),names);
 for(const chapter of DENTAL_CHAPTERS){

@@ -13,6 +13,7 @@ const browser=await chromium.launch({channel:'chrome',headless:true});
 const results=[];
 const atlasIndex=DENTAL_CHAPTERS.findIndex(chapter=>chapter.id==='dentition');
 const atlasAt=DENTAL_CHAPTERS[atlasIndex].at;
+const [assemblyChapter,atlasChapter,heroChapter]=DENTAL_CHAPTERS;
 const brushAt=DENTAL_CHAPTERS.find(chapter=>chapter.id==='brush').at;
 const [dissolveFrom,dissolveTo]=STORY_TIMING.assemblyCrowns;
 const dissolveAt=fraction=>dissolveFrom+(dissolveTo-dissolveFrom)*fraction;
@@ -25,6 +26,10 @@ try {
   page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url());});
   await page.goto(url+'?qa=1',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:90000});
+  await page.locator('#journey-startup').waitFor({state:'hidden'});
+  assert.equal(await page.locator('#journey-step-number').innerText(),'01 / 07');
+  assert.equal(await page.evaluate(()=>window.__dentalExperience.report().story.chapterId),'assembly');
+  assert.equal(await page.locator('#journey-hero-explore').isVisible(),false);
   async function seek(progress) {
    await page.evaluate(p=>{const r=document.querySelector('#dental-journey').getBoundingClientRect();
     const h=document.querySelector('#journey-stage').clientHeight;
@@ -63,6 +68,13 @@ try {
   function expectMeshes(state,crowns,anatomy) {
    assert.equal(state.crowns,crowns);
    assert.equal(state.anatomy,anatomy);
+  }
+  async function navigateTo(selector,chapter,index) {
+   const button=page.locator(selector);
+   if(mobile)await button.tap();else await button.click();
+   await page.waitForFunction(({id,at})=>{const r=window.__dentalExperience.report();
+    return r.story.chapterId===id&&Math.abs(r.progress-at)<.002&&Math.abs(r.renderProgress-r.storyProgress)<.00002;},chapter);
+   assert.equal(await page.locator('#journey-step-number').innerText(),`0${index} / 07`);
   }
 
   await seek(flightProgress(.875));
@@ -128,10 +140,16 @@ try {
   assert.equal(await page.evaluate(()=>window.__dentalExperience.report().exploring),false);
   await page.setViewportSize({width:height,height:width});await page.waitForTimeout(500);
   assert.ok(Math.abs((await page.evaluate(()=>window.__dentalExperience.report().progress))-brushAt)<.01);
-  await page.locator('.journey-step').first().click();
-  await page.waitForFunction(()=>{const r=window.__dentalExperience.report();return r.story.chapterId==='hero'&&r.renderProgress<.001;});
-  await page.locator('.journey-step').nth(atlasIndex).click();
-  await page.waitForFunction(()=>{const r=window.__dentalExperience.report();return r.story.chapterId==='dentition'&&Math.abs(r.renderProgress-r.storyProgress)<.00002;});
+  await navigateTo('.journey-step:first-child',assemblyChapter,1);
+  expectMeshes(await readState(),0,28);
+  await navigateTo('#journey-mobile-next',atlasChapter,2);
+  expectMeshes(await readState(),28,0);
+  await navigateTo('#journey-mobile-next',heroChapter,3);
+  expectMeshes(await readState(),0,1);
+  assert.equal(await page.locator('#journey-hero-explore').isVisible(),true);
+  assert.equal(await page.locator('#journey-view-anatomy').isVisible(),false);
+  await page.waitForFunction(()=>Math.abs(window.__dentalExperience.report().heroSpin.angle)>.04);
+  await navigateTo('#journey-mobile-previous',atlasChapter,2);
   expectMeshes(await readState(),28,0);
   await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(700);
   expectMeshes(await readState(),0,28);

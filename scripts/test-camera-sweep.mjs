@@ -10,6 +10,7 @@ import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from '../src/experience/
 // Real measured proximal site with small mock landmark boxes. The browser tests
 // independently check actual tooth occlusion and the visible camera framing.
 const site = JSON.parse(readFileSync(new URL('../public/story-assets/site.json', import.meta.url)));
+const chapterAt = id => DENTAL_CHAPTERS.find(chapter => chapter.id === id).at;
 const region = (center, size) => new Box3().setFromCenterAndSize(new Vector3(...center), new Vector3(...size));
 const landmarks = {
   hero: region([2.86, -.68, -.63], [1.4, 2.1, 1.4]),
@@ -40,7 +41,10 @@ for (const compact of [false, true]) {
   const baselineOptions = { ...cameraOptions, keyframes: cameraOptions.keyframes.filter(frame => !frame.key.startsWith('brush-orbit-')) };
   const baseline = createTimeline({ landmarks: allLandmarks, cameraOptions: baselineOptions });
   const sample = progress => timeline.sample(progress, aspect);
-  const hero = sample(.045), anatomy = sample(DENTAL_CHAPTERS.find(chapter => chapter.id === 'anatomy').at);
+  const atlas = sample(chapterAt('dentition'));
+  const hero = sample(chapterAt('hero')), anatomy = sample(chapterAt('anatomy'));
+  assert.ok(atlas.target.distanceTo(hero.target) > 2, 'The camera leaves the full arch to frame the isolated tooth');
+  assert.ok(hero.target.distanceTo(sample(0).target) < 1e-8, 'Chapter three returns to the original tooth framing');
   assert.ok(Math.abs(angleDifference(yaw(anatomy), yaw(hero))) > .05,
     'Anatomy turns the same hero tooth to show the cut');
   assert.notDeepEqual([anatomy.screenX, anatomy.screenY, anatomy.opticalZoom],

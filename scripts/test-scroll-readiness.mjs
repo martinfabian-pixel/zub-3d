@@ -6,13 +6,13 @@ const [rootStop, crownStop] = STORY_TIMING.flight;
 const studyStop = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').start - .001;
 const brushAt = DENTAL_CHAPTERS.at(-1).at;
 const gate = createScrollReadiness(rootStop);
-assert.deepEqual(gate.sample(.05), { progress: .05, blocked: false });
+assert.deepEqual(gate.sample(rootStop / 2), { progress: rootStop / 2, blocked: false });
 assert.deepEqual(gate.sample(.9), { progress: rootStop, blocked: true });
 assert.deepEqual(gate.sample(rootStop), { progress: rootStop, blocked: false });
 assert.equal(gate.pendingTarget, null, 'native flings are not queued');
 assert.equal(gate.advance(crownStop), null, 'loading never replays a native fling');
 assert.deepEqual(gate.sample(rootStop), { progress: rootStop, blocked: false });
-assert.deepEqual(gate.sample(.20), { progress: .20, blocked: false });
+assert.deepEqual(gate.sample(crownStop - .01), { progress: crownStop - .01, blocked: false });
 
 const journey = createScrollReadiness(rootStop);
 assert.equal(journey.plan(brushAt), rootStop, 'button travel starts up to the available point');

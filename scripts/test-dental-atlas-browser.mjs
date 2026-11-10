@@ -241,6 +241,9 @@ try {
       assertRestored(await read(page), baseline);
       await choose(37);
       await settleFocus(page, 37);
+      await seek(page, 'hero');
+      assert.equal(await page.locator(selector).isVisible(), false);
+      assert.deepEqual((await read(page)).visibleTeeth, [36], 'Moving forward from the atlas isolates the original tooth');
       await seek(page, 'assembly');
       assert.equal(await page.locator(selector).isVisible(), false);
       await seek(page, 'dentition');

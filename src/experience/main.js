@@ -57,8 +57,8 @@ export function createExperience(configuration=experienceConfig) {
   const scrollReadiness=createScrollReadiness(STORY_TIMING.flight[0]);
   const navigationTarget=()=>scrollReadiness.pendingTarget??navigationMotion?.target??null;
   const historyEntry=performance.getEntriesByType('navigation')[0]?.type;
-  const resumeKey='zub-story-2:'+location.pathname;
-  let savedProgress=history.state?.zubStory2Progress;
+  const resumeKey='zub-story-2-opening:'+location.pathname;
+  let savedProgress=history.state?.zubStory2OpeningProgress;
   if(historyEntry==='reload'){
     try{const previous=Number.parseFloat(sessionStorage.getItem(resumeKey));if(Number.isFinite(previous))savedProgress=previous;}catch{}
   }
@@ -84,6 +84,7 @@ export function createExperience(configuration=experienceConfig) {
   const brushingFocus=new THREE.Vector3();
   let focusOrigin=null,focusLeavesStory=false;
   const heroSpin=createHeroSpin();
+  let heroSpinAnchor=null;
   const anatomyMotion=createHeroAnatomyMotion();
   const storyAnatomy=createStoryAnatomy();
   let anatomyState={active:false,layer:'whole',amount:0,cut:0,moving:false,manual:false};
@@ -230,6 +231,21 @@ export function createExperience(configuration=experienceConfig) {
   }
 
   function requestRender() {if(!disposed&&ready&&!document.hidden&&!frame)frame=requestAnimationFrame(render);}
+  function isolatedHero(p){
+    const [start,end]=STORY_TIMING.heroHold;
+    return p>=start&&p<=end;
+  }
+  function updateHeroOrbit(now){
+    // Start the one-time orbit after the isolated tooth has settled, never
+    // while the assembly, extraction or next chapter is still scrolling.
+    const isolated=isolatedHero(renderProgress);
+    if(heroSpinAnchor===null){
+      if(!isolated||exploring||Math.abs(storyProgress-renderProgress)>.001)return false;
+      heroSpinAnchor=storyProgress;
+    }
+    const leaving=!isolated||Math.abs(storyProgress-heroSpinAnchor)>.006;
+    return heroSpin.update(now,{progress:leaving?1:0,reducedMotion,interacting:interaction,exploring,modified:view?.modified});
+  }
   function manualCameraPose(p) {
     const pose=rig.setProgress(p,{reducedMotion:false,alternateWeight:1-smileWeight});
     view.setStoryPose(pose);
@@ -411,7 +427,7 @@ export function createExperience(configuration=experienceConfig) {
   }
   function resetView() {
     if(!ready||brushingRun)return;
-    heroSpin.release();
+    if(heroSpinAnchor!==null)heroSpin.release();
     manualChapter=null;view.reset(performance.now(),reducedMotion);
     requestRender();
   }
@@ -561,7 +577,7 @@ export function createExperience(configuration=experienceConfig) {
       setProgress(at);
       if(done)navigationMotion=null;
     }
-    const heroSpinning=!startupHandoff.active&&heroSpin.update(now,{progress:storyProgress,reducedMotion,interacting:interaction,exploring,modified:view?.modified});
+    const heroSpinning=!startupHandoff.active&&updateHeroOrbit(now);
     if(finalViewTransition){
       const t=THREE.MathUtils.clamp((now-finalViewTransition.start)/(config.interaction.returnDurationMs??480),0,1);
       smileWeight=THREE.MathUtils.lerp(finalViewTransition.from,finalViewTransition.to,t*t*(3-2*t));
@@ -593,8 +609,10 @@ export function createExperience(configuration=experienceConfig) {
     progressFrame=now;
     // ResizeObserver owns stage changes. Reading layout after UI writes in
     // every moving frame forces synchronous layout on mobile browsers.
+    const heroReady=dentalState.chapterId==='hero'&&dentalState.sceneProgress>=STORY_TIMING.heroHold[0];
     const heroAnatomyState=anatomyMotion.update(now,{
-      hero:dentalState.chapterId==='hero',reducedMotion,interacting:interaction||exploring||Boolean(view?.modified),
+      hero:heroReady,preview:isolatedHero(dentalState.sceneProgress)&&Math.abs(storyProgress-renderProgress)<.001,
+      reducedMotion,interacting:interaction||exploring||Boolean(view?.modified),
     });
     heroAnatomy?.setWeight(heroAnatomyState.weight);
     const finale=dentalState.chapterId==='dentition';
@@ -626,7 +644,7 @@ export function createExperience(configuration=experienceConfig) {
       fullArchAnatomy?.setDetail(interiorFdi,fullAnatomyWeight*atlasCoverage(dentalState.sceneProgress),detailDirection);
     }
     healthyAnatomyUI.update(anatomyState);
-    anatomyControls.update({chapterId:dentalState.chapterId,enabled:ready,active:heroAnatomyState.active,weight:heroAnatomyState.weight,archWeight:fullAnatomyWeight});
+    anatomyControls.update({chapterId:dentalState.chapterId,enabled:ready&&heroReady,active:heroAnatomyState.active,weight:heroAnatomyState.weight,archWeight:fullAnatomyWeight});
     fullAnatomyControls.update({visible:finale&&finalView==='anatomy'&&atlasCoverage(dentalState.sceneProgress)===1,
       enabled:canUseAtlas()&&!focusLeavesStory,active:interiorRequested,focused:selected!==null,selectedFdi:selected});
     if(pendingFinalView&&!focusOrigin&&fullAnatomyWeight===0){const next=pendingFinalView;pendingFinalView=null;selectFinalView(next);}
@@ -738,7 +756,7 @@ export function createExperience(configuration=experienceConfig) {
   window.addEventListener('pagehide',(e)=>{
     if(ready){
       saveStoryPosition();
-      try{history.replaceState({...history.state,zubStory2Progress:resumeProgress??progress},'');}catch{}
+      try{history.replaceState({...history.state,zubStory2OpeningProgress:resumeProgress??progress},'');}catch{}
     }
     if(!e.persisted)dispose();
   },{signal});
