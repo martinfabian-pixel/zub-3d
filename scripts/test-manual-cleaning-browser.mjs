@@ -3,11 +3,14 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
+import { nativeJump } from './browser-camera-probes.mjs';
+import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
 const url=process.env.DENTAL_STORY_TEST_URL||'http://127.0.0.1:4173/';
 const out=process.env.DENTAL_STORY_REVIEW_DIR;
+const brushIndex=DENTAL_CHAPTERS.findIndex(chapter=>chapter.id==='brush');
 if(out)await mkdir(out,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:true});
 try {
@@ -24,7 +27,7 @@ try {
       const wait=predicate=>page.waitForFunction(predicate,null,{timeout:20000});
       await page.goto(new URL('?qa=1',url).href);
       await wait(()=>window.__dentalExperience?.report().assetsReady);
-      await page.locator('.journey-step').nth(4).click();
+      await page.locator('.journey-step').nth(brushIndex).click();
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='brush'&&Math.abs(s.renderProgress-s.storyProgress)<.00002;});
       if(!mobile) {
         // The saved view can be the visitor's own orbit, not just the default.
@@ -88,18 +91,27 @@ try {
       s=await state();assert.equal(s.manualCleaning.phase,'result');assert.ok(s.manualCleaning.passes>=3);
       assert.ok(s.story.plaque.cleaningProgress>0);
       if(out&&mobile){await page.waitForTimeout(500);await page.screenshot({path:`${out}/03-result.png`});}
-      await page.locator('.manual-cleaning-repeat').click();
-      await wait(()=>window.__dentalExperience.report().manualCleaning?.phase==='ready');
-      assert.equal((await state()).manualCleaning.cleaningProgress,0);
-      await page.locator('.manual-cleaning-exit').click();
-      await wait(()=>window.__dentalExperience.report().manualCleaning===null);
-      s=await state();assert.ok(Math.abs(s.storyProgress-before.storyProgress)<.004);assert.equal(s.story.chapterId,'brush');
-      const distance=(a,b)=>Math.hypot(...a.map((value,i)=>value-b[i]));
-      assert.ok(distance(s.camera,before.camera)<.04,'The camera returns to its previous position');
-      assert.ok(distance(s.target,before.target)<.04,'The camera returns to its previous orientation');
-      await page.locator('.journey-step').last().click();
-      await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='dentition'&&s.crownMix===1;});
-      await page.locator('.journey-step').nth(4).click();
+      if(mobile){
+        await page.locator('.manual-cleaning-exit').tap();
+        await wait(()=>{const s=window.__dentalExperience.report();return !s.manualCleaning&&s.story.brushStoryPhase==='result';});
+        s=await state();
+        assert.ok(Math.abs(s.storyProgress-STORY_TIMING.resultAt)<.004,'Finishing manual cleaning lands on the clean contact');
+        assert.equal(s.story.cleaningProgress,1);
+        await page.getByRole('button',{name:'Zobraziť úsmev'}).tap();
+      }else{
+        await page.locator('.manual-cleaning-repeat').click();
+        await wait(()=>window.__dentalExperience.report().manualCleaning?.phase==='ready');
+        assert.equal((await state()).manualCleaning.cleaningProgress,0);
+        await page.locator('.manual-cleaning-exit').click();
+        await wait(()=>window.__dentalExperience.report().manualCleaning===null);
+        s=await state();assert.ok(Math.abs(s.storyProgress-before.storyProgress)<.004);assert.equal(s.story.chapterId,'brush');
+        const distance=(a,b)=>Math.hypot(...a.map((value,i)=>value-b[i]));
+        assert.ok(distance(s.camera,before.camera)<.04,'The camera returns to its previous position');
+        assert.ok(distance(s.target,before.target)<.04,'The camera returns to its previous orientation');
+        await nativeJump(page,1);
+      }
+      await wait(()=>{const s=window.__dentalExperience.report();return s.story.brushStoryPhase==='smile'&&s.crownMix===1;});
+      await page.locator('.journey-step').nth(brushIndex).click();
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='brush'&&Math.abs(s.renderProgress-s.storyProgress)<.00002;});
       assert.deepEqual(errors,[]);
       console.log(`Manual cleaning passed: ${width}×${height}, ${mobile?'emulated touch':'mouse'}`);

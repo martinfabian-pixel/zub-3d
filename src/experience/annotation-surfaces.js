@@ -48,7 +48,9 @@ export function createSurfaceAnchors(site, arch, compact) {
   const walls=compact?contact.contactsMobile:contact.contacts;
   const terms=[36,37].map(fdi=>{
     const mesh=host(fdi),wall=walls.find(w=>w.fdi===fdi);
-    const local=new Vector3().fromArray(wall.nearestWorld).applyMatrix4(inverse.copy(mesh.matrixWorld).invert());
+    const seated=arch.teeth.get(fdi).seatedMatrix;
+    const world=seated?inverse.multiplyMatrices(mesh.parent.matrixWorld,seated):inverse.copy(mesh.matrixWorld);
+    const local=new Vector3().fromArray(wall.nearestWorld).applyMatrix4(world.invert());
     return bindLocal(mesh,local);
   });
   return {space:{terms,weights:[.5,.5]},plaque,cleaned};

@@ -241,7 +241,7 @@ try {
       assertRestored(await read(page), baseline);
       await choose(37);
       await settleFocus(page, 37);
-      await seek(page, 'result');
+      await seek(page, 'assembly');
       assert.equal(await page.locator(selector).isVisible(), false);
       await seek(page, 'dentition');
       if ((await read(page)).finalView !== 'anatomy') await activate('#journey-view-anatomy');

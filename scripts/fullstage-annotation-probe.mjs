@@ -1,7 +1,7 @@
 // Read-only geometric/DOM evidence for the localhost full-stage browser runner.
 // Call on a ready presentation-mode page with ?qa=1. Only normal scroll, focus,
 // keyboard and button inputs change the view. The starting chapter is restored.
-import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 import { nativeJump, restingRaster } from './browser-camera-probes.mjs';
 
 const captions = {
@@ -11,12 +11,13 @@ const captions = {
 };
 const chapters = {
   hero: [],
+  assembly: [],
+  dentition: [],
+  anatomy: [],
   space: ['space'],
   plaque: ['plaque'],
-  anatomy: [],
   brush: [],
   result: ['cleaned'],
-  dentition: [],
 };
 
 /** Executed inside the page. Derives geometry from the live *render mesh*, not
@@ -552,10 +553,10 @@ export async function auditAnnotations(page) {
     return s;
   };
   const go = async (id) => {
-    const chapter = DENTAL_CHAPTERS.find((x) => x.id === id);
-    if (!chapter || !Number.isFinite(chapter.at)) throw Error(`Unmapped authored chapter ${id}`);
-    await nativeJump(page, chapter.at);
-    await page.waitForFunction((ch) => window.__dentalExperience.annotations.report().chapter === ch, id, {
+    const at = id === 'result' ? STORY_TIMING.resultAt : DENTAL_CHAPTERS.find((x) => x.id === id)?.at;
+    if (!Number.isFinite(at)) throw Error(`Unmapped authored chapter ${id}`);
+    await nativeJump(page, at);
+    await page.waitForFunction((ch) => window.__dentalExperience.annotations.report().chapter === ch, id === 'result' ? 'cleaned' : id, {
       timeout: 5000,
     });
   };

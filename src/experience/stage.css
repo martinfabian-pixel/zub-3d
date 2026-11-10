@@ -172,6 +172,7 @@ h1 {
 }
 .primary-button:hover { background: #225265; }
 #journey-hero-explore { margin-top: 22px; }
+.journey-finale-continue { margin-top: 14px; }
 #journey-final-views {
   display: inline-flex;
   border: 1px solid var(--control-line);

@@ -1,9 +1,10 @@
 import { Box3, MathUtils, Spherical, Vector3 } from 'three';
+import { STORY_TIMING } from './story-config.js';
 
 const { clamp, lerp, smoothstep, smootherstep } = MathUtils;
-const ATLAS_ENTRY = .978;
-const ATLAS_EXIT = .969;
-export const atlasCoverage = (progress) => smoothstep(progress, ATLAS_EXIT, ATLAS_ENTRY);
+const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
+export const atlasCoverage = (progress) =>
+  smoothstep(progress,STORY_TIMING.assemblyCrowns[0],atlasStart)*(1-smoothstep(progress,atlasEnd,STORY_TIMING.archRelease[1]));
 
 const copyPose = ({ position, target, screenX = .5, screenY = .5 }) =>
   ({ position: position.clone(), target: target.clone(), screenX, screenY });

@@ -14,12 +14,13 @@ const geometry = {
   teaching: /\/dentition-assets\/dentition(?:-mobile)?\.glb$/,
   upper: /\/prototype-assets\/molar(?:-mobile)?\.glb$/,
   crowns: /\/dentition-assets\/crowns\.glb$/,
-  finale: /\/dentition-assets\/crowns\.glb$|\/prototype-assets\/molar(?:-mobile)?\.glb$/,
+  site: /\/story-assets\/site\.json$/,
+  opening: /\/dentition-assets\/crowns\.glb$|\/prototype-assets\/molar(?:-mobile)?\.glb$/,
 };
 const stops = {
-  teaching: chapter('space').start - .001,
-  flight: chapter('dentition').start - .001,
+  roots: flightStart,
   crowns: flightEnd,
+  study: chapter('space').start - .001,
 };
 const targetEpsilon = .003;
 
@@ -123,49 +124,33 @@ try {
   const teaching = await holdAssets(mobile, geometry.teaching);
   const upper = await holdAssets(mobile, geometry.upper);
   const crowns = await holdAssets(mobile, geometry.crowns);
+  const site = await holdAssets(mobile, geometry.site);
   const errors = [];
   mobile.on('pageerror', error => errors.push(error.message));
   try {
     await openStory(mobile);
-    await mobile.locator('#journey-mobile-next').tap();
-    await atChapter(mobile, 'anatomy');
-    assert.equal((await mobile.evaluate(readProgress)).assetsReady, false);
-    const anatomy = mobile.locator('.healthy-anatomy-toggle');
-    await anatomy.tap();
-    await mobile.waitForFunction(() => window.__dentalExperience.report().healthyAnatomy.spread === 1);
-    await anatomy.tap();
-    await mobile.waitForFunction(() => window.__dentalExperience.report().healthyAnatomy.spread === 0);
+    const boot = await mobile.evaluate(readProgress);
+    assert.deepEqual(boot.teeth, [36], 'The hero renders while every deferred asset is held');
+    assert.equal(boot.assetsReady, false);
 
     // These native writes model consecutive wheel/inertia updates. Test the
     // physical document position as well as the rendered story progress.
     await overshoot(mobile);
-    const anatomyStop = await atLoadingStop(mobile, stops.teaching, 'anatomy');
+    const rootedStop = await atLoadingStop(mobile, stops.roots, 'assembly');
     assert.ok(teaching.held.length, 'The neighbor atlas is still waiting on the network');
     teaching.release();
-    await mobile.waitForFunction(() => window.__dentalExperience.report().readiness.study);
     await mobile.waitForTimeout(350);
     const afterTeaching = await mobile.evaluate(readProgress);
-    assert.ok(Math.abs(afterTeaching.scrollY - anatomyStop.scrollY) <= 2,
+    assert.ok(Math.abs(afterTeaching.scrollY - rootedStop.scrollY) <= 2,
       'Releasing the neighbor asset does not replay discarded native scroll');
-    assert.equal(afterTeaching.chapter, 'anatomy');
-
-    await nativeSeek(mobile, chapter('space').at);
-    await atChapter(mobile, 'space');
-    const spaced = await mobile.evaluate(readProgress);
-    assert.ok([35, 36, 37].every(fdi => spaced.teeth.includes(fdi)), 'All three teaching teeth render before the finale');
-    assert.equal(spaced.assetsReady, false);
-
-    await overshoot(mobile);
-    const finalStop = await atLoadingStop(mobile, stops.flight, 'result');
-    assert.ok(upper.held.length,
-      'The teaching chapters remain usable while the full arch request is held');
+    assert.ok(upper.held.length, 'The flight gate waits for the second rooted source');
     upper.release();
     await mobile.waitForFunction(() => window.__dentalExperience.report().readiness.flight, null, { timeout: 90000 });
     await mobile.waitForTimeout(350);
     const afterUpper = await mobile.evaluate(readProgress);
-    assert.ok(Math.abs(afterUpper.scrollY - finalStop.scrollY) <= 2,
+    assert.ok(Math.abs(afterUpper.scrollY - rootedStop.scrollY) <= 2,
       'Releasing the full arch leaves native scroll at the loading stop');
-    assert.equal(afterUpper.chapter, 'result');
+    assert.equal(afterUpper.chapter, 'assembly');
     assert.equal(afterUpper.assetsReady, false);
 
     const checkpoints = [.18, .38, .60, .80, .94].map(fraction => flightStart + fraction * (flightEnd - flightStart));
@@ -179,10 +164,10 @@ try {
     }
 
     await overshoot(mobile);
-    const crownStop = await atLoadingStop(mobile, stops.crowns, 'dentition');
+    const crownStop = await atLoadingStop(mobile, stops.crowns, 'assembly');
     assert.ok(crowns.held.length, 'The tooth flight runs before the final crowns are ready');
     crowns.release();
-    await mobile.waitForFunction(() => window.__dentalExperience.report().assetsReady, null, { timeout: 90000 });
+    await mobile.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
     await mobile.waitForTimeout(350);
     const afterCrowns = await mobile.evaluate(readProgress);
     assert.ok(Math.abs(afterCrowns.scrollY - crownStop.scrollY) <= 2,
@@ -194,12 +179,27 @@ try {
         'Reverse scroll reconstructs the same authored flight at each checkpoint');
     }
 
-    await nativeSeek(mobile, chapter('result').at);
-    await atChapter(mobile, 'result');
-    await mobile.locator('#journey-mobile-next').tap();
+    await nativeSeek(mobile, chapter('dentition').at);
     await atChapter(mobile, 'dentition');
+    assert.equal((await mobile.evaluate(readProgress)).teeth.length, 28,
+      'The opening smile and atlas work before the teaching site is ready');
+    await mobile.locator('#journey-mobile-next').tap();
+    await atChapter(mobile, 'anatomy');
+    await overshoot(mobile);
+    const studyStop = await atLoadingStop(mobile, stops.study, 'anatomy');
+    assert.ok(site.held.length, 'The anatomical chapter works before the measured teaching site is ready');
+    site.release();
+    await mobile.waitForFunction(() => window.__dentalExperience.report().assetsReady, null, { timeout: 90000 });
+    await mobile.waitForTimeout(350);
+    const afterSite = await mobile.evaluate(readProgress);
+    assert.ok(Math.abs(afterSite.scrollY - studyStop.scrollY) <= 2,
+      'Releasing the teaching site does not replay the native scroll');
+    await mobile.locator('#journey-mobile-next').tap();
+    await atChapter(mobile, 'space');
+    const spaced = await mobile.evaluate(readProgress);
+    assert.ok([35, 36, 37].every(fdi => spaced.teeth.includes(fdi)), 'All three teaching teeth render at the contact site');
     await mobile.locator('#journey-mobile-previous').tap();
-    await atChapter(mobile, 'result');
+    await atChapter(mobile, 'anatomy');
     assert.equal((await mobile.evaluate(readProgress)).shaderErrors, 0);
     assert.deepEqual(errors, []);
     console.log('390×844 Chrome: independent asset stops, no scroll replay, reversible flight checkpoints and chapter arrows.');
@@ -207,18 +207,17 @@ try {
     teaching.release();
     upper.release();
     crowns.release();
+    site.release();
     await mobile.close();
   }
 
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  const delayed = await holdAssets(desktop, geometry.finale);
+  const delayed = await holdAssets(desktop, geometry.opening);
   try {
     await openStory(desktop);
-    await desktop.locator('.journey-step').nth(5).click();
-    await atChapter(desktop, 'result');
-    await desktop.locator('#journey-mobile-next').click();
-    await atLoadingStop(desktop, stops.flight, 'result');
-    assert.ok(delayed.held.length, 'The final click is waiting for a real held asset');
+    await desktop.locator('.journey-step').nth(DENTAL_CHAPTERS.findIndex(item => item.id === 'dentition')).click();
+    await atLoadingStop(desktop, stops.roots, 'assembly');
+    assert.ok(delayed.held.length, 'The atlas click is waiting for a real held asset');
     await desktop.evaluate(() => {
       const samples = [];
       function observe() {
@@ -239,7 +238,11 @@ try {
     assert.ok(trace.filter(progress => progress > flightStart && progress < flightEnd).length >= 5,
       'Resumed button navigation passes through intermediate flight poses');
     await desktop.locator('#journey-mobile-previous').click();
-    await atChapter(desktop, 'result');
+    await atChapter(desktop, 'assembly');
+    await nativeSeek(desktop, chapter('plaque').at);
+    await atChapter(desktop, 'plaque');
+    await desktop.reload({ waitUntil: 'domcontentloaded' });
+    await atChapter(desktop, 'plaque');
     console.log('1440×900 Chrome: an explicit next request resumes after its assets arrive, then returns via the previous arrow.');
   } finally {
     delayed.release();

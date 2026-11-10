@@ -119,7 +119,8 @@ export function createPlaque({site,path,arch,compact=false,profile,options={}}) 
       const registration=site.displayedMatrixColumnMajor?.[String(fdi)];
       if(!mesh&&!item?.matrix&&!registration)throw new Error('Plaque patch has no registered tooth transform: '+fdi);
       mesh?.updateWorldMatrix(true,false,true);
-      const world=mesh?.matrixWorld?.clone()??item?.matrix?.clone()??new Matrix4().fromArray(registration);
+      const world=mesh&&item.seatedMatrix?new Matrix4().multiplyMatrices(mesh.parent.matrixWorld,item.seatedMatrix)
+        :mesh?.matrixWorld?.clone()??item?.matrix?.clone()??new Matrix4().fromArray(registration);
       const n=raw.sourceVertexIndices.length;
       const inverse=world.clone().invert(),normalMatrix=new Matrix3().getNormalMatrix(world);
       const pos=new Float32Array(3*n),surface=new Float32Array(3*n),sweep=new Float32Array(4*n),edge=new Float32Array(2*n);

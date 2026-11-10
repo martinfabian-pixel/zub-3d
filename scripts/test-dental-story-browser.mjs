@@ -6,7 +6,8 @@ import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
-import { DENTAL_CHAPTERS as chapters } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS as chapters, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
+import { getStoryCopy } from '../src/experience/stage-typography.js';
 import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
 import { measureSharedStage,readWebGLPixels,sampleCopyTransition } from './shared-stage-probes.mjs';
 import { auditAnnotations } from './fullstage-annotation-probe.mjs';
@@ -27,11 +28,16 @@ const report = { date: new Date().toISOString(), browser:browser.version(), site
 const closingContexts=new WeakSet();
 async function closeContext(ctx){closingContexts.add(ctx);await ctx.close();}
 const q = '#journey-canvas', allFDI=[1,2,3,4].flatMap(k=>Array.from({length:7},(_,i)=>k*10+i+1));
-const finaleAt=chapters.at(-1).at;
+const finaleAt=1;
+const atlasIndex=chapters.findIndex(chapter=>chapter.id==='dentition');
+const atlasAt=chapters[atlasIndex].at;
 const anatomyIndex=chapters.findIndex(chapter=>chapter.id==='anatomy');
+const brushIndex=chapters.findIndex(chapter=>chapter.id==='brush');
+const brushAt=chapters[brushIndex].at;
 const plaqueAt=chapters.find(chapter=>chapter.id==='plaque').at;
-const requestedTitles=['Začína sa to jedným zubom.','Stavba zdravého zuba','Aj medzi zubami.','Nenápadný povlak.',
-  'Jemne tam a späť.','Čistý priestor. Zdravý zub.','Malý návyk. Veľký rozdiel.'];
+const requestedTitles=['Začína sa to jedným zubom.','Jeden po druhom.','Celý chrup.','Stavba zdravého zuba',
+  'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
+if(!chapters.every((chapter,index)=>chapter.title===requestedTitles[index]))throw Error('Slovak story titles do not match the seven chapters.');
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
 const equal = (a,b) => JSON.stringify(a) === JSON.stringify(b);
 const dist = (a,b) => Math.hypot(...a.map((n,i)=>n-b[i]));
@@ -116,13 +122,13 @@ async function saveView(page,label,p,index,expected,base) {
     const {matrices,...footprint}=await projectedFootprints(page);s.projectedFootprint=footprint;
   }
   await page.screenshot({path:resolve(out,label+'.png'),scale:'css',animations:'disabled'});
-  const chapter=chapters[index];
+  const chapter=chapters[index],copy=getStoryCopy(chapter,p);
   if(chapter.id==='anatomy'){
     const stage=await page.locator('#journey-stage').evaluate(e=>getComputedStyle(e).backgroundImage);
-    check(label+' opens the assembled healthy model on the common canvas',
-      s.chapter==='anatomy'&&s.healthyAnatomy?.active&&s.healthyAnatomy.spread===0&&s.healthy&&s.canvasCount===1&&
+    check(label+' opens the animated pulp section of the healthy model on the common canvas',
+      s.chapter==='anatomy'&&s.healthyAnatomy?.active&&s.healthyAnatomy.layer==='pulp'&&s.healthyAnatomy.cut>0&&s.healthy&&s.canvasCount===1&&
       s.drawCalls>0&&s.shaderErrors===0&&stage.includes('rgb(230, 243, 252)')&&
-      await page.getByRole('button',{name:'Rozložiť zub'}).isVisible()&&await page.locator('.journey-step').nth(index).getAttribute('aria-current')==='step');
+      await page.locator('.healthy-anatomy-layer[data-layer="pulp"]').isVisible()&&await page.locator('.journey-step').nth(index).getAttribute('aria-current')==='step');
     report.views.push({name:label,...s});
     return s;
   }
@@ -134,23 +140,23 @@ async function saveView(page,label,p,index,expected,base) {
     raster.dpr===raster.fullDpr&&!s.optics.effects.length&&s.optics.fog===null&&s.optics.clippingPlanes===0,{raster,optics:s.optics});
   check(label+' active chapter and nonblank WebGL',s.chapter===chapters[index].id&&s.canvasCount===1&&s.shaderErrors===0&&fraction>.012,{chapter:s.chapter,fraction,shaderErrors:s.shaderErrors});
   const normalize=t=>String(t||'').trim().replace(/\s+/g,' ');
-  check(label+' educational chapter title matches the requested Slovak wording',normalize(s.title)===requestedTitles[index],s.title);
-  check(label+' chapter copy matches the displayed clinical state',normalize(s.description)===normalize(chapters[index].text),s.description);
+  check(label+' educational chapter title matches the requested Slovak wording',normalize(s.title)===copy.title,s.title);
+  check(label+' chapter copy matches the displayed clinical state',normalize(s.description)===normalize(copy.text),s.description);
   if(chapter.id==='plaque')check(label+' clinical illustration note stays available',normalize(s.note)===normalize(chapter.note),s.note);
-  if(index===5)check(label+' healthy example labels the cleaned surface',chapters[5].resultLabels.every(x=>s.resultLabels?.includes(x)),s.resultLabels);
+  if(copy.phase==='result')check(label+' healthy example labels the cleaned surface',chapter.resultLabels.every(x=>s.resultLabels?.includes(x)),s.resultLabels);
   check(label+' actual tooth mesh visibility',equal(s.visible,expected),s.visible);
   const a=s.stageAudit;
   check(label+' seven real chapter dots, current counter and persistent arrows stay synchronized',
     a.navigation.dots.length===7&&a.navigation.dots.every(d=>d.visible&&d.name&&d.tag==='BUTTON')&&
     a.navigation.dots.filter(d=>d.current).length===1&&a.navigation.dots[index].current&&
     a.navigation.counter===`${String(index+1).padStart(2,'0')} / 07`&&a.navigation.arrows.length===2&&a.navigation.arrows.every(d=>d.visible),a.navigation);
-  check(label+' title uses the two approved block lines',a.titleLines.length===2&&
-    a.titleLines.every((line,i)=>line.text===chapters[index].titleLines[i]&&line.display==='block'),a.titleLines);
+  check(label+' title uses the approved block lines',a.titleLines.length===copy.titleLines.length&&
+    a.titleLines.every((line,i)=>line.text===copy.titleLines[i]&&line.display==='block'),a.titleLines);
   check(label+' transparent WebGL sits over the common ice-blue stage',a.surface.webglAlpha&&a.surface.clearAlpha===0&&
     a.surface.sceneBackground===null&&a.surface.sceneColorToken==='#e6f3fc'&&
     a.surface.stageBackground.includes('rgb(230, 243, 252)')&&a.surface.canvasColor==='rgba(0, 0, 0, 0)',a.surface);
-  check(label+' hero CTA and final views are active only at their respective chapters',
-    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===6&&p>=.978)&&a.controls.finalInCopy,a.controls);
+  check(label+' hero CTA and atlas views are active only at their respective chapters',
+    a.controls.heroVisible===(index===0)&&a.controls.finalVisible===(index===atlasIndex)&&a.controls.finalInCopy,a.controls);
   if(chapter.id==='plaque')check(label+' plaque color explanation is visible',a.controls.noteVisible,a.controls);
   check(label+' one canvas fills the fixed stage beneath the overlay',l.overflowX<=1&&['left','top','right','bottom'].every(k=>near(a.stage[k],b[k],1)),{stage:a.stage,canvas:b});
   const f=a.framing;
@@ -161,20 +167,23 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' copy passes input through to the actual 3D canvas',a.hit?.isCanvas===true,a.hit);
   check(label+' actual educational focus stays clear of every rendered text line',a.protected.sampleCount>0&&a.protected.covered.length===0,a.protected);
   check(label+' healthy source geometry and teaching-site pose',
-    s.healthy&&s.geometry36!==s.geometry46&&(p>=.80&&p<.975||equal(s.pose36,base.pose36)));
+    s.healthy&&s.geometry36!==s.geometry46&&
+    (chapter.id==='assembly'||chapter.id==='dentition'||copy.phase==='closing'||equal(s.pose36,base.pose36)));
   if(chapter.id==='space')check(label+' contact established before deposits',s.deposit===0&&!s.plaque.visible&&!s.brush.visible);
   if(chapter.id==='plaque')check(label+' attached deposits on actual 36 and 37',s.plaque.visible&&s.plaque.deposition>.99&&equal(s.plaque.patches.map(x=>x.fdi).sort(),[36,37])&&s.plaque.patches.every(x=>x.triangles>0&&x.maxRegistrationErrorMm<=.04));
-  if(index===4)check(label+' brush visibly engaged or aligning as sampled',s.brush.visible&&s.brush.filamentInstances>0&&near(s.brush.insertion,s.brushPose.insertion,.0001),s.brush);
-  if(index===5)check(label+' contact-only removal leaves out-of-reach deposit',s.clean===1&&!s.brush.visible&&s.plaque.patches.some(x=>x.currentWeightedRemoval>0)&&s.plaque.patches.some(x=>x.unreachableVertices>0&&x.currentWeightedRemoval<.999999)&&s.plaque.patches.every(x=>x.outsideRemovedWeight===0),s.plaque);
-  if(index===6&&p>=.96)check(label+' 28 distinct teeth, no brush in the final arch',equal(s.meshFDIs,allFDI)&&!s.brush.visible&&equal(s.visible,allFDI));
+  if(chapter.id==='brush'&&!copy.phase)check(label+' brush visibly engaged or aligning as sampled',s.brush.visible&&s.brush.filamentInstances>0&&near(s.brush.insertion,s.brushPose.insertion,.0001),s.brush);
+  if(copy.phase==='result')check(label+' contact-only removal leaves out-of-reach deposit',s.clean===1&&!s.brush.visible&&s.plaque.patches.some(x=>x.currentWeightedRemoval>0)&&s.plaque.patches.some(x=>x.unreachableVertices>0&&x.currentWeightedRemoval<.999999)&&s.plaque.patches.every(x=>x.outsideRemovedWeight===0),s.plaque);
+  if(copy.phase==='closing'&&p>=STORY_TIMING.finalHold[0])check(label+' 28 distinct teeth, no brush in the closing arch',equal(s.meshFDIs,allFDI)&&!s.brush.visible&&equal(s.visible,allFDI));
   return s;
 }
-const three=[35,36,37], lower=allFDI.slice(14);
+const three=[35,36,37];
 const standard=chapters.map(({id,at},index)=>{
-  const visible=id==='hero'?[36]:id==='dentition'?allFDI:three;
+  const visible=id==='hero'||id==='anatomy'?[36]:id==='dentition'||id==='assembly'?allFDI:three;
   return [id==='dentition'?'full':id,at,index,visible];
-});
-const extra=[['brush-align',.51,4,three],['brush-entry',.542,4,three],['brush-insert',.58,4,three],['brush-stroke',.64,4,three],['lower',.876,6,allFDI]];
+}).concat([['result',STORY_TIMING.resultAt,brushIndex,three],['closing',finaleAt,brushIndex,allFDI]]);
+const extra=[['brush-align',.51],['brush-entry',.542],['brush-insert',.58],['brush-stroke',.64]]
+  .map(([label,p])=>[label,brushProgress(p),brushIndex,three])
+  .concat([['calm-return',.965,brushIndex,allFDI]]);
 const stamp=s=>({p:s.progress,chapter:s.chapter,visible:s.visible,healthyAnatomy:s.healthyAnatomy,deposit:s.deposit,clean:s.clean,brush:s.brushPose,insertion:s.brush.insertion,tip:s.brush.tipWorld,removed:s.plaque.patches.map(x=>x.currentWeightedRemoval),camera:s.camera,pose36:s.pose36,lights:s.lights});
 
 const drift=(a,b)=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
@@ -226,7 +235,10 @@ async function storyboardNavigation(page,label){
     await page.locator('#journey-mobile-next').click();await at(page,chapters[i].at);
     check(label+' persistent forward arrow lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);
   }
+  check(label+' closing smile is reachable without adding an eighth chapter',await page.locator('#journey-mobile-next').isEnabled());
+  await page.locator('#journey-mobile-next').click();await at(page,1);
   check(label+' final forward arrow is disabled',await page.locator('#journey-mobile-next').isDisabled());
+  await page.locator('#journey-mobile-previous').click();await at(page,brushAt);
   for(let i=5;i>=0;i--){
     await page.locator('#journey-mobile-previous').click();await at(page,chapters[i].at);
     check(label+' persistent backward arrow lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);
@@ -247,14 +259,14 @@ async function desktopInputs(page) {
   checkHandover('Continue from a rotated/zoomed brush',evidence.continueTrace);
   check('Guided user offsets survive an actual viewport resize',guided(s.beforeResize)&&guided(s.afterResize)&&Math.abs(s.beforeResize.manual?.desiredYaw)>.02&&s.beforeResize.manual?.desiredZoom<.99&&sameOffsets(s.beforeResize,s.afterResize));
   checkHandover('Selecting another chapter after dragging',evidence.chapterTrace);
-  check('Direct chapter destination renders the cleaned patch on the healthy example',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.clean===1&&s.navigated.story.influence===0);
+  check('Direct chapter destination renders an engaged brush on the healthy example',guided(s.navigated)&&s.navigated.story.chapter==='brush'&&s.navigated.story.clean>0&&s.navigated.story.influence===0);
   checkHandover('Native wheel chapter crossing after a drag',evidence.wheelTrace);
   check('Purposeful native chapter crossing returns manual offsets to the authored view',guided(s.afterWheelHandover)&&s.beforeWheelHandover.story.chapter==='plaque'&&s.afterWheelHandover.story.chapter==='brush'&&
     s.afterWheelHandover.nativeY-s.beforeWheelHandover.nativeY>64&&Math.abs(s.beforeWheelHandover.manual?.desiredYaw)>.05&&near(s.afterWheelHandover.manual?.desiredYaw,0,1e-5));
   report.desktopInput=evidence;
   // Native p can already equal the clicked destination while Free 3D still
   // displays another chapter. The action cannot depend on a new scroll event.
-  await scroll(page,.62);await page.locator('#journey-explore').click();await nativeJump(page,0);
+  await scroll(page,brushAt);await page.locator('#journey-explore').click();await nativeJump(page,0);
   const held=await cameraProbe(page);await page.locator('#journey-home').click();await page.waitForTimeout(680);
   const home=await cameraProbe(page);
   check('Clicking an already reached native position reconciles frozen state',free(held)&&held.story.chapter==='brush'&&near(held.nativeP,0,.0005)&&guided(home)&&home.story.chapter==='hero'&&equal(home.story.visible,[36]),{held:held.story.chapter,home:home.story.chapter,native:home.nativeP});
@@ -268,11 +280,11 @@ async function mobileInputs(ctx,page){
   check('Free touch drag orbits horizontally and vertically without page movement',free(s.freeX)&&free(s.freeY)&&drift(s.freeStart.yaw,s.freeX.yaw)>.02&&Math.abs(s.freeY.pitch-s.freeX.pitch)>.02&&Math.abs(s.freeY.nativeY-s.freeStart.nativeY)<=1);
   check('Two fingers pinch-zoom the model, not the browser or the lesson',free(s.freePinch)&&zoomTravel(s.freeY,s.freePinch)>.002&&near(s.freePinch.pageScale,1,.01)&&sameStory(s.freePinch,s.freeStart));
   check('Mobile frozen scene survives outside-canvas document scroll',free(s.freeNativeJump)&&Math.abs(s.freeNativeJump.nativeP-s.freeStart.nativeP)>.2&&sameStory(s.freeNativeJump,s.freeStart));
-  check('Mobile chapter navigation explicitly leaves free mode',guided(s.navigated)&&s.navigated.story.chapter==='result'&&s.navigated.story.influence===0&&s.navigated.story.clean===1);
+  check('Mobile chapter navigation explicitly leaves free mode',guided(s.navigated)&&s.navigated.story.chapter==='brush'&&s.navigated.story.influence===0&&s.navigated.story.clean>0);
   report.mobileInput=evidence;
 }
 async function finalViews(page,label) {
-  await scroll(page,finaleAt);await restingRaster(page);
+  await scroll(page,atlasAt);await restingRaster(page);
   const smile=await cameraProbe(page),smileProjection=await projectedFootprints(page),smileOptics=await opticalState(page);
   const aspect=smile.raster.rect.width/smile.raster.rect.height;
   const expectedAspect=await page.locator('#journey-stage').evaluate(e=>e.clientWidth/e.clientHeight);
@@ -343,7 +355,7 @@ async function desktop() {
     check('The anatomy, cleaning and full arch chapters retain healthy tooth geometry',Object.values(states).every(s=>s.healthy));
     check('Localized plaque removal progresses through working passes',states['brush-insert'].plaque.patches.some((x,i)=>states.brush.plaque.patches[i].currentWeightedRemoval>x.currentWeightedRemoval)&&states.result.plaque.patches.every((x,i)=>x.currentWeightedRemoval>=states.brush.plaque.patches[i].currentWeightedRemoval));
     check('All three brush instructions appear at their relevant physical phases',
-      [states['brush-align'],states['brush-entry'],states['brush-stroke']].every((s,i)=>s.instruction.includes(chapters[4].instructions[i])));
+      [states['brush-align'],states['brush-entry'],states['brush-stroke']].every((s,i)=>s.instruction.includes(chapters[brushIndex].instructions[i])));
     // Physically scroll the document across chapter boundaries over successive
     // rendered frames, including reverse motion and a fast endpoint jump.
     await scroll(page,0);
@@ -367,7 +379,7 @@ async function desktop() {
     await buttons.nth(anatomyIndex).click();await at(page,chapters[anatomyIndex].at);await page.locator('#journey-notes').click();
     const medical=await page.locator('#journey-education-current').innerText();
     check('Detailed education stays accessible from the anatomy chapter',await page.locator('#journey-help-dialog').isVisible()
-      &&await page.locator('#journey-education').evaluate(e=>e.open)&&medical.includes('koreňový cement'),medical);
+      &&await page.locator('#journey-education').evaluate(e=>e.open)&&medical.includes('koreňové kanáliky'),medical);
     await page.keyboard.press('Escape');check('Closing the educational notes restores keyboard focus',await page.locator('#journey-notes').evaluate(e=>e===document.activeElement));
     await storyboardNavigation(page,'desktop');await dragFromText(page,'desktop');await annotationScenario(page,'desktop');
     const copyTransition=await sampleCopyTransition(page);report.copyTransition=copyTransition;
@@ -425,10 +437,11 @@ async function reduced() {
   const {ctx,page}=await open({reducedMotion:'reduce'});try {
     await goto(page);await ready(page);const poses=[];
     const still=s=>({camera:s.camera,visible:s.visible,healthyAnatomy:s.healthyAnatomy,clean:s.clean,deposit:s.deposit,brush:s.brushPose,tip:s.brush.tipWorld});
-    for(const c of chapters){const span=c.end-c.start;await scroll(page,c.start+.10*span);const a=await read(page);await scroll(page,c.start+.86*span);const b=await read(page);
+    for(const c of chapters){const span=(c.id==='brush'?STORY_TIMING.result[0]:c.end)-c.start;await scroll(page,c.start+.10*span);const a=await read(page);await scroll(page,c.start+.86*span);const b=await read(page);
       check('Reduced motion keeps one pose and material state within '+c.id,equal(still(a),still(b)),{a:still(a),b:still(b)});poses.push(still(a));}
     check('Seven meaningfully different reduced-motion scenes',new Set(poses.map(x=>JSON.stringify(x))).size===7);
-    await scroll(page,.56);const brush=await read(page);check('Reduced brush depicts a fixed contact on the healthy example',brush.brush.visible&&brush.brush.insertion>.1&&brush.healthy&&brush.clean>0&&brush.clean<1);
+    await scroll(page,brushAt);const brush=await read(page);check('Reduced brush depicts a fixed contact on the healthy example',brush.brush.visible&&brush.brush.insertion>.1&&brush.healthy&&brush.clean>0&&brush.clean<1);
+    await scroll(page,1);const closing=await read(page);check('Reduced motion closes on the settled smile in chapter seven',closing.chapter==='brush'&&equal(closing.visible,allFDI)&&!closing.brush.visible&&closing.clean===1);
     report.reducedMotion=poses;
     const copyTransition=await sampleCopyTransition(page);report.reducedCopyTransition=copyTransition;
     check('Reduced-motion chapter copy remains legible at the sampled transition positions',
@@ -458,7 +471,7 @@ async function malformedStoryOwnership() {
     let corruptResponses=0;
     await page.route('**/story-assets/site.json*',r=>{corruptResponses++;return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(bad)});});
     await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
-    await page.locator('.journey-step').nth(2).click();
+    await page.locator('.journey-step').nth(brushIndex).click();
     await page.locator('#journey-retry').waitFor({state:'visible',timeout:60000});await threeFrames(page);
     const fail=await page.evaluate(()=>{
       const a=window.__dentalExperience,s=a.report(),m=a.arch.teeth.get(36).mesh;
@@ -468,8 +481,8 @@ async function malformedStoryOwnership() {
         triangles:m.geometry.index.count/3,morphs:m.geometry.morphAttributes.position?.length||0,
         readiness:s.readiness,bitmaps:window.__qaBitmapDisposals()};
     });
-    check('An invalid brush centerline leaves the three local teeth ready and holds access to chapter 03',corruptResponses===1&&!fail.anatomyReady&&!fail.assetsReady&&!fail.readiness.study&&!fail.readiness.flight&&fail.readiness.pendingTarget!==null&&fail.loadedTeeth===3&&/brush centerline is required/.test(fail.error),fail);
-    check('Upcoming-data failure keeps the native healthy hero and readable retry',fail.ready&&fail.upcoming&&fail.message.length>10&&equal(fail.visible,[36])&&fail.triangles===55184&&fail.morphs===0,fail);
+    check('An invalid brush centerline retains the rooted flight and gates the teaching site',corruptResponses===1&&fail.anatomyReady&&!fail.assetsReady&&!fail.readiness.study&&fail.readiness.flight&&fail.readiness.crowns&&fail.readiness.pendingTarget!==null&&fail.loadedTeeth===28&&/brush centerline is required/.test(fail.error),fail);
+    check('Upcoming-data failure keeps the native healthy hero and readable retry',fail.ready&&fail.upcoming&&fail.message.length>10&&fail.visible.includes(36)&&fail.triangles===55184&&fail.morphs===0,fail);
     await page.locator('#journey-home').click();await at(page,0);
     const home=await cameraProbe(page);
     await page.locator('#journey-zoom-in').click();await threeFrames(page);
@@ -560,7 +573,7 @@ async function pagesPrefix() {
         await goto(page,entry,base);await page.waitForSelector(selector+'[data-ready="true"]',{timeout:60000});
         const details=await page.locator(selector).evaluate(el=>({...el.dataset}));
         let valid=details.ready==='true';
-        if(selector===q){await ready(page);await scroll(page,finaleAt);const s=await read(page);valid&&=s.chapter==='dentition'&&equal(s.visible,allFDI)&&s.shaderErrors===0;}
+        if(selector===q){await ready(page);await scroll(page,finaleAt);const s=await read(page);valid&&=s.chapter==='brush'&&equal(s.visible,allFDI)&&s.shaderErrors===0;}
         else valid&&=selector==='#tooth-canvas'?Number(details.assetTriangles)===388032:Number(details.modelMeshes)===1;
         const modules=await page.locator('script[type="module"][src]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src).pathname));
         const assets=requests.slice(before);valid&&=modules.length>0&&modules.every(x=>x.startsWith(prefix))&&assets.some(x=>x.endsWith('.glb'));
@@ -581,11 +594,11 @@ async function benchmark(label,settings) {
     // Warm each unique material/reveal combination before timing. Do not take
     // screenshots or run CPU-heavy mesh/patch reports inside the measured loop.
     for(const {at:progress} of chapters)await scroll(page,progress);
-    const runs=await page.evaluate(async()=>{
+    const runs=await page.evaluate(async(brushRange)=>{
       const app=window.__dentalExperience,sec=document.querySelector('#dental-journey').getBoundingClientRect();
       const start=scrollY+sec.top,travel=sec.height-document.querySelector('#journey-stage').getBoundingClientRect().height;
       const runs=[],gl=app.renderer.getContext(),dbg=gl.getExtension('WEBGL_debug_renderer_info');
-      for(const [name,lo,hi]of [['whole story',0,1],['brush working passes',.54,.70]]){
+      for(const [name,lo,hi]of [['whole story',0,1],['brush working passes',...brushRange]]){
         const samples=[];let prev=0;const f0=app.renderer.info.render.frame;
         for(let i=0;i<=130;i++){
           const t=await new Promise(r=>requestAnimationFrame(r));if(i>10)samples.push(t-prev);prev=t;
@@ -596,7 +609,7 @@ async function benchmark(label,settings) {
           slowIntervalsOver33ms:samples.filter(x=>x>33.4).length,renderedFrames,gpu:gl.getParameter(dbg?dbg.UNMASKED_RENDERER_WEBGL:gl.RENDERER)});
       }
       return runs;
-    });
+    },[.54,.70].map(brushProgress));
     const measuredBuild=await page.evaluate(()=>({modules:[...document.querySelectorAll('script[type="module"][src]')].map(n=>new URL(n.src).pathname),
       styles:[...document.querySelectorAll('link[rel="stylesheet"]')].map(n=>new URL(n.href).pathname),assetRevision:document.querySelector('#journey-canvas').dataset.revision}));
     (report.performance??=[]).push({label,measuredBuild,scope:'Native scroll and requestAnimationFrame intervals on this desktop. Not a GPU timer query or physical mobile FPS.',runs});

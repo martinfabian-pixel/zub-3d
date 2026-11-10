@@ -1,7 +1,9 @@
 import { MathUtils, Matrix4, Euler } from 'three';
+import { STORY_TIMING } from './story-config.js';
 
-export const flightStart = .802;
-export const flightEnd = .969;
+export const [flightStart,flightEnd] = STORY_TIMING.flight;
+const authoredStart = .802, authoredEnd = .969;
+export const flightProgress = authored => MathUtils.mapLinear(authored,authoredStart,authoredEnd,flightStart,flightEnd);
 
 const smooth = (start, end, progress) => MathUtils.smoothstep(progress, start, end);
 const heightLane = [.75, 1.24, .60, 1.08, 1.42, .83, 1.20];
@@ -10,13 +12,16 @@ const heightLane = [.75, 1.24, .60, 1.08, 1.42, .83, 1.20];
 const depthLane = [1.48, -1.42, .42, 2.00, -1.76, 1.10, -.96];
 const tiltLane = [.52, -.46, .76, -.65, .41, -.57, .68];
 
-export function flightReveal(progress) {
-  return smooth(flightStart, .858, progress);
+export function flightReveal(progress, fdi) {
+  if (!fdi) return smooth(flightStart, flightProgress(.858), progress);
+  const lane = (fdi % 10 + Math.floor(fdi / 10) * 2) % 7;
+  const from = .802 + lane * .004;
+  return smooth(flightProgress(from),flightProgress(from + .055),progress);
 }
 
 // A broad flight envelope; individual arcs continue moving inside its plateau.
 export function floatingAmount(progress) {
-  return flightReveal(progress) * (1 - smooth(.916, flightEnd, progress));
+  return flightReveal(progress) * (1 - smooth(flightProgress(.916), flightEnd, progress));
 }
 
 export function createFloatingTeeth(teeth) {
@@ -24,7 +29,7 @@ export function createFloatingTeeth(teeth) {
   const angles = new Euler();
   const records = [];
   for (const [fdi, item] of teeth) {
-    const base = item.mesh.matrix.clone();
+    const base = (item.seatedMatrix??item.mesh.matrix).clone();
     const side = Math.sign(base.elements[12]) || 1;
     const jaw = item.upper ? 1 : -1;
     const index = fdi % 10 - 1;
@@ -33,9 +38,9 @@ export function createFloatingTeeth(teeth) {
     // The premolars travel through staggered middle-depth lanes. They break
     // up the two original rows without crowding the main foreground silhouettes.
     const crossesCenter = [14,15,25,34,44,45].includes(fdi);
-    const launch = isTeachingGroup ? flightStart + (fdi - 35) * .004
+    const launch = isTeachingGroup ? authoredStart + (fdi - 35) * .004
       : .813 + (6 - index) * .002 + (side < 0 ? .004 : 0);
-    const land = flightEnd - index * .0036 - (item.upper ? .002 : 0);
+    const land = authoredEnd - index * .0036 - (item.upper ? .002 : 0);
     records.push({
       item, base, side, jaw, launch, land,
       x: crossesCenter ? -base.elements[12]*.60 + (lane-3)*.09 : side*(.43+.055*index)+(lane%2?.18:-.18),
@@ -53,12 +58,13 @@ export function createFloatingTeeth(teeth) {
     update(progress, closure, compact = false) {
       const amount = floatingAmount(progress);
       if (!amount && !wasActive) return amount;
-      const drift = 2 * smooth(.83, .936, progress) - 1;
-      const route = Math.PI * smooth(.826, .958, progress);
+      const authored = MathUtils.mapLinear(progress,flightStart,flightEnd,authoredStart,authoredEnd);
+      const drift = 2 * smooth(.83, .936, authored) - 1;
+      const route = Math.PI * smooth(.826, .958, authored);
       for (const tooth of records) {
         const { item, base, side, jaw, launch, land, x, y, z, pitch, yaw, roll, phase, crossesCenter } = tooth;
-        const release = smooth(launch, launch + .034, progress);
-        const settle = smooth(land - .073, land, progress);
+        const release = smooth(launch, launch + .034, authored);
+        const settle = smooth(land - .073, land, authored);
         const flight = release * (1 - settle);
         const sweep = flight * drift;
         const mesh = item.mesh;

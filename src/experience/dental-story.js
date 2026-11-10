@@ -1,4 +1,5 @@
-import { DENTAL_CHAPTERS, DENTAL_STORY as story } from './story-config.js';
+import { DENTAL_CHAPTERS, DENTAL_STORY as story, STORY_TIMING as timing } from './story-config.js';
+import { flightReveal } from './floating-teeth.js';
 
 const unit = p => typeof p === 'number' && !Number.isNaN(p) ? Math.max(0, Math.min(1, p)) : 0;
 const smooth = (a, b, p) => { const t = unit((p - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -53,7 +54,12 @@ function sampleBrush(p, pose) {
 
 function evaluate(progress, reduced, out, sceneLimit=1) {
   const raw = unit(progress), index = indexAt(raw), ch = DENTAL_CHAPTERS[index];
-  const p = reduced ? Math.min(ch.reducedAt,sceneLimit) : raw;
+  let still = ch.reducedAt;
+  if (ch.id === 'brush') {
+    if (raw >= timing.return[0]) still = 1;
+    else if (raw >= timing.result[0]) still = timing.resultAt;
+  }
+  const p = reduced ? Math.min(still,sceneLimit) : raw;
   out.progress = raw;
   out.sceneProgress = p;
   out.chapterIndex = index;
@@ -64,7 +70,15 @@ function evaluate(progress, reduced, out, sceneLimit=1) {
   out.gapFocus = ramp(story.gapFocus, p) * (1 - ramp(story.gapRelease, p));
   out.lowerReveal = ramp(story.lower, p);
   out.upperReveal = ramp(story.upper, p);
+  out.finaleReveal = Math.max(out.lowerReveal,out.upperReveal);
+  out.assemblyPresence = 1 - ramp(timing.archRelease, p);
+  out.assemblyReveal = flightReveal(p) * out.assemblyPresence;
+  out.assemblyCrownCoverage = ramp(timing.assemblyCrowns,p) * out.assemblyPresence;
+  out.finalCrownCoverage = ramp(timing.finalCrowns,p);
+  out.resultVisibility = smooth(timing.result[0],.903,p) * (1 - smooth(.913,timing.result[1],p));
+  out.finalSmile = ramp(timing.finalCopy,p);
   out.plaqueDeposition = ramp(story.deposition, p);
+  out.plaqueVisibility = 1 - ramp(story.plaqueExit, p);
   const pose = out.brushPose ?? (out.brushPose = {});
   out.cleaningProgress = sampleBrush(p, pose);
   // Remaining fraction in the reachable subset only; NOT the full biofilm's

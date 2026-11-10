@@ -24,20 +24,12 @@ export const experienceConfig = {
     hero: 36,
     neighbors: [35, 36, 37],
     // The mandibular teaching site stays fixed. Only the complete upper
-    // arch approaches it during the final frontal composition.
+    // arch approaches it during the crown-only smile compositions.
     upperOffset: [0, 0.32, 0], lowerOffset: [0, -0.48, 0],
-    smileClosureCm: 0.58, smileClosureRange: [0.90, 0.968],
-    // Rooted teeth reach their seats before the final crown-only handover.
-    crownHandoverRange: [0.969, 0.993],
-  },
-  reveal: {
-    neighbors: { start: 0.12, end: 0.33 },
-    arch: { start: 0.34, end: 0.61, stagger: 0.09 },
-    opposite: { start: 0.66, end: 0.85, stagger: 0.035 },
+    smileClosureCm: 0.58,
   },
   camera: {
     fov: 32, near: 0.012, far: 150,
-    stops: { hero: 0.055, neighbors: 0.34, arch: 0.64, full: 0.88 },
     directions: { hero: [1, 0.65, 0.35], neighbors: [0.8, 0.8, 0.65], arch: [0.32, 1.10, 1], full: [0.58, 0.10, 1] },
     padding: { hero: 1.12, neighbors: 1.12, arch: 1.10, full: 1.10 },
     portraitPadding: { hero: 1.10, neighbors: 1.10, arch: 1.08, full: 1.08 },
@@ -45,7 +37,8 @@ export const experienceConfig = {
     // separate from orbital distance so the measured proximal sightline holds.
     framing: {
       hero:      {desktop:[.73,.52,.75],portrait:[.595,.47,.88],shortPortrait:[.67,.55,.65]},
-      'anatomy-tooth': {desktop:[.70,.53,.74],portrait:[.57,.54,.73],shortPortrait:[.61,.57,.61]},
+      'anatomy-tooth': {desktop:[.70,.53,.74],portrait:[.52,.615,.72],shortPortrait:[.53,.635,.58]},
+      'anatomy-pulp':  {desktop:[.70,.53,.81],portrait:[.52,.615,.79],shortPortrait:[.53,.635,.64]},
       neighbors: {desktop:[.69,.54,.68],portrait:[.61,.59,.82]},
       space:     {desktop:[.68,.54,.65],portrait:[.65,.58,.66]},
       plaque:    {desktop:[.69,.54,.65],portrait:[.64,.58,.67]},
@@ -105,5 +98,11 @@ export const experienceConfig = {
   plaque: {tint:'#b88f9b',warmTint:'#cda6ac'},
   brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
   assetsStory: {site:'story-assets/site.json'},
-  presentation: { steps:DENTAL_CHAPTERS.map((ch,i)=>({...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,meta:i===0||ch.id==='anatomy'?'FDI 36 · dolná ľavá · 2 korene':i===6?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',next:i===6?'Späť na ukážku čistenia':'Pokračovať',subject:i===0||ch.id==='anatomy'?'Dolná ľavá prvá stolička':i===6?'Starostlivosť o celý chrup':'Medzizubný priestor 36–37'})) },
+  presentation: { steps:DENTAL_CHAPTERS.map(ch=>{
+    const tooth=ch.id==='hero'||ch.id==='anatomy';
+    const arch=ch.id==='assembly'||ch.id==='dentition';
+    return {...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,
+      meta:tooth?'FDI 36 · dolná ľavá · 2 korene':arch?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',
+      next:'Pokračovať',subject:tooth?'Dolná ľavá prvá stolička':arch?'Horný a dolný zubný oblúk':'Medzizubný priestor 36–37'};
+  }) },
 };

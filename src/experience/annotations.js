@@ -3,7 +3,7 @@ import { anchorWorld, createSurfaceAnchors, createVisibilityTest } from './annot
 import './annotations.css';
 
 const labels={space:'Medzizubný priestor',plaque:'Povlak',cleaned:'Vyčistený povrch'};
-const chapterLabels={space:['space'],plaque:['plaque'],result:['cleaned']};
+const chapterLabels={space:['space'],plaque:['plaque']};
 const namespace='http://www.w3.org/2000/svg';
 const overlaps=(a,b,p=0)=>a.x<b.x+b.width+p&&a.x+a.width>b.x-p&&a.y<b.y+b.height+p&&a.y+a.height>b.y-p;
 const relative=(r,base)=>({x:r.left-base.left,y:r.top-base.top,width:r.width,height:r.height});
@@ -97,7 +97,9 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
   function update({state,camera,brush}) {
     if(disposed||!state||!camera)return;
     const base=layer.getBoundingClientRect(),sensor=canvas.getBoundingClientRect();
-    const ids=chapterLabels[state.chapterId]??[];
+    const isResult=state.chapterId==='brush'&&state.resultVisibility>.03;
+    const ids=isResult?['cleaned']:chapterLabels[state.chapterId]??[];
+    const group=isResult?'cleaned':state.chapterId;
     const ready=state.neighborsReveal>.95&&(!brush?.object.visible)&&
       (state.chapterId!=='plaque'||state.plaqueDeposition>.08);
     // Progress also drives the copy's small CSS translation at boundaries;
@@ -106,8 +108,8 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
       sensor.left,sensor.top,sensor.width,sensor.height].join('/');
     if(signature===key&&matrix.equals(camera.matrixWorld)&&projection.equals(camera.projectionMatrix))return;
     signature=key;matrix.copy(camera.matrixWorld);projection.copy(camera.projectionMatrix);
-    if(chapter!==state.chapterId) {
-      chapter=state.chapterId;summary.textContent=ids.map(id=>labels[id]).join('. ');
+    if(chapter!==group) {
+      chapter=group;summary.textContent=ids.map(id=>labels[id]).join('. ');
       for(const entry of Object.values(entries))entry.key=null;
     }
     for(const [id,entry] of Object.entries(entries)) {

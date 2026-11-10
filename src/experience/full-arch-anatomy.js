@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { createDentinSectionGeometry } from './exploded-tooth-parts.js';
 
 // The original Dundee assets supply only the exterior. These shapes are an
 // educational approximation, derived separately for each source tooth. They
@@ -213,19 +214,20 @@ function fitSections(position, { halfSize,verticalMid }, axis, sections) {
   for(const band of sections)band.set((band.x+band.y)*.5,(band.y-band.x)*.5,(band.z+band.w)*.5,(band.w-band.z)*.5);
 }
 
-function installCutaway(host, parts) {
+function installCutaway(host, parts, shared) {
   const material=host.material;
   const originalCompile=material.onBeforeCompile, originalKey=material.customProgramCacheKey;
   const key=originalKey.call(material), originalSide=material.side;
-  const weight={value:0}, axis={value:new THREE.Vector2(0,1)};
-  const sections={value:Array.from({length:SECTION_COUNT},()=>new THREE.Vector4())};
+  const weight=shared?.weight??{value:0}, layer=shared?.layer??{value:0};
+  const axis=shared?.axis??{value:new THREE.Vector2(0,1)};
+  const sections=shared?.sections??{value:Array.from({length:SECTION_COUNT},()=>new THREE.Vector4())};
   let open=false;
   material.onBeforeCompile=function(shader,renderer){
     originalCompile.call(this,shader,renderer);
     if(!open)return;
     Object.assign(shader.uniforms,{
       atlasCutWeight:weight,atlasCutAxis:axis,atlasCutCenter:{value:parts.center},
-      atlasCutHalf:{value:parts.halfSize},atlasCutMid:{value:parts.verticalMid},atlasCutSections:sections,
+      atlasCutHalf:{value:parts.halfSize},atlasCutMid:{value:parts.verticalMid},atlasCutSections:sections,atlasStoryLayer:layer,
     });
     shader.vertexShader=shader.vertexShader
       .replace('#include <common>','#include <common>\nvarying vec3 vAtlasCutPosition;')
@@ -238,11 +240,13 @@ function installCutaway(host, parts) {
         uniform vec3 atlasCutCenter;
         uniform vec3 atlasCutHalf;
         uniform float atlasCutMid;
+        uniform float atlasStoryLayer;
         uniform vec4 atlasCutSections[${SECTION_COUNT}];`)
       .replace('#include <clipping_planes_fragment>',`#include <clipping_planes_fragment>
         float atlasWindow = 2.0;
         float atlasCutDepth = -2.0;
         float atlasDepthBoundary = 1.0;
+        float atlasLesson = step(0.00001, atlasStoryLayer);
         if (atlasCutWeight > 0.0) {
           vec2 atlasAcross = vec2(atlasCutAxis.y, -atlasCutAxis.x);
           float atlasWidth = length(atlasCutHalf.xz * atlasAcross);
@@ -253,14 +257,29 @@ function installCutaway(host, parts) {
           vec4 atlasSection = mix(atlasCutSections[atlasBandLow],atlasCutSections[min(atlasBandLow + 1, ${SECTION_COUNT-1})],fract(atlasBand));
           float atlasAcrossCenter = mix(dot(atlasCutCenter.xz, atlasAcross), atlasSection.x, atlasOpen);
           float atlasDepthCenter = mix(dot(atlasCutCenter.xz, atlasCutAxis), atlasSection.z, atlasOpen);
-          float atlasRise = mix(atlasCutCenter.y, atlasCutMid + atlasCutHalf.y * 0.015, atlasOpen);
+          float dentinStage = smoothstep(1.0, 2.0, atlasStoryLayer);
+          float crownSection = atlasCutCenter.y + atlasCutHalf.y * 0.18;
+          float wholeSection = atlasCutMid + atlasCutHalf.y * 0.015;
+          float atlasRise = mix(atlasCutCenter.y, mix(wholeSection, mix(crownSection, wholeSection, dentinStage), atlasLesson), atlasOpen);
           float atlasSpan = mix(atlasWidth, max(atlasWidth * 0.11, atlasSection.y), atlasOpen);
-          float atlasU = abs(dot(vAtlasCutPosition.xz, atlasAcross) - atlasAcrossCenter) / (atlasSpan * mix(0.06, 0.88, atlasOpen));
-          float atlasV = abs(vAtlasCutPosition.y - atlasRise) / (atlasCutHalf.y * mix(0.045, 0.88, atlasOpen));
+          float atlasSpanX = mix(0.88, mix(0.58, 0.88, dentinStage), atlasLesson);
+          float atlasSpanY = mix(0.88, mix(0.34, 0.88, dentinStage), atlasLesson);
+          float atlasU = abs(dot(vAtlasCutPosition.xz, atlasAcross) - atlasAcrossCenter) / (atlasSpan * mix(0.06, atlasSpanX, atlasOpen));
+          float atlasV = abs(vAtlasCutPosition.y - atlasRise) / (atlasCutHalf.y * mix(0.045, atlasSpanY, atlasOpen));
           atlasWindow = atlasU * atlasU + pow(atlasV, 5.0);
           float atlasDepthSpan = mix(atlasThickness, max(atlasThickness * 0.11, atlasSection.w), atlasOpen);
           atlasCutDepth = (dot(vAtlasCutPosition.xz, atlasCutAxis) - atlasDepthCenter) / atlasDepthSpan;
-          atlasDepthBoundary = mix(1.02, -0.33, atlasOpen);
+          atlasDepthBoundary = mix(1.02, mix(-0.33, mix(0.12, -0.33, dentinStage), atlasLesson), atlasOpen);
+          ${shared ? `
+          // The native dentin contours sit behind the outer window. A narrower
+          // nested section then opens over the existing chamber and canals.
+          if (atlasWindow > 1.04) discard;
+          float pulpStage = smoothstep(2.0, 3.0, atlasStoryLayer);
+          float pulpU = atlasU / mix(0.14, 0.75, pulpStage);
+          float pulpV = atlasV / mix(0.18, 0.92, pulpStage);
+          atlasWindow = pulpU * pulpU + pow(pulpV, 5.0);
+          atlasDepthBoundary = mix(1.03, -0.34, pulpStage);
+          ` : ''}
           // A bent root or a thin incisal edge may lie entirely in front of
           // the local depth plane. Its far-facing wall must still remain.
           if (gl_FrontFacing && atlasWindow < 1.0 && atlasCutDepth > atlasDepthBoundary) discard;
@@ -272,18 +291,24 @@ function installCutaway(host, parts) {
           // The opposite inside wall provides depth. The warmer tint is a
           // schematic cue for the dentin exposed by this local section.
           if (!gl_FrontFacing) {
-            outgoingLight = outgoingLight * vec3(0.85, 0.76, 0.64) + vec3(0.045, 0.032, 0.019);
+            outgoingLight = outgoingLight * mix(vec3(0.85, 0.76, 0.64), vec3(0.92, 0.87, 0.78), atlasLesson)
+              + vec3(0.045, 0.032, 0.019);
           } else {
             float atlasLip = (1.0 - smoothstep(1.0, 1.15, atlasWindow)) *
               smoothstep(atlasDepthBoundary - 0.08, atlasDepthBoundary + 0.16, atlasCutDepth);
             outgoingLight = mix(outgoingLight, outgoingLight * vec3(1.04, 0.91, 0.74), atlasLip * 0.66);
+            ${shared ? '' : `
+            float crownEnamel = smoothstep(-0.0003, 0.0013, vAtlasCutPosition.y);
+            outgoingLight = mix(outgoingLight, outgoingLight * vec3(1.04, 1.055, 1.07) + vec3(0.075, 0.079, 0.082),
+              atlasLesson * atlasLip * crownEnamel * 0.78);
+            `}
           }
         }
         #include <opaque_fragment>`);
   };
-  material.customProgramCacheKey=()=>open?`${key}-atlas-cutaway-v2`:key;
+  material.customProgramCacheKey=()=>open?`${key}-atlas-cutaway-v3-${shared?'dentin':'outer'}`:key;
   return {
-    weight,
+    weight, layer, axis, sections,
     aim(direction){
       axis.value.set(direction?.x??0,direction?.z??1);
       if(axis.value.lengthSq()<.0001)axis.value.set(0,1);
@@ -313,7 +338,7 @@ export function createFullArchAnatomy({ arch }) {
   const strand=new THREE.MeshStandardMaterial({color:'#ffffff',vertexColors:true,roughness:.55,
     transparent:true,opacity:.86,depthWrite:false});
   const cache=new Map(), items=new Map();
-  let active=null,disposed=false;
+  let active=null,storyActive=false,disposed=false;
 
   function prepare(fdi) {
     if(items.has(fdi))return items.get(fdi);
@@ -332,40 +357,97 @@ export function createFullArchAnatomy({ arch }) {
     return state;
   }
 
-  function setDetail(fdi,next,localViewDirection) {
+  function prepareDentin(state) {
+    if(state.dentin)return state.dentin;
+    const material=new THREE.MeshPhysicalMaterial({
+      vertexColors:true,roughness:.55,clearcoat:.06,clearcoatRoughness:.47,specularIntensity:.70,
+    });
+    const mesh=new THREE.Mesh(createDentinSectionGeometry(state.host),material);
+    mesh.name='Ilustračný rez dentínom FDI 36';mesh.raycast=()=>{};mesh.visible=false;
+    state.host.add(mesh);
+    return state.dentin={mesh,cut:installCutaway(mesh,state.parts,state.cut)};
+  }
+
+  function closeDetail() {
+    if(!active)return;
+    active.group.visible=false;
+    active.cut.weight.value=0;
+    active.cut.layer.value=0;
+    active.cut.setOpen(false);
+    if(active.dentin){active.dentin.mesh.visible=false;active.dentin.cut.setOpen(false);}
+    active=null;
+  }
+
+  function useDetail(fdi,next,localViewDirection,layer=0) {
     if(disposed)return;
     const value=THREE.MathUtils.clamp(next,0,1);
-    if(active&&(!value||fdi!==active.fdi)) {
-      active.group.visible=false;
-      active.cut.weight.value=0;
-      active.cut.setOpen(false);
-      active=null;
-    }
+    const story=layer>0;
+    if(active&&(!value||fdi!==active.fdi||story!==storyActive))closeDetail();
     if(!value||fdi==null)return;
     if(!active) {
       active=prepare(fdi);
       if(!active)return;
+      storyActive=story;
       active.cut.aim(localViewDirection);
       active.cut.setOpen(true);
-      active.group.visible=true;
+      if(story){
+        const {mesh,cut}=prepareDentin(active);
+        mesh.visible=true;
+        cut.setOpen(true);
+      }
     }
     active.cut.weight.value=value;
+    active.cut.layer.value=layer;
+    const showPulp=story?THREE.MathUtils.smoothstep(layer,2.1,2.94):1;
+    active.group.visible=showPulp>.001;
+    tissue.opacity=.97*showPulp;
+    strand.opacity=.86*showPulp;
+  }
+
+  function prewarmStory(renderer,scene,camera) {
+    if(disposed||active)return Promise.resolve();
+    const state=prepare(36);
+    if(!state)return Promise.resolve();
+    const {cut}=prepareDentin(state);
+    state.cut.setOpen(true);
+    cut.setOpen(true);
+    try {
+      // compileAsync traverses the hidden meshes synchronously before it
+      // returns. Keep the real tooth intact while the GPU builds the programs.
+      return renderer.compileAsync(state.host,camera,scene);
+    } finally {
+      state.cut.setOpen(false);
+      cut.setOpen(false);
+    }
   }
 
   function dispose() {
     if(disposed)return;
-    setDetail(null,0);disposed=true;
+    closeDetail();disposed=true;
     for(const state of items.values()) {
       state.host.remove(state.group);
       state.cut.dispose();
+      if(state.dentin){
+        const {mesh,cut}=state.dentin;
+        state.host.remove(mesh);
+        cut.dispose();
+        mesh.geometry.dispose();
+        mesh.material.dispose();
+      }
     }
     for(const parts of cache.values()){parts.solid.dispose();parts.thread.dispose();}
     tissue.dispose();strand.dispose();
     items.clear();cache.clear();
   }
-  return {setDetail,dispose,report(){
-    return {weight:active?.cut.weight.value??0,fdi:active?.fdi??null,family:active?.parts.family??null,
-      roots:active?.parts.count??null,teeth:arch.teeth.size,templates:cache.size,
-      branches:[...arch.teeth.keys()].map(fdi=>({fdi,count:rootCount(fdi)}))};
-  }};
+  return {
+    setDetail(fdi,weight,direction){useDetail(fdi,weight,direction);},
+    setStoryLayer({cut,amount},direction){useDetail(36,cut,direction,amount);},
+    prewarmStory,
+    dispose,
+    report(){
+      return {weight:active?.cut.weight.value??0,fdi:active?.fdi??null,family:active?.parts.family??null,
+        roots:active?.parts.count??null,teeth:arch.teeth.size,templates:cache.size,
+        branches:[...arch.teeth.keys()].map(fdi=>({fdi,count:rootCount(fdi)}))};
+    },
+  };
 }

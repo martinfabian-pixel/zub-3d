@@ -1,5 +1,6 @@
-import { createStageTypography } from './stage-typography.js';
+import { createStageTypography, getStoryCopy } from './stage-typography.js';
 import { getJourneyScrollMetrics } from './scroll.js';
+import { STORY_TIMING } from './story-config.js';
 
 /** Chapter navigation and screen-space type share the story sampler, never the camera. */
 export function createInterface({config,section,stage,signal,navigate,navigationTarget=()=>null,explore,reset,zoom,finalView:chooseFinalView}) {
@@ -7,8 +8,13 @@ export function createInterface({config,section,stage,signal,navigate,navigation
   const typography=createStageTypography(stage,document.querySelector('.journey-copy'));
   const nav=document.querySelector('.journey-steps'),buttons=[];
   const heroExplore=byId('journey-hero-explore'),freeExplore=byId('journey-explore');
+  const closingButton=document.createElement('button');
+  closingButton.className='outline-button journey-finale-continue';closingButton.type='button';
+  closingButton.textContent='Zobraziť úsmev';closingButton.hidden=true;
+  document.querySelector('.journey-copy').append(closingButton);
+  closingButton.addEventListener('click',()=>navigate(1),{signal});
   const modelButtons=['journey-hero-explore','journey-explore','journey-reset','journey-zoom-in','journey-zoom-out'].map(byId);
-  let index=-1,liveReady=false,smallLayout,lastPhase,lastNavIndex;
+  let index=-1,liveReady=false,smallLayout,lastPhase,lastNavIndex,lastCopy,lastResult,currentProgress=0;
   let wasExploring;
   nav.replaceChildren();
   for(const [i,step] of steps.entries()) {
@@ -20,12 +26,17 @@ export function createInterface({config,section,stage,signal,navigate,navigation
   const move=delta=>{
     const target=navigationTarget();
     const requested=target==null?-1:steps.findIndex(step=>step.at===target);
-    navigate(steps[Math.max(0,Math.min(steps.length-1,(requested<0?index:requested)+delta))].at);
+    const current=requested<0?index:requested, last=steps.length-1;
+    if(delta>0&&current===last){navigate(1);return;}
+    if(delta<0&&(target===1||(index===last&&currentProgress>=STORY_TIMING.result[0]))){
+      navigate(steps[last].at);return;
+    }
+    navigate(steps[Math.max(0,Math.min(last,current+delta))].at);
   };
   byId('journey-mobile-previous').addEventListener('click',()=>move(-1),{signal});
   byId('journey-mobile-next').addEventListener('click',()=>move(1),{signal});
   byId('journey-home').addEventListener('click',()=>navigate(0),{signal});
-  byId('journey-show-all').addEventListener('click',()=>navigate(steps.at(-1).at),{signal});
+  byId('journey-show-all').addEventListener('click',()=>navigate(steps.find(step=>step.id==='dentition').at),{signal});
   byId('journey-view-smile').addEventListener('click',()=>chooseFinalView('smile'),{signal});
   byId('journey-view-anatomy').addEventListener('click',()=>chooseFinalView('anatomy'),{signal});
   heroExplore.addEventListener('click',explore,{signal});
@@ -42,37 +53,39 @@ export function createInterface({config,section,stage,signal,navigate,navigation
     const small=window.matchMedia('(max-width:700px)').matches;
     // Delayed assets and reduced-motion states use the actually rendered chapter.
     const active=state?.chapterIndex??0;
-    const step=steps[active],phase=state?.brushPose?.phase??'hidden',final=active===steps.length-1;
-    if(index!==active||smallLayout!==small) {
-      index=active;smallLayout=small;lastPhase=undefined;
-      const lines=step.titleLines.map(text=>{
+    const step=steps[active],phase=state?.brushPose?.phase??'hidden',sceneProgress=state?.sceneProgress??0;
+    currentProgress=sceneProgress;
+    const copy=getStoryCopy(step,sceneProgress),changedChapter=index!==active;
+    if(changedChapter||smallLayout!==small||lastCopy!==copy) {
+      index=active;smallLayout=small;lastPhase=undefined;lastCopy=copy;
+      const lines=copy.titleLines.map(text=>{
         const line=document.createElement('span');
         line.textContent=text;
         return line;
       });
-      byId('journey-title').replaceChildren(lines[0],' ',lines[1]);
+      byId('journey-title').replaceChildren(...lines.flatMap((line,i)=>i?[' ',line]:[line]));
       byId('journey-step-number').textContent=`${String(index+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       byId('journey-meta').textContent=step.meta;byId('journey-subject').textContent=step.subject;
-      byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+step.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');
+      byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+copy.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');
       buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
-      if(liveReady)byId('journey-stage-live').textContent='Kapitola '+(index+1)+' zo '+steps.length+'. '+step.title;
-      const labels=byId('journey-result-labels');labels.textContent=step.resultLabels?.join('. ')??'';labels.setAttribute('aria-hidden',String(step.id!=='result'));
+      if(liveReady)byId('journey-stage-live').textContent='Kapitola '+(index+1)+' zo '+steps.length+'. '+copy.title;
       byId('journey-education-current').textContent=step.education??step.text;
     }
     // During a button journey, let a second press extend or reverse the
     // destination even before the displayed chapter has caught up.
-    const requested=steps.findIndex(item=>item.at===navigationTarget());
+    const target=navigationTarget(), requested=steps.findIndex(item=>item.at===target);
     const navIndex=requested<0?index:requested;
-    if(lastNavIndex!==navIndex){
+    const atEnd=target===1||(navIndex===steps.length-1&&sceneProgress>=STORY_TIMING.finalHold[0]);
+    if(lastNavIndex!==navIndex||byId('journey-mobile-next').disabled!==atEnd){
       lastNavIndex=navIndex;
       byId('journey-mobile-previous').disabled=navIndex===0;
-      byId('journey-mobile-next').disabled=navIndex===steps.length-1;
+      byId('journey-mobile-next').disabled=atEnd;
     }
     if(lastPhase!==phase) {
       lastPhase=phase;
-      const text=step.text,note=step.id==='plaque'?step.note:'';
+      const text=copy.text,note=step.id==='plaque'?step.note:'';
       let instruction='';
-      if(step.id==='brush') {
+      if(step.id==='brush'&&!copy.phase) {
         const i=phase==='align'||phase==='hidden'?0:phase==='insert'?1:2;
         instruction=phase==='withdraw'?'Jemné vysunutie.':step.instructions[i];
       }
@@ -80,8 +93,13 @@ export function createInterface({config,section,stage,signal,navigate,navigation
       byId('journey-note').textContent=note;byId('journey-note').hidden=!note;
       byId('journey-instruction').textContent=instruction;byId('journey-instruction').hidden=!instruction;
     }
-    byId('journey-final-views').hidden=!final || (!reducedMotion && (state?.sceneProgress??0)<.978);
-    typography.update(step,state?.progress??progress,{mobile:small,reducedMotion,free:exploring});
+    const result=step.id==='brush'&&sceneProgress>=STORY_TIMING.result[0]&&sceneProgress<STORY_TIMING.result[1];
+    if(lastResult!==result){
+      const labels=byId('journey-result-labels');labels.textContent=result?step.resultLabels.join('. '):'';
+      labels.setAttribute('aria-hidden',String(!result));closingButton.hidden=!result;lastResult=result;
+    }
+    byId('journey-final-views').hidden=step.id!=='dentition'||sceneProgress<STORY_TIMING.atlas[0]||sceneProgress>STORY_TIMING.atlas[1];
+    typography.update(step,state?.progress??progress,{mobile:small,reducedMotion,free:exploring,sceneProgress});
     heroExplore.hidden=active!==0||exploring;
     freeExplore.hidden=active===0&&!exploring;
     liveReady=ready;
@@ -101,5 +119,5 @@ export function createInterface({config,section,stage,signal,navigate,navigation
     const {base,travel}=getJourneyScrollMetrics(section,stage);
     window.scrollTo({top:base+progress*Math.max(0,travel),behavior:reducedMotion?'instant':'smooth'});
   }
-  return {update,scrollTo,report:()=>typography.report(),get index(){return index;},dispose(){if(help.open)help.close();}};
+  return {update,scrollTo,report:()=>typography.report(),get index(){return index;},dispose(){closingButton.remove();if(help.open)help.close();}};
 }

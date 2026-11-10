@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { addSmileDissolve, prepareJourneyMaterial } from './materials.js';
 import { disposeObject } from './scene.js';
 import { sampleDentalStory, sampleNeighborEntrance } from './dental-story.js';
-import { createFloatingTeeth, flightEnd, flightReveal, flightStart } from './floating-teeth.js';
+import { DENTAL_STORY, STORY_TIMING } from './story-config.js';
+import { createFloatingTeeth, flightReveal } from './floating-teeth.js';
 import { createSmileLayout, measureSmileBounds } from './smile-layout.js';
 import { createSmileBacking } from './smile-backing.js';
 
@@ -24,8 +25,8 @@ function mirrorGeometry(source) {
   return geometry;
 }
 
-/** Native seating is kept within each arch. The single audited final motion
- * translates the maxilla vertically as a unit; the teaching site never moves.
+/** Native seating is kept within each arch. Smile transitions close the
+ * maxilla as a unit without moving the measured interdental teaching site.
  */
 export function createArch({ manifest, hero, config, renderer, profile, clay=false }) {
   const object = new THREE.Group(); object.name='28 permanent teeth — author-arranged dentition';
@@ -79,23 +80,29 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     outward.y = 0;
     outward.normalize().multiplyScalar(profile.compact ? .83 : 1.18);
     outward.y = index === 0 ? .28 : -.21;
-    return [fdi, { outward, order: index / Math.max(1, items.length - 1), offset: false }];
+    return [fdi, { outward, order: index / Math.max(1, items.length - 1) }];
   }));
-  const arrivalTurn = new THREE.Matrix4();
+  const arrivalTurn = new THREE.Matrix4(), rootPose = new THREE.Matrix4();
 
-  function seatNeighbor(item, neighbor, placement) {
-    if (!item.mesh || (placement === 1 && !neighbor.offset)) return;
-    // The later full-arch flight owns these matrices while it is in view.
-    if (sceneProgress < flightStart || sceneProgress >= flightEnd) {
-      const remaining = 1 - placement;
-      const matrix = item.mesh.matrix.copy(item.seatedMatrix);
-      matrix.elements[12] += neighbor.outward.x * remaining;
-      matrix.elements[13] += neighbor.outward.y * remaining;
-      matrix.elements[14] += neighbor.outward.z * remaining;
-      if (remaining) matrix.multiply(arrivalTurn.makeRotationY((1 - 2 * neighbor.order) * .24 * remaining));
+  function setRootPose(item, neighbor, placement, extract) {
+    rootPose.copy(item.seatedMatrix);
+    const translation=rootPose.elements;
+    if(item.upper)translation[13]-=closureCm;
+    if(neighbor&&sceneProgress>=DENTAL_STORY.neighbors[0]&&placement<1) {
+      const remaining=1-placement;
+      translation[12]+=neighbor.outward.x*remaining;
+      translation[13]+=neighbor.outward.y*remaining;
+      translation[14]+=neighbor.outward.z*remaining;
+      rootPose.multiply(arrivalTurn.makeRotationY((1-2*neighbor.order)*.24*remaining));
+    } else if(extract) {
+      translation[12]+=.16*extract;
+      translation[13]-=.09*extract;
+      translation[14]+=.24*extract;
+    }
+    if(!item.mesh.matrix.equals(rootPose)) {
+      item.mesh.matrix.copy(rootPose);
       item.mesh.updateMatrixWorld(true);
     }
-    neighbor.offset = placement !== 1;
   }
 
   function registerAtlas(atlas) {
@@ -126,18 +133,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for (const [fdi,item] of teeth) {
       attachFromAtlas(fdi,item);
     }
-    // The final atlas may arrive while the two teaching neighbors are in
-    // flight. Capture their canonical seats for the finale, then preserve
-    // the current frame until the story samples its next progress.
-    const staged=[];
-    for (const [fdi,neighbor] of neighbors) {
-      if (!neighbor.offset) continue;
-      const {mesh,seatedMatrix}=teeth.get(fdi);
-      staged.push([mesh,mesh.matrix.clone()]);
-      mesh.matrix.copy(seatedMatrix);
-    }
-    try { floating=createFloatingTeeth(teeth); }
-    finally { for (const [mesh,matrix] of staged) mesh.matrix.copy(matrix); }
+    floating=createFloatingTeeth(teeth);
     assetsReady=true; object.updateMatrixWorld(true);
   }
   function attachCrowns(atlas) {
@@ -179,56 +175,32 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     }
   }
   const sampled={brushPose:{}};
-  function updateClosure() {
-    const [start,end]=config.anatomy.smileClosureRange;
-    const next=smileWeight*config.anatomy.smileClosureCm*smooth(start,end,sceneProgress);
-    if(next===closureCm)return;
-    closureCm=next;
-    for(const item of teeth.values()) {
-      if(!item.upper||!item.mesh)continue;
-      item.mesh.matrix.elements[13]=item.matrix.elements[13]-closureCm;
-      item.mesh.updateMatrixWorld(true);
-    }
-  }
   function setFinalView(view, weight=view==='smile'?1:0) {
     if(view!=='smile'&&view!=='anatomy')throw new RangeError('Unknown final dental view.');
     if(!Number.isFinite(weight))throw new RangeError('Final smile weight must be finite.');
     finalView=view;
     smileWeight=THREE.MathUtils.clamp(weight,0,1);
-    updateClosure();
   }
   function setState(state, rootOpacity) {
     sceneProgress=state.sceneProgress??0;
-    updateClosure();
-    if(crownMix.value>0&&crownMix.value<1) {
-      for(const item of teeth.values()) {
-        item.mesh.matrix.copy(item.seatedMatrix);
-        if(item.upper)item.mesh.matrix.elements[13]-=closureCm;
-        item.mesh.updateMatrixWorld(true);
-      }
-    }
-    floating?.update(sceneProgress,closureCm,profile.compact);
-    const finaleReveal=flightReveal(sceneProgress);
-    const [handoverStart,handoverEnd]=config.anatomy.crownHandoverRange;
-    const mix=smooth(handoverStart,handoverEnd,sceneProgress)*smileWeight;
+    const presence=state.assemblyPresence;
+    closureCm=config.anatomy.smileClosureCm*Math.max(
+      smooth(...STORY_TIMING.assemblyClosure,sceneProgress)*presence*smileWeight,
+      smooth(...STORY_TIMING.finalClosure,sceneProgress));
+    const flying=floating?.update(sceneProgress,closureCm,profile.compact)>0;
+    const extract=4*presence*(1-presence);
+    const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
     crownMix.value=mix;
     smileBacking?.setCoverage(mix);
     visibleCount=0;
     for (const [fdi,item] of teeth) {
-      let reveal=0;
-      if(fdi===config.anatomy.hero) reveal=1;
-      else if(neighbors.has(fdi)) {
-        const neighbor = neighbors.get(fdi);
-        const placement = sampleNeighborEntrance(sceneProgress, neighbor.order);
-        seatNeighbor(item, neighbor, placement);
-        reveal = smooth(0, .66, placement);
-      }
-      else if(item.upper===(config.anatomy.hero<30)) {
-        reveal=state.lowerReveal;
-      } else {
-        reveal=state.upperReveal;
-      }
-      reveal=Math.max(reveal,finaleReveal);
+      const hero=fdi===config.anatomy.hero,neighbor=neighbors.get(fdi);
+      const placement=neighbor?sampleNeighborEntrance(sceneProgress,neighbor.order):1;
+      if(item.mesh&&!flying)setRootPose(item,neighbor,placement,hero?extract:0);
+      const reveal=hero?1:Math.max(
+        neighbor?smooth(0,.66,placement):0,
+        item.upper?state.upperReveal:state.lowerReveal,
+        flightReveal(sceneProgress,fdi)*presence);
       item.reveal=reveal;
       item.finish?.setReveal(mix===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {

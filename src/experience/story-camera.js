@@ -1,7 +1,7 @@
 import { Box3, MathUtils, Spherical, Vector3 } from 'three';
-import { DENTAL_CHAPTERS } from './story-config.js';
+import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from './story-config.js';
+import { flightProgress } from './floating-teeth.js';
 
-const anatomyAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'anatomy').at;
 const spaceAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').at;
 const plaqueAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'plaque').at;
 
@@ -17,24 +17,68 @@ function region(center, halfExtent) {
 }
 
 function introFrames(base) {
+  const direction=base.camera.directions.hero;
   return [
-    { key:'hero', at:.045, landmark:'hero', direction:base.camera.directions.hero },
-    { key:'anatomy-tooth', at:anatomyAt, landmark:'hero', framing:'anatomy-tooth',
-      direction:adjustDirection(new Vector3().fromArray(base.camera.directions.hero),-13,-5) },
-    { key:'neighbors', at:.265, landmark:'neighbors', direction:base.storyCamera.neighborDirection },
+    { key:'hero', at:.045, landmark:'hero', direction },
+    { key:'hero-hold', at:.100, landmark:'hero', direction },
   ];
 }
 
-export function createIntroCameraOptions(base) {
-  return { ...base.camera, keyframes:introFrames(base) };
+function flightFrames() {
+  return [
+    ['flight-lift', .820, [.59,.16,1], 8.9],
+    ['flight-entry', .844, [.52,.20,1], 10.8],
+    ['flight-pass', .884, [.21,.13,1], 12.3],
+    ['flight-arc', .907, [.145,.10,1], 11.85],
+    ['flight-approach', .931, [.09,.075,1], 10.8],
+    ['flight-seat', .969, [.057,.032,1], 8.7],
+  ].map(([key,at,direction,distance])=>({key,at:flightProgress(at),landmark:'flight',direction,distance}));
+}
+
+export function createIntroCameraOptions(base,{flightReady=false}={}) {
+  const keyframes=introFrames(base);
+  if(flightReady)keyframes.push(...flightFrames());
+  return { ...base.camera,keyframes };
+}
+
+function archFrame(base,settings,{key,at,roots=false}) {
+  return {key,at,landmark:roots?'full':'smile',
+    direction:roots?base.camera.directions.full:settings.smileDirection,
+    distance:roots?undefined:settings.smileDistanceCm,
+    portraitFitAspect:roots?undefined:2.20};
+}
+
+function anatomyFrames() {
+  // Along the broad buccal face of FDI 36. The opening and the first two
+  // anatomical layers share an angle so the view cannot outrun the cut.
+  const direction=[.90,.22,.43];
+  const body={landmark:'hero',framing:'anatomy-tooth',direction};
+  const pulp={landmark:'hero',framing:'anatomy-pulp',direction,targetOffset:[0,.055,0]};
+  return [
+    {key:'anatomy-tooth',at:.466,...body},
+    {key:'enamel-hold',at:.505,...body},
+    {key:'anatomy-pulp',at:.554,...pulp},
+    {key:'pulp-hold',at:.562,...pulp},
+    {key:'anatomy-close',at:.590,...body},
+    {key:'closed-tooth',at:.594,...body},
+  ];
 }
 
 /** Measured site coordinates and a minimum viewing distance frame the macro
  * work. On narrow viewports the timeline can back up to fit the region's
  * projected width. Both final-view timelines share all seven teaching poses.
  */
-export function createStoryCameraConfig(site, base, { finalView = 'smile', compact = false } = {}) {
+export function createStoryCameraConfig(site, base, { finalView = 'smile', compact = false, crownsReady = true } = {}) {
   const settings = compact ? { ...base.storyCamera, ...base.storyCamera.compact } : base.storyCamera;
+  const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
+  const roots=finalView==='anatomy'||!crownsReady;
+  const keyframes=[
+    ...introFrames(base),...flightFrames(),
+    archFrame(base,settings,{key:'atlas-open',at:atlasStart,roots}),
+    archFrame(base,settings,{key:'atlas-hold',at:atlasEnd,roots}),
+    ...anatomyFrames(),
+  ];
+  if(!site)return {landmarks:{},camera:{...base.camera,keyframes}};
   const surface = new Vector3().fromArray(site.teachingSurfaceWorldCm);
   const gap = new Vector3().fromArray(site.tightestGapFocusWorldCm);
   const entry = new Vector3().fromArray(site.brush.centerline[0].position);
@@ -65,36 +109,34 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     settings.brushPitchDegrees + (settings.brushSweepPitchDegrees ?? 0));
   const resultDirection = adjustDirection(macro, settings.resultYawDegrees, settings.resultPitchDegrees);
   const specs = [
+    ['neighbors', .624, 'neighbors', settings.neighborDirection],
     ['space', spaceAt, 'space', spaceDirection, settings.spaceDistanceCm],
     // Look slightly across the contact so the deliberately disclosed,
     // brush-reachable film is visible instead of hidden behind tooth 37.
     ['plaque', plaqueAt, 'plaque', adjustDirection(macro, -21, 4), settings.plaqueDistanceCm],
-    ['brush', 0.515, 'cleaning', brushDirection, settings.cleaningDistanceCm],
+    ['brush', brushProgress(.515), 'cleaning', brushDirection, settings.cleaningDistanceCm],
     // The orbit starts after the first cleaning strokes. Both poses use the
     // same measured contact region and return before the result close-up.
-    ['brush-orbit-start', 0.62, 'cleaning', brushDirection, settings.cleaningDistanceCm],
-    ['brush-orbit-side', 0.667, 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
-    ['brush-orbit-hold', 0.676, 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
-    ['withdrawn', 0.72, 'cleaning', brushDirection, settings.cleaningDistanceCm],
-    ['result', 0.76, 'result', resultDirection, settings.resultDistanceCm],
-    ['result-hold', 0.80, 'result', resultDirection, settings.resultDistanceCm],
-    ['flight-lift', 0.820, 'flight', [.59,.16,1], 8.9],
-    ['flight-entry', 0.844, 'flight', [.52,.20,1], 10.8],
-    ['flight-pass', 0.884, 'flight', [.21,.13,1], 12.3],
-    ['flight-arc', 0.907, 'flight', [.145,.10,1], 11.85],
-    ['flight-approach', 0.931, 'flight', [.09,.075,1], 10.8],
-    ['flight-seat', 0.969, 'flight', [.057,.032,1], 8.7],
-    ['full', 0.988, finalView === 'anatomy' ? 'full' : 'smile',
-      finalView === 'anatomy' ? base.camera.directions.full : settings.smileDirection,
-      finalView === 'anatomy' ? undefined : settings.smileDistanceCm],
+    ['brush-orbit-start', brushProgress(.62), 'cleaning', brushDirection, settings.cleaningDistanceCm],
+    ['brush-orbit-side', brushProgress(.667), 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
+    ['brush-orbit-hold', brushProgress(.676), 'cleaning', brushSideDirection, settings.cleaningDistanceCm],
+    ['withdrawn', brushProgress(.72), 'cleaning', brushDirection, settings.cleaningDistanceCm],
+    ['result', STORY_TIMING.resultAt, 'result', resultDirection, settings.resultDistanceCm],
+    ['result-hold', STORY_TIMING.return[0], 'result', resultDirection, settings.resultDistanceCm],
+    ['return-opening', .946, 'space', [.66,.23,1], 4.5],
+    ['return-arch', .971, 'flight', [.16,.08,1], 8.8],
   ];
   // The macro sightlines were checked at the original working distances.
   // On a narrow full-stage display use an off-axis lens to compose them
   // rather than backing the camera away to fit the whole neighboring crowns.
-  const keyframes = introFrames(base).concat(specs.map(([key, at, landmark, direction, distance]) => ({
+  keyframes.push(...specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
     minimumFitAspect: ['cleaning','result'].includes(landmark) ? .72 : undefined,
-    portraitFitAspect: landmark==='smile' ? 2.20 : undefined,
   })));
+  // The final smile is a story beat, independent of the visitor's atlas mode.
+  keyframes.push(
+    archFrame(base,settings,{key:'final-smile',at:STORY_TIMING.finalHold[0],roots:!crownsReady}),
+    archFrame(base,settings,{key:'final-hold',at:STORY_TIMING.finalHold[1],roots:!crownsReady}),
+  );
   return { landmarks, camera: { ...base.camera, keyframes } };
 }

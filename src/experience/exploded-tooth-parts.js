@@ -146,10 +146,10 @@ function makeShell(surface, index, crown) {
   return builder.geometry();
 }
 
-function makeDentin(surface, index) {
+function makeDentin(surface, index, { crownColor = '#e7d3b0', rootColor = '#bda17e' } = {}) {
   const builder = surfaceBuilder();
-  const crown = new THREE.Color('#e7d3b0');
-  const root = new THREE.Color('#bda17e');
+  const crown = new THREE.Color(crownColor);
+  const root = new THREE.Color(rootColor);
   const rootScale = .69;
   const crownScale = .88;
   const color = new THREE.Color();
@@ -168,6 +168,13 @@ function makeDentin(surface, index) {
   }
   for (let i = 0; i < index.count; i += 3) builder.triangle(index.getX(i), index.getX(i + 1), index.getX(i + 2));
   return builder.geometry();
+}
+
+/** Scan-fitted dentin in the same metre coordinate frame as the story tooth. */
+export function createDentinSectionGeometry(host) {
+  return makeDentin(readHealthySurface(host.geometry), host.geometry.index, {
+    crownColor: '#ebdfca', rootColor: '#d9c7a8',
+  }).scale(.001, .001, .001);
 }
 
 function toothPart(name, geometry, roughness, clearcoat) {

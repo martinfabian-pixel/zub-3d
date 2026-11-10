@@ -30,7 +30,7 @@ export async function measureSharedStage(page) {
       const covers=ranges.filter(r=>x>r.left-1&&x<r.right+1&&y>r.top-1&&y<r.bottom+1).map(r=>r.text);
       subjects.push({name,x,y,clipped:Math.max(Math.abs(ndc.x),Math.abs(ndc.y),Math.abs(ndc.z))>1.002,covers});
     }
-    const chapter=state.story.chapterId;
+    const chapter=state.story.chapterId, brushPhase=state.story.brushStoryPhase;
     const host=app.arch.teeth.get(36).mesh;
     if(chapter==='hero'){
       host.geometry.computeBoundingBox();host.geometry.boundingBox.getCenter(point).applyMatrix4(host.matrixWorld);sample('FDI36 center');
@@ -48,12 +48,12 @@ export async function measureSharedStage(page) {
         for(const i of eligible)point.add(v.fromArray(patch.positions,i*3));
         if(eligible.length){point.multiplyScalar(1/eligible.length).applyMatrix4(m.matrixWorld);sample('reachable deposit '+patch.fdi);}
       }
-    } else if(chapter==='result'){
+    } else if(chapter==='brush'&&brushPhase==='result'){
       point.fromArray(app.site.teachingSurfaceWorldCm);sample('cleaned proximal surface');
-    } else if(chapter==='brush'){
+    } else if(chapter==='brush'&&brushPhase==='cleaning'){
       point.fromArray(app.site.brush.centerline[0].position);sample('buccal shaft entry');
       if(state.story.brush.tipWorld){point.fromArray(state.story.brush.tipWorld);sample('brush tip');}
-    } else if(chapter==='dentition'){
+    } else if(chapter==='assembly'||chapter==='dentition'||chapter==='brush'){
       for(const fdi of [11,12,13,21,22,23,31,32,33,41,42,43]){
         const item=app.arch.teeth.get(fdi),m=item.crown?.visible?item.crown:item.mesh;
         if(!m?.visible)continue;

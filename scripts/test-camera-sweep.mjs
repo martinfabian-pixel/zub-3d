@@ -5,6 +5,7 @@ import { experienceConfig } from '../src/experience/config.js';
 import { createStoryCameraConfig } from '../src/experience/story-camera.js';
 import { createTimeline } from '../src/experience/timeline.js';
 import { sampleReducedDentalStory } from '../src/experience/dental-story.js';
+import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 
 // Real measured proximal site with small mock landmark boxes. The browser tests
 // independently check actual tooth occlusion and the visible camera framing.
@@ -39,30 +40,35 @@ for (const compact of [false, true]) {
   const baselineOptions = { ...cameraOptions, keyframes: cameraOptions.keyframes.filter(frame => !frame.key.startsWith('brush-orbit-')) };
   const baseline = createTimeline({ landmarks: allLandmarks, cameraOptions: baselineOptions });
   const sample = progress => timeline.sample(progress, aspect);
-  const hero = sample(.045), anatomy = sample(.17);
-  close(angleDifference(yaw(anatomy), yaw(hero)), MathUtils.degToRad(-13), 1e-7,
-    'Anatomy slightly turns the same hero tooth');
-  assert.ok(anatomy.screenX < hero.screenX && anatomy.opticalZoom < hero.opticalZoom,
-    'Anatomy eases into a distinct composition');
+  const hero = sample(.045), anatomy = sample(DENTAL_CHAPTERS.find(chapter => chapter.id === 'anatomy').at);
+  assert.ok(Math.abs(angleDifference(yaw(anatomy), yaw(hero))) > .05,
+    'Anatomy turns the same hero tooth to show the cut');
+  assert.notDeepEqual([anatomy.screenX, anatomy.screenY, anatomy.opticalZoom],
+    [hero.screenX, hero.screenY, hero.opticalZoom], 'Anatomy eases into a distinct composition');
   close(sample(1).opticalZoom, compact ? .325 : .87, 1e-7, 'The final smile retains its own framing');
-  const chapterBoundary = .10, nearBoundary = 1e-5;
-  assert.ok(sample(chapterBoundary - nearBoundary).position.distanceTo(sample(chapterBoundary + nearBoundary).position) < .002,
-    'The camera stays continuous across the chapter boundary');
-  const start = sample(.62), side = sample(.667), hold = sample(.676), returned = sample(.72);
+  const nearBoundary = 1e-6;
+  for (const { start: boundary } of DENTAL_CHAPTERS.slice(1)) {
+    for (const key of ['position', 'target']) {
+      assert.ok(sample(boundary - nearBoundary)[key].distanceTo(sample(boundary + nearBoundary)[key]) < .002,
+        `Camera ${key} stays continuous across chapter boundary ${boundary}`);
+    }
+  }
+  const [start, side, hold, returned] = [.62, .667, .676, .72].map(brushProgress).map(sample);
 
   const expectedYaw = MathUtils.degToRad(experienceConfig.storyCamera.brushSweepYawDegrees);
   close(angleDifference(yaw(side), yaw(start)), expectedYaw, 1e-7, 'Camera follows the authored side angle');
   close(angleDifference(yaw(hold), yaw(side)), 0, 1e-7, 'Side view holds steady');
   close(angleDifference(yaw(returned), yaw(start)), 0, 1e-7, 'Camera returns to its brush view');
-  for (const progress of [0, .12, .34, .475, .515, .62, .72, .76, .8]) {
+  const [resultStart, resultEnd] = STORY_TIMING.result;
+  for (const progress of [0, .12, .34, .475, .69, ...[.515, .62, .72].map(brushProgress), (resultStart + resultEnd) / 2, 1]) {
     const pose = sample(progress), original = baseline.sample(progress, aspect);
     assert.ok(pose.position.distanceTo(original.position) < 1e-7, `Unchanged pose at ${progress}`);
     assert.ok(pose.target.distanceTo(original.target) < 1e-7, `Unchanged target at ${progress}`);
   }
 
   // C1 interpolation at every new knot, with deterministic absolute sampling.
-  for (const knot of [.62, .667, .676, .72]) {
-    const epsilon = 1e-5, before = sample(knot - epsilon), at = sample(knot), after = sample(knot + epsilon);
+  for (const knot of [.62, .667, .676, .72].map(brushProgress)) {
+    const epsilon = 1e-6, before = sample(knot - epsilon), at = sample(knot), after = sample(knot + epsilon);
     for (const key of ['position', 'target']) {
       const left = at[key].clone().sub(before[key]).divideScalar(epsilon);
       const right = after[key].clone().sub(at[key]).divideScalar(epsilon);
@@ -70,22 +76,23 @@ for (const compact of [false, true]) {
     }
     close(sample(knot).opticalZoom, at.opticalZoom, 1e-12, 'Repeated samples match');
   }
-  const forward = [.62, .635, .65, .667, .676, .69, .705, .72].map(progress => sample(progress));
-  const reverse = [.72, .705, .69, .676, .667, .65, .635, .62].map(progress => sample(progress)).reverse();
+  const sequence = [.62, .635, .65, .667, .676, .69, .705, .72].map(brushProgress);
+  const forward = sequence.map(sample), reverse = sequence.toReversed().map(sample).reverse();
   for (let i = 0; i < forward.length; i++) {
     assert.ok(forward[i].position.distanceTo(reverse[i].position) < 1e-12, 'Reverse reproduces camera position');
     assert.ok(forward[i].target.distanceTo(reverse[i].target) < 1e-12, 'Reverse reproduces camera target');
   }
-  for (const progress of [.49, .62, .66, .71]) {
+  for (const progress of [.49, .62, .66, .71].map(brushProgress)) {
     const reduced = sampleReducedDentalStory(progress);
-    assert.equal(reduced.sceneProgress, .62);
+    assert.equal(reduced.sceneProgress, brushProgress(.62));
     close(angleDifference(yaw(sample(reduced.sceneProgress)), yaw(start)), 0, 1e-7, 'Reduced motion stays at the brush hold');
   }
-  for (const progress of [.72, .75, .79]) {
+  for (const progress of [resultStart, (resultStart + resultEnd) / 2, resultEnd - .001]) {
     const reduced = sampleReducedDentalStory(progress);
-    assert.equal(reduced.sceneProgress, .76);
+    assert.equal(reduced.sceneProgress, (resultStart + resultEnd) / 2);
     const unchanged = baseline.sample(reduced.sceneProgress, aspect);
     assert.ok(sample(reduced.sceneProgress).position.distanceTo(unchanged.position) < 1e-7, 'Reduced motion result remains unchanged');
   }
+  assert.equal(sampleReducedDentalStory(resultEnd).sceneProgress, 1, 'Reduced motion uses a settled final smile');
 }
 console.log('Camera sweep: authored angle, C1 continuity, reverse and reduced-motion holds passed on desktop and portrait.');

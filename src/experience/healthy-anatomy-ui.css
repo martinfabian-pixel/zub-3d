@@ -1,21 +1,18 @@
 #journey-stage[data-healthy-anatomy] > :is(.journey-copy, #journey-annotations) { visibility: hidden; }
-#journey-stage[data-healthy-anatomy] .journey-dock { display: none; }
-#journey-stage[data-healthy-anatomy] #journey-canvas { cursor: default; pointer-events: none; }
 
 .healthy-anatomy {
   position: absolute;
   inset: 0;
   z-index: 4;
   color: var(--text-primary);
-  opacity: 0;
   pointer-events: none;
 }
 .healthy-anatomy button { pointer-events: auto; }
 .healthy-anatomy-copy {
   position: absolute;
   inset-inline-start: 6.7%;
-  top: 32%;
-  width: min(31%, 420px);
+  top: 27%;
+  width: min(39%, 440px);
 }
 .healthy-anatomy-eyebrow {
   color: var(--text-muted);
@@ -23,78 +20,72 @@
   font-weight: 650;
   letter-spacing: .10em;
   text-transform: uppercase;
-  margin: 0 0 15px;
+  margin: 0 0 12px;
 }
-.healthy-anatomy-eyebrow span { margin-inline: .3em; opacity: .6; }
+.healthy-anatomy-eyebrow span { margin-inline: .25em; opacity: .65; }
 .healthy-anatomy h2 {
-  font-size: clamp(33px, 4.3vw, 68px);
+  font-size: clamp(34px, 4.1vw, 63px);
   line-height: 1.02;
   letter-spacing: -.047em;
   text-wrap: balance;
-  margin: 0 0 22px;
+  margin: 0 0 15px;
 }
 .healthy-anatomy-description {
   color: var(--text-secondary);
   font-size: 15px;
-  line-height: 1.5;
-  min-height: 78px;
-  max-width: 31ch;
-  margin: 0;
+  line-height: 1.48;
+  min-height: 66px;
+  max-width: 35ch;
+  margin: 0 0 9px;
   text-wrap: pretty;
 }
-.healthy-anatomy-description strong { color: var(--text-primary); display: block; margin-bottom: 3px; }
-.healthy-anatomy-layers, .healthy-anatomy-leaders { position: absolute; inset: 0; width: 100%; height: 100%; }
-.healthy-anatomy-leaders line {
-  stroke: var(--layer-color);
-  stroke-width: 1;
-  opacity: .65;
-}
-.healthy-anatomy-leaders circle { fill: var(--layer-color); opacity: .88; }
-.healthy-anatomy-leaders [data-selected="true"] { opacity: 1; }
+.healthy-anatomy-description strong { color: var(--text-primary); display: block; margin-bottom: 2px; }
+.healthy-anatomy-layers { display: flex; flex-wrap: wrap; gap: 6px; }
 .healthy-anatomy-layer {
-  position: absolute;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  color: var(--text-primary);
+  min-height: 43px;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
+  background: var(--control-surface);
+  color: var(--accent);
+  padding: 0 14px;
   white-space: nowrap;
-  padding: 0 8px 0 0;
-  font-size: clamp(13px, 1.25vw, 18px);
-  font-weight: 600;
-  letter-spacing: -.02em;
+  font-size: 13px;
+  font-weight: 620;
 }
-.healthy-anatomy-index {
-  font-size: 10px;
-  color: var(--layer-color);
-  font-variant-numeric: tabular-nums;
-  font-weight: 550;
-  opacity: .73;
+.healthy-anatomy-layer:hover { background: #f9fdff; }
+.healthy-anatomy-layer[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.healthy-anatomy-follow {
+  min-height: 38px;
+  border: 0;
+  color: var(--accent);
+  background: transparent;
+  padding: 0 2px;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: .2em;
 }
-.healthy-anatomy-layer:is(:hover, [aria-pressed="true"]) { color: var(--layer-color); }
-.healthy-anatomy-layer:is(:hover, [aria-pressed="true"]) .healthy-anatomy-index { opacity: 1; }
-.healthy-anatomy-actions { position: absolute; inset-inline-start: 6.7%; bottom: max(88px, 13%); }
-@media (max-width: 760px) and (min-height: 501px) {
-  .healthy-anatomy-copy { inset-inline: 6%; top: calc(67px + env(safe-area-inset-top, 0px)); width: auto; }
-  .healthy-anatomy-eyebrow { margin-bottom: 7px; }
-  .healthy-anatomy h2 { font-size: clamp(26px, 7vw, 38px); margin-bottom: 8px; text-wrap: unset; }
-  .healthy-anatomy-description { font-size: 12px; max-width: 53ch; min-height: 36px; }
+@media (prefers-reduced-motion: no-preference) {
+  .healthy-anatomy:not([hidden]) .healthy-anatomy-copy { animation: healthy-anatomy-copy-in .22s ease-out both; }
+  @keyframes healthy-anatomy-copy-in { from { opacity: 0; transform: translateY(5px); } }
+}
+@media (max-width: 700px) {
+  .healthy-anatomy-copy { inset-inline: 6%; top: max(61px, 8.2%); width: auto; }
+  .healthy-anatomy-eyebrow { margin-bottom: 5px; font-size: 10px; }
+  .healthy-anatomy h2 { font-size: clamp(25px, 7vw, 36px); margin-bottom: 6px; text-wrap: unset; }
+  .healthy-anatomy-description { font-size: 12px; max-width: 41ch; min-height: 36px; margin-bottom: 7px; }
   .healthy-anatomy-description strong { display: inline; }
-  .healthy-anatomy-layer { gap: 6px; }
-  .healthy-anatomy-index { font-size: 9px; }
-  .healthy-anatomy-actions { inset-inline-start: 6%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+  .healthy-anatomy-layer { min-height: 40px; padding-inline: 10px; font-size: 12px; }
+  .healthy-anatomy-follow { min-height: 31px; font-size: 11px; }
 }
-@media (max-height: 620px) and (max-width: 760px) and (min-height: 501px) {
-  .healthy-anatomy-copy { top: calc(59px + env(safe-area-inset-top, 0px)); }
+@media (max-height: 650px) and (max-width: 700px) {
+  .healthy-anatomy-copy { top: 53px; }
+  .healthy-anatomy-layer { min-height: 37px; }
 }
-@media (max-height: 500px) {
-  .healthy-anatomy-copy { top: 27%; }
-  .healthy-anatomy h2 { font-size: clamp(24px, 4.1vw, 40px); margin-bottom: 9px; }
-  .healthy-anatomy-eyebrow { margin-bottom: 7px; }
-  .healthy-anatomy-description { font-size: 12px; }
-  .healthy-anatomy-layer { min-height: 34px; }
-  .healthy-anatomy-actions { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
+@media (max-height: 500px) and (min-width: 701px) {
+  .healthy-anatomy-copy { top: 66px; width: 38%; }
+  .healthy-anatomy h2 { font-size: clamp(25px, 4vw, 36px); margin-bottom: 7px; }
+  .healthy-anatomy-eyebrow { margin-bottom: 6px; }
+  .healthy-anatomy-description { font-size: 12px; min-height: 51px; margin-bottom: 5px; }
+  .healthy-anatomy-layer { min-height: 36px; padding-inline: 10px; font-size: 12px; }
+  #journey-stage[data-healthy-anatomy] .journey-dock { left: 42%; }
 }

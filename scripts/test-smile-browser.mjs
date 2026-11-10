@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { mouseDrag, touchDrag, pinchOut, wheelOnCanvas } from './browser-camera-probes.mjs';
+import { flightProgress, flightStart } from '../src/experience/floating-teeth.js';
+import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
 const url=process.env.DENTAL_STORY_TEST_URL||'http://127.0.0.1:4173/';
@@ -9,6 +11,11 @@ const out=process.env.DENTAL_STORY_REVIEW_DIR||'../professional-review/rooted-fl
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const results=[];
+const atlasIndex=DENTAL_CHAPTERS.findIndex(chapter=>chapter.id==='dentition');
+const atlasAt=DENTAL_CHAPTERS[atlasIndex].at;
+const brushAt=DENTAL_CHAPTERS.find(chapter=>chapter.id==='brush').at;
+const [dissolveFrom,dissolveTo]=STORY_TIMING.assemblyCrowns;
+const dissolveAt=fraction=>dissolveFrom+(dissolveTo-dissolveFrom)*fraction;
 try {
  for(const [width,height] of [[1440,900],[390,844]]) {
   const mobile=width<700;
@@ -25,8 +32,8 @@ try {
    await page.waitForFunction(p=>{const r=window.__dentalExperience.report();
     return Math.abs(r.progress-p)<.002&&Math.abs(r.renderProgress-r.storyProgress)<.00002;},progress,{timeout:15000});
   }
-  await seek(.80);
-  const motion=await page.evaluate(async()=>{
+  await seek(flightStart);
+  const motion=await page.evaluate(async({start,end})=>{
    const box=document.querySelector('#dental-journey').getBoundingClientRect();
    const length=box.height-document.querySelector('#journey-stage').clientHeight,base=scrollY+box.top;
    const intervals=[];let previous=0;
@@ -34,11 +41,11 @@ try {
     const time=await new Promise(requestAnimationFrame);
     if(previous)intervals.push(time-previous);
     previous=time;
-    scrollTo({top:base+length*(.80+.20*i/120),behavior:'instant'});
+    scrollTo({top:base+length*(start+(end-start)*i/120),behavior:'instant'});
    }
    intervals.sort((a,b)=>a-b);
    return {samples:intervals.length,p50Ms:intervals[60],p95Ms:intervals[114],over33ms:intervals.filter(v=>v>33.4).length};
-  });
+  },{start:flightStart,end:atlasAt});
   async function readState() {
    const state=await page.evaluate(()=>{
     const {arch,report}=window.__dentalExperience,r=report(),teeth=[...arch.teeth.values()];
@@ -47,7 +54,7 @@ try {
      crowns:teeth.filter(t=>t.crown?.visible).length,anatomy:teeth.filter(t=>t.mesh?.visible).length,
      healthy:teeth.every(t=>!t.mesh.geometry.hasAttribute('lesionRegion')&&!t.mesh.geometry.morphAttributes.position?.length),
      backingVisible:backing?.visible??false,backingOpacity:backing?.material.opacity??0,
-     matrices:teeth.map(t=>t.mesh.matrix.toArray()),shaderErrors:r.shaderErrors};
+     matrices:teeth.map(t=>t.mesh.matrix.toArray()),crownMatrices:teeth.map(t=>t.crown?.matrix.toArray()),shaderErrors:r.shaderErrors};
    });
    assert.equal(state.healthy,true);
    assert.equal(state.shaderErrors,0);
@@ -58,29 +65,29 @@ try {
    assert.equal(state.anatomy,anatomy);
   }
 
-  await seek(.875);
+  await seek(flightProgress(.875));
   const floating=await readState();
   expectMeshes(floating,0,28);
   assert.equal(floating.crownMix,0);
   assert.equal(floating.backingVisible,false);
   await page.screenshot({path:`${out}/${width}-floating.png`});
 
-  await seek(.945);
+  await seek(flightProgress(.945));
   const seated=await readState();
   expectMeshes(seated,0,28);
   assert.equal(seated.crownMix,0);
   assert.notDeepEqual(seated.matrices,floating.matrices,'The rooted teeth move toward their seats');
 
-  await seek(.977);
+  await seek(dissolveAt(.25));
   const dissolveStart=await readState();
   expectMeshes(dissolveStart,28,28);
   assert.ok(dissolveStart.crownMix>0&&dissolveStart.crownMix<.5);
-  await seek(.988);
+  await seek(dissolveAt(.80));
   const dissolveEnd=await readState();
   expectMeshes(dissolveEnd,28,28);
   assert.ok(dissolveEnd.crownMix>.5&&dissolveEnd.crownMix<1);
 
-  await seek(.995);
+  await seek(atlasAt);
   const smile=await readState();
   expectMeshes(smile,28,0);
   assert.equal(smile.crownMix,1);
@@ -97,16 +104,16 @@ try {
   await page.locator('#journey-view-smile').click();await page.waitForTimeout(700);
   expectMeshes(await readState(),28,0);
 
-  await seek(.977);
+  await seek(dissolveAt(.25));
   const reversedDissolve=await readState();
   assert.equal(reversedDissolve.crownMix,dissolveStart.crownMix);
-  await seek(.875);
+  await seek(flightProgress(.875));
   const reversed=await readState();
   expectMeshes(reversed,0,28);
   assert.equal(reversed.backingVisible,false);
   for(let i=0;i<reversed.matrices.length;i++) for(let j=0;j<16;j++)
    assert.ok(Math.abs(reversed.matrices[i][j]-floating.matrices[i][j])<1e-5,'Reverse restores the same transforms');
-  await seek(.62);
+  await seek(brushAt);
   const beforeDrag=await page.evaluate(()=>window.__dentalExperience.report().view.desiredYaw);
   if(mobile)await touchDrag(context,page,60,0);else await mouseDrag(page,60,20);
   const afterDrag=await page.evaluate(()=>window.__dentalExperience.report().view.desiredYaw);
@@ -120,14 +127,32 @@ try {
   await page.locator('#journey-explore').click();await page.waitForTimeout(700);
   assert.equal(await page.evaluate(()=>window.__dentalExperience.report().exploring),false);
   await page.setViewportSize({width:height,height:width});await page.waitForTimeout(500);
-  assert.ok(Math.abs((await page.evaluate(()=>window.__dentalExperience.report().progress))-.62)<.01);
+  assert.ok(Math.abs((await page.evaluate(()=>window.__dentalExperience.report().progress))-brushAt)<.01);
   await page.locator('.journey-step').first().click();
   await page.waitForFunction(()=>{const r=window.__dentalExperience.report();return r.story.chapterId==='hero'&&r.renderProgress<.001;});
-  await page.locator('.journey-step').last().click();
+  await page.locator('.journey-step').nth(atlasIndex).click();
   await page.waitForFunction(()=>{const r=window.__dentalExperience.report();return r.story.chapterId==='dentition'&&Math.abs(r.renderProgress-r.storyProgress)<.00002;});
   expectMeshes(await readState(),28,0);
+  await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(700);
+  expectMeshes(await readState(),0,28);
+  await seek(.965);
+  const calmReturn=await readState();
+  assert.equal(calmReturn.crowns,0);
+  assert.ok(calmReturn.anatomy>3,'The closing reveal progressively brings back the rooted arch');
+  for(let i=0;i<calmReturn.matrices.length;i++) {
+    const seated=anatomy.matrices[i], current=calmReturn.matrices[i];
+    assert.ok(current.every((value,index)=>index===13||Math.abs(value-seated[index])<1e-5),
+      'Closing uses the rooted seats with only the vertical jaw adjustment');
+  }
+  await seek(1);
+  const closing=await readState();
+  expectMeshes(closing,28,0);
+  assert.equal(closing.chapter,'brush');
+  assert.equal(closing.crownMix,1,'The last smile does not depend on the selected atlas view');
+  assert.deepEqual(closing.crownMatrices,smile.crownMatrices,'Both smiles use the same approved crown seating');
+  await page.screenshot({path:`${out}/${width}-zaverecny-usmev.png`});
   assert.deepEqual(errors,[]);
-  const stages=Object.entries({floating,seated,dissolveStart,dissolveEnd,smile,anatomy})
+  const stages=Object.entries({floating,seated,dissolveStart,dissolveEnd,smile,anatomy,calmReturn,closing})
    .map(([name,{chapter,crownMix,crowns,anatomy}])=>({name,chapter,crownMix,crowns,anatomy}));
   results.push({width,height,motion,stages,errors});
   console.log(width, 'passed');

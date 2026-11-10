@@ -1,16 +1,21 @@
 import assert from 'node:assert/strict';
-import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
-import { sampleStageTypography,TYPE_COMPOSITIONS } from '../src/experience/stage-typography.js';
+import { DENTAL_CHAPTERS, FINAL_SMILE_COPY, STORY_TIMING } from '../src/experience/story-config.js';
+import { getStoryCopy, sampleStageTypography,TYPE_COMPOSITIONS } from '../src/experience/stage-typography.js';
 
-const names=['Začína sa to jedným zubom.','Stavba zdravého zuba','Aj medzi zubami.','Nenápadný povlak.',
-  'Jemne tam a späť.','Čistý priestor. Zdravý zub.','Malý návyk. Veľký rozdiel.'];
+const names=['Začína sa to jedným zubom.','Jeden po druhom.','Celý chrup.','Stavba zdravého zuba',
+  'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
 assert.deepEqual(DENTAL_CHAPTERS.map(c=>c.title),names);
 for(const chapter of DENTAL_CHAPTERS){
-  assert.equal(chapter.titleLines.length,2);
+  assert.ok(chapter.titleLines.length>=1&&chapter.titleLines.length<=2);
   assert.equal(chapter.titleLines.join(' '),chapter.title);
   assert.ok(chapter.titleLines.every(line=>line.trim()===line&&line.length>2));
 }
-assert.deepEqual(Object.keys(TYPE_COMPOSITIONS),DENTAL_CHAPTERS.map(c=>c.id));
+assert.deepEqual(new Set(Object.keys(TYPE_COMPOSITIONS)),new Set([...DENTAL_CHAPTERS.map(c=>c.id),'result','closing']));
+const brush=DENTAL_CHAPTERS.at(-1);
+assert.equal(getStoryCopy(brush,STORY_TIMING.resultAt).phase,'result');
+assert.equal(getStoryCopy(brush,1).phase,'closing');
+assert.equal(getStoryCopy(brush,1).title,FINAL_SMILE_COPY.title);
+assert.equal(getStoryCopy(brush,1).text,FINAL_SMILE_COPY.text);
 const progress=Array.from({length:2001},(_,i)=>i/2000);
 const chapterAt=p=>DENTAL_CHAPTERS.findLast(c=>p>=c.start);
 for(const mobile of [false,true]){
@@ -20,7 +25,8 @@ for(const mobile of [false,true]){
   for(const i of [1357,2000,0,880,200,1979,37])assert.deepEqual(sample(progress[i]),forward[i]);
   for(const chapter of DENTAL_CHAPTERS){
     const settled=sample(chapter.at);
-    assert.equal(settled.opacity,1);assert.equal(settled.shift,0);
+    if(chapter.id==='assembly')assert.ok(settled.opacity>=.45&&settled.opacity<=.6,'The title recedes during the opening flight and stays readable');
+    else {assert.equal(settled.opacity,1);assert.equal(settled.shift,0);}
     assert.ok(settled.x>=0&&settled.x+settled.width<=1&&settled.y>=0&&settled.y<1&&settled.font>=20);
     for(const p of [chapter.start,chapter.at,chapter.end]){
       const normal=sampleStageTypography(chapter,p,{mobile});
