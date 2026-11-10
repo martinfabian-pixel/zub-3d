@@ -51,7 +51,7 @@ const range = (a, b) => Object.freeze([a, b]);
 export const DENTAL_STORY = Object.freeze({
   chapters: DENTAL_CHAPTERS,
   fdi: Object.freeze({ hero: 36, distalNeighbor: 37, neighbors: Object.freeze([35, 36, 37]) }),
-  neighbors: range(.22, .28), gapFocus: range(.28, .33), gapRelease: range(.80, .875),
+  neighbors: range(.22, .292), gapFocus: range(.292, .33), gapRelease: range(.80, .875),
   deposition: range(.34, .455),
   brush: Object.freeze({
     appear: range(.48, .502), align: range(.48, .515), enter: range(.515, .56),

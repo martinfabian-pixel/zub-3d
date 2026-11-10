@@ -166,7 +166,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
     const targets = [];
     const responsiveWeight=MathUtils.smoothstep(aspect,.67,1.25);
     const composition=frames.map(frame=>{
-      const optical=cameraOptions.framing?.[frame.landmark??frame.key];
+      const optical=cameraOptions.framing?.[frame.framing??frame.landmark??frame.key];
       if(!optical)return [.5,.5,1];
       // Short phones need room for the complete root silhouette under the
       // title. This optional optical preset is continuous in aspect and

@@ -39,6 +39,15 @@ for (const compact of [false, true]) {
   const baselineOptions = { ...cameraOptions, keyframes: cameraOptions.keyframes.filter(frame => !frame.key.startsWith('brush-orbit-')) };
   const baseline = createTimeline({ landmarks: allLandmarks, cameraOptions: baselineOptions });
   const sample = progress => timeline.sample(progress, aspect);
+  const hero = sample(.045), anatomy = sample(.17);
+  close(angleDifference(yaw(anatomy), yaw(hero)), MathUtils.degToRad(-13), 1e-7,
+    'Anatomy slightly turns the same hero tooth');
+  assert.ok(anatomy.screenX < hero.screenX && anatomy.opticalZoom < hero.opticalZoom,
+    'Anatomy eases into a distinct composition');
+  close(sample(1).opticalZoom, compact ? .325 : .87, 1e-7, 'The final smile retains its own framing');
+  const chapterBoundary = .10, nearBoundary = 1e-5;
+  assert.ok(sample(chapterBoundary - nearBoundary).position.distanceTo(sample(chapterBoundary + nearBoundary).position) < .002,
+    'The camera stays continuous across the chapter boundary');
   const start = sample(.62), side = sample(.667), hold = sample(.676), returned = sample(.72);
 
   const expectedYaw = MathUtils.degToRad(experienceConfig.storyCamera.brushSweepYawDegrees);

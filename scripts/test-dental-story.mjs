@@ -1,7 +1,7 @@
 // Pure narrative/clinical invariants, independent of renderer, DOM, and frame rate.
 import assert from 'node:assert/strict';
 import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
-import { getDentalChapter, sampleDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
+import { getDentalChapter, sampleDentalStory, sampleNeighborEntrance, sampleReducedDentalStory } from '../src/experience/dental-story.js';
 
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
 const ids = ['hero', 'anatomy', 'space', 'plaque', 'brush', 'result', 'dentition'];
@@ -64,6 +64,18 @@ assert.equal(anatomy.cleaningProgress, 0);
 assert.equal(anatomy.brushVisibility, 0);
 assert.equal(anatomy.neighborsReveal, 0);
 assert.equal(anatomy.plaqueDeposition, 0);
+assert.equal(sampleNeighborEntrance(.22, 0), 0, 'The next chapter opens on the same single tooth');
+assert.ok(sampleNeighborEntrance(.23, 0) > 0 && sampleNeighborEntrance(.23, 1) === 0,
+  'The two neighboring teeth start their arrivals separately');
+assert.equal(sampleNeighborEntrance(.292, 0), 1);
+assert.equal(sampleNeighborEntrance(.292, 1), 1);
+for (const order of [0, 1]) {
+  const progress = [.22, .23, .255, .28, .292];
+  const forward = progress.map(p => sampleNeighborEntrance(p, order));
+  const backward = progress.slice().reverse().map(p => sampleNeighborEntrance(p, order)).reverse();
+  assert.deepEqual(forward, backward, 'Neighbor placement has no animation history');
+  assert.ok(forward.every((p, index) => index === 0 || p >= forward[index - 1]));
+}
 const space = sampleDentalStory(.33);
 assert.equal(space.chapterId, 'space');
 assert.equal(space.neighborsReveal, 1);

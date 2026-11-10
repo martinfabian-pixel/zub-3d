@@ -1,0 +1,35 @@
+.full-arch-brushing { margin-top: 10px; }
+.full-arch-brushing-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.full-arch-brushing-actions :is(button, a) { pointer-events: auto; }
+.full-arch-brushing h2 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 4.3vw, 57px);
+  line-height: 1;
+  letter-spacing: -.047em;
+}
+.full-arch-brushing-caption {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.35;
+  margin-bottom: 10px;
+  max-width: 32ch;
+}
+.full-arch-brushing-caption strong { color: var(--text-primary); }
+.full-arch-brushing-caption p { margin: 3px 0 0; }
+.full-arch-brushing-source {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  pointer-events: auto;
+}
+#journey-stage[data-full-brushing] :is(#journey-title, #journey-description, #journey-note, #journey-final-views, .journey-dock) {
+  display: none;
+}
+#journey-stage[data-full-brushing] #journey-canvas { cursor: default; }
+@media (max-width: 700px) {
+  .full-arch-brushing { margin-top: 8px; }
+  .full-arch-brushing-caption { font-size: 12px; margin-bottom: 8px; }
+  .full-arch-brushing-actions :is(.primary-button, .outline-button) { min-height: 36px; font-size: 12px; }
+  #journey-stage[data-full-brushing] #journey-canvas { mask-image: linear-gradient(transparent 56px, #000 165px); }
+}

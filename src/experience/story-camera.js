@@ -1,6 +1,7 @@
 import { Box3, MathUtils, Spherical, Vector3 } from 'three';
 import { DENTAL_CHAPTERS } from './story-config.js';
 
+const anatomyAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'anatomy').at;
 const spaceAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').at;
 const plaqueAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'plaque').at;
 
@@ -52,7 +53,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const resultDirection = adjustDirection(macro, settings.resultYawDegrees, settings.resultPitchDegrees);
   const specs = [
     ['hero', 0.045, 'hero', base.camera.directions.hero],
-    ['hero-hold', 0.19, 'hero', base.camera.directions.hero],
+    ['anatomy-tooth', anatomyAt, 'hero', adjustDirection(new Vector3().fromArray(base.camera.directions.hero), -13, -5)],
     ['neighbors', 0.265, 'neighbors', settings.neighborDirection],
     ['space', spaceAt, 'space', spaceDirection, settings.spaceDistanceCm],
     // Look slightly across the contact so the deliberately disclosed,
@@ -79,6 +80,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   // rather than backing the camera away to fit the whole neighboring crowns.
   const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
+    framing: key === 'anatomy-tooth' ? key : undefined,
     minimumFitAspect: ['cleaning','result'].includes(landmark) ? .72 : undefined,
     portraitFitAspect: landmark==='smile' ? 2.20 : undefined,
   }));

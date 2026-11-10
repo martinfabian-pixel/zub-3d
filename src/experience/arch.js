@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { addSmileDissolve, prepareJourneyMaterial } from './materials.js';
 import { disposeObject } from './scene.js';
-import { sampleDentalStory } from './dental-story.js';
-import { createFloatingTeeth, flightReveal } from './floating-teeth.js';
+import { sampleDentalStory, sampleNeighborEntrance } from './dental-story.js';
+import { createFloatingTeeth, flightEnd, flightReveal, flightStart } from './floating-teeth.js';
 import { createSmileLayout, measureSmileBounds } from './smile-layout.js';
 import { createSmileBacking } from './smile-backing.js';
 
@@ -72,6 +72,31 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const heroMesh=hero.meshes.get('ToothExterior')??[...hero.meshes.values()][0];
   const sources=new Map([[config.anatomy.hero,heroMesh]]);
   attach(config.anatomy.hero,heroMesh);
+  const heroCenter = new THREE.Vector3().setFromMatrixPosition(teeth.get(config.anatomy.hero).matrix);
+  const neighbors = new Map(config.anatomy.neighbors.filter(fdi => fdi !== config.anatomy.hero).map((fdi, index, items) => {
+    const item = teeth.get(fdi);
+    const outward = new THREE.Vector3().setFromMatrixPosition(item.matrix).sub(heroCenter);
+    outward.y = 0;
+    outward.normalize().multiplyScalar(profile.compact ? .83 : 1.18);
+    outward.y = index === 0 ? .28 : -.21;
+    return [fdi, { outward, order: index / Math.max(1, items.length - 1), offset: false }];
+  }));
+  const arrivalTurn = new THREE.Matrix4();
+
+  function seatNeighbor(item, neighbor, placement) {
+    if (!item.mesh || (placement === 1 && !neighbor.offset)) return;
+    // The later full-arch flight owns these matrices while it is in view.
+    if (sceneProgress < flightStart || sceneProgress >= flightEnd) {
+      const remaining = 1 - placement;
+      const matrix = item.mesh.matrix.copy(item.seatedMatrix);
+      matrix.elements[12] += neighbor.outward.x * remaining;
+      matrix.elements[13] += neighbor.outward.y * remaining;
+      matrix.elements[14] += neighbor.outward.z * remaining;
+      if (remaining) matrix.multiply(arrivalTurn.makeRotationY((1 - 2 * neighbor.order) * .24 * remaining));
+      item.mesh.updateMatrixWorld(true);
+    }
+    neighbor.offset = placement !== 1;
+  }
 
   function attachAtlas(atlas, upperMolar) {
     if (disposed) { disposeObject(atlas.object); return; }
@@ -167,7 +192,12 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for (const [fdi,item] of teeth) {
       let reveal=0;
       if(fdi===config.anatomy.hero) reveal=1;
-      else if(config.anatomy.neighbors.includes(fdi)) reveal=state.neighborsReveal;
+      else if(neighbors.has(fdi)) {
+        const neighbor = neighbors.get(fdi);
+        const placement = sampleNeighborEntrance(sceneProgress, neighbor.order);
+        seatNeighbor(item, neighbor, placement);
+        reveal = smooth(0, .66, placement);
+      }
       else if(item.upper===(config.anatomy.hero<30)) {
         reveal=state.lowerReveal;
       } else {

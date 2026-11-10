@@ -121,13 +121,42 @@ try {
         releaseHero?.();
       }
       await wait(() => window.__dentalExperience?.report().ready, null, 90000);
+      if (releaseHero && !reduced) {
+        await wait(() => {
+          const style = getComputedStyle(document.querySelector('#journey-canvas'));
+          const scale = new DOMMatrixReadOnly(style.transform).a;
+          return document.body.dataset.journeyHandoff === 'grow'
+            && style.visibility === 'visible' && scale > .3 && scale < .95;
+        }, null, 12000);
+      }
       await startup.waitFor({ state: 'hidden' });
       assert.equal(await page.locator('body[data-journey-loading]').count(), 0);
       assert.equal(await page.locator('#journey-title').isVisible(), true);
       assert.equal(await page.locator('.journey-step').first().getAttribute('aria-current'), 'step');
+      if (!reduced) await page.evaluate(() => {
+        const samples = [];
+        const observe = () => {
+          const { arch, renderer, report } = window.__dentalExperience;
+          const model = arch.teeth.get(36).mesh;
+          samples.push([report().story.sceneProgress, model.visible, getComputedStyle(renderer.domElement).opacity]);
+          frame = requestAnimationFrame(observe);
+        };
+        let frame = requestAnimationFrame(observe);
+        window.__stopChapterTrace = () => {
+          cancelAnimationFrame(frame);
+          delete window.__stopChapterTrace;
+          return samples;
+        };
+      });
       await activate(page.locator('#journey-mobile-next'));
       await wait(() => window.__dentalExperience?.report().assetsReady, null, 90000);
       await at(anatomyChapter.at, anatomyChapter.id);
+      if (!reduced) {
+        const samples = await page.evaluate(() => window.__stopChapterTrace());
+        assert.ok(samples.some(([p]) => p > .08 && p < .14), 'The anatomy entry uses intermediate camera frames');
+        assert.ok(samples.every(([, visible, opacity]) => visible && +opacity > .98),
+          'The hero tooth stays visible through chapter 01 to chapter 02');
+      }
       const plate = page.locator('#healthy-anatomy');
       const toggle = plate.locator('.healthy-anatomy-toggle');
       const labels = plate.locator('.healthy-anatomy-layer');
@@ -222,6 +251,19 @@ try {
         const spaceChapter = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space');
         await at(spaceChapter.at, spaceChapter.id);
         assert.equal((await report()).healthyAnatomy.active, false);
+        if (!reduced) {
+          const seated = (await report()).teeth;
+          await seek(.228, 'space');
+          const firstArrival = (await report()).teeth;
+          const first = firstArrival.find(tooth => tooth.fdi === 35);
+          const second = firstArrival.find(tooth => tooth.fdi === 37);
+          assert.ok(first.reveal > 0 && second.reveal === 0, 'The first neighbor arrives before the second');
+          const final = seated.find(tooth => tooth.fdi === 35).worldMatrix;
+          assert.ok(Math.hypot(...first.worldMatrix.slice(12, 15).map((v, i) => v - final[i + 12])) > .3,
+            'The first neighbor travels in 3D instead of appearing at its seat');
+          await seek(.255, 'space');
+          assert.ok((await report()).teeth.filter(tooth => [35, 37].includes(tooth.fdi)).every(tooth => tooth.reveal > 0));
+        }
         await seek(.62, 'brush');
         await activate(page.locator('.manual-cleaning-start'));
         await wait(() => window.__dentalExperience.report().manualCleaning?.transition === 'active');

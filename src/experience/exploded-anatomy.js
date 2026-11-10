@@ -38,7 +38,8 @@ function createIntactTooth(host, mix) {
   applyAssemblyDissolve(material, mix, false);
   const mesh = new THREE.Mesh(host.geometry, material);
   mesh.name = 'FDI 36 · intact hero';
-  mesh.scale.setScalar(1000);
+  mesh.castShadow = host.castShadow;
+  mesh.receiveShadow = host.receiveShadow;
   return mesh;
 }
 
@@ -47,13 +48,17 @@ export function createExplodedAnatomy(scene, host, config) {
   const socket = createExplodedToothSocket();
   const object = new THREE.Group();
   object.name = 'FDI 36 · exploded anatomy';
-  // Shells are authored in millimetres. Match the hero's centimetre world
-  // so its normal-map detail and studio lighting keep their original scale.
-  object.scale.setScalar(.1);
+  // The fully assembled pose is coincident with the story tooth, down to
+  // its world transform. The isolated anatomy then grows from that pose.
+  const heroPosition = host.getWorldPosition(new THREE.Vector3());
+  const heroScale = host.getWorldScale(new THREE.Vector3());
+  object.position.copy(heroPosition);
+  object.scale.setScalar(heroScale.x / 1000);
   const models = new THREE.Group();
   object.add(models);
   const mix = { value: 0 };
   const intact = createIntactTooth(host, mix);
+  intact.scale.copy(heroScale).divideScalar(object.scale.x);
   models.add(intact);
   for (const shell of [parts.enamel, parts.cementum]) {
     shell.traverse(child => { if (child.isMesh) applyAssemblyDissolve(child.material, mix, true); });
@@ -108,22 +113,28 @@ export function createExplodedAnatomy(scene, host, config) {
   }
   const layerLights = [ambient, light(0xfff8ef, 2.35, -32, 28, 25), light(0xe3ebff, 1.55, 22, 24, -27),
     light(0xe7efff, .44, 30, -4, 24)].map(source => [source, source.intensity]);
-  const studioLights = [config.studio.key, config.studio.fill, config.studio.rim].map(spec => {
-    const source = new THREE.RectAreaLight(spec.color, spec.intensity, ...spec.size);
-    source.position.fromArray(spec.position).multiplyScalar(10);
-    return [source, spec.intensity];
-  });
-  const direct = config.studio.directional;
-  studioLights.push([light(direct.color, direct.intensity, ...direct.position.map(value => value * 10)), direct.intensity]);
-  for (const [source] of [...layerLights, ...studioLights]) object.add(source);
+  const studioLights = scene.children
+    .filter(source => source.isRectAreaLight || source.isDirectionalLight)
+    .map(source => [source, source.intensity]);
+  for (const [source] of studioLights) source.layers.enable(plateLayer);
+  for (const [source] of layerLights) {
+    object.add(source);
+    if (source.isDirectionalLight) object.add(source.target);
+  }
   object.traverse(child => child.layers.set(plateLayer));
   scene.add(object);
-  for (const [source] of studioLights) if (source.isRectAreaLight) source.lookAt(0, 0, 0);
 
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 180);
+  const camera = new THREE.PerspectiveCamera(config.camera.fov, 1, config.camera.near, config.camera.far);
   camera.layers.set(plateLayer);
-  const heroDirection = new THREE.Vector3().fromArray(config.camera.directions.hero).normalize();
-  const openDirection = new THREE.Vector3(16, 7, 75).normalize();
+  const openOffset = new THREE.Vector3(16, 7, 75).setLength(75);
+  const openPosition = heroPosition.clone().add(openOffset);
+  const openRotation = new THREE.Quaternion().setFromRotationMatrix(
+    new THREE.Matrix4().lookAt(openPosition, heroPosition, camera.up));
+  const openEye = openOffset.clone().applyQuaternion(openRotation.clone().invert());
+  const sourceRotation = new THREE.Quaternion();
+  const inverseRotation = new THREE.Quaternion();
+  const sourceEye = new THREE.Vector3();
+  const eye = new THREE.Vector3();
 
   function pose(value) {
     const orientation = smoothstep(value, 0, 1);
@@ -146,30 +157,20 @@ export function createExplodedAnatomy(scene, host, config) {
       }
     }
     object.updateMatrixWorld(true);
-    camera.position.lerpVectors(heroDirection, openDirection, orientation).normalize().multiplyScalar(75);
-    camera.lookAt(0, 0, 0);
-    camera.updateMatrixWorld();
   }
 
-  function boundsAt(value) {
-    pose(value);
-    const bounds = new THREE.Box3();
-    if (intact.visible) {
-      const position = intact.geometry.getAttribute('position');
-      const transform = new THREE.Matrix4().multiplyMatrices(camera.matrixWorldInverse, intact.matrixWorld);
-      const vertex = new THREE.Vector3();
-      for (let i = 0; i < position.count; i++) bounds.expandByPoint(vertex.fromBufferAttribute(position, i).applyMatrix4(transform));
-    } else {
-      for (const { wrapper } of rows) if (wrapper.visible) bounds.expandByObject(wrapper);
-      bounds.applyMatrix4(camera.matrixWorldInverse);
-    }
-    return { size: bounds.getSize(new THREE.Vector3()), center: bounds.getCenter(new THREE.Vector3()) };
-  }
-
-  const opened = boundsAt(1);
-  const closed = boundsAt(0);
+  camera.position.copy(openPosition);
+  camera.quaternion.copy(openRotation);
+  camera.updateMatrixWorld();
+  pose(1);
+  const bounds = new THREE.Box3().setFromObject(object);
+  // setFromObject includes the hidden intact mesh. At full spread it sits
+  // inside the extents of the five layers and adds no extra framing.
+  bounds.applyMatrix4(camera.matrixWorldInverse);
+  const opened = { size: bounds.getSize(new THREE.Vector3()), center: bounds.getCenter(new THREE.Vector3()) };
+  pose(0);
   const projected = new THREE.Vector3();
-  let viewport, spread = 0, labelPoints = null;
+  let viewport, storyCamera, spread = 0, labelPoints = null;
 
   function layout(width, height, { copyBottom, actionsTop, footerTop }) {
     const compact = width <= 760 && height > 500;
@@ -177,27 +178,61 @@ export function createExplodedAnatomy(scene, host, config) {
     const top = compact ? Math.max(short ? 146 : 163, copyBottom + 12) : (short ? 63 : 82);
     const bottom = (compact ? actionsTop : footerTop) - 8;
     const available = Math.max(1, bottom - top);
-    const closedFit = Math.min(.82 * available / closed.size.y, width * (compact ? .75 : .35) / closed.size.x);
     const openedFit = Math.min(available / opened.size.y, width * (compact ? .50 : .29) / opened.size.x);
     const labelX = Math.max(width * (compact ? .675 : .745),
       width * (compact ? .355 : .585) + opened.size.x * openedFit / 2 + 25);
-    viewport = { width, height, compact, centerY: (top + bottom) / 2, closedFit, openedFit, labelX };
+    viewport = { width, height, compact, centerY: (top + bottom) / 2, openedFit, labelX };
     return frame();
   }
 
   function frame() {
-    const { width, height, compact, centerY, closedFit, openedFit, labelX } = viewport;
-    const centerX = width * lerp(compact ? .57 : .69, compact ? .355 : .585, spread);
-    // The staggered rows reach their widest vertical separation before the
-    // labels settle. Ease the framing back slightly through that passage.
-    const unitsPerPixel = lerp(1 / closedFit, 1 / openedFit, spread) * (1 + .065 * Math.sin(Math.PI * spread));
-    const aimX = lerp(closed.center.x, opened.center.x, spread);
-    const aimY = lerp(closed.center.y, opened.center.y, spread);
-    camera.left = aimX - centerX * unitsPerPixel;
-    camera.right = camera.left + width * unitsPerPixel;
-    camera.top = aimY + centerY * unitsPerPixel;
-    camera.bottom = camera.top - height * unitsPerPixel;
-    camera.updateProjectionMatrix();
+    const { width, height, compact, centerY, openedFit, labelX } = viewport;
+    const centerX = width * (compact ? .355 : .585);
+    const left = opened.center.x - centerX / openedFit;
+    const top = opened.center.y + centerY / openedFit;
+    if (!storyCamera || spread === 1) {
+      camera.position.copy(openPosition);
+      camera.quaternion.copy(openRotation);
+      camera.projectionMatrix.makeOrthographic(left, left + width / openedFit, top, top - height / openedFit, camera.near, camera.far);
+    } else {
+      storyCamera.getWorldPosition(sourceEye);
+      storyCamera.getWorldQuaternion(sourceRotation);
+      if (spread === 0) {
+        camera.position.copy(sourceEye);
+        camera.quaternion.copy(sourceRotation);
+        camera.projectionMatrix.copy(storyCamera.projectionMatrix);
+      } else {
+        const t = smoothstep(spread, 0, 1);
+        sourceEye.sub(heroPosition).applyQuaternion(inverseRotation.copy(sourceRotation).invert());
+        eye.lerpVectors(sourceEye, openEye, t);
+        const depth = Math.max(eye.z, camera.near);
+        const sourceDepth = Math.max(sourceEye.z, camera.near);
+        camera.quaternion.slerpQuaternions(sourceRotation, openRotation, t);
+        camera.position.copy(eye).applyQuaternion(camera.quaternion).add(heroPosition);
+
+        // Mix the two projections at the tooth depth. The homogeneous
+        // divisor starts as perspective and becomes orthographic as the
+        // diagram opens, so the handover and the reverse are pixel-continuous.
+        const source = storyCamera.projectionMatrix.elements;
+        const zoomOut = 1 + .065 * Math.sin(Math.PI * spread);
+        const sx = lerp(source[0] / sourceDepth, 2 * openedFit / width, t) / zoomOut;
+        const sy = lerp(source[5] / sourceDepth, 2 * openedFit / height, t) / zoomOut;
+        const offsetX = lerp(-source[8], -1 - 2 * left * openedFit / width, t);
+        const offsetY = lerp(-source[9], 1 - 2 * top * openedFit / height, t);
+        const perspective = -(1 - t) / depth;
+        const nearWeight = t - camera.near * perspective;
+        const farWeight = t - camera.far * perspective;
+        const zScale = -(farWeight + nearWeight) / (camera.far - camera.near);
+        const zOffset = zScale * camera.near - nearWeight;
+        camera.projectionMatrix.set(
+          sx, 0, offsetX * perspective, offsetX * t,
+          0, sy, offsetY * perspective, offsetY * t,
+          0, 0, zScale, zOffset,
+          0, 0, perspective, t);
+      }
+    }
+    camera.updateMatrixWorld();
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     labelPoints = rows.map(({ wrapper, anchorPoint }) => {
       projected.copy(anchorPoint).applyMatrix4(wrapper.matrixWorld).project(camera);
       return { x: (projected.x + 1) * width / 2, y: (1 - projected.y) * height / 2, labelX };
@@ -205,16 +240,22 @@ export function createExplodedAnatomy(scene, host, config) {
     return labelPoints;
   }
 
-  function setSpread(value) {
+  function setSpread(value, sourceCamera) {
     const next = clamp(value, 0, 1);
-    if (next === spread) return labelPoints;
-    spread = next;
-    pose(spread);
+    if (sourceCamera) storyCamera = sourceCamera;
+    if (next !== spread) {
+      spread = next;
+      pose(spread);
+    } else if (!sourceCamera) return labelPoints;
     return viewport ? frame() : null;
   }
 
   function dispose() {
     object.removeFromParent();
+    for (const [source, intensity] of studioLights) {
+      source.intensity = intensity;
+      source.layers.disable(plateLayer);
+    }
     intact.material.dispose();
     parts.dispose();
     socket.dispose();

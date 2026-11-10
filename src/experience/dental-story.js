@@ -14,6 +14,13 @@ export function getDentalChapter(progress) {
   return DENTAL_CHAPTERS[indexAt(unit(progress))];
 }
 
+export function sampleNeighborEntrance(progress, order) {
+  const [start, end] = story.neighbors;
+  const stagger = .17 * (end - start);
+  const delay = stagger * order;
+  return smooth(start + delay, end - stagger + delay, progress);
+}
+
 function sampleBrush(p, pose) {
   const {keys, appear, align, work, withdraw, fade} = story.brush;
   // Evaluate the absolute path, never advance an animation or keep a previous
