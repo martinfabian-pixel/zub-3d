@@ -1,21 +1,14 @@
 import {
-  Color, Curve, CylinderGeometry, DynamicDrawUsage, Group, InstancedMesh, LatheGeometry,
+  Color, CylinderGeometry, DynamicDrawUsage, Group, InstancedMesh, LatheGeometry,
   Matrix4, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Quaternion, SphereGeometry,
-  TubeGeometry, Vector2, Vector3,
+  Vector2, Vector3,
 } from 'three';
 import { makePathSample, MM_TO_WORLD as mm, saturate } from './cleaning-path.js';
 
 const Y=new Vector3(0,1,0),TAU=Math.PI*2;
 // Repeatable, bounded variations in filament length/tone, not random geometry
-// placement in the mouth. Pairs of nylon fibres emerge from a twisted wire.
+// placement in the mouth. Pairs of nylon fibres emerge around the wire core.
 const noise=n=>{const k=Math.sin(n*17.117+51.31)*14563.795;return k-Math.floor(k);};
-class WireStrand extends Curve {
-  constructor(span,radius,pitch,phase){super();Object.assign(this,{span,radius,pitch,phase});}
-  getPoint(t,out=new Vector3()){
-    const along=t*this.span,angle=this.phase+TAU*along/this.pitch;
-    return out.set(this.radius*Math.cos(angle)*mm,-along*mm,this.radius*Math.sin(angle)*mm);
-  }
-}
 
 export function createInterdentalBrush({path,compact=false,options={}}) {
   const dims=path.dimensions;
@@ -36,7 +29,9 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
   // grip and a rounded heel. Its long end remains outside the embrasure.
   const polymer=new MeshPhysicalMaterial({color:options.handleColor??'#7351a0',roughness:.37,
     metalness:0,ior:1.46,clearcoat:.12,clearcoatRoughness:.42});
-  const steel=new MeshStandardMaterial({color:'#d4d3d1',metalness:.87,roughness:.29});
+  // Satin wire stays legible at close range without producing a dark,
+  // high-contrast helix between the fine filaments.
+  const steel=new MeshStandardMaterial({color:'#d2ced3',metalness:.25,roughness:.62});
   // A soft nylon reflection stays continuous along the tapered segments;
   // bright pin-point glints on subpixel tips read as unrelated speckles.
   const nylon=new MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.58,ior:1.50,specularIntensity:.46});
@@ -52,13 +47,13 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
   const neck=part('Brush · ferrule',new CylinderGeometry(neckR*mm,neckR*mm,.24*mm,compact?12:20),
     new MeshStandardMaterial({color:options.ferruleColor??'#5b4280',roughness:.4,metalness:0}));
   neck.position.y=-(span+.12)*mm;neck.scale.z=.8;
-  const pitch=Math.max(.30,wr*4.5);
-  for(let i=0;i<2;i++){
-    const curve=new WireStrand(span,wr*.49,pitch,i*Math.PI);
-    part('Brush · steel strand '+(i+1),new TubeGeometry(curve,
-      Math.max(28,Math.ceil(span/pitch*(compact?7:11))),wr*.30*mm,compact?4:6,false),steel);
-  }
-  const cap=part('Brush · rounded wire end',new SphereGeometry(wr*mm,10,6),steel);
+  const pitch=Math.max(.50,wr*6.5);
+  // A slim satin core avoids rendering the two sub-millimetre wire strands as
+  // an oversized braided cable; it remains inside the certified wire envelope.
+  const coreRadius=wr*.73;
+  const core=part('Brush · steel core',new CylinderGeometry(coreRadius*mm,coreRadius*mm,span*mm,compact?6:8),steel);
+  core.position.y=-span*mm*.5;
+  const cap=part('Brush · rounded wire end',new SphereGeometry(coreRadius*mm,10,6),steel);
   cap.scale.y=.82;
 
   const pairs=compact?176:200,filamentCount=pairs*2;
@@ -68,14 +63,14 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
   bristles.castShadow=false;bristles.receiveShadow=true;object.add(bristles);
   geometries.add(bristles.geometry);materials.add(nylon);
   const fibres=[],sample=makePathSample(),station=makePathSample();
-  const color=new Color(),baseTone=new Color('#c1c6ca'),tipTone=new Color('#efeeeb');
+  const color=new Color(),baseTone=new Color('#b9b4c2'),tipTone=new Color('#e9e4ee');
   for(let i=0;i<pairs;i++){
     const t=(i+.5)/pairs,back=dims.tipMarginMm+t*length;
-    const angle=TAU*back/pitch+Math.PI*.5+(noise(i+2)-.5)*.19;
+    const angle=TAU*back/pitch+Math.PI*.5+(noise(i+2)-.5)*.52;
     for(let side=0;side<2;side++) {
-      const f=i*2+side,theta=angle+side*Math.PI+(noise(f+19)-.5)*.12;
+      const f=i*2+side,theta=angle+side*Math.PI+(noise(f+19)-.5)*.25;
       fibres.push({back,c:Math.cos(theta),s:Math.sin(theta),radius:path.radiusAt(back)*(.955+.045*noise(f+5)),
-        rake:.025+.05*noise(f+47),thickness:fr*(.90+.16*noise(f+23))});
+        rake:.09+.08*noise(f+47),thickness:fr*(.90+.16*noise(f+23))});
       const tone=noise(f+64);
       color.copy(baseTone).lerp(tipTone,.08+.12*tone);bristles.setColorAt(2*f,color);
       color.copy(baseTone).lerp(tipTone,.67+.16*tone);bristles.setColorAt(2*f+1,color);

@@ -4,7 +4,7 @@
   z-index: 0;
   pointer-events: none;
   background: radial-gradient(ellipse 44% 54% at 69% 53%,
-    #285b86 0%, #507ea3 38%, #8fb5cecc 68%, transparent 100%);
+    #b9daed 0%, #cde7f5 38%, #e0f1facc 68%, transparent 100%);
   will-change: opacity;
 }
 .hero-anatomy-control {
@@ -37,7 +37,7 @@
 @media (max-width: 700px) {
   .hero-anatomy-backdrop {
     background: radial-gradient(ellipse 66% 32% at 50% 54%,
-      #285b86 0%, #507ea3 38%, #8fb5cecc 68%, transparent 100%);
+      #b9daed 0%, #cde7f5 38%, #e0f1facc 68%, transparent 100%);
   }
   .hero-anatomy-control { max-width: 175px; margin-top: 13px; }
   .hero-anatomy-toggle { min-height: 40px; padding-inline: 13px; font-size: 12px; }

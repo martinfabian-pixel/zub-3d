@@ -27,25 +27,39 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   const caption=doc.createElement('p');caption.className='full-arch-focus-caption';
   caption.textContent='Ilustračný izolovaný pohľad.';caption.hidden=true;
   container.append(button, note, select, back, caption); copy.append(container);
-  let pressed = false;
+  let pressed = false, lastVisible, lastEnabled, lastNoteHidden, lastSelectHidden;
+  let lastSelectedValue, lastFocusedHidden;
   button.addEventListener('click', () => onToggle?.(!pressed), { signal: abort.signal });
   select.addEventListener('change', () => { if (select.value) onSelect?.(Number(select.value)); }, { signal: abort.signal });
   back.addEventListener('click', () => onReturn?.(), { signal: abort.signal });
   return {
     update({ visible, enabled, active, focused = false, selectedFdi = null }) {
-      container.hidden = !visible;
-      button.disabled = !enabled;
+      if (lastVisible !== visible) { container.hidden = !visible; lastVisible = visible; }
+      if (lastEnabled !== enabled) {
+        button.disabled = !enabled;
+        select.disabled = !enabled;
+        lastEnabled = enabled;
+      }
       if (pressed !== Boolean(active)) {
         pressed = Boolean(active);
         button.setAttribute('aria-pressed', String(pressed));
-        note.hidden = !pressed;
       }
-      note.hidden = !pressed || focused;
-      select.hidden = !pressed;
-      select.disabled = !enabled;
-      select.value = selectedFdi == null ? '' : String(selectedFdi);
-      back.hidden = !pressed || !focused;
-      caption.hidden = !pressed || !focused;
+      const noteHidden = !pressed || focused;
+      if (lastNoteHidden !== noteHidden) { note.hidden = noteHidden; lastNoteHidden = noteHidden; }
+      const selectHidden = !pressed;
+      if (lastSelectHidden !== selectHidden) { select.hidden = selectHidden; lastSelectHidden = selectHidden; }
+      const selectedValue = selectedFdi == null ? '' : String(selectedFdi);
+      // A rejected selection (for example during the view transition) must
+      // still be restored, even when the model's selected FDI did not change.
+      if (lastSelectedValue !== selectedValue || select.value !== selectedValue) {
+        select.value = selectedValue; lastSelectedValue = selectedValue;
+      }
+      const focusedHidden = !pressed || !focused;
+      if (lastFocusedHidden !== focusedHidden) {
+        back.hidden = focusedHidden;
+        caption.hidden = focusedHidden;
+        lastFocusedHidden = focusedHidden;
+      }
     },
     dispose() { abort.abort(); container.remove(); },
   };

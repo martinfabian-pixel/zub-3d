@@ -1,0 +1,58 @@
+.manual-cleaning-start { margin-top: 20px; }
+.manual-cleaning-content { max-width: 340px; }
+.manual-cleaning-instruction {
+  font-size: clamp(30px, 3.4vw, 48px);
+  line-height: 1.06;
+  letter-spacing: -.04em;
+  font-weight: 700;
+  margin: 0 0 15px;
+}
+.manual-cleaning-note {
+  max-width: 250px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+}
+.manual-cleaning-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 18px; }
+.manual-cleaning-actions .outline-button { min-height: 44px; }
+
+/* Keep the stage open: only this small handle accepts pointer input. */
+.manual-cleaning-grip {
+  position: absolute;
+  z-index: 4;
+  left: 20%; top: 65%;
+  transform: translate(-50%, -50%);
+  display: grid; place-items: center;
+  width: 68px; height: 46px; padding: 0;
+  border: 1px solid #8450c888;
+  border-radius: 999px;
+  color: #6638a3;
+  background: #f5f8fcf0;
+  box-shadow: 0 2px 9px #243d5026;
+  font-size: 24px; line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.manual-cleaning-grip:active { cursor: grabbing; }
+.manual-cleaning-grip.has-moved { width: 52px; color: #8450c8; font-size: 13px; letter-spacing: 1px; }
+
+/* The manual instruction replaces the chapter copy in the same stage. */
+#journey-stage[data-manual-cleaning="true"] .journey-copy { opacity: 1 !important; transform: none !important; }
+#journey-stage[data-manual-cleaning="true"] :is(#journey-title,#journey-description,#journey-instruction,#journey-note) { display: none !important; }
+#journey-stage[data-manual-cleaning="true"] :is(.journey-dock,.chapter-navigation) { visibility: hidden; pointer-events: none; }
+
+@media (max-width: 700px) {
+  .manual-cleaning-start { margin-top: 15px; }
+  .manual-cleaning-instruction { font-size: 27px; line-height: 1.08; margin-bottom: 11px; }
+  .manual-cleaning-note { font-size: 12px; max-width: 215px; }
+  .manual-cleaning-actions { margin-top: 13px; gap: 7px; }
+  .manual-cleaning-actions .outline-button { font-size: 11px; padding: 0 12px; }
+}
+@media (max-height: 650px) {
+  .manual-cleaning-instruction { font-size: 24px; }
+  .manual-cleaning-note { font-size: 11px; }
+  .manual-cleaning-actions { margin-top: 9px; }
+}

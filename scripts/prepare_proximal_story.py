@@ -63,15 +63,15 @@ def lesion_morph(source,site,wire):
     allowed=(abs(z)<.90)&((wn@out)>.50)
     # An asymmetric shoulder stays steep on the buccal side. The transition
     # broadens on the other side and softens toward the cleaning corridor.
-    shoulder=.68+.075*np.cos(theta-.8)+.035*np.sin(3*theta-.3)
-    wall=(1-dent.smooth(shoulder,.981,rr))
+    shoulder=.76+.060*np.cos(theta-.8)+.045*np.sin(3*theta-.3)
+    wall=(1-dent.smooth(shoulder,.965,rr))
     basin=1-dent.smooth(.16,.92,rr)
-    body=(.71*wall+.29*basin)*allowed*dent.smooth(.69,.95,wire_distance)
+    body=(.79*wall+.21*basin)*allowed*dent.smooth(.69,.95,wire_distance)
     texture=.49*np.sin(15*xx+5*yy+.8*np.sin(7*yy))+.29*np.cos(11*yy-8*xx)+.22*np.sin(19*yy+4*xx)
     floor_shape=.962+.036*np.sin(3.3*xx+1.6*yy)+.023*np.sin(3.6*yy-.9*xx)
     # Actual sub-millimetre floor relief (not a flat dark decal): fade it
     # before the enamel margin and respect the certified brush corridor.
-    depth=.75*body*floor_shape+.047*texture*body*(1-dent.smooth(.40,.83,rr))
+    depth=.74*body*floor_shape+.075*texture*body*(1-dent.smooth(.40,.83,rr))
     # A single geometric displacement field is shared across every UV duplicate.
     _,first,inv=np.unique(np.round(p,12),axis=0,return_index=True,return_inverse=True);avg=np.zeros((len(first),3));np.add.at(avg,inv,wn);safe_normal=dent.norm(avg)[inv];depw=-safe_normal*depth[first][inv,None];delta=(depw/10)@np.linalg.inv(M[:3,:3]).T;end=p+delta
     bn=smooth_field(p,f);en=smooth_field(end,f);axis=np.cross(bn,en);cos=np.sum(bn*en,axis=1);rotated=n+np.cross(axis,n)+np.cross(axis,np.cross(axis,n))/np.maximum(1+cos[:,None],1e-9);newN=dent.norm(rotated);normal_delta=newN-n;normal_delta[np.linalg.norm(axis,axis=1)<1e-10]=0

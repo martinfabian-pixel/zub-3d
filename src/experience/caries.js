@@ -85,7 +85,7 @@ export function createCaries({arch,data,config,clay=false}) {
       // Using them directly as opacity washes the wall into the enamel over
       // hundreds of pixels in a macro view.  Keep their spatial eligibility,
       // then resolve the irregular rim per fragment in the authored frame.
-      float supported=smoothstep(0.015,0.11,vLesion.g+vLesion.b);
+      float supported=smoothstep(0.005,0.045,vLesion.g+vLesion.b);
       float wall=cavityEdge*supported;
       float lip=smoothstep(0.87,0.97,cavityR)*(1.0-smoothstep(1.0,1.065+pixelWidth,cavityR))*supported;
       diffuseColor.rgb=mix(diffuseColor.rgb,lesionChalk,0.72*chalkStage*vLesion.r);
@@ -96,8 +96,8 @@ export function createCaries({arch,data,config,clay=false}) {
         // Layer two filtered, non-repeating mineral tones only on the exposed
         // basin; the enamel itself stays smooth. Screen derivatives suppress
         // details below a pixel instead of aliasing on mobile.
-        grit=0.70*cavityGrain(vLesionMm*6.8)*(1.0-smoothstep(0.065,0.14,footprint))
-            +0.30*cavityGrain(vLesionMm*15.3+4.31)*(1.0-smoothstep(0.035,0.07,footprint));
+        grit=0.68*cavityGrain(vLesionMm*3.8)*(1.0-smoothstep(0.11,0.20,footprint))
+            +0.32*cavityGrain(vLesionMm*9.1+4.31)*(1.0-smoothstep(0.05,0.10,footprint));
       }
       vec3 innerEnamel=mix(diffuseColor.rgb,lesionMargin,0.46);
       // Read the steep inner wall separately from the rougher basin. Both
@@ -105,7 +105,7 @@ export function createCaries({arch,data,config,clay=false}) {
       float basin=smoothstep(0.16,0.78,vLesion.g);
       vec3 tissue=mix(innerEnamel,lesionFloor,0.27+0.73*basin);
       tissue*=mix(1.02,0.88,basin);
-      tissue*=1.0+0.22*(vLesion.a-0.5*vLesion.r)+0.55*grit*basin;
+      tissue*=1.0+0.22*(vLesion.a-0.5*vLesion.r)+0.62*grit*(0.35+0.65*basin);
       diffuseColor.rgb=mix(diffuseColor.rgb,tissue,matureStage*wall);
     `);
     shader.fragmentShader=inject(shader.fragmentShader,'roughnessFactor = clamp(roughnessFactor, toothRoughnessLimits.x, toothRoughnessLimits.y);',`
@@ -116,7 +116,7 @@ export function createCaries({arch,data,config,clay=false}) {
       reflectedLight.indirectDiffuse*=1.0-0.26*vLesion.g*matureStage;
     `);
   };
-  if(!clay)material.customProgramCacheKey=()=>baseKey+'-proximal-cavity-detail-v2';material.needsUpdate=true;
+  if(!clay)material.customProgramCacheKey=()=>baseKey+'-proximal-cavity-detail-v3';material.needsUpdate=true;
   // The unchanged healthy buffer was already uploaded for the first frame.
   // Its CPU data remain available as the protected source; free its old GPU VBO.
   let shared=false;arch.object.traverse(other=>{if(other!==mesh&&other.geometry===original)shared=true;});

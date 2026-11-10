@@ -70,11 +70,11 @@ try {
   assert.equal(seated.crownMix,0);
   assert.notDeepEqual(seated.matrices,floating.matrices,'The rooted teeth move toward their seats');
 
-  await seek(.963);
+  await seek(.977);
   const dissolveStart=await readState();
   expectMeshes(dissolveStart,28,28);
   assert.ok(dissolveStart.crownMix>0&&dissolveStart.crownMix<.5);
-  await seek(.980);
+  await seek(.988);
   const dissolveEnd=await readState();
   expectMeshes(dissolveEnd,28,28);
   assert.ok(dissolveEnd.crownMix>.5&&dissolveEnd.crownMix<1);
@@ -96,7 +96,7 @@ try {
   await page.locator('#journey-view-smile').click();await page.waitForTimeout(700);
   expectMeshes(await readState(),28,0);
 
-  await seek(.963);
+  await seek(.977);
   const reversedDissolve=await readState();
   assert.equal(reversedDissolve.crownMix,dissolveStart.crownMix);
   await seek(.875);

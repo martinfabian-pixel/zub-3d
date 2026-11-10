@@ -1,13 +1,13 @@
 import { createStageTypography } from './stage-typography.js';
 
 /** Chapter navigation and screen-space type share the story sampler, never the camera. */
-export function createInterface({config,section,stage,signal,navigate,explore,reset,zoom,finalView:chooseFinalView}) {
+export function createInterface({config,section,stage,signal,navigate,navigationTarget=()=>null,explore,reset,zoom,finalView:chooseFinalView}) {
   const byId=id=>document.getElementById(id),steps=config.presentation.steps,help=byId('journey-help-dialog');
   const typography=createStageTypography(stage,document.querySelector('.journey-copy'));
   const nav=document.querySelector('.journey-steps'),buttons=[];
   const heroExplore=byId('journey-hero-explore'),freeExplore=byId('journey-explore');
   const modelButtons=['journey-hero-explore','journey-explore','journey-reset','journey-zoom-in','journey-zoom-out'].map(byId);
-  let index=-1,liveReady=false,smallLayout,lastPhase;
+  let index=-1,liveReady=false,smallLayout,lastPhase,lastNavIndex;
   let wasExploring;
   nav.replaceChildren();
   for(const [i,step] of steps.entries()) {
@@ -16,7 +16,11 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
     button.title=step.label;button.append(label);nav.append(button);buttons.push(button);
     button.addEventListener('click',()=>navigate(step.at),{signal});
   }
-  const move=delta=>navigate(steps[Math.max(0,Math.min(steps.length-1,index+delta))].at);
+  const move=delta=>{
+    const target=navigationTarget();
+    const requested=target==null?-1:steps.findIndex(step=>step.at===target);
+    navigate(steps[Math.max(0,Math.min(steps.length-1,(requested<0?index:requested)+delta))].at);
+  };
   byId('journey-mobile-previous').addEventListener('click',()=>move(-1),{signal});
   byId('journey-mobile-next').addEventListener('click',()=>move(1),{signal});
   byId('journey-home').addEventListener('click',()=>navigate(0),{signal});
@@ -49,11 +53,19 @@ export function createInterface({config,section,stage,signal,navigate,explore,re
       byId('journey-step-number').textContent=`${String(index+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       byId('journey-meta').textContent=step.meta;byId('journey-subject').textContent=step.subject;
       byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+step.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');
-      byId('journey-mobile-previous').disabled=index===0;byId('journey-mobile-next').disabled=final;
       buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
       if(liveReady)byId('journey-stage-live').textContent='Kapitola '+(index+1)+' zo '+steps.length+'. '+step.title;
       const labels=byId('journey-result-labels');labels.textContent=step.resultLabels?.join('. ')??'';labels.setAttribute('aria-hidden',String(step.id!=='result'));
       byId('journey-education-current').textContent=step.education??step.text;
+    }
+    // During a button journey, let a second press extend or reverse the
+    // destination even before the displayed chapter has caught up.
+    const requested=steps.findIndex(item=>item.at===navigationTarget());
+    const navIndex=requested<0?index:requested;
+    if(lastNavIndex!==navIndex){
+      lastNavIndex=navIndex;
+      byId('journey-mobile-previous').disabled=navIndex===0;
+      byId('journey-mobile-next').disabled=navIndex===steps.length-1;
     }
     if(lastPhase!==phase) {
       lastPhase=phase;

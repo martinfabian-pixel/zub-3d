@@ -109,7 +109,10 @@ try {
           document.querySelector('.cavity-detail-trigger').click();
           document.querySelectorAll('.journey-step')[0].click();
         });
-        await page.waitForTimeout(900);
+        await page.waitForFunction(() => {
+          const state = window.__dentalExperience.report();
+          return state.story.chapterId === 'hero' && state.renderProgress < .001;
+        }, null, { timeout: 6000 });
         const interrupted = await report();
         assert.equal(interrupted.detailOpen, false, 'Navigation cancels a pending close-up');
         assert.equal(interrupted.detailPending, false);

@@ -25,6 +25,14 @@ function bindLocal(mesh, local) {
 
 function cavityMargin(mesh,site) {
   const g=mesh.geometry,region=g.attributes.lesionRegion,indices=g.index;
+  // Registered refined-mesh triangle on the exposed lip of the FDI 36
+  // cavity. Unlike the deepest wall this point remains visible in the
+  // prepared macro view; its barycentric coordinates follow the morph.
+  const preferred=[32581,32579,18131];
+  const floor=preferred.reduce((sum,i)=>sum+region.getY(i),0)/3;
+  const rim=preferred.reduce((sum,i)=>sum+region.getZ(i),0)/3;
+  if(preferred.every(i=>i<region.count)&&floor>.15&&floor<.55&&rim>.5)
+    return {fdi:36,vertexIndices:preferred,barycentric:[1/3,1/3,1/3]};
   const outward=new Vector3().fromArray(site.lesion.basisWorld.buccalLingualTangentBuccalPositive)
     .addScaledVector(new Vector3().fromArray(site.basisWorld.occlusal),.35);
   let selected,best=-Infinity;
@@ -33,7 +41,7 @@ function cavityMargin(mesh,site) {
     // Use the inner broken lip, where exposed tissue is actually visible.
     // The outer chalk halo projects noticeably beyond the brown opening.
     const exposed=(region.getY(ia)+region.getY(ib)+region.getY(ic))/3;
-    if(exposed<.55||exposed>.83||(region.getZ(ia)+region.getZ(ib)+region.getZ(ic))/3<.10)continue;
+    if(exposed<.38||exposed>.58||(region.getZ(ia)+region.getZ(ib)+region.getZ(ic))/3<.10)continue;
     a.fromBufferAttribute(g.attributes.position,ia);b.fromBufferAttribute(g.attributes.position,ib);c.fromBufferAttribute(g.attributes.position,ic);
     const score=point.copy(a).add(b).add(c).multiplyScalar(1/3).applyMatrix4(mesh.matrixWorld).dot(outward);
     if(score>best){best=score;selected={fdi:36,vertexIndices:[ia,ib,ic],barycentric:[1/3,1/3,1/3]};}

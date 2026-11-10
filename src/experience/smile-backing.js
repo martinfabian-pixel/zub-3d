@@ -43,20 +43,13 @@ export function createSmileBacking(teeth, layout, config) {
       const height=top-bottom;
       const centerY=lowerRow ? bottom+height*.70 : (bottom+top)/2;
       addPatch((left.max.x + right.min.x) / 2, centerY,
-        Math.min(left.max.z, right.max.z) - .32,
-        lowerRow ? .09 : .13, Math.min(.38,height*(lowerRow ? .20 : .38)), .11);
+        Math.min(left.max.z, right.max.z) - .40,
+        lowerRow ? .05 : .065, Math.min(.19,height*(lowerRow ? .13 : .20)), .07);
     }
   }
 
-  // Smaller supports behind the meeting line of the upper and lower crowns.
-  for (const [upper, lower] of [[11,41],[12,42],[13,43],[14,44],[15,45],[16,46],[17,47],
-    [21,31],[22,32],[23,33],[24,34],[25,35],[26,36],[27,37]]) {
-    const a = bounds.get(upper), b = bounds.get(lower);
-    const left = Math.max(a.min.x, b.min.x), right = Math.min(a.max.x, b.max.x);
-    if (left >= right) continue;
-    addPatch((left + right) / 2, (a.min.y + b.max.y) / 2,
-      Math.min(a.max.z, b.max.z) - .24, Math.min(.25, (right-left)*.42), .12, .10);
-  }
+  // Leave the bite line open. A white filler spanning opposing rows is
+  // especially conspicuous when the arch is viewed at an angle.
   const geometry = mergeGeometries(pieces);
   primitive.dispose();
   for (const piece of pieces) piece.dispose();

@@ -61,6 +61,28 @@ for (let i = 1; i <= 10000; ++i) {
   previous = s;
 }
 assert.deepEqual([forwards, backwards], [3, 2], 'Three forward passes, with two partial returns before complete withdrawal');
+
+// The diseased and healthy examples share the tooth geometry. Switch their
+// state only while the canvas is fully hidden, including in reverse. Opacity
+// must remain continuous and the parked caries chapter fully visible.
+assert.equal(sampleDentalStory(.475).exampleOpacity, 1, 'The selected caries detail is fully visible');
+assert.equal(sampleDentalStory(.4865).exampleOpacity, 0);
+assert.equal(sampleDentalStory(.487).exampleOpacity, 0);
+assert.equal(sampleDentalStory(.4895).exampleOpacity, 0);
+assert.equal(sampleDentalStory(.510).exampleOpacity, 1);
+const transition = Array.from({ length: 4001 }, (_, i) => sampleDentalStory(.474 + i * .00001));
+for (let i = 1; i < transition.length; i++) {
+  const a = transition[i - 1], b = transition[i];
+  assert.ok(Math.abs(b.exampleOpacity - a.exampleOpacity) < .002, 'Example fade is continuous');
+  if ((a.lesionDisplay === 0) !== (b.lesionDisplay === 0)) {
+    assert.equal(a.exampleOpacity, 0, 'Before the example swap the canvas is hidden');
+    assert.equal(b.exampleOpacity, 0, 'After the example swap the canvas is hidden');
+  }
+}
+for (let i = transition.length - 1; i >= 0; --i) {
+  const p = .474 + i * .00001;
+  assert.deepEqual(sampleDentalStory(p), transition[i], 'Reverse reconstructs the identical example and fade');
+}
 const clean = sampleDentalStory(.76);
 assert.equal(clean.plaqueCoverage, 0, 'Depicted reachable subset has been swept');
 assert.equal(clean.plaqueDeposition, 1, 'Unreached spatial patches can remain; do not globally fade plaque');

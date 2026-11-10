@@ -27,7 +27,8 @@ export const experienceConfig = {
     // arch approaches it during the final frontal composition.
     upperOffset: [0, 0.32, 0], lowerOffset: [0, -0.48, 0],
     smileClosureCm: 0.58, smileClosureRange: [0.90, 0.968],
-    crownHandoverRange: [0.953, 0.99],
+    // Rooted teeth reach their seats before the final crown-only handover.
+    crownHandoverRange: [0.969, 0.993],
   },
   reveal: {
     neighbors: { start: 0.12, end: 0.33 },
@@ -53,7 +54,7 @@ export const experienceConfig = {
       arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
       flight:    {desktop:[.55,.50,.76],portrait:[.50,.52,.87]},
-      smile:     {desktop:[.67,.51,.83],portrait:[.50,.57,.315]},
+      smile:     {desktop:[.67,.51,.87],portrait:[.50,.57,.325]},
     },
   },
   material: {
@@ -89,7 +90,7 @@ export const experienceConfig = {
     spaceDistanceCm: 3.35, plaqueDistanceCm: 2.14, detailDistanceCm: 1.44,
     cleaningDistanceCm: 2.27, resultDistanceCm: 1.58,
     spaceOcclusalShiftCm: 0.035, spaceOcclusalAngle: 0.77,
-    lesionYawDegrees: 4, lesionPitchDegrees: 0,
+    lesionYawDegrees: -5, lesionPitchDegrees: 0,
     brushYawDegrees: 19, brushPitchDegrees: 5, brushSweepYawDegrees: -60, brushSweepPitchDegrees: 3,
     cleaningEntryFraction: 0.63, resultApicalShiftCm: 0.014,
     compact: {

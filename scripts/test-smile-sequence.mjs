@@ -29,4 +29,17 @@ animation.update(.87, 0);
 assert.deepEqual(capture(), dispersed, 'Reverse scrolling reconstructs the same poses');
 animation.update(.76, 0);
 assert.deepEqual(capture(), initial);
+// A fine traversal catches discontinuities at each individual launch and
+// landing boundary; the same absolute sampler must work in either direction.
+let previous = capture();
+for(let i=0;i<=4000;i++) {
+  const p=.79+.21*i/4000;
+  animation.update(p,0);
+  const next=capture();
+  for(let tooth=0;tooth<next.length;tooth++) for(let j=0;j<16;j++) {
+    assert.ok(Number.isFinite(next[tooth][j]), 'Flight matrices remain finite');
+    assert.ok(Math.abs(next[tooth][j]-previous[tooth][j])<.03, 'No jump between neighbouring progress samples');
+  }
+  previous=next;
+}
 console.log('Floating teeth: absolute progress, settling and reverse reconstruction passed.');
