@@ -32,7 +32,7 @@ export async function measureSharedStage(page) {
     }
     const chapter=state.story.chapterId, brushPhase=state.story.brushStoryPhase;
     const host=app.arch.teeth.get(36).mesh;
-    if(chapter==='hero'){
+    if(chapter==='hero'||(chapter==='assembly'&&state.fullyVisibleTeeth.length===1)){
       host.geometry.computeBoundingBox();host.geometry.boundingBox.getCenter(point).applyMatrix4(host.matrixWorld);sample('FDI36 center');
       const p=host.geometry.attributes.position,box=host.geometry.boundingBox;
       let mostCrown=0,mostRoot=0;

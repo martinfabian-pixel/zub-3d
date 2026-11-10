@@ -44,7 +44,9 @@ for (const compact of [false, true]) {
   const atlas = sample(chapterAt('dentition'));
   const hero = sample(chapterAt('hero')), anatomy = sample(chapterAt('anatomy'));
   assert.ok(atlas.target.distanceTo(hero.target) > 2, 'The camera leaves the full arch to frame the isolated tooth');
-  assert.ok(hero.target.distanceTo(sample(0).target) < 1e-8, 'Chapter three returns to the original tooth framing');
+  assert.ok(atlas.target.distanceTo(sample(0).target) < 1e-8, 'The first settled screen frames the full arch');
+  const isolated = sample(chapterAt('assembly'));
+  assert.ok(hero.target.distanceTo(isolated.target) < 1e-8, 'Chapter two hands the isolated tooth to chapter three');
   assert.ok(Math.abs(angleDifference(yaw(anatomy), yaw(hero))) > .05,
     'Anatomy turns the same hero tooth to show the cut');
   assert.notDeepEqual([anatomy.screenX, anatomy.screenY, anatomy.opticalZoom],

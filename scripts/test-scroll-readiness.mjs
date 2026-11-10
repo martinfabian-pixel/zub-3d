@@ -1,33 +1,31 @@
 import assert from 'node:assert/strict';
 import { createScrollReadiness } from '../src/experience/scroll-readiness.js';
-import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 
-const [rootStop, crownStop] = STORY_TIMING.flight;
+const openingStop = 0;
 const studyStop = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').start - .001;
 const brushAt = DENTAL_CHAPTERS.at(-1).at;
-const gate = createScrollReadiness(rootStop);
-assert.deepEqual(gate.sample(rootStop / 2), { progress: rootStop / 2, blocked: false });
-assert.deepEqual(gate.sample(.9), { progress: rootStop, blocked: true });
-assert.deepEqual(gate.sample(rootStop), { progress: rootStop, blocked: false });
+const gate = createScrollReadiness(openingStop);
+assert.deepEqual(gate.sample(.9), { progress: openingStop, blocked: true });
+assert.deepEqual(gate.sample(openingStop), { progress: openingStop, blocked: false });
 assert.equal(gate.pendingTarget, null, 'native flings are not queued');
-assert.equal(gate.advance(crownStop), null, 'loading never replays a native fling');
-assert.deepEqual(gate.sample(rootStop), { progress: rootStop, blocked: false });
-assert.deepEqual(gate.sample(crownStop - .01), { progress: crownStop - .01, blocked: false });
+assert.equal(gate.advance(studyStop), null, 'loading the opening smile never replays a native fling');
+assert.deepEqual(gate.sample(openingStop), { progress: openingStop, blocked: false });
+assert.deepEqual(gate.sample(studyStop - .01), { progress: studyStop - .01, blocked: false });
 
-const journey = createScrollReadiness(rootStop);
-assert.equal(journey.plan(brushAt), rootStop, 'button travel starts up to the available point');
+const journey = createScrollReadiness(openingStop);
+assert.equal(journey.plan(brushAt), openingStop, 'button travel starts up to the available point');
 assert.equal(journey.pendingTarget, brushAt);
-assert.equal(journey.advance(crownStop), crownStop, 'advance the same journey to the next gate');
+assert.equal(journey.advance(studyStop), studyStop, 'advance the same journey to the next gate');
 assert.equal(journey.pendingTarget, brushAt);
-assert.equal(journey.advance(rootStop), null, 'a stale load notification cannot rewind readiness');
-assert.equal(journey.limit, crownStop);
-assert.equal(journey.advance(studyStop), studyStop);
+assert.equal(journey.advance(openingStop), null, 'a stale load notification cannot rewind readiness');
+assert.equal(journey.limit, studyStop);
 assert.equal(journey.advance(1), brushAt);
 assert.equal(journey.pendingTarget, null);
 assert.equal(journey.advance(1), null, 'the requested stop is delivered once');
 
-const cancellation = createScrollReadiness(rootStop);
-assert.equal(cancellation.plan(brushAt), rootStop);
+const cancellation = createScrollReadiness(openingStop);
+assert.equal(cancellation.plan(brushAt), openingStop);
 cancellation.cancel();
 assert.equal(cancellation.advance(studyStop), null);
 assert.equal(cancellation.plan(1), studyStop);

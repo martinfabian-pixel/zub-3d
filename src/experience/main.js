@@ -42,7 +42,7 @@ export function createExperience(configuration=experienceConfig) {
   const canvas=document.querySelector('#journey-canvas');
   const section=document.querySelector('#dental-journey');
   const stage=document.querySelector('#journey-stage');
-  const startupHandoff=createStartupHandoff({stage,canvas});
+  const startupHandoff=createStartupHandoff(stage,requestRender);
   const status=document.querySelector('#journey-status');
   const message=document.querySelector('#journey-message');
   const explore=document.querySelector('#journey-explore');
@@ -54,11 +54,11 @@ export function createExperience(configuration=experienceConfig) {
   let site,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy;
   let studyReady=false,flightReady=false,crownsReady=false,storyReady=false;
   const studyLimit=config.presentation.steps.find(step=>step.id==='space').start-.001;
-  const scrollReadiness=createScrollReadiness(STORY_TIMING.flight[0]);
+  const scrollReadiness=createScrollReadiness(0);
   const navigationTarget=()=>scrollReadiness.pendingTarget??navigationMotion?.target??null;
   const historyEntry=performance.getEntriesByType('navigation')[0]?.type;
-  const resumeKey='zub-story-2-opening:'+location.pathname;
-  let savedProgress=history.state?.zubStory2OpeningProgress;
+  const resumeKey='zub-story-2-atlas-first:'+location.pathname;
+  let savedProgress=history.state?.zubStory2AtlasProgress;
   if(historyEntry==='reload'){
     try{const previous=Number.parseFloat(sessionStorage.getItem(resumeKey));if(Number.isFinite(previous))savedProgress=previous;}catch{}
   }
@@ -322,6 +322,7 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.error=error?.message??text;
     if(!upcoming){
       ready=false;canvas.dataset.ready='false';
+      if(!crownsReady)canvas.style.visibility='hidden';
       startupHandoff.finish();
       document.querySelector('#journey-annotations').hidden=true;
     }
@@ -681,16 +682,15 @@ export function createExperience(configuration=experienceConfig) {
       renderer.info.reset();renderer.render(scene,camera);renderedFrames++;
       if(shaderError)throw new Error('Dental surface shader failed to compile.');
     }catch(error){showError('3D zobrazenie sa nepodarilo vykresliť.',error);return;}
-    const startupWasActive=startupHandoff.active;
-    if(renderedFrames===1)startupHandoff.start(now,arch.teeth.get(36).mesh,camera,reducedMotion||progress>.001);
-    const startupMoving=startupHandoff.update(now)||startupWasActive;
+    // Reveal the page only after the full smile has been rendered to canvas.
+    if(crownsReady&&startupHandoff.active)startupHandoff.start();
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
     if(changing||interaction||finalViewTransition||following||navigationMotion||fullArchFocus.moving||anatomyState.moving||brushingMoving){adaptive.beginInteraction();requestRender();}
     else {
       if(!scrolling)adaptive.endInteraction();
-      if(startupMoving||heroSpinning||heroAnatomyState.moving||fullAnatomyMoving||brushingFraming!==brushingFrameTarget)requestRender();
+      if(heroSpinning||heroAnatomyState.moving||fullAnatomyMoving||brushingFraming!==brushingFrameTarget)requestRender();
       else if(!scrolling){lastFrame=0;progressFrame=0;}
     }
   }
@@ -700,7 +700,7 @@ export function createExperience(configuration=experienceConfig) {
     if(!width||!height)return;
     const changed=width!==logicalWidth||height!==logicalHeight;
     if(!changed&&fittedRig===rig)return;
-    if(changed){renderer.setSize(width,height,false);logicalWidth=width;logicalHeight=height;startupHandoff.resize();}
+    if(changed){renderer.setSize(width,height,false);logicalWidth=width;logicalHeight=height;}
     if(!rig)return;
     // The actual sensor is the entire shared stage. Chapter keyframes compose
     // the model beside the HTML type without an inner cropped viewport.
@@ -756,7 +756,7 @@ export function createExperience(configuration=experienceConfig) {
   window.addEventListener('pagehide',(e)=>{
     if(ready){
       saveStoryPosition();
-      try{history.replaceState({...history.state,zubStory2OpeningProgress:resumeProgress??progress},'');}catch{}
+      try{history.replaceState({...history.state,zubStory2AtlasProgress:resumeProgress??progress},'');}catch{}
     }
     if(!e.persisted)dispose();
   },{signal});
@@ -803,8 +803,7 @@ export function createExperience(configuration=experienceConfig) {
   function publishStoryReadiness(){
     storyReady=crownsReady&&studyReady;
     canvas.dataset.assetsReady=String(storyReady);
-    advanceScrollLimit(!flightReady?STORY_TIMING.flight[0]
-      :!crownsReady?STORY_TIMING.assemblyCrowns[0]:!studyReady?studyLimit:1);
+    advanceScrollLimit(!crownsReady?0:!studyReady?studyLimit:1);
   }
   async function loadStoryStages(siteRequest) {
     const alive=()=>!disposed&&!contextLost;
@@ -852,7 +851,8 @@ export function createExperience(configuration=experienceConfig) {
     } catch(error) {
       if(!alive())return;
       atlasError=true;
-      showError('Ďalšiu časť sa nepodarilo načítať. Skúste to znova.',error,{upcoming:true});
+      showError(crownsReady?'Ďalšiu časť sa nepodarilo načítať. Skúste to znova.'
+        :'3D chrup sa nepodarilo načítať. Skúste to znova.',error,{upcoming:crownsReady});
     } finally {
       if(atlas&&!arch?.ownsSource(atlas)){disposeObject(atlas.object);atlas=undefined;}
       if(upperMolar&&!arch?.ownsSource(upperMolar)){disposeObject(upperMolar.object);upperMolar=undefined;}

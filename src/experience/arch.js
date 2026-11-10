@@ -84,7 +84,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   }));
   const arrivalTurn = new THREE.Matrix4(), rootPose = new THREE.Matrix4();
 
-  function setRootPose(item, neighbor, placement, extract) {
+  function setRootPose(item, neighbor, placement) {
     rootPose.copy(item.seatedMatrix);
     const translation=rootPose.elements;
     if(item.upper)translation[13]-=closureCm;
@@ -94,10 +94,6 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       translation[13]+=neighbor.outward.y*remaining;
       translation[14]+=neighbor.outward.z*remaining;
       rootPose.multiply(arrivalTurn.makeRotationY((1-2*neighbor.order)*.24*remaining));
-    } else if(extract) {
-      translation[12]+=.16*extract;
-      translation[13]-=.09*extract;
-      translation[14]+=.24*extract;
     }
     if(!item.mesh.matrix.equals(rootPose)) {
       item.mesh.matrix.copy(rootPose);
@@ -183,12 +179,10 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   }
   function setState(state, rootOpacity) {
     sceneProgress=state.sceneProgress??0;
-    const presence=state.assemblyPresence;
     closureCm=config.anatomy.smileClosureCm*Math.max(
-      smooth(...STORY_TIMING.assemblyClosure,sceneProgress)*presence*smileWeight,
+      (1-smooth(...STORY_TIMING.assemblyClosure,sceneProgress))*smileWeight,
       smooth(...STORY_TIMING.finalClosure,sceneProgress));
     const flying=floating?.update(sceneProgress,closureCm,profile.compact)>0;
-    const extract=4*presence*(1-presence);
     const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
     crownMix.value=mix;
     smileBacking?.setCoverage(mix);
@@ -196,11 +190,11 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for (const [fdi,item] of teeth) {
       const hero=fdi===config.anatomy.hero,neighbor=neighbors.get(fdi);
       const placement=neighbor?sampleNeighborEntrance(sceneProgress,neighbor.order):1;
-      if(item.mesh&&!flying)setRootPose(item,neighbor,placement,hero?extract:0);
+      if(item.mesh&&!flying)setRootPose(item,neighbor,placement);
       const reveal=hero?1:Math.max(
         neighbor?smooth(0,.66,placement):0,
         item.upper?state.upperReveal:state.lowerReveal,
-        flightReveal(sceneProgress,fdi)*presence);
+        flightReveal(sceneProgress,fdi));
       item.reveal=reveal;
       item.finish?.setReveal(mix===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {

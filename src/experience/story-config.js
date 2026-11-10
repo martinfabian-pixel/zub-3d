@@ -6,11 +6,10 @@ export function brushProgress(workingProgress) {
 }
 
 export const STORY_TIMING = Object.freeze({
-  flight: range(.016, .185),
-  assemblyCrowns: range(.185, .220),
-  assemblyClosure: range(.158, .185),
-  atlas: range(.220, .314),
-  archRelease: range(.314, .364),
+  atlas: range(0, .13),
+  assemblyCrowns: range(.13, .164),
+  assemblyClosure: range(.164, .190),
+  flight: range(.164, .316),
   heroHold: range(.364, .412),
   anatomy: Object.freeze({
     enamel: range(.468, .497),
@@ -44,14 +43,14 @@ export const FINAL_SMILE_COPY = Object.freeze({
 });
 
 export const DENTAL_CHAPTERS = Object.freeze([
-  chapter('assembly', 'Skladanie', 0, .20, .145, STORY_TIMING.flight[1],
-    ['Jeden po', 'druhom.'],
-    'Zuby sa postupne spájajú do dvoch oblúkov.'),
-  chapter('dentition', 'Chrup', .20, .33, .265, .265,
+  chapter('dentition', 'Chrup', 0, STORY_TIMING.atlas[1], 0, 0,
     ['Celý chrup.'],
     'Preskúmajte 28 trvalých zubov. V režime Anatómia si môžete vybrať každý z nich.', {
       note: 'Zobrazenie bez zubov múdrosti.',
     }),
+  chapter('assembly', 'Rozloženie', STORY_TIMING.atlas[1], .33, .322, .322,
+    ['Jeden po', 'druhom.'],
+    'Od celého chrupu sa priblížime k jednému zubu.'),
   chapter('hero', 'Zub', .33, .43, .386, .386,
     ['Začína sa to', 'jedným zubom.'],
     'Pozrite sa bližšie.'),

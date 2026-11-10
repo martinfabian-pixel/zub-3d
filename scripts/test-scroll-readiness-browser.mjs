@@ -18,8 +18,7 @@ const geometry = {
   opening: /\/dentition-assets\/crowns\.glb$|\/prototype-assets\/molar(?:-mobile)?\.glb$/,
 };
 const stops = {
-  roots: flightStart,
-  crowns: flightEnd,
+  opening: 0,
   study: chapter('space').start - .001,
 };
 const targetEpsilon = .003;
@@ -51,6 +50,9 @@ function readProgress() {
     chapter: state.story.chapterId,
     assetsReady: state.assetsReady,
     teeth: state.fullyVisibleTeeth,
+    crownMix: state.crownMix,
+    crowns: [...app.arch.teeth.values()].filter(item => item.crown?.visible).length,
+    roots: [...app.arch.teeth.values()].filter(item => item.mesh?.visible).length,
     shaderErrors: state.shaderErrors,
   };
 }
@@ -112,8 +114,18 @@ async function flightPose(page, at) {
 
 async function openStory(page) {
   await page.goto(url.href, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__dentalExperience?.report().ready, null, { timeout: 90000 });
-  await page.locator('#journey-startup').waitFor({ state: 'hidden', timeout: 15000 });
+  await page.waitForFunction(() => window.__dentalExperience?.arch, null, { timeout: 90000 });
+}
+
+async function assertLoadingOpening(page) {
+  const state = await atLoadingStop(page, stops.opening, 'dentition');
+  assert.equal(await page.locator('#journey-startup').isVisible(), true);
+  assert.equal(await page.locator('#journey-title').isVisible(), false,
+    'The loading cover conceals the first scene until it has its 28 crowns');
+  assert.equal(await page.locator('#journey-canvas').isVisible(), false,
+    'The isolated loader tooth never flashes in the actual chapter canvas');
+  assert.equal(state.assetsReady, false);
+  return state;
 }
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -129,30 +141,55 @@ try {
   mobile.on('pageerror', error => errors.push(error.message));
   try {
     await openStory(mobile);
-    const boot = await mobile.evaluate(readProgress);
-    assert.equal(boot.chapter, 'assembly', 'The loader enters the assembly chapter');
-    assert.deepEqual(boot.teeth, [36], 'The seed tooth renders while every deferred asset is held');
-    assert.equal(boot.assetsReady, false);
-
-    // These native writes model consecutive wheel/inertia updates. Test the
-    // physical document position as well as the rendered story progress.
+    const boot = await assertLoadingOpening(mobile);
     await overshoot(mobile);
-    const rootedStop = await atLoadingStop(mobile, stops.roots, 'assembly');
+    await assertLoadingOpening(mobile);
     assert.ok(teaching.held.length, 'The neighbor atlas is still waiting on the network');
     teaching.release();
     await mobile.waitForTimeout(350);
-    const afterTeaching = await mobile.evaluate(readProgress);
-    assert.ok(Math.abs(afterTeaching.scrollY - rootedStop.scrollY) <= 2,
+    const afterTeaching = await assertLoadingOpening(mobile);
+    assert.ok(Math.abs(afterTeaching.scrollY - boot.scrollY) <= 2,
       'Releasing the neighbor asset does not replay discarded native scroll');
     assert.ok(upper.held.length, 'The flight gate waits for the second rooted source');
     upper.release();
     await mobile.waitForFunction(() => window.__dentalExperience.report().readiness.flight, null, { timeout: 90000 });
-    await mobile.waitForTimeout(350);
-    const afterUpper = await mobile.evaluate(readProgress);
-    assert.ok(Math.abs(afterUpper.scrollY - rootedStop.scrollY) <= 2,
-      'Releasing the full arch leaves native scroll at the loading stop');
-    assert.equal(afterUpper.chapter, 'assembly');
-    assert.equal(afterUpper.assetsReady, false);
+    await overshoot(mobile);
+    const afterUpper = await assertLoadingOpening(mobile);
+    assert.ok(Math.abs(afterUpper.scrollY - boot.scrollY) <= 2,
+      'Rooted meshes alone do not reveal chapter one or let the scroll leave the top');
+
+    assert.ok(crowns.held.length, 'The opening atlas is waiting for real crown data');
+    await mobile.evaluate(() => {
+      const canvas = document.querySelector('#journey-canvas');
+      function sampleFirstVisibleFrame() {
+        if (getComputedStyle(canvas).visibility !== 'visible') {
+          requestAnimationFrame(sampleFirstVisibleFrame);
+          return;
+        }
+        const app = window.__dentalExperience;
+        const teeth = [...app.arch.teeth.values()];
+        window.__firstVisibleChapter = {
+          chapter: app.report().story.chapterId,
+          crowns: teeth.filter(item => item.crown?.visible).length,
+          roots: teeth.filter(item => item.mesh?.visible).length,
+        };
+      }
+      requestAnimationFrame(sampleFirstVisibleFrame);
+    });
+    crowns.release();
+    await mobile.locator('#journey-startup').waitFor({ state: 'hidden', timeout: 30000 });
+    const firstVisible = await mobile.waitForFunction(() => window.__firstVisibleChapter);
+    assert.deepEqual(await firstVisible.jsonValue(), { chapter: 'dentition', crowns: 28, roots: 0 },
+      'The very first visible canvas frame is already the full smile');
+    await atChapter(mobile, 'dentition');
+    const first = await mobile.evaluate(readProgress);
+    assert.ok(Math.abs(first.scrollY - boot.scrollY) <= 2, 'No native overshoot is replayed on reveal');
+    assert.equal(first.assetsReady, false, 'The atlas opens independently of the teaching site');
+    assert.equal(first.crownMix, 1);
+    assert.equal(first.crowns, 28);
+    assert.equal(first.roots, 0);
+    assert.equal(await mobile.locator('#journey-title').innerText(), 'Celý chrup.');
+    assert.equal(await mobile.locator('#journey-step-number').innerText(), '01 / 07');
 
     const checkpoints = [.18, .38, .60, .80, .94].map(fraction => flightStart + fraction * (flightEnd - flightStart));
     const forward = new Map();
@@ -164,15 +201,6 @@ try {
         'Each scroll checkpoint moves at least one tooth through the flight');
     }
 
-    await overshoot(mobile);
-    const crownStop = await atLoadingStop(mobile, stops.crowns, 'assembly');
-    assert.ok(crowns.held.length, 'The tooth flight runs before the final crowns are ready');
-    crowns.release();
-    await mobile.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
-    await mobile.waitForTimeout(350);
-    const afterCrowns = await mobile.evaluate(readProgress);
-    assert.ok(Math.abs(afterCrowns.scrollY - crownStop.scrollY) <= 2,
-      'Releasing the crowns does not replay the native scroll');
     for (const progress of checkpoints.toReversed()) {
       const reverse = await flightPose(mobile, progress);
       const expected = forward.get(progress);
@@ -184,6 +212,13 @@ try {
     await atChapter(mobile, 'dentition');
     assert.equal((await mobile.evaluate(readProgress)).teeth.length, 28,
       'The opening smile and atlas work before the teaching site is ready');
+    await mobile.locator('#journey-mobile-next').tap();
+    await atChapter(mobile, 'assembly');
+    const second = await mobile.evaluate(readProgress);
+    assert.equal(await mobile.locator('#journey-step-number').innerText(), '02 / 07');
+    assert.deepEqual(second.teeth, [36], 'The second chapter lands on the visible single tooth');
+    assert.equal(second.roots, 1);
+    assert.equal(second.crowns, 0);
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'hero');
     assert.deepEqual((await mobile.evaluate(readProgress)).teeth, [36],
@@ -220,9 +255,8 @@ try {
   const delayed = await holdAssets(desktop, geometry.opening);
   try {
     await openStory(desktop);
-    await desktop.locator('.journey-step').nth(DENTAL_CHAPTERS.findIndex(item => item.id === 'dentition')).click();
-    await atLoadingStop(desktop, stops.roots, 'assembly');
-    assert.ok(delayed.held.length, 'The atlas click is waiting for a real held asset');
+    await assertLoadingOpening(desktop);
+    assert.ok(delayed.held.length, 'Desktop opening is waiting for a real held asset');
     await desktop.evaluate(() => {
       const samples = [];
       function observe() {
@@ -238,17 +272,20 @@ try {
       };
     });
     delayed.release();
+    await desktop.locator('#journey-startup').waitFor({ state: 'hidden', timeout: 30000 });
     await atChapter(desktop, 'dentition');
+    await desktop.locator('#journey-mobile-next').click();
+    await atChapter(desktop, 'assembly');
     const trace = await desktop.evaluate(() => window.__finishFlightTrace());
     assert.ok(trace.filter(progress => progress > flightStart && progress < flightEnd).length >= 5,
-      'Resumed button navigation passes through intermediate flight poses');
+      'Button navigation passes through intermediate flight poses');
     await desktop.locator('#journey-mobile-previous').click();
-    await atChapter(desktop, 'assembly');
+    await atChapter(desktop, 'dentition');
     await nativeSeek(desktop, chapter('plaque').at);
     await atChapter(desktop, 'plaque');
     await desktop.reload({ waitUntil: 'domcontentloaded' });
     await atChapter(desktop, 'plaque');
-    console.log('1440×900 Chrome: an explicit next request resumes after its assets arrive, then returns via the previous arrow.');
+    console.log('1440×900 Chrome: cold-load full arch, explicit next/previous and reload retention.');
   } finally {
     delayed.release();
     await desktop.close();

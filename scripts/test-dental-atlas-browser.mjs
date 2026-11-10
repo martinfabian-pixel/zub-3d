@@ -246,6 +246,7 @@ try {
       assert.deepEqual((await read(page)).visibleTeeth, [36], 'Moving forward from the atlas isolates the original tooth');
       await seek(page, 'assembly');
       assert.equal(await page.locator(selector).isVisible(), false);
+      assert.deepEqual((await read(page)).visibleTeeth, [36], 'The second chapter also settles on the original tooth');
       await seek(page, 'dentition');
       if ((await read(page)).finalView !== 'anatomy') await activate('#journey-view-anatomy');
       await waitForMode(page, 'anatomy');

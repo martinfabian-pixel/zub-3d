@@ -37,6 +37,7 @@ export const experienceConfig = {
     // separate from orbital distance so the measured proximal sightline holds.
     framing: {
       hero:      {desktop:[.73,.52,.75],portrait:[.595,.47,.88],shortPortrait:[.67,.55,.65]},
+      'transition-tooth': {desktop:[.73,.52,.75],portrait:[.595,.55,.84],shortPortrait:[.64,.58,.64]},
       'anatomy-tooth': {desktop:[.70,.53,.74],portrait:[.52,.615,.72],shortPortrait:[.53,.635,.58]},
       'anatomy-pulp':  {desktop:[.70,.53,.81],portrait:[.52,.615,.79],shortPortrait:[.53,.635,.64]},
       neighbors: {desktop:[.69,.54,.68],portrait:[.61,.59,.82]},

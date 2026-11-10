@@ -3,7 +3,10 @@ import { STORY_TIMING } from './story-config.js';
 
 export const [flightStart,flightEnd] = STORY_TIMING.flight;
 const authoredStart = .802, authoredEnd = .969;
-export const flightProgress = authored => MathUtils.mapLinear(authored,authoredStart,authoredEnd,flightStart,flightEnd);
+// Native forward scroll takes the seated arch apart. Keep the original
+// authored clock and sample it backwards, so reverse scroll still assembles it.
+export const flightProgress = authored => MathUtils.mapLinear(authored,authoredEnd,authoredStart,flightStart,flightEnd);
+const authoredProgress = progress => MathUtils.mapLinear(progress,flightStart,flightEnd,authoredEnd,authoredStart);
 
 const smooth = (start, end, progress) => MathUtils.smoothstep(progress, start, end);
 const heightLane = [.75, 1.24, .60, 1.08, 1.42, .83, 1.20];
@@ -13,15 +16,17 @@ const depthLane = [1.48, -1.42, .42, 2.00, -1.76, 1.10, -.96];
 const tiltLane = [.52, -.46, .76, -.65, .41, -.57, .68];
 
 export function flightReveal(progress, fdi) {
-  if (!fdi) return smooth(flightStart, flightProgress(.858), progress);
+  const authored = authoredProgress(progress);
+  if (!fdi) return smooth(authoredStart,.858,authored);
   const lane = (fdi % 10 + Math.floor(fdi / 10) * 2) % 7;
-  const from = .802 + lane * .004;
-  return smooth(flightProgress(from),flightProgress(from + .055),progress);
+  const from = authoredStart + lane * .004;
+  return smooth(from,from + .055,authored);
 }
 
 // A broad flight envelope; individual arcs continue moving inside its plateau.
 export function floatingAmount(progress) {
-  return flightReveal(progress) * (1 - smooth(flightProgress(.916), flightEnd, progress));
+  const authored = authoredProgress(progress);
+  return smooth(authoredStart,.858,authored) * (1 - smooth(.916,authoredEnd,authored));
 }
 
 export function createFloatingTeeth(teeth) {
@@ -58,7 +63,7 @@ export function createFloatingTeeth(teeth) {
     update(progress, closure, compact = false) {
       const amount = floatingAmount(progress);
       if (!amount && !wasActive) return amount;
-      const authored = MathUtils.mapLinear(progress,flightStart,flightEnd,authoredStart,authoredEnd);
+      const authored = authoredProgress(progress);
       const drift = 2 * smooth(.83, .936, authored) - 1;
       const route = Math.PI * smooth(.826, .958, authored);
       for (const tooth of records) {

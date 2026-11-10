@@ -36,7 +36,7 @@ const anatomyIndex=chapters.findIndex(chapter=>chapter.id==='anatomy');
 const brushIndex=chapters.findIndex(chapter=>chapter.id==='brush');
 const brushAt=chapters[brushIndex].at;
 const plaqueAt=chapters.find(chapter=>chapter.id==='plaque').at;
-const requestedTitles=['Jeden po druhom.','Celý chrup.','Začína sa to jedným zubom.','Stavba zdravého zuba',
+const requestedTitles=['Celý chrup.','Jeden po druhom.','Začína sa to jedným zubom.','Stavba zdravého zuba',
   'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
 if(!chapters.every((chapter,index)=>chapter.title===requestedTitles[index]))throw Error('Slovak story titles do not match the seven chapters.');
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
@@ -181,7 +181,7 @@ async function saveView(page,label,p,index,expected,base) {
 }
 const three=[35,36,37];
 const standard=chapters.map(({id,at},index)=>{
-  const visible=id==='hero'||id==='anatomy'?[36]:id==='dentition'||id==='assembly'?allFDI:three;
+  const visible=id==='hero'||id==='anatomy'||id==='assembly'?[36]:id==='dentition'?allFDI:three;
   return [id==='dentition'?'full':id,at,index,visible];
 }).concat([['result',STORY_TIMING.resultAt,brushIndex,three],['closing',finaleAt,brushIndex,allFDI]]);
 const extra=[['brush-align',.51],['brush-entry',.542],['brush-insert',.58],['brush-stroke',.64]]
@@ -273,7 +273,7 @@ async function desktopInputs(page) {
   await scroll(page,brushAt);await page.locator('#journey-explore').click();await nativeJump(page,0);
   const held=await cameraProbe(page);await page.locator('#journey-home').click();await page.waitForTimeout(680);
   const home=await cameraProbe(page);
-  check('Clicking an already reached native position reconciles frozen state',free(held)&&held.story.chapter==='brush'&&near(held.nativeP,0,.0005)&&guided(home)&&home.story.chapter==='assembly'&&equal(home.story.visible,[36]),{held:held.story.chapter,home:home.story.chapter,native:home.nativeP});
+  check('Clicking an already reached native position reconciles frozen state',free(held)&&held.story.chapter==='brush'&&near(held.nativeP,0,.0005)&&guided(home)&&home.story.chapter==='dentition'&&equal(home.story.visible,allFDI),{held:held.story.chapter,home:home.story.chapter,native:home.nativeP});
 }
 async function mobileInputs(ctx,page){
   const evidence=await mobileInputSequence(ctx,page,p=>scroll(page,p)),s=evidence.states;
@@ -455,7 +455,7 @@ async function reduced() {
 async function aliases() {
   for(const [entry,selector]of [['experience/?qa=1',q],['legacy/','#tooth-canvas'],['prototype/','#prototype-canvas']]){
     const {ctx,page}=await open();try{await goto(page,entry);await page.waitForSelector(selector+'[data-ready="true"]',{timeout:60000});
-      if(entry.startsWith('experience')){await ready(page);check('/experience/ alias loads same seven-chapter story',(await read(page)).chapter==='assembly'&&await page.locator('.journey-step').count()===7);}
+      if(entry.startsWith('experience')){await ready(page);check('/experience/ alias opens on the same seven-chapter atlas',(await read(page)).chapter==='dentition'&&await page.locator('.journey-step').count()===7);}
       else{const d=await page.locator(selector).evaluate(el=>({...el.dataset}));check('Preserved '+entry+' loads original model',d.ready==='true'&&(entry==='legacy/'?Number(d.assetTriangles)===388032:Number(d.modelMeshes)===1),d);}
     }finally{await closeContext(ctx);}
   }
@@ -491,10 +491,10 @@ async function malformedStoryOwnership() {
     const home=await cameraProbe(page);
     await page.locator('#journey-zoom-in').click();await threeFrames(page);
     const inspect=await page.evaluate(()=>{const a=window.__dentalExperience;return {frame:a.renderer.info.render.frame,camera:a.rig.camera.position.toArray(),target:a.rig.target.toArray(),errors:a.report().shaderErrors};});
-    check('Healthy 36 still renders and responds to zoom after returning home',inspect.frame>home.draws&&!inspect.errors&&dist(inspect.camera,inspect.target)<dist(home.pos,home.target)-.001,inspect);
+    check('The opening arch renders and responds to zoom after returning home',inspect.frame>home.draws&&!inspect.errors&&dist(inspect.camera,inspect.target)<dist(home.pos,home.target)-.001,inspect);
     const cleanup=await page.evaluate(()=>{
       const a=window.__dentalExperience,measure=()=>({gpu:{...a.renderer.info.memory},bitmaps:window.__qaBitmapDisposals(),disposed:a.report().disposed});
-      const uniforms=a.renderer.properties.get(a.arch.teeth.get(36).mesh.material).uniforms;
+      const uniforms=a.renderer.properties.get(a.arch.teeth.get(36).crown.material).uniforms;
       const luts=['ltc_1','ltc_2','dfgLUT'].map(key=>{const t=uniforms?.[key]?.value;return {key,name:t?.name,width:t?.image?.width,height:t?.image?.height,uploaded:t?!!a.renderer.properties.get(t).__webglTexture:false};});
       const before=measure();a.dispose();const first=measure();a.dispose();return {before,first,second:measure(),renderedLightingLuts:luts};
     });
@@ -539,7 +539,7 @@ async function pendingAssetsWithInput() {
       const held=await cameraProbe(page);release();await ready(page);await page.waitForTimeout(180);const after=await cameraProbe(page);
       check('Completing background assets keeps real user rotation/zoom in '+mode,
         held.mode===mode&&after.mode===mode&&sameOffsets(held,after)&&Math.abs(after.manual?.desiredYaw)>.015&&after.manual?.desiredZoom<.99&&
-        angular(held.quat,after.quat)<.025&&equal(held.story.visible,[36])&&equal(after.story.visible,[36]),{held,after});
+        angular(held.quat,after.quat)<.025&&equal(held.story.visible,allFDI)&&equal(after.story.visible,allFDI),{held,after});
       (report.pendingAssetInput??=[]).push({mode,held,after});
     }finally{release();await closeContext(ctx);}
   }

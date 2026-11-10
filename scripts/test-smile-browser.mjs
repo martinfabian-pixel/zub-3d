@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { mouseDrag, touchDrag, pinchOut, wheelOnCanvas } from './browser-camera-probes.mjs';
-import { flightProgress, flightStart } from '../src/experience/floating-teeth.js';
+import { flightEnd, flightProgress } from '../src/experience/floating-teeth.js';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
@@ -13,7 +13,7 @@ const browser=await chromium.launch({channel:'chrome',headless:true});
 const results=[];
 const atlasIndex=DENTAL_CHAPTERS.findIndex(chapter=>chapter.id==='dentition');
 const atlasAt=DENTAL_CHAPTERS[atlasIndex].at;
-const [assemblyChapter,atlasChapter,heroChapter]=DENTAL_CHAPTERS;
+const [atlasChapter,assemblyChapter,heroChapter]=DENTAL_CHAPTERS;
 const brushAt=DENTAL_CHAPTERS.find(chapter=>chapter.id==='brush').at;
 const [dissolveFrom,dissolveTo]=STORY_TIMING.assemblyCrowns;
 const dissolveAt=fraction=>dissolveFrom+(dissolveTo-dissolveFrom)*fraction;
@@ -28,7 +28,8 @@ try {
   await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:90000});
   await page.locator('#journey-startup').waitFor({state:'hidden'});
   assert.equal(await page.locator('#journey-step-number').innerText(),'01 / 07');
-  assert.equal(await page.evaluate(()=>window.__dentalExperience.report().story.chapterId),'assembly');
+  assert.equal(await page.evaluate(()=>window.__dentalExperience.report().story.chapterId),'dentition');
+  assert.equal(await page.locator('#journey-title').innerText(),'Celý chrup.');
   assert.equal(await page.locator('#journey-hero-explore').isVisible(),false);
   async function seek(progress) {
    await page.evaluate(p=>{const r=document.querySelector('#dental-journey').getBoundingClientRect();
@@ -37,7 +38,13 @@ try {
    await page.waitForFunction(p=>{const r=window.__dentalExperience.report();
     return Math.abs(r.progress-p)<.002&&Math.abs(r.renderProgress-r.storyProgress)<.00002;},progress,{timeout:15000});
   }
-  await seek(flightStart);
+  const smile=await readState();
+  expectMeshes(smile,28,0);
+  assert.equal(smile.crownMix,1);
+  assert.equal(smile.backingVisible,true);
+  assert.equal(smile.backingOpacity,1);
+  await page.screenshot({path:`${out}/${width}-smile.png`});
+
   const motion=await page.evaluate(async({start,end})=>{
    const box=document.querySelector('#dental-journey').getBoundingClientRect();
    const length=box.height-document.querySelector('#journey-stage').clientHeight,base=scrollY+box.top;
@@ -50,7 +57,7 @@ try {
    }
    intervals.sort((a,b)=>a-b);
    return {samples:intervals.length,p50Ms:intervals[60],p95Ms:intervals[114],over33ms:intervals.filter(v=>v>33.4).length};
-  },{start:flightStart,end:atlasAt});
+  },{start:atlasAt,end:flightEnd});
   async function readState() {
    const state=await page.evaluate(()=>{
     const {arch,report}=window.__dentalExperience,r=report(),teeth=[...arch.teeth.values()];
@@ -88,24 +95,19 @@ try {
   const seated=await readState();
   expectMeshes(seated,0,28);
   assert.equal(seated.crownMix,0);
-  assert.notDeepEqual(seated.matrices,floating.matrices,'The rooted teeth move toward their seats');
+  assert.notDeepEqual(seated.matrices,floating.matrices,'The rooted teeth leave their seats as you scroll down');
 
   await seek(dissolveAt(.25));
   const dissolveStart=await readState();
   expectMeshes(dissolveStart,28,28);
-  assert.ok(dissolveStart.crownMix>0&&dissolveStart.crownMix<.5);
+  assert.ok(dissolveStart.crownMix>.5&&dissolveStart.crownMix<1);
   await seek(dissolveAt(.80));
   const dissolveEnd=await readState();
   expectMeshes(dissolveEnd,28,28);
-  assert.ok(dissolveEnd.crownMix>.5&&dissolveEnd.crownMix<1);
+  assert.ok(dissolveEnd.crownMix>0&&dissolveEnd.crownMix<.5);
 
   await seek(atlasAt);
-  const smile=await readState();
-  expectMeshes(smile,28,0);
-  assert.equal(smile.crownMix,1);
-  assert.equal(smile.backingVisible,true);
-  assert.equal(smile.backingOpacity,1);
-  await page.screenshot({path:`${out}/${width}-smile.png`});
+  expectMeshes(await readState(),28,0);
 
   await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(700);
   const anatomy=await readState();
@@ -140,16 +142,21 @@ try {
   assert.equal(await page.evaluate(()=>window.__dentalExperience.report().exploring),false);
   await page.setViewportSize({width:height,height:width});await page.waitForTimeout(500);
   assert.ok(Math.abs((await page.evaluate(()=>window.__dentalExperience.report().progress))-brushAt)<.01);
-  await navigateTo('.journey-step:first-child',assemblyChapter,1);
-  expectMeshes(await readState(),0,28);
-  await navigateTo('#journey-mobile-next',atlasChapter,2);
+  await navigateTo('.journey-step:first-child',atlasChapter,1);
   expectMeshes(await readState(),28,0);
+  await navigateTo('#journey-mobile-next',assemblyChapter,2);
+  expectMeshes(await readState(),0,1);
+  assert.deepEqual(await page.evaluate(()=>window.__dentalExperience.report().visibleTeeth),[36]);
+  assert.equal(await page.locator('#journey-view-anatomy').isVisible(),false);
+  await page.screenshot({path:`${out}/${width}-single-tooth.png`});
   await navigateTo('#journey-mobile-next',heroChapter,3);
   expectMeshes(await readState(),0,1);
   assert.equal(await page.locator('#journey-hero-explore').isVisible(),true);
   assert.equal(await page.locator('#journey-view-anatomy').isVisible(),false);
   await page.waitForFunction(()=>Math.abs(window.__dentalExperience.report().heroSpin.angle)>.04);
-  await navigateTo('#journey-mobile-previous',atlasChapter,2);
+  await navigateTo('#journey-mobile-previous',assemblyChapter,2);
+  expectMeshes(await readState(),0,1);
+  await navigateTo('#journey-mobile-previous',atlasChapter,1);
   expectMeshes(await readState(),28,0);
   await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(700);
   expectMeshes(await readState(),0,28);

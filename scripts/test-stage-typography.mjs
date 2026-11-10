@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { DENTAL_CHAPTERS, FINAL_SMILE_COPY, STORY_TIMING } from '../src/experience/story-config.js';
 import { getStoryCopy, sampleStageTypography,TYPE_COMPOSITIONS } from '../src/experience/stage-typography.js';
 
-const names=['Jeden po druhom.','Celý chrup.','Začína sa to jedným zubom.','Stavba zdravého zuba',
+const names=['Celý chrup.','Jeden po druhom.','Začína sa to jedným zubom.','Stavba zdravého zuba',
   'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
 assert.deepEqual(DENTAL_CHAPTERS.map(c=>c.title),names);
 for(const chapter of DENTAL_CHAPTERS){
@@ -25,8 +25,7 @@ for(const mobile of [false,true]){
   for(const i of [1357,2000,0,880,200,1979,37])assert.deepEqual(sample(progress[i]),forward[i]);
   for(const chapter of DENTAL_CHAPTERS){
     const settled=sample(chapter.at);
-    if(chapter.id==='assembly')assert.ok(settled.opacity>=.45&&settled.opacity<=.6,'The title recedes during the opening flight and stays readable');
-    else {assert.equal(settled.opacity,1);assert.equal(settled.shift,0);}
+    assert.equal(settled.opacity,1);assert.equal(settled.shift,0);
     assert.ok(settled.x>=0&&settled.x+settled.width<=1&&settled.y>=0&&settled.y<1&&settled.font>=20);
     for(const p of [chapter.start,chapter.at,chapter.end]){
       const normal=sampleStageTypography(chapter,p,{mobile});

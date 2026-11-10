@@ -6,7 +6,7 @@ body[data-journey-loading] {
 }
 
 body[data-journey-loading] .skip-link,
-body[data-journey-loading]:not([data-journey-handoff='grow']) #journey-stage > :not(#journey-startup, noscript) {
+body[data-journey-loading]:not([data-journey-handoff='reveal']) #journey-stage > :not(#journey-startup, noscript) {
   visibility: hidden;
 }
 body[data-journey-loading] #journey-stage :is(button, a, canvas) { pointer-events: none; }
@@ -22,23 +22,7 @@ body[data-journey-loading] #journey-startup {
     linear-gradient(155deg, var(--scene-bg, #e6f3fc), var(--scene-bg-deep, #d6edfa));
 }
 
-body[data-journey-handoff] .startup-tooth {
-  animation: none;
-  background-position-x: var(--startup-frame, 0%);
-}
-
-body[data-journey-handoff='grow'] #journey-startup { background: transparent; }
-body[data-journey-handoff='grow'] .startup-tooth { opacity: var(--startup-sprite-opacity, 1); }
-body[data-journey-loading][data-journey-handoff='grow'] #journey-stage > :is(.site-header, .journey-copy, .journey-dock, .journey-footer) {
-  /* The story writes the copy's opacity inline. The startup is the only
-     owner of the reveal until the canvas reaches that first story pose. */
-  opacity: var(--startup-ui-opacity, 0) !important;
-}
-body[data-journey-handoff='grow'] #journey-status { visibility: hidden; }
-body[data-journey-handoff='grow'] #journey-canvas {
-  transform-origin: 0 0;
-  transform: var(--startup-canvas-transform, none);
-}
+body[data-journey-handoff='reveal'] .startup-tooth { visibility: hidden; }
 
 .startup-status-text {
   position: absolute;
