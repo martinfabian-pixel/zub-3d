@@ -19,6 +19,7 @@ const chapters = {
   brush: [],
   result: ['cleaned'],
 };
+const annotationGroup = chapter => chapter === 'result' ? 'cleaned' : chapter;
 
 /** Executed inside the page. Derives geometry from the live *render mesh*, not
  * from the overlay's claimed world/screen coordinates or a hardcoded viewport.
@@ -440,7 +441,7 @@ export async function auditAnnotations(page) {
       visible = s.labels.filter((x) => x.on);
     check(
       `${name}: chapter, decorative noninteractive layer`,
-      s.chapter === chapter && s.decorative && s.pointerStylesClear && !s.focusableElements,
+      s.chapter === annotationGroup(chapter) && s.decorative && s.pointerStylesClear && !s.focusableElements,
       {
         chapter: s.chapter,
         decorative: s.decorative,
@@ -556,7 +557,7 @@ export async function auditAnnotations(page) {
     const at = id === 'result' ? STORY_TIMING.resultAt : DENTAL_CHAPTERS.find((x) => x.id === id)?.at;
     if (!Number.isFinite(at)) throw Error(`Unmapped authored chapter ${id}`);
     await nativeJump(page, at);
-    await page.waitForFunction((ch) => window.__dentalExperience.annotations.report().chapter === ch, id === 'result' ? 'cleaned' : id, {
+    await page.waitForFunction((ch) => window.__dentalExperience.annotations.report().chapter === ch, annotationGroup(id), {
       timeout: 5000,
     });
   };

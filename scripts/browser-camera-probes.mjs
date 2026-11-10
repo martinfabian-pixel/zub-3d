@@ -7,6 +7,10 @@ const canvas = '#journey-canvas';
 const plaqueAt = DENTAL_CHAPTERS.find(chapter=>chapter.id==='plaque').at;
 const brushIndex = DENTAL_CHAPTERS.findIndex(chapter=>chapter.id==='brush');
 const brushAt = DENTAL_CHAPTERS[brushIndex].at;
+const waitForBrushNavigation = page => page.waitForFunction(at => {
+  const state = window.__dentalExperience.report();
+  return Math.abs(state.progress - at) < .001 && state.renderProgress === state.storyProgress;
+}, brushAt);
 export const distance = (a,b) => Math.hypot(...a.map((x,i)=>x-b[i]));
 export const angular = (a,b) => 2*Math.acos(Math.min(1,Math.abs(a.reduce((s,x,i)=>s+x*b[i],0))));
 export const zoomTravel = (from,to) => to.pos.reduce((s,x,i)=>s+(x-from.pos[i])*from.direction[i],0);
@@ -187,7 +191,8 @@ export async function desktopInputSequence(page,go) {
   await go(plaqueAt+.000123);await mouseDrag(page,75,-42);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(190);await snap('beforeResize');
   await page.setViewportSize({width:1073,height:811});await page.waitForTimeout(240);await snap('afterResize');
   await page.setViewportSize(initialViewport);await page.waitForTimeout(240);
-  const chapterTrace=await traceHandover(page,()=>page.locator('.journey-step').nth(brushIndex).click());await snap('navigated');
+  const chapterTrace=await traceHandover(page,()=>page.locator('.journey-step').nth(brushIndex).click());
+  await waitForBrushNavigation(page);await snap('navigated');
   await go(plaqueAt);await page.locator('#journey-reset').click();await page.waitForTimeout(550);
   await mouseDrag(page,-110,62);await snap('beforeWheelHandover');
   const wheelTrace=await traceHandover(page,()=>wheelOnCanvas(page,188),'wheel');await snap('afterWheelHandover');
@@ -203,6 +208,6 @@ export async function mobileInputSequence(ctx,page,go) {
   await page.locator('#journey-explore').tap();await snap('freeStart');await touchDrag(ctx,page,85,0);await snap('freeX');
   await touchDrag(ctx,page,0,85);await snap('freeY');await pinchOut(ctx,page);await snap('freePinch');
   await nativeJump(page,.20);await snap('freeNativeJump');
-  await page.locator('.journey-step').nth(brushIndex).tap();await page.waitForTimeout(1000);await snap('navigated');
+  await page.locator('.journey-step').nth(brushIndex).tap();await waitForBrushNavigation(page);await snap('navigated');
   return {states:record};
 }
