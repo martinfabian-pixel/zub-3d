@@ -26,7 +26,7 @@ import { createHeroAnatomyMotion } from './hero-anatomy-motion.js';
 import { createHeroAnatomyControls } from './hero-anatomy-controls.js';
 import { createFullArchAnatomy } from './full-arch-anatomy.js';
 import { createFullArchAnatomyControls } from './full-arch-anatomy-controls.js';
-import { createFullArchFocus } from './full-arch-focus.js';
+import { atlasCoverage, createFullArchFocus } from './full-arch-focus.js';
 import { createFullArchBrushing } from './full-arch-brushing.js';
 import { createFullArchBrushingControls } from './full-arch-brushing-controls.js';
 import { createStartupHandoff } from './startup-handoff.js';
@@ -70,15 +70,17 @@ export function createExperience(configuration=experienceConfig) {
   let manual=null,manualPointer=null,manualClock=0,manualAxis={x:1,y:0,lengthSq:1};
   let inspectionProgress=0,manualProgress=0,manualChapter=null,finalView='smile';
   const finalTimelines={};let smileWeight=1,finalViewTransition=null;
-  let fullAnatomyActive=false,fullAnatomyWeight=0,fullAnatomyFrame=0,pendingFinalView=null;
+  let interiorRequested=false,interiorFdi=null,fullAnatomyWeight=0,fullAnatomyFrame=0,pendingFinalView=null;
   let fullBrushing,brushingRun=null,smileBacking,brushingFraming=0;
   const brushingFocus=new THREE.Vector3();
-  let focusedFdi=null,focusOrigin=null,focusReturning=false,focusBlend=0,focusFrame=0,focusSensorApplied=false;
+  let focusOrigin=null,focusLeavesStory=false;
   const heroSpin=createHeroSpin();
   const anatomyMotion=createHeroAnatomyMotion();
   const healthyAnatomy={active:false,plate:false,spread:0,expanded:false,motion:null,labels:false};
   const fullArchFocus=createFullArchFocus();
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
+  const detailDirection=new THREE.Vector3(),detailCenter=new THREE.Vector3();
+  const neutralView={yaw:0,pitch:0,zoom:0,focus:[0,0,0]};
   let toothPointer=null;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
   const ui=createInterface({config,section,stage,signal,navigate,navigationTarget,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
@@ -104,11 +106,10 @@ export function createExperience(configuration=experienceConfig) {
   const healthyAnatomyUI=createHealthyAnatomyUI({stage,signal,chapterNumber,chapterCount:config.presentation.steps.length,onToggle:toggleAnatomySpread});
   const anatomyControls=createHeroAnatomyControls({stage,onToggle(active){anatomyMotion.setActive(active);requestRender();}});
   const fullAnatomyControls=createFullArchAnatomyControls({stage,onToggle(active){
-    if(!active)cancelFullArchFocus();
-    fullAnatomyActive=active;pendingFinalView=null;
-    if(active&&finalView!=='anatomy')selectFinalView('anatomy');
+    if(!fullArchFocus.engaged||fullArchFocus.returning)return;
+    interiorRequested=active;
     requestRender();
-  },onSelect:focusTooth,onReturn:returnToArch});
+  },onSelect:focusTooth,onReturn:()=>returnToArch()});
   const brushingControls=createFullArchBrushingControls({stage,signal,onToggle:toggleFullBrushing,onNext:nextBrushingPhase});
 
   function canBrushFullArch() {
@@ -172,35 +173,46 @@ export function createExperience(configuration=experienceConfig) {
     return !reducedMotion&&!demo.done;
   }
 
+  function canUseAtlas() {
+    return storyReady&&dentalState.chapterId==='dentition'&&finalView==='anatomy'&&
+      !finalViewTransition&&!pendingFinalView&&atlasCoverage(dentalState.sceneProgress)===1;
+  }
+  function atlasFraming() {
+    const compact=logicalWidth<=700;
+    return {compact,short:compact&&logicalHeight<680};
+  }
+  function captureAtlasPose() {
+    const {camera}=rig, sensor=camera.view;
+    return {position:camera.position.clone(),target:view.target.clone(),
+      screenX:sensor?.enabled ? .5-sensor.offsetX/sensor.fullWidth : .5,
+      screenY:sensor?.enabled ? .5-sensor.offsetY/sensor.fullHeight : .5};
+  }
   function focusTooth(fdi) {
-    if(!storyReady||!fullAnatomyActive||fullAnatomyWeight<.95||dentalState.chapterId!=='dentition')return;
-    const mesh=arch.teeth.get(Number(fdi))?.mesh;
-    // In the isolated view other teeth are intentionally hidden; the
-    // accessible selector must still be able to choose any of them.
-    if(!mesh||(!mesh.visible&&!focusOrigin))return;
-    mesh.visible=true;
-    const current=view.capture(), destination=fullArchFocus.destination(mesh,rig,rig.camera,current);
-    if(!destination)return;
-    if(!focusOrigin)focusOrigin=current;
-    focusedFdi=Number(fdi);focusReturning=false;
-    view.setGuidedZoomMinimum(.1);
-    fullArchFocus.begin(current,destination.snapshot,{instant:reducedMotion});
+    if(!canUseAtlas()||focusLeavesStory)return;
+    const from=captureAtlasPose();
+    if(!fullArchFocus.select(Number(fdi),{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant:reducedMotion}))return;
+    focusOrigin??={pose:from,view:view.captureDisplayed(),progress:dentalState.progress};
+    interiorRequested=false;
+    manualChapter=null;
+    view.restore(neutralView,{instant:true});
     requestRender();
   }
-  function returnToArch() {
+  function returnToArch({story=false}={}) {
     if(!focusOrigin)return;
-    focusReturning=true;
-    fullArchFocus.begin(view.capture(),focusOrigin,{instant:reducedMotion});
+    focusLeavesStory||=story;
+    interiorRequested=false;
+    if(fullArchFocus.returnToArch(captureAtlasPose(),focusLeavesStory?rig.pose:focusOrigin.pose,performance.now(),reducedMotion)){
+      view.restore(neutralView,{instant:true});
+    }
     requestRender();
   }
-  function cancelFullArchFocus() {
-    if(!focusOrigin)return;
-    fullArchFocus.cancel();
-    view?.setGuidedZoomMinimum();
-    view?.restore(focusOrigin,{instant:reducedMotion});
-    focusedFdi=null;focusOrigin=null;focusReturning=false;focusBlend=0;
-    for(const item of arch?.teeth.values()??[])if(item.mesh)item.mesh.visible=item.reveal>.00001;
-    requestRender();
+  function finishAtlasFocus() {
+    fullArchFocus.clear();
+    view.restore(focusLeavesStory?neutralView:focusOrigin.view,{instant:true});
+    manualChapter=!focusLeavesStory&&view.modified?'dentition':null;
+    manualProgress=progress;
+    interiorRequested=false;
+    focusOrigin=null;focusLeavesStory=false;
   }
 
   function requestRender() {if(!disposed&&ready&&!document.hidden&&!frame)frame=requestAnimationFrame(render);}
@@ -319,11 +331,11 @@ export function createExperience(configuration=experienceConfig) {
   function navigate(next) {
     if(manual){exitManualCleaning(next);return;}
     stopFullBrushing();
-    cancelFullArchFocus();
+    returnToArch({story:true});
     leaveExplore();
     manualChapter=null;
     beginNavigation(scrollReadiness.plan(next));
-    if(view?.modified)view.reset(performance.now(),reducedMotion);
+    if(!focusOrigin&&view?.modified)view.reset(performance.now(),reducedMotion);
     updateUI();
     requestRender();
   }
@@ -352,16 +364,16 @@ export function createExperience(configuration=experienceConfig) {
     if(manual){exitManualCleaning();return;}
     if(healthyAnatomy.active||brushingRun)return;
     if(exploring){
-      cancelFullArchFocus();
       const resume=inspectionProgress;leaveExplore();manualChapter=null;
-      ui.scrollTo(resume,true);setProgress(resume);view.reset(performance.now(),reducedMotion);
+      ui.scrollTo(resume,true);setProgress(resume);
+      if(focusOrigin)returnToArch();
+      else view.reset(performance.now(),reducedMotion);
     }
     else enterExplore(true);
     requestRender();
   }
   function resetView() {
     if(!ready||healthyAnatomy.active||brushingRun)return;
-    cancelFullArchFocus();
     heroSpin.release();
     manualChapter=null;view.reset(performance.now(),reducedMotion);
     requestRender();
@@ -371,7 +383,6 @@ export function createExperience(configuration=experienceConfig) {
   }
   function zoom(factor) {
     if(!ready||healthyAnatomy.active||brushingRun)return;
-    if(fullArchFocus.active){fullArchFocus.cancel();focusReturning=false;}
     view.zoomBy(factor);markManual();
   }
   function toggleAnatomySpread() {
@@ -422,12 +433,11 @@ export function createExperience(configuration=experienceConfig) {
   }
   function selectFinalView(next){
     stopFullBrushing();
-    if(next!=='anatomy')cancelFullArchFocus();
-    if(next==='smile'&&fullAnatomyWeight>.002){
-      fullAnatomyActive=false;pendingFinalView='smile';requestRender();return;
+    if(!storyReady||!finalTimelines[next])return;
+    if(next===finalView){pendingFinalView=null;return;}
+    if(next==='smile'&&(focusOrigin||fullAnatomyWeight>0)){
+      pendingFinalView='smile';returnToArch();requestRender();return;
     }
-    if(!storyReady||!finalTimelines[next]||next===finalView)return;
-    if(next==='smile')fullAnatomyActive=false;
     pendingFinalView=null;
     finalView=next;
     const now=performance.now(),to=next==='smile'?1:0;
@@ -446,7 +456,7 @@ export function createExperience(configuration=experienceConfig) {
     if(sample.blocked&&next-sample.progress>.00025)ui.scrollTo(sample.progress,true);
     progress=sample.progress;reducedMotion=Boolean(motion);
     if(brushingRun&&progress<(reducedMotion?.80:config.anatomy.crownHandoverRange[1]))stopFullBrushing();
-    if(focusOrigin&&progress<.94)cancelFullArchFocus();
+    if(focusOrigin&&!focusLeavesStory&&!exploring&&progress<focusOrigin.progress-.007)returnToArch({story:true});
     storyProgress=THREE.MathUtils.lerp(config.story.startProgress,config.story.endProgress,progress);
     if(exploring){
       applyState(inspectionProgress,false);updateUI();requestRender();return null;
@@ -462,8 +472,11 @@ export function createExperience(configuration=experienceConfig) {
   function applyState(p,moveCamera) {
     if(reducedMotion)sampleReducedDentalStory(p,dentalState,scrollReadiness.limit);
     else sampleDentalStory(p,dentalState);
+    if(focusOrigin&&atlasCoverage(dentalState.sceneProgress)===0){
+      focusLeavesStory=true;finishAtlasFocus();
+    }
     arch.setFinalView?.(finalView,smileWeight);
-    arch.setState(dentalState);
+    arch.setState(dentalState,fullArchFocus.engaged?fullArchFocus.opacity:null);
     plaque?.setState({visible:dentalState.sceneProgress<.80,opacity:dentalState.plaqueDeposition,progress:dentalState.cleaningProgress});
     brush?.setPose(dentalState.brushPose);
     if(!moveCamera)return null;
@@ -488,7 +501,7 @@ export function createExperience(configuration=experienceConfig) {
       healthyAnatomy:{active:healthyAnatomy.active,spread:healthyAnatomy.spread,expanded:healthyAnatomy.expanded},
       heroAnatomy:{weight:heroAnatomy?.weight??0},
       fullAnatomy:fullArchAnatomy?.report()??{weight:0,teeth:0},
-      focusedTooth:focusedFdi,focusMoving:fullArchFocus.active,focusReturning,focusHasOrigin:Boolean(focusOrigin),
+      focusedTooth:fullArchFocus.selected,focusMoving:fullArchFocus.moving,focusReturning:fullArchFocus.returning,focusHasOrigin:Boolean(focusOrigin),
       ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,crownMix:arch?.crownMix,reducedMotion,view:view?.report(),
       composition:rig?{focus:[rig.pose.screenX,rig.pose.screenY],opticalZoom:rig.pose.opticalZoom,fullSensor:[rig.camera.view?.fullWidth,rig.camera.view?.fullHeight]}:null,
       typography:ui.report(),annotations:annotations?.report(),
@@ -557,6 +570,9 @@ export function createExperience(configuration=experienceConfig) {
       if(exploring)applyState(inspectionProgress,true);
       if(t===1)finalViewTransition=null;
     }
+    const atlasWasEngaged=fullArchFocus.engaged;
+    fullArchFocus.advance(now);
+    if(fullArchFocus.returning&&!fullArchFocus.moving)finishAtlasFocus();
     const target=storyProgress;
     let following=false;
     if(!exploring) {
@@ -575,6 +591,7 @@ export function createExperience(configuration=experienceConfig) {
       canvas.dataset.sceneProgress=dentalState.sceneProgress.toFixed(6);
       updateUI();
     }
+    else if(atlasWasEngaged)applyState(inspectionProgress,true);
     progressFrame=now;
     // ResizeObserver owns stage changes. Reading layout after UI writes in
     // every moving frame forces synchronous layout on mobile browsers.
@@ -583,34 +600,32 @@ export function createExperience(configuration=experienceConfig) {
     });
     heroAnatomy?.setWeight(anatomyState.weight);
     const finale=dentalState.chapterId==='dentition';
-    if(!finale){fullAnatomyActive=false;pendingFinalView=null;fullAnatomyWeight=0;}
-    const fullTarget=finale&&fullAnatomyActive&&finalView==='anatomy'&&!finalViewTransition?1:0;
+    if(!finale)pendingFinalView=null;
+    const selected=fullArchFocus.selected;
+    const interiorTarget=interiorRequested&&!fullArchFocus.returning&&!fullArchFocus.moving?selected:null;
+    if(interiorTarget!==null&&interiorFdi===null){
+      const mesh=arch.teeth.get(interiorTarget).mesh;
+      mesh.geometry.boundingBox.getCenter(detailCenter);
+      mesh.worldToLocal(detailDirection.copy(rig.camera.position)).sub(detailCenter).normalize();
+      interiorFdi=interiorTarget;
+    }
+    const fullTarget=interiorFdi!==null&&interiorFdi===interiorTarget?1:0;
     const fullDt=fullAnatomyFrame?Math.min(50,Math.max(0,now-fullAnatomyFrame)):16.67;
     fullAnatomyFrame=now;
-    fullAnatomyWeight=reducedMotion?fullTarget:fullAnatomyWeight+(fullTarget-fullAnatomyWeight)*(1-Math.exp(-fullDt/130));
-    if(Math.abs(fullTarget-fullAnatomyWeight)<.002)fullAnatomyWeight=fullTarget;
-    fullArchAnatomy?.setWeight(fullAnatomyWeight);
-    // In an explicitly selected illustration, gently isolate the chosen tooth
-    // without moving or editing any geometry. The full arch returns on exit.
-    const focusTarget=finale&&focusedFdi!==null&&!focusReturning?1:0;
-    const focusDt=focusFrame?Math.min(50,Math.max(0,now-focusFrame)):16.67;focusFrame=now;
-    focusBlend=reducedMotion?focusTarget:focusBlend+(focusTarget-focusBlend)*(1-Math.exp(-focusDt/160));
-    if(Math.abs(focusTarget-focusBlend)<.002)focusBlend=focusTarget;
-    if(fullAnatomyWeight>.95&&focusedFdi!==null){
-      for(const [fdi,item] of arch.teeth){
-        if(fdi===focusedFdi||!item.mesh)continue;
-        item.mesh.visible=focusBlend<.998&&item.reveal>.00001;
-        item.mesh.material.opacity*=1-focusBlend;
-      }
-    }
+    fullAnatomyWeight=reducedMotion||!finale?fullTarget:THREE.MathUtils.damp(fullAnatomyWeight,fullTarget,11,fullDt*.001);
+    if(Math.abs(fullTarget-fullAnatomyWeight)<.004)fullAnatomyWeight=fullTarget;
+    if(fullAnatomyWeight===0&&fullTarget===0)interiorFdi=null;
+    fullArchAnatomy?.setDetail(interiorFdi,fullAnatomyWeight*atlasCoverage(dentalState.sceneProgress),detailDirection);
     anatomyControls.update({chapterId:dentalState.chapterId,enabled:ready,active:anatomyState.active,weight:anatomyState.weight,archWeight:fullAnatomyWeight});
-    fullAnatomyControls.update({visible:finale&&finalView==='anatomy'&&(reducedMotion||dentalState.sceneProgress>=.978),enabled:storyReady,active:fullAnatomyActive,focused:focusedFdi!==null,selectedFdi:focusedFdi});
-    if(pendingFinalView&&fullAnatomyWeight===0){const next=pendingFinalView;pendingFinalView=null;selectFinalView(next);}
-    const fullAnatomyMoving=fullAnatomyWeight!==fullTarget;
-    const focusMove=fullArchFocus.update(now);
-    if(focusMove.snapshot){
-      view.restore(focusMove.snapshot,{instant:reducedMotion});
-      if(!focusMove.moving&&focusReturning){focusedFdi=null;focusOrigin=null;focusReturning=false;view.setGuidedZoomMinimum();}
+    fullAnatomyControls.update({visible:finale&&finalView==='anatomy'&&atlasCoverage(dentalState.sceneProgress)===1,
+      enabled:canUseAtlas()&&!focusLeavesStory,active:interiorRequested,focused:selected!==null,selectedFdi:selected});
+    if(pendingFinalView&&!focusOrigin&&fullAnatomyWeight===0){const next=pendingFinalView;pendingFinalView=null;selectFinalView(next);}
+    const fullAnatomyMoving=fullAnatomyWeight!==fullTarget||(interiorTarget!==null&&interiorTarget!==interiorFdi);
+    const atlasPose=fullArchFocus.apply(rig.pose,dentalState.sceneProgress);
+    if(atlasPose){
+      view.setStoryPose(atlasPose);
+      const radius=Math.max(1.1,atlasPose.position.distanceTo(atlasPose.target)*Math.tan(THREE.MathUtils.degToRad(config.camera.fov/2))*.68);
+      lighting?.update(atlasPose.target,radius);
     }
     const brushingMoving=updateFullBrushing(now);
     brushingControls.update({visible:canBrushFullArch(),demo:brushingRun?.demo});
@@ -624,18 +639,17 @@ export function createExperience(configuration=experienceConfig) {
     // Shift the sensor's aim into the free centre of the stage while the
     // tooth is isolated; the story rig restores its own framing afterwards.
     const sensor=rig.camera.view;
-    if(sensor?.enabled&&(focusBlend>.001||focusSensorApplied||brushingFraming>0)){
-      const sx=THREE.MathUtils.lerp(THREE.MathUtils.lerp(rig.pose.screenX??.5,profile.compact?.5:.64,focusBlend),.64,brushingFraming);
-      const sy=THREE.MathUtils.lerp(THREE.MathUtils.lerp(rig.pose.screenY??.5,profile.compact?.65:.57,focusBlend),.64,brushingFraming);
+    if(sensor?.enabled&&(atlasPose||brushingFraming>0)){
+      const sx=THREE.MathUtils.lerp(atlasPose?.screenX??rig.pose.screenX??.5,.64,brushingFraming);
+      const sy=THREE.MathUtils.lerp(atlasPose?.screenY??rig.pose.screenY??.5,.64,brushingFraming);
       rig.camera.setViewOffset(sensor.fullWidth,sensor.fullHeight,(.5-sx)*sensor.fullWidth,(.5-sy)*sensor.fullHeight,sensor.fullWidth,sensor.fullHeight);
-      focusSensorApplied=focusBlend>.001;
     }
     if(!healthyAnatomy.plate){
       arch.updateView(rig.camera);
       annotations?.update({state:dentalState,camera:rig.camera,brush,free:exploring});
     }
     if(smileBacking&&brushingRun?.demo?.jawOpening>.01)smileBacking.visible=false;
-    if(lastFrame&&(interaction||changing||scrolling))adaptive.recordFrame(now-lastFrame);
+    if(lastFrame&&(interaction||changing||scrolling||fullArchFocus.moving))adaptive.recordFrame(now-lastFrame);
     lastFrame=now;
     const camera=healthyAnatomy.plate?anatomyPlate.camera:rig.camera;
     try {
@@ -648,10 +662,10 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.frameCount=String(renderedFrames);
     canvas.dataset.shaderErrors=String(shaderError?1:0);
     canvas.dataset.visibleTeeth=String(arch.visibleCount);
-    if(changing||interaction||finalViewTransition||following||navigationMotion||focusMove.moving||healthyAnatomyMoving||brushingMoving){adaptive.beginInteraction();requestRender();}
+    if(changing||interaction||finalViewTransition||following||navigationMotion||fullArchFocus.moving||healthyAnatomyMoving||brushingMoving){adaptive.beginInteraction();requestRender();}
     else {
       if(!scrolling)adaptive.endInteraction();
-      if(startupMoving||heroSpinning||anatomyState.moving||fullAnatomyMoving||brushingFraming!==brushingFrameTarget||Math.abs(focusTarget-focusBlend)>.002)requestRender();
+      if(startupMoving||heroSpinning||anatomyState.moving||fullAnatomyMoving||brushingFraming!==brushingFrameTarget)requestRender();
       else if(!scrolling){lastFrame=0;progressFrame=0;}
     }
   }
@@ -670,11 +684,7 @@ export function createExperience(configuration=experienceConfig) {
     if(manual){manualCameraPose(manual.cameraProgress);requestRender();return;}
     applyState(exploring?inspectionProgress:dentalState.progress,true);
     if(healthyAnatomy.active)fitAnatomyPlate();
-    if(focusOrigin&&focusedFdi!==null&&!focusReturning){
-      const mesh=arch.teeth.get(focusedFdi)?.mesh, current=view.capture();
-      const destination=fullArchFocus.destination(mesh,rig,rig.camera,current);
-      if(destination)fullArchFocus.begin(current,destination.snapshot,{instant:reducedMotion});
-    }
+    if(focusOrigin)fullArchFocus.refit(rig,atlasFraming(),performance.now(),reducedMotion);
     setProgress(progress);
     requestRender();
   }
@@ -701,15 +711,17 @@ export function createExperience(configuration=experienceConfig) {
   if(qa)window.__dentalExperience=controller;
   retry.addEventListener('click',()=>location.reload(),{signal});
   canvas.addEventListener('pointerdown',event=>{
-    if(!event.isPrimary||dentalState.chapterId!=='dentition'||!fullAnatomyActive){toothPointer=null;return;}
+    if(!event.isPrimary||!canUseAtlas()){toothPointer=null;return;}
     if(event.pointerType==='mouse'&&event.button!==0)return;
     toothPointer={id:event.pointerId,x:event.clientX,y:event.clientY};
+  },{signal});
+  canvas.addEventListener('pointermove',event=>{
+    if(toothPointer?.id===event.pointerId&&Math.hypot(event.clientX-toothPointer.x,event.clientY-toothPointer.y)>9)toothPointer=null;
   },{signal});
   canvas.addEventListener('pointercancel',()=>{toothPointer=null;},{signal});
   canvas.addEventListener('pointerup',event=>{
     const start=toothPointer;toothPointer=null;
-    if(!start||start.id!==event.pointerId||Math.hypot(event.clientX-start.x,event.clientY-start.y)>9||!storyReady||
-      dentalState.chapterId!=='dentition'||!fullAnatomyActive||fullAnatomyWeight<=.95)return;
+    if(!start||start.id!==event.pointerId||Math.hypot(event.clientX-start.x,event.clientY-start.y)>9||!canUseAtlas())return;
     const box=canvas.getBoundingClientRect();
     pointerNdc.set((event.clientX-box.left)/box.width*2-1,1-(event.clientY-box.top)/box.height*2);
     raycaster.setFromCamera(pointerNdc,rig.camera);
@@ -724,6 +736,9 @@ export function createExperience(configuration=experienceConfig) {
     if(!event.target.closest?.('#journey-mobile-next, #journey-mobile-previous, .journey-step, #journey-home, #journey-show-all'))cancelNavigation();
   },{passive:true,signal});
   window.addEventListener('keydown',(event)=>{
+    if(!event.defaultPrevented&&event.key==='Escape'&&focusOrigin&&!document.querySelector('dialog[open]')){
+      event.preventDefault();returnToArch();return;
+    }
     if(event.key==='Escape'&&brushingRun&&!document.querySelector('dialog[open]')){
       event.preventDefault();stopFullBrushing();return;
     }
@@ -798,21 +813,7 @@ export function createExperience(configuration=experienceConfig) {
       arch.attachCrowns(crownData.value);
       crownsTransferred=true;
       installStoryRig(true);
-      const savedHeroWeight=heroAnatomy.weight;
-      if(savedHeroWeight)heroAnatomy.setWeight(0);
-      try{fullArchAnatomy=createFullArchAnatomy({arch});}
-      finally{if(savedHeroWeight)heroAnatomy.setWeight(savedHeroWeight);}
-      let fullCompile;
-      try {
-        if(savedHeroWeight)heroAnatomy.setWeight(0);
-        fullArchAnatomy.setWeight(1);
-        fullCompile=renderer.compileAsync(arch.object,rig.camera,scene);
-      } finally {
-        fullArchAnatomy.setWeight(0);
-        if(savedHeroWeight)heroAnatomy.setWeight(savedHeroWeight);
-      }
-      await fullCompile;
-      if(!alive())return;
+      fullArchAnatomy=createFullArchAnatomy({arch});
       await prewarmSmileMaterials({arch,renderer,scene,camera:rig.camera,isAlive:alive});
       if(!alive())return;
       if(shaderError)throw new Error('Dental surface shader failed to compile.');
@@ -856,14 +857,18 @@ export function createExperience(configuration=experienceConfig) {
       adaptive=createAdaptiveQuality({renderer,profile,requestRender,config});
       controls=createModelGestures({canvas,view,config,signal,
         onStart(){
-          if(fullArchFocus.active){fullArchFocus.cancel();focusReturning=false;}
           interaction=true;adaptive.beginInteraction();requestRender();
         },
         onEnd(){interaction=false;requestRender();},onChange:markManual});
       canvas.addEventListener('keydown',(event)=>{
         if(manual||!controls.enabled)return;
         if(event.altKey||event.metaKey||event.ctrlKey)return;
-        if(event.key==='Escape'){if(exploring){event.preventDefault();toggleExplore();(explore.hidden?document.querySelector('#journey-hero-explore'):explore).focus({preventScroll:true});}else if(view.modified){event.preventDefault();resetView();}return;}
+        if(event.key==='Escape'){
+          if(focusOrigin){event.preventDefault();returnToArch();}
+          else if(exploring){event.preventDefault();toggleExplore();(explore.hidden?document.querySelector('#journey-hero-explore'):explore).focus({preventScroll:true});}
+          else if(view.modified){event.preventDefault();resetView();}
+          return;
+        }
         if(event.key==='Home'){event.preventDefault();resetView();return;}
         if(['+','=','-','_'].includes(event.key)){event.preventDefault();zoom(['+','='].includes(event.key)?.88:1/.88);return;}
         if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;

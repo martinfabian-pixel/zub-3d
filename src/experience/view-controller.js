@@ -65,6 +65,11 @@ export function createViewController({camera,config}) {
       guidedMinimum=Number.isFinite(fraction)&&fraction>0&&fraction<1?Math.log(fraction):null;
     },
     capture(){return { ...desired, focus:desiredFocus.toArray() };},
+    captureDisplayed(){
+      spherical.setFromVector3(offset.subVectors(camera.position,target));
+      return {yaw:shortest(spherical.theta-baseYaw),pitch:Math.PI/2-spherical.phi-basePitch,
+        zoom:Math.log(spherical.radius/baseRadius),focus:offset.subVectors(target,baseTarget).toArray()};
+    },
     restore(snapshot,{instant=false}={}){
       if(!valid||!snapshot)return;
       returning.cancel();

@@ -197,7 +197,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     smileWeight=THREE.MathUtils.clamp(weight,0,1);
     updateClosure();
   }
-  function setState(state) {
+  function setState(state, rootOpacity) {
     sceneProgress=state.sceneProgress??0;
     updateClosure();
     if(crownMix.value>0&&crownMix.value<1) {
@@ -230,7 +230,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       }
       reveal=Math.max(reveal,finaleReveal);
       item.reveal=reveal;
-      item.finish?.setReveal(mix===1?0:reveal);
+      item.finish?.setReveal(mix===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {
         item.crownFinish.setReveal(mix>0?reveal:0);
         if(mix>0) {
