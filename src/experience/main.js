@@ -6,11 +6,12 @@ import { createArch } from './arch.js';
 import { createLighting } from './lighting.js';
 import { createTimeline } from './timeline.js';
 import { createJourneyCamera } from './camera.js';
-import { createScrollDriver } from './scroll.js';
+import { createScrollDriver, getJourneyScrollMetrics } from './scroll.js';
+import { createScrollReadiness } from './scroll-readiness.js';
 import { createNavigationMotion } from './navigation-motion.js';
 import { createInterface } from './interface.js';
 import { sampleDentalStory, sampleReducedDentalStory } from './dental-story.js';
-import { createStoryCameraConfig } from './story-camera.js';
+import { createIntroCameraOptions, createStoryCameraConfig } from './story-camera.js';
 import { createCleaningPath, makePathSample } from './cleaning-path.js';
 import { createInterdentalBrush } from './interdental-brush.js';
 import { createPlaque } from './plaque.js';
@@ -49,11 +50,16 @@ export function createExperience(configuration=experienceConfig) {
   const profile=chooseQuality(config);
   const query=new URLSearchParams(location.search), qa=query.has('qa'), clay=query.get('material')==='clay';
   let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
-  let site,anatomyPlate,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy,storyReady=false;
+  let site,anatomyPlate,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy;
+  let studyReady=false,flightReady=false,storyReady=false;
+  const studyLimit=config.presentation.steps.find(step=>step.id==='dentition').start-.001;
+  const flightLimit=config.anatomy.crownHandoverRange[0];
+  const scrollReadiness=createScrollReadiness(config.presentation.steps.find(step=>step.id==='space').start-.001);
+  const navigationTarget=()=>scrollReadiness.pendingTarget??navigationMotion?.target??null;
+  applyScrollLimit();
   const dentalState={brushPose:{}};
   sampleDentalStory(0,dentalState);
-  let frame=0,renderedFrames=0,lastFrame=0,settleTimer,deferredTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
-  let startDeferredAssets=()=>{};
+  let frame=0,renderedFrames=0,lastFrame=0,settleTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
   let logicalWidth=0,logicalHeight=0,fittedRig=null;
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
   let renderProgress=0,progressFrame=0;
@@ -75,7 +81,7 @@ export function createExperience(configuration=experienceConfig) {
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
   let toothPointer=null;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
-  const ui=createInterface({config,section,stage,signal,navigate,navigationTarget:()=>navigationMotion?.target??null,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
+  const ui=createInterface({config,section,stage,signal,navigate,navigationTarget,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
   const manualUI=createManualCleaningUI({stage,onStart:startManualCleaning,onExit:exitManualCleaning,
     onReset(){manualCleaning.reset();if(manual)manual.resultAt=0;requestRender();},
     onPointerStart(event){
@@ -205,8 +211,8 @@ export function createExperience(configuration=experienceConfig) {
     lighting?.update(pose.target,radius);
   }
   function startManualCleaning() {
-    if(!storyReady||!path||!brush||!plaque||manual||healthyAnatomy.active||dentalState.chapterId!=='brush')return;
-    navigationMotion=null;
+    if(!studyReady||manual||healthyAnatomy.active||dentalState.chapterId!=='brush')return;
+    cancelNavigation();
     const savedView=view.capture(),wasExploring=exploring;
     const original=exploring?inspectionProgress:renderProgress;
     leaveExplore();interaction=false;controls.enabled=false;
@@ -240,7 +246,7 @@ export function createExperience(configuration=experienceConfig) {
     exploring=saved.wasExploring;inspectionProgress=saved.resume;
     progress=saved.resume;storyProgress=saved.resume;renderProgress=saved.resume;
     ui.scrollTo(saved.resume,true);applyState(saved.resume,true);
-    manualUI.update({chapterId:dentalState.chapterId,ready:storyReady,active:false});
+    manualUI.update({chapterId:dentalState.chapterId,ready:studyReady,active:false});
     updateUI();requestRender();
     if(saved.pendingNavigation!==null)navigate(saved.pendingNavigation);
   }
@@ -276,26 +282,53 @@ export function createExperience(configuration=experienceConfig) {
   function updateUI() {
     const complete=storyReady;
     ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,state:dentalState,reducedMotion});
-    if(!complete&&progress>.09&&!atlasError&&ready) {
-      status.hidden=false;status.classList.add('is-upcoming');message.textContent='Pripravujem ďalšiu 3D ukážku…';
-    }else if(ready&&!atlasError)status.hidden=true;
+    if(ready){
+      const atBoundary=scrollReadiness.limit<1&&progress>=scrollReadiness.limit-.002;
+      status.hidden=!atBoundary;
+      if(atBoundary&&!atlasError){
+        status.classList.add('is-upcoming');message.textContent='Načítavam ďalšiu časť…';
+      }
+    }
     canvas.dataset.progress=progress.toFixed(6);
     canvas.dataset.exploring=String(exploring);
     canvas.dataset.mode=exploring?'free':'presentation';
     canvas.dataset.reducedMotion=String(reducedMotion);
-    if(!manual)manualUI.update({chapterId:dentalState.sceneProgress>=.51?dentalState.chapterId:'',ready:storyReady,active:false});
+    if(!manual)manualUI.update({chapterId:dentalState.sceneProgress>=.51?dentalState.chapterId:'',ready:studyReady,active:false});
   }
   function leaveExplore(){if(!exploring)return;exploring=false;controls.setFree(false);interaction=false;}
+  function applyScrollLimit() {
+    section.style.setProperty('--journey-ready-limit',String(scrollReadiness.limit));
+    section.toggleAttribute('data-scroll-limited',scrollReadiness.limit<1);
+  }
+  function advanceScrollLimit(limit) {
+    // Capture the native position before extending the document. A fling that
+    // hit the former end is not a request to visit a later chapter.
+    if(scroll&&!manual&&!exploring){
+      const observed=scroll.getProgress();
+      if(Math.abs(observed-progress)>.00025)setProgress(observed);
+    }
+    const next=scrollReadiness.advance(limit);
+    applyScrollLimit();
+    if(next!==null&&!manual&&!exploring)beginNavigation(next);
+    updateUI();requestRender();
+  }
+  function cancelNavigation() {
+    navigationMotion=null;
+    scrollReadiness.cancel();
+  }
   function navigate(next) {
     if(manual){exitManualCleaning(next);return;}
     stopFullBrushing();
     cancelFullArchFocus();
-    if(next>.035)startDeferredAssets();
     leaveExplore();
     manualChapter=null;
-    const rect=section.getBoundingClientRect();
-    const travel=Math.max(1,rect.height-stage.getBoundingClientRect().height);
-    const base=window.scrollY+rect.top;
+    beginNavigation(scrollReadiness.plan(next));
+    if(view?.modified)view.reset(performance.now(),reducedMotion);
+    updateUI();
+    requestRender();
+  }
+  function beginNavigation(next) {
+    const {base,travel}=getJourneyScrollMetrics(section,stage);
     navigationMotion=null;
     if(Math.abs(progress-next)*travel<1||reducedMotion||!ready){
       ui.scrollTo(next,true);setProgress(next);
@@ -305,14 +338,11 @@ export function createExperience(configuration=experienceConfig) {
       navigationMotion={motion:createNavigationMotion(progress,next,performance.now()),base,travel,target:next};
       if(view)applyState(dentalState.progress,true);
     }
-    if(view?.modified)view.reset(performance.now(),reducedMotion);
-    updateUI();
-    requestRender();
   }
   function enterExplore(focus=false) {
     if(!ready||disposed||healthyAnatomy.active||brushingRun)return false;
     if(exploring)return true;
-    navigationMotion=null;
+    cancelNavigation();
     exploring=true;inspectionProgress=dentalState.progress;
     controls.setFree(true);
     if(focus)canvas.focus({preventScroll:true});
@@ -358,7 +388,7 @@ export function createExperience(configuration=experienceConfig) {
   }
   function updateHealthyAnatomy(now) {
     const p=dentalState.sceneProgress;
-    const active=storyReady&&dentalState.chapterId==='anatomy';
+    const active=Boolean(anatomyPlate)&&dentalState.chapterId==='anatomy';
     if(active!==healthyAnatomy.active){
       healthyAnatomy.active=active;
       healthyAnatomyUI.setVisible(active);
@@ -411,16 +441,16 @@ export function createExperience(configuration=experienceConfig) {
     if(motion&&navigationMotion){
       next=navigationMotion.target;navigationMotion=null;ui.scrollTo(next,true);
     }
-    progress=THREE.MathUtils.clamp(next,0,1);reducedMotion=Boolean(motion);
+    if(!navigationMotion&&scrollReadiness.pendingTarget!==null&&next<progress-.002)scrollReadiness.cancel();
+    const sample=scrollReadiness.sample(next);
+    if(sample.blocked&&next-sample.progress>.00025)ui.scrollTo(sample.progress,true);
+    progress=sample.progress;reducedMotion=Boolean(motion);
     if(brushingRun&&progress<(reducedMotion?.80:config.anatomy.crownHandoverRange[1]))stopFullBrushing();
     if(focusOrigin&&progress<.94)cancelFullArchFocus();
-    if(progress>.035)startDeferredAssets();
     storyProgress=THREE.MathUtils.lerp(config.story.startProgress,config.story.endProgress,progress);
     if(exploring){
       applyState(inspectionProgress,false);updateUI();requestRender();return null;
     }
-    // First paint does not wait for all 28 surfaces. If the visitor jumps far
-    // ahead on a slow connection, hold the hero composition with a loading cue.
     if(reducedMotion)renderProgress=storyProgress;
     clearTimeout(settleTimer);
     scrolling=true;
@@ -430,7 +460,8 @@ export function createExperience(configuration=experienceConfig) {
     return rig.pose;
   }
   function applyState(p,moveCamera) {
-    (reducedMotion?sampleReducedDentalStory:sampleDentalStory)(p,dentalState);
+    if(reducedMotion)sampleReducedDentalStory(p,dentalState,scrollReadiness.limit);
+    else sampleDentalStory(p,dentalState);
     arch.setFinalView?.(finalView,smileWeight);
     arch.setState(dentalState);
     plaque?.setState({visible:dentalState.sceneProgress<.80,opacity:dentalState.plaqueDeposition,progress:dentalState.cleaningProgress});
@@ -447,6 +478,7 @@ export function createExperience(configuration=experienceConfig) {
     const teeth=arch?.report()??[];
     return {
       progress,storyProgress,renderProgress,sceneProgress:Number(canvas.dataset.sceneProgress),stage:canvas.dataset.stage,
+      readiness:{limit:scrollReadiness.limit,pendingTarget:scrollReadiness.pendingTarget,study:studyReady,flight:flightReady},
       manualCleaning:manual?{active:true,transition:manual.phase,position:manualCleaning.state.position,
         target:manualCleaning.state.target,phase:manualCleaning.state.phase,cleaningProgress:manualCleaning.state.cleaningProgress,
         travelled:manualCleaning.state.travelled,passes:manualCleaning.state.completedPasses}:null,
@@ -519,14 +551,13 @@ export function createExperience(configuration=experienceConfig) {
       if(done)navigationMotion=null;
     }
     const heroSpinning=!startupHandoff.active&&heroSpin.update(now,{progress:storyProgress,reducedMotion,interacting:interaction,exploring,modified:view?.modified});
-    if(heroSpin.state==='done'||(heroSpin.state==='paused'&&!interaction&&!exploring))startDeferredAssets();
     if(finalViewTransition){
       const t=THREE.MathUtils.clamp((now-finalViewTransition.start)/(config.interaction.returnDurationMs??480),0,1);
       smileWeight=THREE.MathUtils.lerp(finalViewTransition.from,finalViewTransition.to,t*t*(3-2*t));
       if(exploring)applyState(inspectionProgress,true);
       if(t===1)finalViewTransition=null;
     }
-    const target=storyReady?storyProgress:Math.min(storyProgress,.045);
+    const target=storyProgress;
     let following=false;
     if(!exploring) {
       const dt=progressFrame?Math.min(50,Math.max(0,now-progressFrame)):16.67;
@@ -535,7 +566,7 @@ export function createExperience(configuration=experienceConfig) {
       following=renderProgress!==target;
       applyState(renderProgress,true);
       if(view?.modified&&manualChapter&&dentalState.chapterId!==manualChapter){
-        const travel=Math.max(1,section.getBoundingClientRect().height-stage.getBoundingClientRect().height);
+        const {travel}=getJourneyScrollMetrics(section,stage);
         if(Math.abs(progress-manualProgress)*travel>(config.interaction.handoverScrollPx??64)){
           manualChapter=null;view.reset(now,reducedMotion);
         }
@@ -651,7 +682,7 @@ export function createExperience(configuration=experienceConfig) {
     if(disposed)return;
     disposed=true;ready=false;listeners.abort();
     startupHandoff.finish();
-    if(frame)cancelAnimationFrame(frame);frame=0;clearTimeout(settleTimer);clearTimeout(deferredTimer);
+    if(frame)cancelAnimationFrame(frame);frame=0;clearTimeout(settleTimer);
     releaseRendererLuts(renderer,scene);
     observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();healthyAnatomyUI.dispose();anatomyControls.dispose();fullAnatomyControls.dispose();brushingControls.dispose();manualUI.dispose();ui.dispose();
     anatomyPlate?.dispose();
@@ -688,19 +719,20 @@ export function createExperience(configuration=experienceConfig) {
   },{signal});
   window.addEventListener('pagehide',(e)=>{if(!e.persisted)dispose();},{signal});
   // Any new user gesture takes precedence over an in-flight button journey.
-  window.addEventListener('wheel',()=>{navigationMotion=null;},{passive:true,signal});
+  window.addEventListener('wheel',cancelNavigation,{passive:true,signal});
   window.addEventListener('pointerdown',(event)=>{
-    if(!event.target.closest?.('#journey-mobile-next, #journey-mobile-previous, .journey-step, #journey-home, #journey-show-all'))navigationMotion=null;
+    if(!event.target.closest?.('#journey-mobile-next, #journey-mobile-previous, .journey-step, #journey-home, #journey-show-all'))cancelNavigation();
   },{passive:true,signal});
   window.addEventListener('keydown',(event)=>{
     if(event.key==='Escape'&&brushingRun&&!document.querySelector('dialog[open]')){
       event.preventDefault();stopFullBrushing();return;
     }
-    if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key))navigationMotion=null;
+    if(!event.defaultPrevented&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key)&&
+      !event.target.closest?.('button, select, input, textarea'))cancelNavigation();
   },{signal});
   window.addEventListener('resize',()=>{navigationMotion=null;},{signal});
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){navigationMotion=null;if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;anatomyMotion.resetClock();adaptive?.endInteraction();}
+    if(document.hidden){cancelNavigation();if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;anatomyMotion.resetClock();adaptive?.endInteraction();}
     else {scroll?.refresh();requestRender();}
   },{signal});
   canvas.addEventListener('webglcontextlost',(e)=>{
@@ -708,11 +740,104 @@ export function createExperience(configuration=experienceConfig) {
     showError('3D zobrazenie sa prerušilo. Obnovte ho tlačidlom nižšie.',new Error('WebGL context lost'));
   },{signal});
 
+  function installStoryRig(crownsReady) {
+    const landmarks={...arch.landmarks,smile:crownsReady?arch.landmarks.smile:arch.landmarks.full};
+    for(const name of ['smile','anatomy']){
+      const cameraConfig=createStoryCameraConfig(site,config,{finalView:name,compact:profile.compact});
+      finalTimelines[name]=createTimeline({landmarks:{...landmarks,...cameraConfig.landmarks},cameraOptions:cameraConfig.camera});
+    }
+    const previous=rig;
+    rig=createJourneyCamera({timeline:finalTimelines.smile,alternateTimeline:finalTimelines.anatomy,config,camera:previous.camera,sampleOnly:true});
+    previous.dispose();
+    rig.resize(logicalWidth,logicalHeight);
+    fittedRig=rig;
+    if(manual)manualCameraPose(manual.cameraProgress);
+    else applyState(exploring?inspectionProgress:renderProgress,true);
+    Object.assign(controller,{rig,site,plaque,brush,path,annotations,timeline:finalTimelines[finalView]});
+  }
+  async function loadStoryStages(siteRequest) {
+    const alive=()=>!disposed&&!contextLost;
+    let crownRequest,crownsTransferred=false;
+    try {
+      const [neighborData,siteData]=await Promise.allSettled([
+        loadModel(config,profile.compact?config.assets.compact:config.assets.desktop,signal),
+        siteRequest,
+      ]);
+      if(neighborData.status==='fulfilled')atlas=neighborData.value;
+      if(!alive()){disposeObject(atlas?.object);atlas=undefined;return;}
+      if(neighborData.status==='rejected')throw neighborData.reason;
+      if(siteData.status==='rejected')throw siteData.reason;
+      if(siteData.value.error)throw siteData.value.error;
+      site=siteData.value.value;
+      arch.attachNeighbors(atlas);
+      // Register the teaching film while the neighbors are in their exact
+      // seated geometry, before the scroll-driven arrival can move them.
+      path=createCleaningPath(site);
+      brush=createInterdentalBrush({path,compact:profile.compact,options:config.brush});
+      plaque=createPlaque({site,path,arch,compact:profile.compact,options:config.plaque});
+      scene.add(brush.object,plaque.object);
+      annotations=createAnnotations({layer:document.querySelector('#journey-annotations'),canvas,site,arch,path,compact:profile.compact,requestRender});
+      installStoryRig(false);
+      studyReady=true;
+      advanceScrollLimit(studyLimit);
+
+      // Rooted teeth can fly as soon as the upper molar joins the atlas.
+      // The larger crown atlas only gates the final change into a smile.
+      crownRequest=loadCrownAtlas(config,signal).then(value=>({value}),error=>({error}));
+      upperMolar=await loadModel(config,profile.compact?config.assets.upperCompact:config.assets.upperDesktop,signal);
+      if(!alive()){disposeObject(upperMolar.object);upperMolar=undefined;return;}
+      arch.attachAtlas(atlas,upperMolar);
+      await renderer.compileAsync(arch.object,rig.camera,scene);
+      if(!alive())return;
+      flightReady=true;
+      advanceScrollLimit(flightLimit);
+
+      const crownData=await crownRequest;
+      if(crownData.error)throw crownData.error;
+      if(!alive())return;
+      arch.attachCrowns(crownData.value);
+      crownsTransferred=true;
+      installStoryRig(true);
+      const savedHeroWeight=heroAnatomy.weight;
+      if(savedHeroWeight)heroAnatomy.setWeight(0);
+      try{fullArchAnatomy=createFullArchAnatomy({arch});}
+      finally{if(savedHeroWeight)heroAnatomy.setWeight(savedHeroWeight);}
+      let fullCompile;
+      try {
+        if(savedHeroWeight)heroAnatomy.setWeight(0);
+        fullArchAnatomy.setWeight(1);
+        fullCompile=renderer.compileAsync(arch.object,rig.camera,scene);
+      } finally {
+        fullArchAnatomy.setWeight(0);
+        if(savedHeroWeight)heroAnatomy.setWeight(savedHeroWeight);
+      }
+      await fullCompile;
+      if(!alive())return;
+      await prewarmSmileMaterials({arch,renderer,scene,camera:rig.camera,isAlive:alive});
+      if(!alive())return;
+      if(shaderError)throw new Error('Dental surface shader failed to compile.');
+      storyReady=true;canvas.dataset.assetsReady='true';
+      advanceScrollLimit(1);
+    } catch(error) {
+      if(!alive())return;
+      atlasError=true;
+      if(atlas&&!arch.ownsSource(atlas)){disposeObject(atlas.object);atlas=undefined;}
+      if(upperMolar&&!arch.ownsSource(upperMolar)){disposeObject(upperMolar.object);upperMolar=undefined;}
+      showError('Ďalšiu časť sa nepodarilo načítať. Skúste to znova.',error,{upcoming:true});
+    } finally {
+      if(crownRequest&&!crownsTransferred){
+        const {value}=await crownRequest;
+        disposeObject(value?.object);
+      }
+    }
+  }
+
   controller.ready=(async()=>{
     try {
       ({renderer,scene}=createScene(canvas,config,profile));
       renderer.debug.onShaderError=(gl,program,vertex,fragment)=>{shaderError=true;console.error('Dental shader:',gl.getProgramInfoLog(program),gl.getShaderInfoLog(vertex),gl.getShaderInfoLog(fragment));};
       observer=new ResizeObserver(resize);observer.observe(canvas);resize();
+      const siteRequest=loadStoryData(config,config.assetsStory.site,signal).then(value=>({value}),error=>({error}));
       const results=await Promise.allSettled([
         loadManifest(config,signal),
         loadModel(config,profile.compact?config.assets.heroCompact:config.assets.heroDesktop,signal,(percent)=>{if(!disposed&&!contextLost)message.textContent=percent===null?'Načítavam zub…':`Načítavam zub… ${percent} %`;}),
@@ -725,7 +850,7 @@ export function createExperience(configuration=experienceConfig) {
       for(const result of results)if(result.status==='rejected')throw result.reason;
       arch=createArch({manifest,hero,config,renderer,profile,clay});scene.add(arch.object);
       heroAnatomy=createHeroAnatomy({arch});
-      const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:config.camera});
+      const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:createIntroCameraOptions(config)});
       rig=createJourneyCamera({timeline,config,sampleOnly:true});
       view=createViewController({camera:rig.camera,config});view.setStoryPose(rig.pose);view.update();
       adaptive=createAdaptiveQuality({renderer,profile,requestRender,config});
@@ -770,88 +895,15 @@ export function createExperience(configuration=experienceConfig) {
         warmTarget.dispose();
       }
       if(disposed||contextLost)return controller;
+      anatomyPlate=createExplodedAnatomy(scene,arch.teeth.get(36).mesh,config);
+      await renderer.compileAsync(anatomyPlate.models,anatomyPlate.camera,scene);
+      if(disposed||contextLost)return controller;
       if(shaderError)throw new Error('Dental surface shader failed to compile.');
       ready=true;canvas.dataset.ready='true';canvas.dataset.profile=profile.name;canvas.dataset.revision=config.revision;
       resize();scroll=createScrollDriver({section,stage,onProgress:setProgress});
       Object.assign(controller,{scene,renderer,rig,controls,view,arch,profile,adaptive});
       requestRender();
-      // Decoding the complete atlas competes with the introductory orbit on
-      // mobile. Start after the orbit, or immediately when the visitor moves on.
-      let deferredStarted=false;
-      startDeferredAssets=async()=>{
-        if(disposed||deferredStarted)return;
-        deferredStarted=true;clearTimeout(deferredTimer);
-        try {
-          const results=await Promise.allSettled([
-            loadModel(config,profile.compact?config.assets.compact:config.assets.desktop,signal),
-            loadModel(config,profile.compact?config.assets.upperCompact:config.assets.upperDesktop,signal),
-            loadStoryData(config,config.assetsStory.site,signal),
-            loadCrownAtlas(config,signal),
-          ]);
-          if(results[0].status==='fulfilled')atlas=results[0].value;
-          if(results[1].status==='fulfilled')upperMolar=results[1].value;
-          if(disposed||contextLost){disposeObject(atlas?.object);disposeObject(upperMolar?.object);atlas=undefined;upperMolar=undefined;return;}
-          for(const result of results)if(result.status==='rejected')throw result.reason;
-          arch.attachAtlas(atlas,upperMolar);
-          arch.attachCrowns(results[3].value);
-          site=results[2].value;
-          // The visitor may already be inspecting the hero when its atlas
-          // arrives. Capture neutral materials for the full arch without
-          // showing a transient frame or changing the user's selected view.
-          const previousHeroWeight=heroAnatomy.weight;
-          if(previousHeroWeight)heroAnatomy.setWeight(0);
-          try { fullArchAnatomy=createFullArchAnatomy({arch}); }
-          finally { if(previousHeroWeight)heroAnatomy.setWeight(previousHeroWeight); }
-          path=createCleaningPath(site);
-          brush=createInterdentalBrush({path,compact:profile.compact,options:config.brush});
-          plaque=createPlaque({site,path,arch,compact:profile.compact,options:config.plaque});
-          scene.add(brush.object,plaque.object);
-          annotations=createAnnotations({layer:document.querySelector('#journey-annotations'),canvas,site,arch,path,compact:profile.compact,requestRender});
-          for(const name of ['smile','anatomy']){
-            const cameraConfig=createStoryCameraConfig(site,config,{finalView:name,compact:profile.compact});
-            finalTimelines[name]=createTimeline({landmarks:{...arch.landmarks,...cameraConfig.landmarks},cameraOptions:cameraConfig.camera});
-          }
-          const previous=rig,expanded=finalTimelines[finalView];
-          rig=createJourneyCamera({timeline:finalTimelines.smile,alternateTimeline:finalTimelines.anatomy,config,camera:previous.camera,sampleOnly:true});previous.dispose();
-          rig.resize(canvas.clientWidth,canvas.clientHeight);
-          applyState(exploring?inspectionProgress:Math.min(storyProgress,.045),true);
-          Object.assign(controller,{rig,site,plaque,brush,path,annotations,timeline:expanded});
-          // Initiate translucent variants synchronously, then restore the
-          // actual view before yielding: no offscreen state can flash on the
-          // canvas while the compiler completes in the background.
-          const savedHeroWeight=heroAnatomy.weight;
-          let fullCompile;
-          try {
-            if(savedHeroWeight)heroAnatomy.setWeight(0);
-            fullArchAnatomy.setWeight(1);
-            fullCompile=renderer.compileAsync(scene,rig.camera);
-          } finally {
-            fullArchAnatomy.setWeight(0);
-            if(savedHeroWeight)heroAnatomy.setWeight(savedHeroWeight);
-          }
-          await fullCompile;
-          if(disposed||contextLost)return;
-          // The opaque crown program differs from the initially hidden,
-          // transparent one. Compile it before the scroll-driven handover.
-          await prewarmSmileMaterials({arch,renderer,scene,camera:rig.camera,isAlive:()=>!disposed&&!contextLost});
-          if(disposed||contextLost)return;
-          await renderer.compileAsync(scene,rig.camera);
-          if(disposed||contextLost)return;
-          anatomyPlate=createExplodedAnatomy(scene,arch.teeth.get(36).mesh,config);
-          await renderer.compileAsync(anatomyPlate.models,anatomyPlate.camera,scene);
-          if(disposed||contextLost)return;
-          if(shaderError)throw new Error('Dental surface shader failed to compile.');
-          storyReady=true;canvas.dataset.assetsReady='true';setProgress(progress);
-        }catch(error){
-          if(disposed)return;
-          atlasError=true;
-          if(atlas&&!arch?.ownsSource(atlas))disposeObject(atlas.object);
-          if(upperMolar&&!arch?.ownsSource(upperMolar))disposeObject(upperMolar.object);
-          showError('Ukážku sa nepodarilo načítať. Skúste to znova.',error,{upcoming:true});
-        }
-      };
-      if(progress>.035||reducedMotion)startDeferredAssets();
-      else deferredTimer=setTimeout(startDeferredAssets,20000);
+      void loadStoryStages(siteRequest);
       return controller;
     }catch(error){
       if(disposed)return controller;

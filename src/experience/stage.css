@@ -28,7 +28,13 @@ button:disabled { cursor: default; opacity: .38; }
   outline-offset: 4px;
 }
 
-#dental-journey { position: relative; height: 760svh; }
+#dental-journey {
+  --journey-screens: 7.6;
+  position: relative;
+  height: calc(100svh * (1 + var(--journey-screens) * var(--journey-ready-limit, 1)));
+  overflow-anchor: none;
+}
+html:has(#dental-journey[data-scroll-limited]) { overscroll-behavior-y: none; }
 #journey-stage {
   position: sticky;
   top: 0;
@@ -357,7 +363,7 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
 
 @media (max-width: 700px) {
   html { scrollbar-gutter: auto; }
-  #dental-journey { height: 740svh; }
+  #dental-journey { --journey-screens: 7.4; }
   .site-header { height: 60px; inset-inline: 6%; }
   .brand { font-size: 23px; }
   .header-actions { gap: 15px; }
@@ -407,5 +413,5 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   #journey-hero-explore { top: 53svh; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #dental-journey { height: 500svh; }
+  #dental-journey { --journey-screens: 4; }
 }

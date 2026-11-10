@@ -16,6 +16,19 @@ function region(center, halfExtent) {
   return new Box3(center.clone().sub(halfExtent), center.clone().add(halfExtent));
 }
 
+function introFrames(base) {
+  return [
+    { key:'hero', at:.045, landmark:'hero', direction:base.camera.directions.hero },
+    { key:'anatomy-tooth', at:anatomyAt, landmark:'hero', framing:'anatomy-tooth',
+      direction:adjustDirection(new Vector3().fromArray(base.camera.directions.hero),-13,-5) },
+    { key:'neighbors', at:.265, landmark:'neighbors', direction:base.storyCamera.neighborDirection },
+  ];
+}
+
+export function createIntroCameraOptions(base) {
+  return { ...base.camera, keyframes:introFrames(base) };
+}
+
 /** Measured site coordinates and a minimum viewing distance frame the macro
  * work. On narrow viewports the timeline can back up to fit the region's
  * projected width. Both final-view timelines share all seven teaching poses.
@@ -52,9 +65,6 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     settings.brushPitchDegrees + (settings.brushSweepPitchDegrees ?? 0));
   const resultDirection = adjustDirection(macro, settings.resultYawDegrees, settings.resultPitchDegrees);
   const specs = [
-    ['hero', 0.045, 'hero', base.camera.directions.hero],
-    ['anatomy-tooth', anatomyAt, 'hero', adjustDirection(new Vector3().fromArray(base.camera.directions.hero), -13, -5)],
-    ['neighbors', 0.265, 'neighbors', settings.neighborDirection],
     ['space', spaceAt, 'space', spaceDirection, settings.spaceDistanceCm],
     // Look slightly across the contact so the deliberately disclosed,
     // brush-reachable film is visible instead of hidden behind tooth 37.
@@ -68,9 +78,12 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     ['withdrawn', 0.72, 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['result', 0.76, 'result', resultDirection, settings.resultDistanceCm],
     ['result-hold', 0.80, 'result', resultDirection, settings.resultDistanceCm],
+    ['flight-lift', 0.820, 'flight', [.59,.16,1], 8.9],
     ['flight-entry', 0.844, 'flight', [.52,.20,1], 10.8],
     ['flight-pass', 0.884, 'flight', [.21,.13,1], 12.3],
+    ['flight-arc', 0.907, 'flight', [.145,.10,1], 11.85],
     ['flight-approach', 0.931, 'flight', [.09,.075,1], 10.8],
+    ['flight-seat', 0.969, 'flight', [.057,.032,1], 8.7],
     ['full', 0.988, finalView === 'anatomy' ? 'full' : 'smile',
       finalView === 'anatomy' ? base.camera.directions.full : settings.smileDirection,
       finalView === 'anatomy' ? undefined : settings.smileDistanceCm],
@@ -78,11 +91,10 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   // The macro sightlines were checked at the original working distances.
   // On a narrow full-stage display use an off-axis lens to compose them
   // rather than backing the camera away to fit the whole neighboring crowns.
-  const keyframes = specs.map(([key, at, landmark, direction, distance]) => ({
+  const keyframes = introFrames(base).concat(specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
-    framing: key === 'anatomy-tooth' ? key : undefined,
     minimumFitAspect: ['cleaning','result'].includes(landmark) ? .72 : undefined,
     portraitFitAspect: landmark==='smile' ? 2.20 : undefined,
-  }));
+  })));
   return { landmarks, camera: { ...base.camera, keyframes } };
 }

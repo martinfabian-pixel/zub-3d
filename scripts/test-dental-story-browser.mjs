@@ -457,20 +457,24 @@ async function malformedStoryOwnership() {
     const bad=JSON.parse(await readFile(new URL('../public/story-assets/site.json',import.meta.url),'utf8'));bad.brush.centerline=[];
     let corruptResponses=0;
     await page.route('**/story-assets/site.json*',r=>{corruptResponses++;return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(bad)});});
-    await goto(page);await page.locator('#journey-retry').waitFor({state:'visible',timeout:60000});await threeFrames(page);
+    await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
+    await page.locator('.journey-step').nth(2).click();
+    await page.locator('#journey-retry').waitFor({state:'visible',timeout:60000});await threeFrames(page);
     const fail=await page.evaluate(()=>{
       const a=window.__dentalExperience,s=a.report(),m=a.arch.teeth.get(36).mesh;
       return {ready:s.ready,assetsReady:s.assetsReady,anatomyReady:s.anatomyReady,loadedTeeth:s.teeth.filter(t=>t.loaded).length,
         visible:s.visibleTeeth,error:document.querySelector('#journey-canvas').dataset.error,
         upcoming:document.querySelector('#journey-status').classList.contains('is-upcoming'),message:document.querySelector('#journey-message').innerText,
         triangles:m.geometry.index.count/3,morphs:m.geometry.morphAttributes.position?.length||0,
-        frame:a.renderer.info.render.frame,camera:a.rig.camera.position.toArray(),target:a.rig.target.toArray(),bitmaps:window.__qaBitmapDisposals()};
+        readiness:s.readiness,bitmaps:window.__qaBitmapDisposals()};
     });
-    check('An invalid brush centerline is rejected after 28 tooth objects transfer to the arch',corruptResponses===1&&fail.anatomyReady===true&&!fail.assetsReady&&fail.loadedTeeth===28&&/brush centerline is required/.test(fail.error),fail);
+    check('An invalid brush centerline leaves the three local teeth ready and holds access to chapter 03',corruptResponses===1&&!fail.anatomyReady&&!fail.assetsReady&&!fail.readiness.study&&!fail.readiness.flight&&fail.readiness.pendingTarget!==null&&fail.loadedTeeth===3&&/brush centerline is required/.test(fail.error),fail);
     check('Upcoming-data failure keeps the native healthy hero and readable retry',fail.ready&&fail.upcoming&&fail.message.length>10&&equal(fail.visible,[36])&&fail.triangles===55184&&fail.morphs===0,fail);
+    await page.locator('#journey-home').click();await at(page,0);
+    const home=await cameraProbe(page);
     await page.locator('#journey-zoom-in').click();await threeFrames(page);
     const inspect=await page.evaluate(()=>{const a=window.__dentalExperience;return {frame:a.renderer.info.render.frame,camera:a.rig.camera.position.toArray(),target:a.rig.target.toArray(),errors:a.report().shaderErrors};});
-    check('Healthy 36 still renders and responds to zoom after late failure',inspect.frame>fail.frame&&!inspect.errors&&dist(inspect.camera,inspect.target)<dist(fail.camera,fail.target)-.001,inspect);
+    check('Healthy 36 still renders and responds to zoom after returning home',!inspect.errors&&dist(inspect.camera,inspect.target)<dist(home.camera,home.target)-.001,inspect);
     const cleanup=await page.evaluate(()=>{
       const a=window.__dentalExperience,measure=()=>({gpu:{...a.renderer.info.memory},bitmaps:window.__qaBitmapDisposals(),disposed:a.report().disposed});
       const uniforms=a.renderer.properties.get(a.arch.teeth.get(36).mesh.material).uniforms;

@@ -98,22 +98,47 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     neighbor.offset = placement !== 1;
   }
 
-  function attachAtlas(atlas, upperMolar) {
-    if (disposed) { disposeObject(atlas.object); return; }
-    sourceObjects.add(atlas.object);sourceObjects.add(upperMolar.object);
-    sources.set(26,upperMolar.meshes.get('ToothExterior')??[...upperMolar.meshes.values()][0]);
+  function registerAtlas(atlas) {
+    if (sourceObjects.has(atlas.object)) return;
+    sourceObjects.add(atlas.object);
     for(const [name,mesh] of atlas.meshes) {
       const source=Number(name.replace('FDI_',''));
       if(!sources.has(source))sources.set(source,mesh);
     }
+  }
+  function attachFromAtlas(fdi, item) {
+    if (item.mesh) return;
+    const source=sources.get(item.entry.source);
+    if (!source) throw new Error(`Missing anatomical source ${item.entry.node} for FDI ${fdi}`);
+    attach(fdi,source);
+  }
+  function attachNeighbors(atlas) {
+    if (disposed) { disposeObject(atlas.object); return; }
+    registerAtlas(atlas);
+    for (const fdi of neighbors.keys()) attachFromAtlas(fdi,teeth.get(fdi));
+  }
+  function attachAtlas(atlas, upperMolar) {
+    if (disposed) { disposeObject(atlas.object);disposeObject(upperMolar.object);return; }
+    sourceObjects.add(upperMolar.object);
+    registerAtlas(atlas);
+    if (assetsReady) return;
+    sources.set(26,upperMolar.meshes.get('ToothExterior')??[...upperMolar.meshes.values()][0]);
     for (const [fdi,item] of teeth) {
-      if (item.mesh) continue;
-      const source=sources.get(item.entry.source);
-      if (!source) throw new Error(`Missing anatomical source ${item.entry.node} for FDI ${fdi}`);
-      attach(fdi,source);
+      attachFromAtlas(fdi,item);
     }
+    // The final atlas may arrive while the two teaching neighbors are in
+    // flight. Capture their canonical seats for the finale, then preserve
+    // the current frame until the story samples its next progress.
+    const staged=[];
+    for (const [fdi,neighbor] of neighbors) {
+      if (!neighbor.offset) continue;
+      const {mesh,seatedMatrix}=teeth.get(fdi);
+      staged.push([mesh,mesh.matrix.clone()]);
+      mesh.matrix.copy(seatedMatrix);
+    }
+    try { floating=createFloatingTeeth(teeth); }
+    finally { for (const [mesh,matrix] of staged) mesh.matrix.copy(matrix); }
     assetsReady=true; object.updateMatrixWorld(true);
-    floating=createFloatingTeeth(teeth);
   }
   function attachCrowns(atlas) {
     sourceObjects.add(atlas.object);
@@ -239,9 +264,11 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     const forward=viewFromSmile.z/Math.max(viewFromSmile.length(),1e-6);
     smileBacking.setViewFactor(smooth(.08,.5,forward));
   }
-  const selection=(filter)=>[...teeth.values()].filter(filter).map((i)=>i.entry.fdi===config.anatomy.hero?i.mesh:i.proxy);
+  // The scene can acquire its later assets while the live teeth are moving.
+  // Camera fits always use their fixed authored seats.
+  const selection=(filter)=>[...teeth.values()].filter(filter).map(i=>i.proxy);
   const landmarks={
-    hero:()=>teeth.get(config.anatomy.hero).mesh,
+    hero:()=>teeth.get(config.anatomy.hero).proxy,
     neighbors:()=>selection((i)=>config.anatomy.neighbors.includes(i.entry.fdi)),
     arch:()=>selection((i)=>i.upper===(config.anatomy.hero<30)),
     full:()=>selection(()=>true),
@@ -259,5 +286,5 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
     mirrored.clear(); teeth.clear();
   }
-  return { object,teeth,landmarks,attachAtlas,attachCrowns,setState,setProgress,setFinalView,updateView,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix.value;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
+  return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,updateView,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix.value;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

@@ -8,6 +8,17 @@ export function getScrollProgress(section, viewportHeight) {
   return travel > 0 ? clamp(-rect.top / travel) : (rect.top < 0 ? 1 : 0);
 }
 
+// The document may end at the last available chapter. Measure against the
+// full authored distance so adding room never changes the current chapter.
+export function getJourneyScrollMetrics(section, stage) {
+  const win = section.ownerDocument.defaultView;
+  const rect = section.getBoundingClientRect();
+  const viewport = stage?.getBoundingClientRect().height || win.innerHeight;
+  const screens = Number.parseFloat(win.getComputedStyle?.(section).getPropertyValue('--journey-screens'));
+  const travel = Number.isFinite(screens) ? viewport * screens : rect.height - viewport;
+  return { top: rect.top, base: win.scrollY + rect.top, travel };
+}
+
 /**
  * Observes native document scrolling; it never consumes wheel, key or touch
  * input. No inertia/tween is added on top of the browser's own scrolling.
@@ -18,14 +29,13 @@ export function createScrollDriver({ section, onProgress, stage, reduceMotionQue
   const motion = win.matchMedia(reduceMotionQuery);
   let frame = 0, lastProgress, lastMotion, disposed = false,lastTravel;
 
-  function getProgress() {
-    const viewport = stage?.getBoundingClientRect().height || win.innerHeight;
-    return getScrollProgress(section, viewport);
-  }
+  const read = ({ top, travel }) => travel > 0 ? clamp(-top / travel) : Number(top < 0);
+  const getProgress = () => read(getJourneyScrollMetrics(section, stage));
   function notify(force) {
     if (disposed) return lastProgress;
-    const p = getProgress();
-    lastTravel=section.getBoundingClientRect().height-(stage?.getBoundingClientRect().height||win.innerHeight);
+    const metrics = getJourneyScrollMetrics(section, stage);
+    const p = read(metrics);
+    lastTravel=metrics.travel;
     if (force || lastProgress !== p || lastMotion !== motion.matches) {
       lastProgress = p;
       lastMotion = motion.matches;
@@ -39,8 +49,8 @@ export function createScrollDriver({ section, onProgress, stage, reduceMotionQue
   }
   function resized(){
     if(disposed)return;
-    const rect=section.getBoundingClientRect(),travel=rect.height-(stage?.getBoundingClientRect().height||win.innerHeight);
-    if(lastTravel!==undefined&&Math.abs(travel-lastTravel)>.5&&lastProgress!==undefined)win.scrollTo({top:win.scrollY+rect.top+lastProgress*Math.max(0,travel),behavior:'instant'});
+    const {base,travel}=getJourneyScrollMetrics(section, stage);
+    if(lastTravel!==undefined&&Math.abs(travel-lastTravel)>.5&&lastProgress!==undefined)win.scrollTo({top:base+lastProgress*Math.max(0,travel),behavior:'instant'});
     lastTravel=travel;schedule();
   }
   function refresh() {

@@ -1,4 +1,5 @@
 import { createStageTypography } from './stage-typography.js';
+import { getJourneyScrollMetrics } from './scroll.js';
 
 /** Chapter navigation and screen-space type share the story sampler, never the camera. */
 export function createInterface({config,section,stage,signal,navigate,navigationTarget=()=>null,explore,reset,zoom,finalView:chooseFinalView}) {
@@ -96,6 +97,9 @@ export function createInterface({config,section,stage,signal,navigate,navigation
     }
     byId('journey-orbit-hint').textContent=exploring?'Voľné 3D · otáčajte v oboch osiach · pinch alebo koliesko približuje':compact?'Ťah do strán otáča · zvislo pokračujete v príbehu':'Ťahaním otáčate · kolieskom pokračujete v príbehu';
   }
-  function scrollTo(progress,reducedMotion) {const rect=section.getBoundingClientRect(),travel=rect.height-stage.getBoundingClientRect().height;window.scrollTo({top:window.scrollY+rect.top+progress*travel,behavior:reducedMotion?'instant':'smooth'});}
+  function scrollTo(progress,reducedMotion) {
+    const {base,travel}=getJourneyScrollMetrics(section,stage);
+    window.scrollTo({top:base+progress*Math.max(0,travel),behavior:reducedMotion?'instant':'smooth'});
+  }
   return {update,scrollTo,report:()=>typography.report(),get index(){return index;},dispose(){if(help.open)help.close();}};
 }

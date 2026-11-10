@@ -51,9 +51,9 @@ function sampleBrush(p, pose) {
   return unit((maxReach - keys[1][1]) / (1 - keys[1][1]));
 }
 
-function evaluate(progress, reduced, out) {
+function evaluate(progress, reduced, out, sceneLimit=1) {
   const raw = unit(progress), index = indexAt(raw), ch = DENTAL_CHAPTERS[index];
-  const p = reduced ? ch.reducedAt : raw;
+  const p = reduced ? Math.min(ch.reducedAt,sceneLimit) : raw;
   out.progress = raw;
   out.sceneProgress = p;
   out.chapterIndex = index;
@@ -80,4 +80,4 @@ function evaluate(progress, reduced, out) {
 export function sampleDentalStory(progress, out = {}) { return evaluate(progress, false, out); }
 
 /** Seven still scenes; raw scroll still selects the chapter without playing intermediate poses. */
-export function sampleReducedDentalStory(progress, out = {}) { return evaluate(progress, true, out); }
+export function sampleReducedDentalStory(progress, out = {}, sceneLimit=1) { return evaluate(progress, true, out, sceneLimit); }
