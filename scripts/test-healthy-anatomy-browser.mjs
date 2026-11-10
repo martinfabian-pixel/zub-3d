@@ -89,12 +89,12 @@ try {
         }
       } finally { releaseHero?.(); }
       await wait(() => window.__dentalExperience?.report().ready, null, 90000);
-      await startup.waitFor({ state: 'hidden' });
+      await page.locator('body[data-journey-loading]').waitFor({ state: 'hidden' });
       assert.equal(await page.locator('body[data-journey-loading]').count(), 0);
       assert.equal(await page.locator('#journey-title').isVisible(), true);
       assert.equal(await page.locator('.journey-step').first().getAttribute('aria-current'), 'step');
       const initial = await inspectTooth();
-      assert.ok(initial.visible && !initial.lesion, 'The opening uses the intact native FDI 36');
+      assert.ok(!initial.lesion && (await report()).crownMix === 1, 'The first lesson opens on crowns and retains the intact native FDI 36');
 
       await ready();
       await activate(page.locator('.journey-step').nth(DENTAL_CHAPTERS.indexOf(anatomy)));

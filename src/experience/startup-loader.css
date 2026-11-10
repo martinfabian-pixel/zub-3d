@@ -6,7 +6,9 @@ body[data-journey-loading] {
 }
 
 body[data-journey-loading] .skip-link,
-body[data-journey-loading]:not([data-journey-handoff='reveal']) #journey-stage > :not(#journey-startup, noscript) {
+body[data-journey-loading]:not([data-journey-handoff='reveal'], [data-journey-handoff='cinematic']) #journey-stage > :not(#journey-startup, noscript),
+body[data-journey-handoff='cinematic'] #journey-stage > :not(#journey-startup, .view-shell, .startup-skip, noscript),
+body[data-journey-handoff='cinematic'] #journey-status {
   visibility: hidden;
 }
 body[data-journey-loading] #journey-stage :is(button, a, canvas) { pointer-events: none; }
@@ -22,7 +24,16 @@ body[data-journey-loading] #journey-startup {
     linear-gradient(155deg, var(--scene-bg, #e6f3fc), var(--scene-bg-deep, #d6edfa));
 }
 
-body[data-journey-handoff='reveal'] .startup-tooth { visibility: hidden; }
+body:is([data-journey-handoff='reveal'], [data-journey-handoff='cinematic']) .startup-tooth { visibility: hidden; }
+
+body[data-journey-handoff='cinematic'] #journey-stage .startup-skip {
+  position: absolute;
+  z-index: 8;
+  right: max(20px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  min-height: 44px;
+  pointer-events: auto;
+}
 
 .startup-status-text {
   position: absolute;

@@ -32,6 +32,7 @@ try {
     page.on('pageerror',e=>report.errors.push(e.message));
     await page.goto(new URL('?qa=1',base).href,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:60000});
+    await page.locator('body[data-journey-loading]').waitFor({state:'hidden'});
     for(const [chapter,progress] of chapters) {
       await nativeJump(page,progress);
       await page.waitForTimeout(360);

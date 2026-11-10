@@ -36,6 +36,7 @@ jobs:
       - run: node scripts/test-dental-story.mjs
       - run: node scripts/test-camera-sweep.mjs
       - run: node scripts/test-hero-spin.mjs
+      - run: node scripts/test-opening-flight.mjs
       - run: node scripts/test-stage-typography.mjs
       - run: node scripts/test-smile-sequence.mjs
       - run: node scripts/test-cleaning-path.mjs

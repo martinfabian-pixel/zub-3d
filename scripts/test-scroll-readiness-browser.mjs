@@ -128,6 +128,97 @@ async function assertLoadingOpening(page) {
   return state;
 }
 
+async function watchOpeningFrames(page) {
+  await page.evaluate(() => {
+    const app = window.__dentalExperience;
+    const canvas = document.querySelector('#journey-canvas');
+    const title = document.querySelector('#journey-title');
+    const frames = [];
+    let previousFrame = null;
+
+    function observe(now) {
+      const frameCount = canvas.dataset.frameCount;
+      const visible = element => getComputedStyle(element).visibility === 'visible';
+      const lessonVisible = visible(title);
+      if (visible(canvas) && frameCount && (frameCount !== previousFrame || lessonVisible)) {
+        previousFrame = frameCount;
+        const state = app.report();
+        const teeth = [...app.arch.teeth.values()];
+        const position = app.rig.camera.position.toArray();
+        const target = state.target;
+        const frame = {
+          now,
+          chapter: state.story.chapterId,
+          progress: state.progress,
+          sceneProgress: state.opening?.progress ?? state.story.sceneProgress,
+          openingPhase: state.opening?.phase,
+          openingYaw: state.opening?.yaw,
+          limit: state.readiness.limit,
+          crowns: teeth.filter(item => item.crown?.visible).length,
+          roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
+          crownMix: state.crownMix,
+          yaw: Math.atan2(position[0] - target[0], position[2] - target[2]),
+          toothPosition: app.arch.teeth.get(11).mesh.matrixWorld.elements.slice(12, 15),
+          scroll: scrollY,
+        };
+        if (lessonVisible) {
+          window.__openingTrace = { frames, firstLesson: frame };
+          return;
+        }
+        frames.push(frame);
+      }
+      requestAnimationFrame(observe);
+    }
+    requestAnimationFrame(observe);
+  });
+}
+
+async function openingTrace(page) {
+  const result = await page.waitForFunction(() => window.__openingTrace);
+  return result.jsonValue();
+}
+
+async function waitForLesson(page) {
+  await page.locator('body[data-journey-loading]').waitFor({ state: 'hidden', timeout: 30000 });
+}
+
+async function watchCinematicOnLoad(page) {
+  await page.addInitScript(() => {
+    window.__sawCinematicOnLoad = false;
+    const observer = new MutationObserver(() => {
+      if (document.body?.dataset.journeyHandoff !== 'cinematic') return;
+      window.__sawCinematicOnLoad = true;
+      observer.disconnect();
+    });
+    observer.observe(document, { subtree: true, attributes: true, attributeFilter: ['data-journey-handoff'] });
+  });
+}
+
+function assertOpeningFlight({ frames, firstLesson }) {
+  assert.equal(firstLesson.chapter, 'dentition');
+  assert.equal(firstLesson.crowns, 28);
+  assert.deepEqual(firstLesson.roots, [], 'The first numbered lesson opens on the settled crown-only smile');
+  assert.equal(firstLesson.scroll, 0);
+  const solo = frames.filter(frame => frame.crowns === 0 && frame.roots.length === 1 && frame.roots[0] === 36);
+  assert.ok(solo.length >= 3, 'Multiple actual rendered intro frames show only FDI 36');
+  const initialYaw = solo[0].yaw;
+  assert.ok(solo.some(({ yaw }) => Math.abs(Math.atan2(Math.sin(yaw - initialYaw), Math.cos(yaw - initialYaw))) > .7),
+    'The single tooth rotates visibly in the live 3D view: ' + JSON.stringify(
+      solo.map(({ now, openingPhase, openingYaw, yaw }) => ({ now, openingPhase, openingYaw, yaw }))));
+  const flight = frames.filter(frame => frame.crowns === 0 && frame.roots.includes(11)
+    && frame.roots.length >= 8 && frame.sceneProgress > flightStart && frame.sceneProgress < flightEnd);
+  assert.ok(flight.length >= 3, 'The intro shows multiple rendered rooted flight poses before crown handover');
+  assert.ok(flight.some(frame => Math.hypot(...frame.toothPosition.map((value, index) => value - flight[0].toothPosition[index])) > .08),
+    'An actual rooted mesh flies through space');
+  assert.ok(flight.every((frame, index) => !index || frame.sceneProgress <= flight[index - 1].sceneProgress + .00001),
+    'The opening assembles the same flight in the opposite direction from chapter two');
+  assert.ok(frames.some(frame => frame.crownMix > 0 && frame.crownMix < 1 && frame.roots.length && frame.crowns),
+    'Rendered frames show the crown handover after rooted flight');
+  assert.ok(frames.every(frame => frame.scroll === 0 && frame.progress === 0), 'The intro leaves native scroll at the top');
+  assert.ok(frames.filter(frame => frame.crownMix < 1).every(frame => frame.limit === 0),
+    'Scroll stays locked until the arch settles');
+}
+
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   const mobile = await browser.newPage({
@@ -159,28 +250,10 @@ try {
       'Rooted meshes alone do not reveal chapter one or let the scroll leave the top');
 
     assert.ok(crowns.held.length, 'The opening atlas is waiting for real crown data');
-    await mobile.evaluate(() => {
-      const canvas = document.querySelector('#journey-canvas');
-      function sampleFirstVisibleFrame() {
-        if (getComputedStyle(canvas).visibility !== 'visible') {
-          requestAnimationFrame(sampleFirstVisibleFrame);
-          return;
-        }
-        const app = window.__dentalExperience;
-        const teeth = [...app.arch.teeth.values()];
-        window.__firstVisibleChapter = {
-          chapter: app.report().story.chapterId,
-          crowns: teeth.filter(item => item.crown?.visible).length,
-          roots: teeth.filter(item => item.mesh?.visible).length,
-        };
-      }
-      requestAnimationFrame(sampleFirstVisibleFrame);
-    });
+    await watchOpeningFrames(mobile);
     crowns.release();
-    await mobile.locator('#journey-startup').waitFor({ state: 'hidden', timeout: 30000 });
-    const firstVisible = await mobile.waitForFunction(() => window.__firstVisibleChapter);
-    assert.deepEqual(await firstVisible.jsonValue(), { chapter: 'dentition', crowns: 28, roots: 0 },
-      'The very first visible canvas frame is already the full smile');
+    await waitForLesson(mobile);
+    assertOpeningFlight(await openingTrace(mobile));
     await atChapter(mobile, 'dentition');
     const first = await mobile.evaluate(readProgress);
     assert.ok(Math.abs(first.scrollY - boot.scrollY) <= 2, 'No native overshoot is replayed on reveal');
@@ -242,7 +315,7 @@ try {
     await atChapter(mobile, 'anatomy');
     assert.equal((await mobile.evaluate(readProgress)).shaderErrors, 0);
     assert.deepEqual(errors, []);
-    console.log('390×844 Chrome: independent asset stops, no scroll replay, reversible flight checkpoints and chapter arrows.');
+    console.log('390×844 Chrome: single rotating tooth, rooted flight, crown handover, independent gates and reversible chapter arrows.');
   } finally {
     teaching.release();
     upper.release();
@@ -272,7 +345,7 @@ try {
       };
     });
     delayed.release();
-    await desktop.locator('#journey-startup').waitFor({ state: 'hidden', timeout: 30000 });
+    await waitForLesson(desktop);
     await atChapter(desktop, 'dentition');
     await desktop.locator('#journey-mobile-next').click();
     await atChapter(desktop, 'assembly');
@@ -283,12 +356,51 @@ try {
     await atChapter(desktop, 'dentition');
     await nativeSeek(desktop, chapter('plaque').at);
     await atChapter(desktop, 'plaque');
+    await watchCinematicOnLoad(desktop);
     await desktop.reload({ waitUntil: 'domcontentloaded' });
     await atChapter(desktop, 'plaque');
+    await waitForLesson(desktop);
+    assert.equal(await desktop.evaluate(() => window.__sawCinematicOnLoad), false,
+      'Reloading returns to the lesson without replaying the cinematic');
     console.log('1440×900 Chrome: cold-load full arch, explicit next/previous and reload retention.');
   } finally {
     delayed.release();
     await desktop.close();
+  }
+
+  const skippable = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  try {
+    await openStory(skippable);
+    const skip = skippable.getByRole('button', { name: 'Preskočiť úvod' });
+    await skip.waitFor({ state: 'visible', timeout: 90000 });
+    assert.equal(await skippable.locator('#journey-title').isVisible(), false);
+    await skip.tap();
+    await waitForLesson(skippable);
+    await atChapter(skippable, 'dentition');
+    const scene = await skippable.evaluate(readProgress);
+    assert.equal(scene.crowns, 28);
+    assert.equal(scene.scrollY, 0);
+    assert.equal(await skip.count(), 0, 'The skip control is removed when the lesson begins');
+    await skippable.reload({ waitUntil: 'domcontentloaded' });
+    await skip.waitFor({ state: 'visible', timeout: 90000 });
+    await skippable.keyboard.press('Escape');
+    await waitForLesson(skippable);
+    await atChapter(skippable, 'dentition');
+  } finally {
+    await skippable.close();
+  }
+
+  const reduced = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  try {
+    await watchCinematicOnLoad(reduced);
+    await openStory(reduced);
+    await waitForLesson(reduced);
+    await atChapter(reduced, 'dentition');
+    assert.equal(await reduced.evaluate(() => window.__sawCinematicOnLoad), false);
+    assert.equal((await reduced.evaluate(readProgress)).crowns, 28);
+    console.log('Chrome: skip, Escape after reloading at the top, and reduced motion open the settled smile.');
+  } finally {
+    await reduced.close();
   }
 } finally {
   await browser.close();
