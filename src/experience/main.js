@@ -608,6 +608,7 @@ export function createExperience(configuration=experienceConfig) {
       const {fullWidth,fullHeight,offsetX,offsetY}=sensor;
       rig.camera.setViewOffset(fullWidth,fullHeight,offsetX*(1-centered),offsetY*(1-centered),fullWidth,fullHeight);
     }
+    startupHandoff.frameTooth(arch.teeth.get(config.anatomy.hero)?.mesh,rig.camera,shot.growth);
     arch.updateView(rig.camera);
     adaptive.beginInteraction();
     if(lastFrame)adaptive.recordFrame(now-lastFrame);
@@ -615,7 +616,8 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.sceneProgress=shot.progress.toFixed(6);
     if(!drawScene())return;
     if(!openingShown){openingShown=true;startupHandoff.startIntro();}
-    requestRender();
+    if(startupHandoff.aligning)openingFlight.pause();
+    else requestRender();
   }
   function render(now) {
     frame=0;
@@ -753,7 +755,7 @@ export function createExperience(configuration=experienceConfig) {
     if(!width||!height)return;
     const changed=width!==logicalWidth||height!==logicalHeight;
     if(!changed&&fittedRig===rig)return;
-    if(changed){renderer.setSize(width,height,false);logicalWidth=width;logicalHeight=height;}
+    if(changed){renderer.setSize(width,height,false);logicalWidth=width;logicalHeight=height;startupHandoff.resize();}
     if(!rig)return;
     // The actual sensor is the entire shared stage. Chapter keyframes compose
     // the model beside the HTML type without an inner cropped viewport.

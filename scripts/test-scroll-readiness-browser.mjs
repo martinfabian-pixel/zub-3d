@@ -129,16 +129,61 @@ async function assertLoadingOpening(page) {
 }
 
 async function watchOpeningFrames(page) {
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
     const app = window.__dentalExperience;
     const canvas = document.querySelector('#journey-canvas');
     const title = document.querySelector('#journey-title');
+    const loaderTooth = document.querySelector('.startup-tooth');
+    const sprite = new Image();
+    sprite.src = getComputedStyle(loaderTooth).backgroundImage.slice(5, -2);
+    await sprite.decode();
+    const cell = sprite.naturalHeight;
+    const cellCount = sprite.naturalWidth / cell;
+    const pixels = document.createElement('canvas');
+    pixels.width = sprite.naturalWidth;
+    pixels.height = cell;
+    const context = pixels.getContext('2d');
+    context.drawImage(sprite, 0, 0);
+    const rgba = context.getImageData(0, 0, pixels.width, cell).data;
+    const spriteHeights = Array.from({ length: cellCount }, (_, frame) => {
+      let top = cell, bottom = 0;
+      for (let y = 0; y < cell; y++) {
+        const row = (y * pixels.width + frame * cell) * 4;
+        for (let x = 0; x < cell; x++) {
+          if (rgba[row + x * 4 + 3] < 24) continue;
+          top = Math.min(top, y);
+          bottom = y;
+          break;
+        }
+      }
+      return (bottom - top + 1) / cell;
+    });
     const frames = [];
+    const camera = app.rig.camera;
+    const tooth = app.arch.teeth.get(36).mesh;
+    const vertices = tooth.geometry.attributes.position;
+    const vertex = camera.position.clone();
+    let loaderToothHeight;
     let previousFrame = null;
+
+    function projectedToothHeight() {
+      let top = -Infinity, bottom = Infinity;
+      for (let i = 0; i < vertices.count; i += 4) {
+        vertex.fromBufferAttribute(vertices, i).applyMatrix4(tooth.matrixWorld).project(camera);
+        top = Math.max(top, vertex.y);
+        bottom = Math.min(bottom, vertex.y);
+      }
+      return (top - bottom) * canvas.clientHeight / 2;
+    }
 
     function observe(now) {
       const frameCount = canvas.dataset.frameCount;
       const visible = element => getComputedStyle(element).visibility === 'visible';
+      if (visible(loaderTooth)) {
+        const turn = Number.parseFloat(getComputedStyle(loaderTooth).backgroundPositionX) / 100;
+        const height = loaderTooth.getBoundingClientRect().height;
+        if (height) loaderToothHeight = height * spriteHeights[Math.round(turn * (cellCount - 1))];
+      }
       const lessonVisible = visible(title);
       if (visible(canvas) && frameCount && (frameCount !== previousFrame || lessonVisible)) {
         previousFrame = frameCount;
@@ -153,6 +198,7 @@ async function watchOpeningFrames(page) {
           sceneProgress: state.opening?.progress ?? state.story.sceneProgress,
           openingPhase: state.opening?.phase,
           openingYaw: state.opening?.yaw,
+          toothHeight: state.opening?.phase === 'spin' ? projectedToothHeight() : null,
           limit: state.readiness.limit,
           crowns: teeth.filter(item => item.crown?.visible).length,
           roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
@@ -162,7 +208,7 @@ async function watchOpeningFrames(page) {
           scroll: scrollY,
         };
         if (lessonVisible) {
-          window.__openingTrace = { frames, firstLesson: frame };
+          window.__openingTrace = { frames, firstLesson: frame, loaderToothHeight };
           return;
         }
         frames.push(frame);
@@ -194,13 +240,21 @@ async function watchCinematicOnLoad(page) {
   });
 }
 
-function assertOpeningFlight({ frames, firstLesson }) {
+function assertOpeningFlight({ frames, firstLesson, loaderToothHeight }) {
   assert.equal(firstLesson.chapter, 'dentition');
   assert.equal(firstLesson.crowns, 28);
   assert.deepEqual(firstLesson.roots, [], 'The first numbered lesson opens on the settled crown-only smile');
   assert.equal(firstLesson.scroll, 0);
   const solo = frames.filter(frame => frame.crowns === 0 && frame.roots.length === 1 && frame.roots[0] === 36);
   assert.ok(solo.length >= 3, 'Multiple actual rendered intro frames show only FDI 36');
+  const turnHeights = solo.filter(frame => frame.openingPhase === 'spin').map(frame => frame.toothHeight);
+  const firstHeight = turnHeights[0];
+  assert.ok(firstHeight >= loaderToothHeight * .8 && firstHeight <= loaderToothHeight * 1.2,
+    `The first rendered tooth matches the loading silhouette: ${firstHeight}px vs ${loaderToothHeight}px`);
+  assert.ok(turnHeights.at(-1) > firstHeight * 1.5, 'The tooth grows into the authored framing during the turn');
+  assert.ok(turnHeights.every((height, index) => !index || height < turnHeights[index - 1] * 1.28),
+    'The tooth grows without a one-frame size jump');
+  console.log(`Opening tooth height: ${loaderToothHeight.toFixed(1)}px in the loader → ${firstHeight.toFixed(1)}px on the first 3D frame → ${turnHeights.at(-1).toFixed(1)}px after the turn.`);
   const initialYaw = solo[0].yaw;
   assert.ok(solo.some(({ yaw }) => Math.abs(Math.atan2(Math.sin(yaw - initialYaw), Math.cos(yaw - initialYaw))) > .7),
     'The single tooth rotates visibly in the live 3D view: ' + JSON.stringify(
@@ -253,7 +307,10 @@ try {
     await watchOpeningFrames(mobile);
     crowns.release();
     await waitForLesson(mobile);
-    assertOpeningFlight(await openingTrace(mobile));
+    assertOpeningFlight(await openingTrace(mobile).catch(error => {
+      if (errors.length) throw new Error(errors.join('\n'), { cause: error });
+      throw error;
+    }));
     await atChapter(mobile, 'dentition');
     const first = await mobile.evaluate(readProgress);
     assert.ok(Math.abs(first.scrollY - boot.scrollY) <= 2, 'No native overshoot is replayed on reveal');

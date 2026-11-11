@@ -8,7 +8,7 @@ const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
 /** Sample the existing story backwards to gather the teeth before chapter 01. */
 export function createOpeningFlight() {
   let previous,elapsed=0;
-  const shot={progress:singleTooth,yaw:0,phase:'spin',done:false};
+  const shot={progress:singleTooth,yaw:0,growth:0,phase:'spin',done:false};
   return {
     sample(now){
       if(shot.done)return shot;
@@ -18,9 +18,11 @@ export function createOpeningFlight() {
       previous=now;
       if(elapsed<spinMs){
         shot.yaw=2*Math.PI*MathUtils.smootherstep(elapsed,0,spinMs);
+        shot.growth=MathUtils.smootherstep(elapsed,100,spinMs);
       }else{
         // A complete revolution returns to the authored orientation.
         shot.yaw=0;
+        shot.growth=1;
         const travel=MathUtils.smoothstep(elapsed-spinMs,0,flightMs);
         shot.done=travel===1;
         shot.phase=shot.done?'done':'flight';

@@ -24,7 +24,8 @@ body[data-journey-loading] #journey-startup {
     linear-gradient(155deg, var(--scene-bg, #e6f3fc), var(--scene-bg-deep, #d6edfa));
 }
 
-body:is([data-journey-handoff='reveal'], [data-journey-handoff='cinematic']) .startup-tooth { visibility: hidden; }
+body[data-journey-handoff='reveal'] .startup-tooth { visibility: hidden; }
+body[data-journey-handoff='cinematic'] .startup-tooth { animation: none; }
 
 body[data-journey-handoff='cinematic'] #journey-stage .startup-skip {
   position: absolute;

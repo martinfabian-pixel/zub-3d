@@ -9,18 +9,20 @@ const seed=DENTAL_CHAPTERS.find(chapter=>chapter.id==='assembly').at;
 const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
 const start=900;
 const first=intro.sample(start);
-assert.deepEqual(first,{progress:seed,yaw:0,phase:'spin',done:false});
+assert.deepEqual(first,{progress:seed,yaw:0,growth:0,phase:'spin',done:false});
 assert.equal(sampleDentalStory(first.progress).assemblyReveal,0);
 for(let t=25;t<575;t+=25)intro.sample(start+t);
 const halfway={...intro.sample(start+575)};
 assert.equal(halfway.progress,seed);
 assert.equal(halfway.yaw,Math.PI);
+assert.ok(halfway.growth>0&&halfway.growth<1,'The shot grows during the same revolution');
 for(let t=600;t<1149;t+=25)intro.sample(start+t);
 const beforeLaunch={...intro.sample(start+1149)};
 const launch=intro.sample(start+1150);
 assert.equal(launch,first,'Samples reuse one frame record');
 assert.equal(launch.phase,'flight');
 assert.equal(launch.progress,seed);
+assert.ok(1-beforeLaunch.growth<.00001&&launch.growth===1,'The flight inherits the final spin framing');
 assert.ok(Math.abs(Math.sin(beforeLaunch.yaw)-Math.sin(launch.yaw))<.00001,
   'The completed revolution does not rotate abruptly at launch');
 
@@ -42,7 +44,7 @@ for(let t=1151;t<3150;t++){
 assert.ok(sawFlight&&sawCrowns);
 assert.ok(Math.abs(previous-atlasEnd)<.000001);
 const end=intro.sample(start+3150);
-assert.deepEqual(end,{progress:atlasStart,yaw:0,phase:'done',done:true});
+assert.deepEqual(end,{progress:atlasStart,yaw:0,growth:1,phase:'done',done:true});
 assert.equal(sampleDentalStory(end.progress).assemblyCrownCoverage,1);
 assert.equal(intro.sample(start+5000),end);
 
