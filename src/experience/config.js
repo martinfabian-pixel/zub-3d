@@ -36,7 +36,7 @@ export const experienceConfig = {
     // Focus x/y are fractions of the whole stage. Optical magnification is
     // separate from orbital distance so the measured proximal sightline holds.
     framing: {
-      hero:      {desktop:[.73,.52,.75],portrait:[.595,.52,.88],shortPortrait:[.67,.55,.65]},
+      hero:      {desktop:[.73,.52,.80],portrait:[.595,.52,.88],shortPortrait:[.67,.55,.65]},
       'extraction-arch': {desktop:[.69,.53,.67],portrait:[.55,.58,.49],shortPortrait:[.59,.56,.42]},
       'transition-tooth': {desktop:[.73,.52,.75],portrait:[.595,.55,.84],shortPortrait:[.64,.58,.64]},
       'anatomy-tooth': {desktop:[.70,.53,.74],portrait:[.52,.615,.72],shortPortrait:[.53,.635,.58]},

@@ -104,7 +104,7 @@ async function read(page) {
       width:o.width??null,height:o.height??null,target:o.target?.position.toArray()??null,shadowCamera:o.shadow?.camera?['left','right','top','bottom','near','far'].map(k=>o.shadow.camera[k]):null}));
     return {progress:d.progress,sceneProgress:d.sceneProgress,chapter:s.chapterId,exploring:d.exploring,mode:d.mode,view:d.view,finalView:d.finalView,closureCm:d.closureCm,shaderErrors:d.shaderErrors,canvasCount:document.querySelectorAll('canvas').length,
       bundle:[...document.querySelectorAll('script[type="module"][src]')].map(n=>new URL(n.src).pathname).find(p=>/\/assets\/main-[^/]+\.js$/.test(p))??null,
-      visible:visible.sort((a,b)=>a-b),meshFDIs:meshFDIs.sort((a,b)=>a-b),kinds,camera:cam.position.toArray(),quaternion:cam.quaternion.toArray(),target:d.target??app.rig.target.toArray(),
+      visible:visible.sort((a,b)=>a-b),meshFDIs:meshFDIs.sort((a,b)=>a-b),kinds,camera:cam.position.toArray(),opticalZoom:cam.zoom,quaternion:cam.quaternion.toArray(),target:d.target??app.rig.target.toArray(),
       pose36:m36.matrixWorld.toArray(),geometry36:geom.uuid,geometry46:m46.geometry.uuid,
       healthy:[geom,m46.geometry].every(g=>!g.morphAttributes.position?.length&&!g.hasAttribute('lesionRegion')),
       healthyAnatomy:d.healthyAnatomy,drawCalls:d.drawCalls,clean:s.cleaningProgress,deposit:s.plaqueDeposition,brushPose:s.brushPose,plaque:s.plaque,brush:s.brush,
@@ -444,7 +444,7 @@ async function mobile() {
 async function reduced() {
   const {ctx,page}=await open({reducedMotion:'reduce'});try {
     await goto(page);await ready(page);const poses=[];
-    const still=s=>({camera:s.camera,visible:s.visible,healthyAnatomy:s.healthyAnatomy,clean:s.clean,deposit:s.deposit,brush:s.brushPose,tip:s.brush.tipWorld});
+    const still=s=>({camera:s.camera,opticalZoom:s.opticalZoom,visible:s.visible,healthyAnatomy:s.healthyAnatomy,clean:s.clean,deposit:s.deposit,brush:s.brushPose,tip:s.brush.tipWorld});
     for(const c of chapters){const span=(c.id==='brush'?STORY_TIMING.result[0]:c.end)-c.start;await scroll(page,c.start+.10*span);const a=await read(page);await scroll(page,c.start+.86*span);const b=await read(page);
       check('Reduced motion keeps one pose and material state within '+c.id,equal(still(a),still(b)),{a:still(a),b:still(b)});poses.push(still(a));}
     check('Seven meaningfully different reduced-motion scenes',new Set(poses.map(x=>JSON.stringify(x))).size===7);
@@ -536,7 +536,7 @@ async function pendingAssetsWithInput() {
     try{
       await page.route('**/story-assets/site.json*',async r=>{noticed();await gate;return r.continue();});
       await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
-      await page.locator('#journey-startup').waitFor({state:'hidden'});
+      await page.waitForFunction(()=>!document.body.hasAttribute('data-journey-loading'),null,{timeout:60000});
       let timer;try{await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Story data gate not reached')),15000);})]);}finally{clearTimeout(timer);}
       if(mode==='free')await page.locator('#journey-explore').click();
       await mouseDrag(page,65,-40);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(450);
