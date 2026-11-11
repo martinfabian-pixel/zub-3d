@@ -573,7 +573,20 @@ export function createFullArchAnatomy({ arch }) {
       state.cut.setOpen(false);
       cut.setOpen(false);
     }
-    return Promise.all([opening,renderer.compileAsync(state.host,camera,scene)]);
+    const closed=renderer.compileAsync(state.host,camera,scene);
+    const material=state.host.material,transparent=material.transparent;
+    let atlasFade;
+    try {
+      // Atlas selection fades the surrounding roots. Prepare the other
+      // opacity variant of the highlighted teaching tooth before that move.
+      material.transparent=!transparent;
+      material.needsUpdate=true;
+      atlasFade=renderer.compileAsync(state.host,camera,scene);
+    } finally {
+      material.transparent=transparent;
+      material.needsUpdate=true;
+    }
+    return Promise.all([opening,closed,atlasFade]);
   }
 
   function dispose() {

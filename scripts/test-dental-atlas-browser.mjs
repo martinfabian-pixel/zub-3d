@@ -108,8 +108,9 @@ async function recordMotion(page, fdi, action) {
   for (const key of ['tooth', 'camera']) {
     const travel = distance(first[key], last[key]);
     assert.ok(travel > .1, `The ${key} moves during the extraction`);
+    const poses = mid.map(frame => ({ ms: Math.round(frame.t - first.t), fraction: distance(first[key], frame[key]) / travel }));
     assert.ok(mid.some(frame => distance(first[key], frame[key]) > travel * .2 && distance(last[key], frame[key]) > travel * .2),
-      `The ${key} visibly travels between its start and end positions`);
+      `The ${key} visibly travels between its start and end positions: ${JSON.stringify(poses)}`);
   }
 }
 
