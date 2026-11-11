@@ -1,4 +1,4 @@
-import { Box3, MathUtils, Spherical, Vector3 } from 'three';
+import { Box3, MathUtils, Matrix4, Spherical, Vector3 } from 'three';
 import { STORY_TIMING } from './story-config.js';
 
 const { clamp, lerp, smoothstep, smootherstep } = MathUtils;
@@ -6,8 +6,8 @@ const [,atlasEnd]=STORY_TIMING.atlas;
 export const atlasCoverage = (progress) =>
   1-smoothstep(progress,atlasEnd,STORY_TIMING.assemblyCrowns[1]);
 
-const copyPose = ({ position, target, screenX = .5, screenY = .5 }) =>
-  ({ position: position.clone(), target: target.clone(), screenX, screenY });
+const copyPose = ({ position, target, screenX = .5, screenY = .5, opticalZoom = 1 }) =>
+  ({ position: position.clone(), target: target.clone(), screenX, screenY, opticalZoom });
 
 /** Coordinate the actual seated mesh, isolation and guided camera on one clock.
  * The story retains ownership of the original matrices and manual input remains
@@ -18,7 +18,7 @@ export function createFullArchFocus() {
   const bounds = new Box3(), point = new Vector3(), right = new Vector3(), up = new Vector3();
   const basisUp = new Vector3(0, 1, 0);
   const a = new Spherical(), b = new Spherical(), orbit = new Spherical();
-  const pose = { position: new Vector3(), target: new Vector3(), screenX: .5, screenY: .5 };
+  const pose = { position: new Vector3(), target: new Vector3(), screenX: .5, screenY: .5, opticalZoom: 1 };
   const fadedPose = copyPose(pose);
   let selected = null, motion = null, current = null, moving = false, returning = false;
 
@@ -31,7 +31,7 @@ export function createFullArchFocus() {
       // Draw the tooth out of its own arch rather than through its neighbours.
       const outward = new Vector3(center.x * .31, item.upper ? .15 : -.15, .92);
       const offset = new Vector3(-center.x * .14, item.upper ? -.12 : .20, 1.26);
-      records.set(fdi, { item, outward, offset, amount: 0, opacity: 1, applied: false });
+      records.set(fdi, { item, outward, offset, baseMatrix: new Matrix4(), amount: 0, opacity: 1, applied: false });
     }
   }
 
@@ -44,19 +44,20 @@ export function createFullArchFocus() {
     const direction = new Vector3(.24 + side * .21, record.item.upper ? -.08 : .16, 1).normalize();
     right.crossVectors(basisUp, direction).normalize();
     up.crossVectors(direction, right);
-    const lens = Math.tan(MathUtils.degToRad(rig.camera.fov / 2)) / rig.camera.zoom;
-    const height = lens * (compact ? short ? .31 : .40 : .61);
+    const opticalZoom = rig.pose.opticalZoom ?? 1;
+    const lens = Math.tan(MathUtils.degToRad(rig.camera.fov / 2)) / opticalZoom;
+    const height = lens * (compact ? short ? .26 : .37 : .61);
     const width = lens * rig.camera.aspect * (compact ? .77 : .46);
     let distance = 0;
     for (let i = 0; i < 8; i++) {
       point.set(i & 1 ? bounds.max.x : bounds.min.x, i & 2 ? bounds.max.y : bounds.min.y, i & 4 ? bounds.max.z : bounds.min.z).sub(target);
       distance = Math.max(distance, point.dot(direction) + Math.max(Math.abs(point.dot(up)) / height, Math.abs(point.dot(right)) / width));
     }
-    return { position: direction.multiplyScalar(distance).add(target), target,
-      screenX: compact ? .5 : .69, screenY: compact ? short ? .64 : .605 : .51 };
+    return { position: direction.multiplyScalar(distance).add(target), target, opticalZoom,
+      screenX: compact ? .5 : .69, screenY: compact ? short ? .66 : .623 : .51 };
   }
 
-  function begin(from, to, now, duration) {
+  function begin(from, to, now, duration, clearance = 0) {
     for (const [fdi, record] of records) {
       record.fromAmount = record.amount;
       record.fromOpacity = record.opacity;
@@ -64,27 +65,32 @@ export function createFullArchFocus() {
       record.toOpacity = Number(returning || fdi === selected);
     }
     current = copyPose(from);
-    motion = { from: current, to: copyPose(to), now, duration };
+    motion = { from: current, to: copyPose(to), now, duration, clearance };
     moving = true;
   }
 
-  function interpolate(from, to, t, result) {
+  function interpolate(from, to, t, result, clearance = 0) {
     a.setFromVector3(point.subVectors(from.position, from.target));
     b.setFromVector3(point.subVectors(to.position, to.target));
     const delta = Math.atan2(Math.sin(b.theta - a.theta), Math.cos(b.theta - a.theta));
-    orbit.set(Math.exp(lerp(Math.log(a.radius), Math.log(b.radius), t)), lerp(a.phi, b.phi, t), a.theta + delta * t);
+    // Give a longer crossing room in front of the arch. The radius returns
+    // to its original interpolation with zero extra velocity at either end.
+    const pullback = clearance * (4 * t * (1 - t)) ** 2;
+    const radius = Math.exp(lerp(Math.log(a.radius), Math.log(b.radius), t)) + pullback;
+    orbit.set(radius, lerp(a.phi, b.phi, t), a.theta + delta * t);
     result.target.copy(from.target).lerp(to.target, t);
     result.position.setFromSpherical(orbit).add(result.target);
     result.screenX = lerp(from.screenX, to.screenX, t);
     result.screenY = lerp(from.screenY, to.screenY, t);
+    result.opticalZoom = lerp(from.opticalZoom ?? 1, to.opticalZoom ?? 1, t);
     return result;
   }
 
   function restoreMeshes() {
     for (const record of records.values()) {
       if (!record.applied) continue;
-      const { mesh, seatedMatrix } = record.item;
-      mesh.matrix.copy(seatedMatrix);
+      const { mesh } = record.item;
+      mesh.matrix.copy(record.baseMatrix);
       mesh.updateMatrixWorld(true);
       record.applied = false;
     }
@@ -103,24 +109,30 @@ export function createFullArchFocus() {
     select(fdi, { arch, rig, framing, from, now, instant }) {
       if (!arch.teeth.get(fdi)?.mesh || (fdi === selected && !returning)) return false;
       initialize(arch);
+      // `current` is the guide applied on the last displayed frame. The view
+      // controller keeps the visitor's orbit and zoom relative to this guide.
+      const origin = current ?? from;
+      const next = destination(records.get(fdi), rig, framing);
+      const clearance = current ? Math.min(2, origin.target.distanceTo(next.target) * .48) : 0;
       selected = fdi; returning = false;
-      begin(from, destination(records.get(fdi), rig, framing), now, instant ? 0 : 1040);
+      begin(origin, next, now, instant ? 0 : 1040, clearance);
       return true;
     },
-    returnToArch(from, to, now, instant) {
-      if (selected === null || returning) return false;
+    returnToArch(from, to, now, instant, { retarget = false } = {}) {
+      if (selected === null || (returning && !retarget)) return false;
       returning = true;
       begin(from, to, now, instant ? 0 : 920);
       return true;
     },
-    refit(rig, framing, now, instant) {
-      if (!current || selected === null || returning) return;
+    refit(rig, framing, now, instant, returnPose) {
+      if (!current || selected === null || (returning && !returnPose)) return;
       const remaining = motion ? Math.max(240, motion.duration - (now - motion.now)) : 300;
-      begin(current, destination(records.get(selected), rig, framing), now, instant ? 0 : remaining);
+      const next = returning ? returnPose : destination(records.get(selected), rig, framing);
+      begin(current, next, now, instant ? 0 : remaining);
     },
     advance(now) {
       if (!motion) return;
-      const { from, to, now: began, duration } = motion;
+      const { from, to, now: began, duration, clearance } = motion;
       const t = duration ? clamp((now - began) / duration, 0, 1) : 1;
       const travel = smootherstep(t, 0, 1);
       for (const record of records.values()) {
@@ -129,7 +141,7 @@ export function createFullArchFocus() {
           : record.toOpacity ? smoothstep(t, 0, .64) : smoothstep(t, .12, .83);
         record.opacity = lerp(record.fromOpacity, record.toOpacity, timing);
       }
-      current = interpolate(from, to, travel, pose);
+      current = interpolate(from, to, travel, pose, clearance);
       if (t === 1) { motion = null; moving = false; }
     },
     apply(basePose, progress) {
@@ -137,15 +149,17 @@ export function createFullArchFocus() {
       const coverage = atlasCoverage(progress);
       for (const record of records.values()) {
         const travel = record.amount * coverage;
-        if (!travel && !record.applied) continue;
-        const { mesh, seatedMatrix } = record.item;
-        const translation = mesh.matrix.copy(seatedMatrix).elements;
+        record.applied = travel > 0;
+        if (!record.applied) continue;
+        const { mesh } = record.item;
+        // The arch writes its current story matrices before this overlay.
+        record.baseMatrix.copy(mesh.matrix);
+        const translation = mesh.matrix.elements;
         const bow = Math.sin(Math.PI * travel) * .36;
         translation[12] += record.offset.x * travel + record.outward.x * bow;
         translation[13] += record.offset.y * travel + record.outward.y * bow;
         translation[14] += record.offset.z * travel + record.outward.z * bow;
         mesh.updateMatrixWorld(true);
-        record.applied = travel > 0;
       }
       if (coverage === 1) return current;
       return interpolate(basePose, current, coverage, fadedPose);

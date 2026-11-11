@@ -1,6 +1,7 @@
 import { Box3, MathUtils, Spherical, Vector3 } from 'three';
-import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from './story-config.js';
+import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from './story-config.js';
 import { flightProgress } from './floating-teeth.js';
+import { sampleToothExtraction } from './dental-story.js';
 
 const spaceAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').at;
 const plaqueAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'plaque').at;
@@ -52,11 +53,25 @@ function openingFrames(base,settings,roots) {
   ];
 }
 
-function isolatedToothFrames(base) {
+function isolatedToothFrames(base,entryAt) {
   const boundary=DENTAL_CHAPTERS.find(chapter=>chapter.id==='hero').start;
-  const transition=toothFrames(base,['flight-tooth','transition-hold'],[STORY_TIMING.flight[1],boundary])
+  const transition=toothFrames(base,['isolated-tooth','transition-hold'],[entryAt,boundary])
     .map(frame=>({...frame,framing:'transition-tooth'}));
   return [...transition,...toothFrames(base,['hero','hero-hold'],STORY_TIMING.heroHold)];
+}
+
+function extractionFrames(base) {
+  const approach=toothFrames(base,['tooth-in-arch','tooth-approach'],[.204,.263]);
+  Object.assign(approach[0],{ direction:[.77,.25,1],distance:7.0,framing:'extraction-arch' });
+  Object.assign(approach[1],{ direction:[1,.49,.52],distance:5.65,framing:'transition-tooth' });
+  return [...approach,...isolatedToothFrames(base,STORY_TIMING.extraction.holdAt)].map(frame=>({
+    ...frame,landmarkOffset:DENTAL_STORY.extractionOffset.map(offset=>offset*sampleToothExtraction(frame.at)),
+  }));
+}
+
+export function createOpeningCameraOptions(base,{compact=false}={}) {
+  const settings=compact?{...base.storyCamera,...base.storyCamera.compact}:base.storyCamera;
+  return {...base.camera,keyframes:[...openingFrames(base,settings,false),...flightFrames(),...isolatedToothFrames(base,STORY_TIMING.flight[1])]};
 }
 
 function anatomyFrames() {
@@ -67,9 +82,9 @@ function anatomyFrames() {
   const pulp={landmark:'hero',framing:'anatomy-pulp',direction,targetOffset:[0,.055,0]};
   return [
     {key:'anatomy-tooth',at:.466,...body},
-    {key:'enamel-hold',at:.505,...body},
-    {key:'anatomy-pulp',at:.554,...pulp},
-    {key:'pulp-hold',at:.562,...pulp},
+    {key:'enamel-hold',at:.518,...body},
+    {key:'anatomy-pulp',at:STORY_TIMING.anatomy.pulp[1],...pulp},
+    {key:'pulp-hold',at:STORY_TIMING.anatomy.close[0],...pulp},
     {key:'anatomy-close',at:.590,...body},
     {key:'closed-tooth',at:.594,...body},
   ];
@@ -83,7 +98,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const settings = compact ? { ...base.storyCamera, ...base.storyCamera.compact } : base.storyCamera;
   const roots=finalView==='anatomy'||!crownsReady;
   const keyframes=[
-    ...openingFrames(base,settings,roots),...flightFrames(),...isolatedToothFrames(base),
+    ...openingFrames(base,settings,roots),...extractionFrames(base),
     ...anatomyFrames(),
   ];
   if(!site)return {landmarks:{},camera:{...base.camera,keyframes}};

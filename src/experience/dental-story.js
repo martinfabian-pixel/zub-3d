@@ -22,6 +22,10 @@ export function sampleNeighborEntrance(progress, order) {
   return smooth(start + delay, end - stagger + delay, progress);
 }
 
+export function sampleToothExtraction(progress) {
+  return ramp(timing.extraction.lead, progress) * (1 - ramp(timing.extraction.settle, progress));
+}
+
 function sampleBrush(p, pose) {
   const {keys, appear, align, work, withdraw, fade} = story.brush;
   // Evaluate the absolute path, never advance an animation or keep a previous
@@ -52,7 +56,7 @@ function sampleBrush(p, pose) {
   return unit((maxReach - keys[1][1]) / (1 - keys[1][1]));
 }
 
-function evaluate(progress, reduced, out, sceneLimit=1) {
+function evaluate(progress, reduced, out, sceneLimit=1, openingFlight=false) {
   const raw = unit(progress), index = indexAt(raw), ch = DENTAL_CHAPTERS[index];
   let still = ch.reducedAt;
   if (ch.id === 'brush') {
@@ -71,7 +75,10 @@ function evaluate(progress, reduced, out, sceneLimit=1) {
   out.lowerReveal = ramp(story.lower, p);
   out.upperReveal = ramp(story.upper, p);
   out.finaleReveal = Math.max(out.lowerReveal,out.upperReveal);
-  out.assemblyReveal = flightReveal(p);
+  out.openingFlight = openingFlight;
+  out.toothExtraction = openingFlight ? 0 : sampleToothExtraction(p);
+  out.assemblyReveal = openingFlight ? flightReveal(p) : 1 - ramp(timing.extraction.recede,p);
+  out.assemblyNeighborReveal = openingFlight ? out.assemblyReveal : 1 - ramp(timing.extraction.recedeNeighbors,p);
   out.assemblyCrownCoverage = 1 - ramp(timing.assemblyCrowns,p);
   out.finalCrownCoverage = ramp(timing.finalCrowns,p);
   out.resultVisibility = smooth(timing.result[0],.903,p) * (1 - smooth(.913,timing.result[1],p));
@@ -91,6 +98,9 @@ function evaluate(progress, reduced, out, sceneLimit=1) {
 
 /** Pure absolute sampling. With an optional reusable output, no frame allocations. */
 export function sampleDentalStory(progress, out = {}) { return evaluate(progress, false, out); }
+
+/** The opening reuses its authored flight while the scroll story approaches the seated teeth. */
+export function sampleOpeningDentalStory(progress, out = {}) { return evaluate(progress, false, out, 1, true); }
 
 /** Seven still scenes; raw scroll still selects the chapter without playing intermediate poses. */
 export function sampleReducedDentalStory(progress, out = {}, sceneLimit=1) { return evaluate(progress, true, out, sceneLimit); }

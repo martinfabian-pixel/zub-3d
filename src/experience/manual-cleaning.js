@@ -8,6 +8,25 @@ const CONTACT_START = .10;
 const MIN_PASS = .18;
 const REQUIRED_TRAVEL = 2.4;
 const TIME_CONSTANT = .045;
+const RESULT_WITHDRAWAL_MS = 620;
+const ease = value => {
+  const t = clamp(value);
+  return t * t * t * (t * (6 * t - 15) + 10);
+};
+
+/** Retract the finished brush along its measured approach before hiding it.
+ * Keep this presentation pose separate from the completed cleaning state. */
+export function sampleManualResultBrush(pose, elapsed, reducedMotion, out = {}) {
+  const time = reducedMotion ? 1 : clamp(elapsed / RESULT_WITHDRAWAL_MS);
+  const withdrawn = ease(time / .82);
+  const release = ease((time - .72) / .28);
+  out.insertion = pose.insertion * (1 - withdrawn);
+  out.stroke = pose.stroke * (1 - withdrawn);
+  out.alignment = pose.alignment * (1 - release);
+  out.visibility = pose.visibility * (1 - release);
+  out.phase = time === 1 ? 'hidden' : 'withdraw';
+  return out;
+}
 
 /**
  * The caller converts a drag projected onto the path to normalized deltas.

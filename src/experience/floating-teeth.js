@@ -3,8 +3,8 @@ import { STORY_TIMING } from './story-config.js';
 
 export const [flightStart,flightEnd] = STORY_TIMING.flight;
 const authoredStart = .802, authoredEnd = .969;
-// Native forward scroll takes the seated arch apart. Keep the original
-// authored clock and sample it backwards, so reverse scroll still assembles it.
+// The opening still uses the original authored flight clock. The scroll
+// story approaches the seated teeth independently of these trajectories.
 export const flightProgress = authored => MathUtils.mapLinear(authored,authoredEnd,authoredStart,flightStart,flightEnd);
 const authoredProgress = progress => MathUtils.mapLinear(progress,flightStart,flightEnd,authoredEnd,authoredStart);
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { flightEnd, flightStart } from '../src/experience/floating-teeth.js';
-import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
@@ -54,6 +54,7 @@ function readProgress() {
     crowns: [...app.arch.teeth.values()].filter(item => item.crown?.visible).length,
     roots: [...app.arch.teeth.values()].filter(item => item.mesh?.visible).length,
     shaderErrors: state.shaderErrors,
+    camera: [...state.camera, ...state.target, app.rig.camera.zoom],
   };
 }
 
@@ -98,7 +99,7 @@ async function overshoot(page) {
   for (const target of [.69, .88, .997]) await nativeSeek(page, target);
 }
 
-async function flightPose(page, at) {
+async function extractionPose(page, at) {
   await nativeSeek(page, at);
   await page.waitForFunction(({ at, epsilon }) => {
     const state = window.__dentalExperience.report();
@@ -107,8 +108,8 @@ async function flightPose(page, at) {
   }, { at, epsilon: targetEpsilon });
   return page.evaluate(() => {
     const state = window.__dentalExperience.report();
-    return state.teeth.filter(tooth => [35, 36, 37].includes(tooth.fdi))
-      .flatMap(tooth => tooth.worldMatrix.slice(12, 15));
+    return Object.fromEntries(state.teeth.filter(tooth => [31, 35, 36, 37].includes(tooth.fdi))
+      .map(tooth => [tooth.fdi, { matrix: tooth.worldMatrix, reveal: tooth.reveal }]));
   });
 }
 
@@ -265,7 +266,7 @@ function assertOpeningFlight({ frames, firstLesson, loaderToothHeight }) {
   assert.ok(flight.some(frame => Math.hypot(...frame.toothPosition.map((value, index) => value - flight[0].toothPosition[index])) > .08),
     'An actual rooted mesh flies through space');
   assert.ok(flight.every((frame, index) => !index || frame.sceneProgress <= flight[index - 1].sceneProgress + .00001),
-    'The opening assembles the same flight in the opposite direction from chapter two');
+    'The opening follows its original assembly trajectory before the first chapter');
   assert.ok(frames.some(frame => frame.crownMix > 0 && frame.crownMix < 1 && frame.roots.length && frame.crowns),
     'Rendered frames show the crown handover after rooted flight');
   assert.ok(frames.every(frame => frame.scroll === 0 && frame.progress === 0), 'The intro leaves native scroll at the top');
@@ -274,6 +275,8 @@ function assertOpeningFlight({ frames, firstLesson, loaderToothHeight }) {
 }
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const difference = (a, b) => Math.hypot(...a.map((value, index) => value - b[index]));
+let openingCamera;
 try {
   const mobile = await browser.newPage({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2,
@@ -318,24 +321,26 @@ try {
     assert.equal(first.crownMix, 1);
     assert.equal(first.crowns, 28);
     assert.equal(first.roots, 0);
+    openingCamera = first.camera;
     assert.equal(await mobile.locator('#journey-title').innerText(), 'Celý chrup.');
     assert.equal(await mobile.locator('#journey-step-number').innerText(), '01 / 07');
 
-    const checkpoints = [.18, .38, .60, .80, .94].map(fraction => flightStart + fraction * (flightEnd - flightStart));
+    const checkpoints = [.182, .216, .248, .280, .316];
     const forward = new Map();
-    for (const progress of checkpoints) forward.set(progress, await flightPose(mobile, progress));
-    for (let index = 1; index < checkpoints.length; index++) {
-      const previous = forward.get(checkpoints[index - 1]);
-      const current = forward.get(checkpoints[index]);
-      assert.ok(Math.hypot(...current.map((value, axis) => value - previous[axis])) > .08,
-        'Each scroll checkpoint moves at least one tooth through the flight');
+    for (const progress of checkpoints) forward.set(progress, await extractionPose(mobile, progress));
+    const firstPose = forward.get(checkpoints[0]), lastPose = forward.get(checkpoints.at(-1));
+    assert.ok(difference(firstPose[36].matrix, lastPose[36].matrix) > .2, 'The teaching tooth visibly leaves its seat');
+    assert.ok(firstPose[31].reveal > .8 && lastPose[31].reveal === 0, 'The rest of the arch recedes from its seats');
+    for (const current of forward.values()) for (const fdi of [31, 35, 37]) {
+      assert.ok(difference(firstPose[fdi].matrix, current[fdi].matrix) < .00001,
+        `FDI ${fdi} stays seated while the teaching tooth is extracted`);
     }
 
     for (const progress of checkpoints.toReversed()) {
-      const reverse = await flightPose(mobile, progress);
+      const reverse = await extractionPose(mobile, progress);
       const expected = forward.get(progress);
-      assert.ok(Math.hypot(...reverse.map((value, axis) => value - expected[axis])) < .025,
-        'Reverse scroll reconstructs the same authored flight at each checkpoint');
+      assert.ok(difference(reverse[36].matrix, expected[36].matrix) < .025,
+        'Reverse scroll reconstructs the teaching-tooth position at each checkpoint');
     }
 
     await nativeSeek(mobile, chapter('dentition').at);
@@ -407,8 +412,9 @@ try {
     await desktop.locator('#journey-mobile-next').click();
     await atChapter(desktop, 'assembly');
     const trace = await desktop.evaluate(() => window.__finishFlightTrace());
-    assert.ok(trace.filter(progress => progress > flightStart && progress < flightEnd).length >= 5,
-      'Button navigation passes through intermediate flight poses');
+    const [leadStart, leadEnd] = STORY_TIMING.extraction.lead;
+    assert.ok(trace.filter(progress => progress > leadStart && progress < leadEnd).length >= 5,
+      'Button navigation passes through intermediate extraction poses');
     await desktop.locator('#journey-mobile-previous').click();
     await atChapter(desktop, 'dentition');
     await nativeSeek(desktop, chapter('plaque').at);
@@ -425,7 +431,7 @@ try {
     await desktop.close();
   }
 
-  const skippable = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const skippable = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   try {
     await openStory(skippable);
     const skip = skippable.getByRole('button', { name: 'Preskočiť úvod' });
@@ -437,6 +443,7 @@ try {
     const scene = await skippable.evaluate(readProgress);
     assert.equal(scene.crowns, 28);
     assert.equal(scene.scrollY, 0);
+    assert.ok(difference(scene.camera, openingCamera) < .00001, 'Skipping and watching use the same settled camera');
     assert.equal(await skip.count(), 0, 'The skip control is removed when the lesson begins');
     await skippable.reload({ waitUntil: 'domcontentloaded' });
     await skip.waitFor({ state: 'visible', timeout: 90000 });

@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { angular, cameraProbe, distance, mouseDrag, nativeJump, pinchOut, touchDrag } from './browser-camera-probes.mjs';
-import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
@@ -22,6 +22,9 @@ const wait = (page, predicate, arg, timeout = 12000) => page.waitForFunction(pre
 const selector = '.full-arch-focus-select';
 const toggle = '.full-arch-anatomy-toggle';
 const back = '.full-arch-focus-return';
+const previous = '.full-arch-focus-previous';
+const next = '.full-arch-focus-next';
+const continueStory = '.full-arch-focus-continue';
 
 async function seek(page, chapter) {
   const at = chapterAt(chapter);
@@ -193,9 +196,14 @@ try {
       assert.ok(Math.abs(distance(focusedCamera.pos, focusedCamera.target) - distance(reset.pos, reset.target)) < .03,
         'Reset restores the selected zoom');
       await showInterior(page, activate, 11, 'incisor', 1);
-      if (screenshotDir) await page.screenshot({ path: join(screenshotDir, `${width}-atlas-vnutro.png`), scale: 'css' });
       await activate(toggle);
       await wait(page, () => window.__dentalExperience.report().fullAnatomy.weight === 0);
+      await page.locator(next).press('Enter');
+      await settleFocus(page, 21);
+      assert.match(await page.locator(previous).getAttribute('aria-label'), /FDI 11$/,
+        'Adjacent teeth follow the same arch across the midline');
+      await activate(previous);
+      await settleFocus(page, 11);
       await activate(back);
       await settleFocus(page, null);
       assertRestored(await read(page), baseline);
@@ -213,13 +221,51 @@ try {
       }
       assert.ok(functions.size >= 3, 'Tooth functions vary by category');
 
-      await choose(16);
-      await wait(page, () => window.__dentalExperience.report().focusMoving);
-      await choose(33);
       await choose(36);
       await settleFocus(page, 36);
       await checkToothLabel(page, 36);
+      await page.locator('#journey-canvas').press('ArrowRight');
+      await activate('#journey-zoom-out');
+      await wait(page, () => {
+        const { view } = window.__dentalExperience.report();
+        return view.zoom > 1.04 && Math.abs(view.yaw) > .025
+          && Math.abs(view.desiredZoom - view.zoom) < .002 && Math.abs(view.desiredYaw - view.yaw) < .002;
+      });
+      const handoffView = (await read(page)).view;
+      await activate(next);
+      await settleFocus(page, 37);
+      assert.ok(await page.locator(next).isDisabled(), 'The last tooth in the arch has no next tooth');
+      await activate(previous);
+      await settleFocus(page, 36);
       await showInterior(page, activate, 36, 'molar', 2);
+      await choose(11);
+      await wait(page, () => {
+        const { focusedTooth, focusMoving, fullAnatomy } = window.__dentalExperience.report();
+        return focusedTooth === 11 && focusMoving && fullAnatomy.weight < .9;
+      });
+      await page.evaluate(selector => {
+        const select = document.querySelector(selector);
+        for (const fdi of ['24', '37']) {
+          select.value = fdi;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }, selector);
+      await settleFocus(page, 37);
+      await wait(page, () => window.__dentalExperience.report().fullAnatomy.weight === 0);
+      await checkToothLabel(page, 37);
+      const landedView = (await read(page)).view;
+      assert.ok(Math.abs(handoffView.yaw - landedView.yaw) < .015 && Math.abs(handoffView.zoom - landedView.zoom) < .015,
+        'Rapid retargeting preserves the manually adjusted orbit and zoom');
+      const duringFocus = await read(page);
+      for (const fdi of [11, 24, 36]) {
+        const tooth = duringFocus.teeth.find(item => item.fdi === fdi);
+        const original = baseline.teeth.find(item => item.fdi === fdi);
+        assert.ok(distance(original.worldMatrix, tooth.worldMatrix) < .002, `Interrupted FDI ${fdi} returns to its seat`);
+      }
+      await showInterior(page, activate, 37, 'molar', 2);
+      if (screenshotDir && mobile) {
+        await page.screenshot({ path: join(screenshotDir, 'atlas-interior-mobile.png'), scale: 'css' });
+      }
       await choose(24);
       await settleFocus(page, 24);
       await wait(page, () => window.__dentalExperience.report().fullAnatomy.weight === 0);
@@ -241,9 +287,20 @@ try {
       assertRestored(await read(page), baseline);
       await choose(37);
       await settleFocus(page, 37);
+      if (mobile) {
+        await activate(continueStory);
+        await wait(page, target => {
+          const state = window.__dentalExperience.report();
+          return state.story.chapterId === 'anatomy' && !state.focusHasOrigin && state.focusedTooth === null
+            && Math.abs(state.progress - target) < .003 && Math.abs(state.renderProgress - state.storyProgress) < .00002;
+        }, STORY_TIMING.anatomy.enamel[0]);
+        assert.equal(await page.locator(selector).isVisible(), false);
+      }
       await seek(page, 'hero');
       assert.equal(await page.locator(selector).isVisible(), false);
-      assert.deepEqual((await read(page)).visibleTeeth, [36], 'Moving forward from the atlas isolates the original tooth');
+      const storyTooth = await read(page);
+      assert.deepEqual(storyTooth.visibleTeeth, [36], 'Moving forward from the atlas isolates the original tooth');
+      assert.equal(storyTooth.focusHasOrigin, false, 'Native scroll releases the atlas before the story detail');
       await seek(page, 'assembly');
       assert.equal(await page.locator(selector).isVisible(), false);
       assert.deepEqual((await read(page)).visibleTeeth, [36], 'The second chapter also settles on the original tooth');
@@ -252,6 +309,13 @@ try {
       await waitForMode(page, 'anatomy');
       assertRestored(await read(page), baseline);
       if (!mobile) {
+        await choose(36);
+        await settleFocus(page, 36);
+        await seek(page, 'hero');
+        assert.deepEqual((await read(page)).visibleTeeth, [36], 'The teaching tooth also returns before the story extraction');
+        await seek(page, 'dentition');
+        await waitForMode(page, 'anatomy');
+        assertRestored(await read(page), baseline);
         const canvas = page.locator('#journey-canvas');
         await canvas.press('ArrowRight');
         await canvas.press('Equal');
@@ -271,7 +335,7 @@ try {
       }
       assert.equal((await read(page)).shaderErrors, 0);
       assert.deepEqual(errors, []);
-      console.log(`${width}×${height} Chrome: ${choices.length} FDI choices, canvas picking, motion, orbit, zoom, interiors, mode switching and reversible scroll.`);
+      console.log(`${width}×${height} Chrome: ${choices.length} FDI choices, adjacent controls, rapid retargets, orbit/zoom retention, interiors and story return.`);
     } finally {
       await context.close();
     }

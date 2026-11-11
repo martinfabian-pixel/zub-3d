@@ -6,7 +6,7 @@ import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
-import { DENTAL_CHAPTERS as chapters, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS as chapters, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 import { getStoryCopy } from '../src/experience/stage-typography.js';
 import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
 import { measureSharedStage,readWebGLPixels,sampleCopyTransition } from './shared-stage-probes.mjs';
@@ -36,7 +36,7 @@ const anatomyIndex=chapters.findIndex(chapter=>chapter.id==='anatomy');
 const brushIndex=chapters.findIndex(chapter=>chapter.id==='brush');
 const brushAt=chapters[brushIndex].at;
 const plaqueAt=chapters.find(chapter=>chapter.id==='plaque').at;
-const requestedTitles=['Celý chrup.','Jeden po druhom.','Začína sa to jedným zubom.','Stavba zdravého zuba',
+const requestedTitles=['Celý chrup.','Každý zub má svoje miesto.','Pozrite sa pod povrch.','Stavba zdravého zuba',
   'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
 if(!chapters.every((chapter,index)=>chapter.title===requestedTitles[index]))throw Error('Slovak story titles do not match the seven chapters.');
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
@@ -169,9 +169,13 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' the sole active H1 and educational copy fit and clear controls',a.headingCount===1&&a.role==='H1'&&a.unclippedCopy&&a.blockedControls.length===0,a);
   check(label+' copy passes input through to the actual 3D canvas',a.hit?.isCanvas===true,a.hit);
   check(label+' actual educational focus stays clear of every rendered text line',a.protected.sampleCount>0&&a.protected.covered.length===0,a.protected);
+  const expectedPose=base.pose36.slice();
+  if(chapter.id==='assembly'||chapter.id==='hero'){
+    DENTAL_STORY.extractionOffset.forEach((offset,axis)=>expectedPose[12+axis]+=offset);
+  }
   check(label+' healthy source geometry and teaching-site pose',
     s.healthy&&s.geometry36!==s.geometry46&&
-    (chapter.id==='assembly'||chapter.id==='dentition'||copy.phase==='closing'||equal(s.pose36,base.pose36)));
+    (chapter.id==='dentition'||copy.phase==='closing'||s.pose36.every((value,i)=>near(value,expectedPose[i]))));
   if(chapter.id==='space')check(label+' contact established before deposits',s.deposit===0&&!s.plaque.visible&&!s.brush.visible);
   if(chapter.id==='plaque')check(label+' attached deposits on actual 36 and 37',s.plaque.visible&&s.plaque.deposition>.99&&equal(s.plaque.patches.map(x=>x.fdi).sort(),[36,37])&&s.plaque.patches.every(x=>x.triangles>0&&x.maxRegistrationErrorMm<=.04));
   if(chapter.id==='brush'&&!copy.phase)check(label+' brush visibly engaged or aligning as sampled',s.brush.visible&&s.brush.filamentInstances>0&&near(s.brush.insertion,s.brushPose.insertion,.0001),s.brush);

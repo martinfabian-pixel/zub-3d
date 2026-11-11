@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { angular, cameraProbe, mouseDrag, nativeJump, touchDrag } from './browser-camera-probes.mjs';
-import { DENTAL_CHAPTERS, DENTAL_STORY } from '../src/experience/story-config.js';
+import { angular, cameraProbe, distance, mouseDrag, nativeJump, touchDrag } from './browser-camera-probes.mjs';
+import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
@@ -15,7 +15,7 @@ if (screenshotDir) await mkdir(screenshotDir, { recursive: true });
 const chapter = id => DENTAL_CHAPTERS.find(c => c.id === id);
 const anatomy = chapter('anatomy');
 assert.equal(DENTAL_CHAPTERS[0].id, 'dentition', 'The settled full arch opens the story');
-assert.equal(DENTAL_CHAPTERS[1].id, 'assembly', 'The second chapter settles the flight on one tooth');
+assert.equal(DENTAL_CHAPTERS[1].id, 'assembly', 'The second chapter moves from the atlas to one tooth');
 assert.equal(DENTAL_CHAPTERS[2].id, 'hero', 'The isolated tooth precedes the healthy anatomy chapter');
 assert.equal(DENTAL_CHAPTERS[3], anatomy);
 const layerSelector = '.healthy-anatomy-layer';
@@ -26,6 +26,29 @@ const cases = [
   { width: 320, height: 568, mobile: true, reduced: true, fitOnly: true },
   { width: 844, height: 390, mobile: true, reduced: true, fitOnly: true },
 ];
+
+async function assertPulpVisible(page) {
+  const png = (await page.screenshot({ scale: 'css' })).toString('base64');
+  const coverage = await page.evaluate(async png => {
+    const image = new Image();
+    image.src = 'data:image/png;base64,' + png;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    const rgba = context.getImageData(0, 0, image.width, image.height).data;
+    let pulpPixels = 0;
+    for (let i = 0; i < rgba.length; i += 4) {
+      const red = rgba[i];
+      if (red > 85 && red > rgba[i + 1] * 1.35 && red > rgba[i + 2] * 1.25) pulpPixels++;
+    }
+    return pulpPixels / (image.width * image.height);
+  }, png);
+  assert.ok(coverage > .0012, 'The rendered cut visibly exposes the warm red pulp: ' + coverage);
+}
+
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   for (const { width, height, mobile, reduced, fitOnly } of cases) {
@@ -109,6 +132,7 @@ try {
       assert.equal(cut.geometry, initial.geometry, 'All layers retain the exact healthy geometry from the opening');
       assert.ok(cut.visible && !cut.lesion);
       assert.ok((await report()).healthyAnatomy.cut > 0 && (await report()).drawCalls > 0);
+      await assertPulpVisible(page);
       const labels = plate.locator(layerSelector);
       assert.equal(await labels.count(), 4);
       assert.match(await labels.nth(0).innerText(), /celý zub/i);
@@ -145,6 +169,7 @@ try {
           await page.screenshot({ path: join(screenshotDir, width + '-anatomia-' + layer + '.png'), scale: 'css' });
         }
       }
+      await assertPulpVisible(page);
       assert.equal(captions.size, 4, 'Each layer provides its own teaching caption');
       assert.equal((await report()).shaderErrors, 0);
       if (!fitOnly) {
@@ -154,17 +179,36 @@ try {
         const afterDrag = await cameraProbe(page);
         assert.ok(angular(beforeDrag.quat, afterDrag.quat) > .05, 'The same cutaway remains freely rotatable');
         await expectLayer('pulp', true);
+        await activate(page.locator('#journey-zoom-in'));
+        await wait(() => {
+          const view = window.__dentalExperience.report().view;
+          return Math.abs(view.zoom - view.desiredZoom) < .002 && Math.abs(view.yaw - view.desiredYaw) < .002;
+        });
+        const beforeLayerChange = await cameraProbe(page);
+        await activate(plate.locator(layerSelector + '[data-layer="dentin"]'));
+        await expectLayer('dentin', true);
+        const afterLayerChange = await cameraProbe(page);
+        assert.ok(angular(beforeLayerChange.quat, afterLayerChange.quat) < .01
+          && distance(beforeLayerChange.pos, afterLayerChange.pos) < .02,
+        'A layer change preserves the visitor’s zoom and orbit');
         await activate(plate.locator('.healthy-anatomy-follow'));
         await expectLayer('pulp', false);
         await activate(page.locator('#journey-reset'));
         await wait(() => !window.__dentalExperience.report().view.returning);
         if (!reduced) {
-          const checkpoints = [[.461, 'whole'], [.497, 'enamel'], [.526, 'dentin'], [.555, 'pulp']];
+          const { enamel, dentin, pulp, close } = STORY_TIMING.anatomy;
+          const holds = [[anatomy.start, enamel[0]], [enamel[1], dentin[0]],
+            [dentin[1], pulp[0]], [pulp[1], close[0]]];
+          const checkpoints = holds.map(([start, end], index) => {
+            assert.ok(end - start >= .011, 'The teaching layer has a readable stationary interval');
+            return [(start + end) / 2, options[index]];
+          });
           const states = new Map();
           for (const [position, layer] of checkpoints) {
             await seek(position, 'anatomy');
             await expectLayer(layer, false);
             const state = (await report()).healthyAnatomy;
+            assert.equal(state.amount, options.indexOf(layer), 'The labeled layer has fully settled');
             states.set(position, [state.layer, state.amount, state.cut]);
           }
           for (const [position, layer] of checkpoints.toReversed()) {
@@ -175,7 +219,13 @@ try {
             assert.ok(Math.abs(state.amount - original[1]) < .015 && Math.abs(state.cut - original[2]) < .015,
               'Reverse scroll reconstructs the same section');
           }
-          await seek(.555, 'anatomy');
+          const closing = (close[0] + close[1]) / 2;
+          await seek(closing, 'anatomy');
+          const beforeSpace = await report();
+          assert.ok(beforeSpace.healthyAnatomy.cut > 0 && beforeSpace.healthyAnatomy.cut < 1,
+            'The internal section closes progressively');
+          assert.deepEqual(beforeSpace.visibleTeeth, [36], 'Neighbors wait for the section to close');
+          await seek(checkpoints.at(-1)[0], 'anatomy');
           await expectLayer('pulp', false);
         }
         await activate(page.locator('#journey-mobile-next'));

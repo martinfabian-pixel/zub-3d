@@ -10,9 +10,9 @@ import { createScrollDriver, getJourneyScrollMetrics } from './scroll.js';
 import { createScrollReadiness } from './scroll-readiness.js';
 import { createNavigationMotion } from './navigation-motion.js';
 import { createInterface } from './interface.js';
-import { sampleDentalStory, sampleReducedDentalStory } from './dental-story.js';
+import { sampleDentalStory, sampleOpeningDentalStory, sampleReducedDentalStory } from './dental-story.js';
 import { STORY_TIMING } from './story-config.js';
-import { createIntroCameraOptions, createStoryCameraConfig } from './story-camera.js';
+import { createIntroCameraOptions, createOpeningCameraOptions, createStoryCameraConfig } from './story-camera.js';
 import { createCleaningPath, makePathSample } from './cleaning-path.js';
 import { createInterdentalBrush } from './interdental-brush.js';
 import { createPlaque } from './plaque.js';
@@ -33,7 +33,7 @@ import { createFullArchBrushingControls } from './full-arch-brushing-controls.js
 import { createStartupHandoff } from './startup-handoff.js';
 import { createOpeningFlight } from './opening-flight.js';
 import { prewarmSmileMaterials } from './smile-prewarm.js';
-import { createManualCleaning } from './manual-cleaning.js';
+import { createManualCleaning, sampleManualResultBrush } from './manual-cleaning.js';
 import { createManualCleaningUI } from './manual-cleaning-ui.js';
 import { chooseQuality, createAdaptiveQuality } from '../prototype/quality.js';
 import './stage.css';
@@ -56,7 +56,7 @@ export function createExperience(configuration=experienceConfig) {
   let studyReady=false,flightReady=false,crownsReady=false,storyReady=false;
   const studyLimit=config.presentation.steps.find(step=>step.id==='space').start-.001;
   const scrollReadiness=createScrollReadiness(0);
-  const navigationTarget=()=>scrollReadiness.pendingTarget??navigationMotion?.target??null;
+  const navigationTarget=()=>focusOrigin?.next??scrollReadiness.pendingTarget??navigationMotion?.target??null;
   const historyEntry=performance.getEntriesByType('navigation')[0]?.type;
   const resumeKey='zub-story-2-atlas-first:'+location.pathname;
   let savedProgress=history.state?.zubStory2AtlasProgress;
@@ -75,9 +75,9 @@ export function createExperience(configuration=experienceConfig) {
   let logicalWidth=0,logicalHeight=0,fittedRig=null;
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
   let renderProgress=0,progressFrame=0;
-  let openingComplete=false,openingSkipped=false,openingShown=false,openingShot=null;
+  let openingComplete=false,openingSkipped=false,openingShown=false,openingShot=null,openingTimeline;
   let navigationMotion=null;
-  const manualCleaning=createManualCleaning(),manualState={brushPose:{}};
+  const manualCleaning=createManualCleaning(),manualState={brushPose:{}},manualResultPose={};
   const manualStart=makePathSample(),manualEnd=makePathSample();
   const manualPointA=new THREE.Vector3(),manualPointB=new THREE.Vector3(),manualGripPoint=new THREE.Vector3();
   let manual=null,manualPointer=null,manualClock=0,manualAxis={x:1,y:0,lengthSq:1};
@@ -127,7 +127,7 @@ export function createExperience(configuration=experienceConfig) {
     if(!fullArchFocus.engaged||fullArchFocus.returning)return;
     interiorRequested=active;
     requestRender();
-  },onSelect:focusTooth,onReturn:()=>returnToArch()});
+  },onSelect:focusTooth,onReturn:()=>returnToArch(),onContinue:continueFromAtlas});
   const brushingControls=createFullArchBrushingControls({stage,signal,onToggle:toggleFullBrushing,onNext:nextBrushingPhase});
 
   function canBrushFullArch() {
@@ -194,7 +194,7 @@ export function createExperience(configuration=experienceConfig) {
 
   function canUseAtlas() {
     return crownsReady&&dentalState.chapterId==='dentition'&&finalView==='anatomy'&&
-      !finalViewTransition&&!pendingFinalView&&atlasCoverage(dentalState.sceneProgress)===1;
+      !finalViewTransition&&!pendingFinalView&&!focusLeavesStory&&atlasCoverage(dentalState.sceneProgress)===1;
   }
   function atlasFraming() {
     const compact=logicalWidth<=700;
@@ -204,34 +204,45 @@ export function createExperience(configuration=experienceConfig) {
     const {camera}=rig, sensor=camera.view;
     return {position:camera.position.clone(),target:view.target.clone(),
       screenX:sensor?.enabled ? .5-sensor.offsetX/sensor.fullWidth : .5,
-      screenY:sensor?.enabled ? .5-sensor.offsetY/sensor.fullHeight : .5};
+      screenY:sensor?.enabled ? .5-sensor.offsetY/sensor.fullHeight : .5,opticalZoom:camera.zoom};
   }
   function focusTooth(fdi) {
-    if(!canUseAtlas()||focusLeavesStory)return;
+    if(!canUseAtlas())return;
+    const firstFocus=!focusOrigin;
     const from=captureAtlasPose();
     if(!fullArchFocus.select(Number(fdi),{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant:reducedMotion}))return;
-    focusOrigin??={pose:from,view:view.captureDisplayed(),progress:dentalState.progress};
+    cancelNavigation();
+    if(firstFocus){
+      focusOrigin={view:view.captureDisplayed(),progress:renderProgress,next:null};
+      view.restore(neutralView,{instant:true});
+    }
     interiorRequested=false;
     manualChapter=null;
-    view.restore(neutralView,{instant:true});
     requestRender();
   }
+  function continueFromAtlas(){navigate(STORY_TIMING.anatomy.enamel[0]);}
+  function atlasOverviewPose(){return focusLeavesStory?rig.pose:view.poseWithOffsets(rig.pose,focusOrigin.view);}
   function returnToArch({story=false}={}) {
     if(!focusOrigin)return;
+    const retarget=story&&!focusLeavesStory;
     focusLeavesStory||=story;
     interiorRequested=false;
-    if(fullArchFocus.returnToArch(captureAtlasPose(),focusLeavesStory?rig.pose:focusOrigin.pose,performance.now(),reducedMotion)){
+    if(fullArchFocus.returnToArch(captureAtlasPose(),atlasOverviewPose(),performance.now(),reducedMotion,{retarget})){
       view.restore(neutralView,{instant:true});
     }
     requestRender();
   }
   function finishAtlasFocus() {
+    const {view:previousView,next}=focusOrigin;
     fullArchFocus.clear();
-    view.restore(focusLeavesStory?neutralView:focusOrigin.view,{instant:true});
+    view.setStoryPose(rig.pose);
+    view.restore(focusLeavesStory?neutralView:previousView,{instant:true});
     manualChapter=!focusLeavesStory&&view.modified?'dentition':null;
     manualProgress=progress;
     interiorRequested=false;
     focusOrigin=null;focusLeavesStory=false;
+    if(next!==null)navigate(next);
+    requestRender();
   }
 
   function requestRender() {if(!disposed&&ready&&!document.hidden&&!frame)frame=requestAnimationFrame(render);}
@@ -283,7 +294,7 @@ export function createExperience(configuration=experienceConfig) {
     if(!manual)return;
     if(next!==null)manual.pendingNavigation=next;
     if(manual.phase==='returning'||manual.phase==='restoring')return;
-    if(next===null&&manualCleaning.state.phase==='result'){
+    if(manualCleaning.state.phase==='result'){
       manual.resume=STORY_TIMING.resultAt;
       sampleDentalStory(manual.resume,manualState);
       manual.returnPose={...manualState.brushPose};manual.returnPlaque=manualState.cleaningProgress;
@@ -338,7 +349,8 @@ export function createExperience(configuration=experienceConfig) {
   }
   function updateUI() {
     const complete=crownsReady;
-    ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,state:dentalState,reducedMotion});
+    ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,
+      atlasFocused:Boolean(focusOrigin),state:dentalState,reducedMotion});
     if(ready){
       const atBoundary=scrollReadiness.limit<1&&progress>=scrollReadiness.limit-.002;
       status.hidden=!atBoundary;
@@ -379,6 +391,7 @@ export function createExperience(configuration=experienceConfig) {
     navigationMotion=null;
     resumeProgress=null;
     scrollReadiness.cancel();
+    if(focusOrigin)focusOrigin.next=null;
   }
   function restoreStoryPosition(next){
     ui.scrollTo(next,true);setProgress(next);
@@ -393,9 +406,14 @@ export function createExperience(configuration=experienceConfig) {
     resumeProgress=null;
     storyAnatomy.follow();
     stopFullBrushing();
-    returnToArch({story:true});
     leaveExplore();
     manualChapter=null;
+    if(focusOrigin){
+      focusOrigin.next=next;
+      returnToArch({story:next>STORY_TIMING.atlas[1]});
+      updateUI();
+      return;
+    }
     beginNavigation(scrollReadiness.plan(next));
     if(!focusOrigin&&view?.modified)view.reset(performance.now(),reducedMotion);
     updateUI();
@@ -426,10 +444,10 @@ export function createExperience(configuration=experienceConfig) {
     if(manual){exitManualCleaning();return;}
     if(brushingRun)return;
     if(exploring){
+      if(focusOrigin){leaveExplore();updateUI();requestRender();return;}
       const resume=inspectionProgress;leaveExplore();manualChapter=null;
       ui.scrollTo(resume,true);setProgress(resume);
-      if(focusOrigin)returnToArch();
-      else view.reset(performance.now(),reducedMotion);
+      view.reset(performance.now(),reducedMotion);
     }
     else enterExplore(true);
     requestRender();
@@ -472,12 +490,15 @@ export function createExperience(configuration=experienceConfig) {
     if(sample.blocked&&next-sample.progress>.00025)ui.scrollTo(sample.progress,true);
     progress=sample.progress;reducedMotion=Boolean(motion);
     if(brushingRun&&(progress<STORY_TIMING.atlas[0]||progress>STORY_TIMING.atlas[1]))stopFullBrushing();
-    if(focusOrigin&&!focusLeavesStory&&!exploring&&Math.abs(progress-focusOrigin.progress)>.007)returnToArch({story:true});
+    if(focusOrigin&&!focusLeavesStory&&progress>STORY_TIMING.atlas[1]){
+      leaveExplore();
+      returnToArch({story:true});
+    }
     storyProgress=THREE.MathUtils.lerp(config.story.startProgress,config.story.endProgress,progress);
     if(exploring){
       applyState(inspectionProgress,false);updateUI();requestRender();return null;
     }
-    if(reducedMotion)renderProgress=storyProgress;
+    if(reducedMotion&&!focusOrigin)renderProgress=storyProgress;
     clearTimeout(settleTimer);
     scrolling=true;
     adaptive?.beginInteraction();
@@ -491,9 +512,6 @@ export function createExperience(configuration=experienceConfig) {
   function applyState(p,moveCamera) {
     if(reducedMotion)sampleReducedDentalStory(p,dentalState,scrollReadiness.limit);
     else sampleDentalStory(p,dentalState);
-    if(focusOrigin&&atlasCoverage(dentalState.sceneProgress)===0){
-      focusLeavesStory=true;finishAtlasFocus();
-    }
     arch.setFinalView?.(finalView,smileWeight);
     arch.setState(dentalState,fullArchFocus.engaged?fullArchFocus.opacity:null);
     plaque?.setState({visible:dentalState.plaqueVisibility>0,opacity:dentalState.plaqueDeposition*dentalState.plaqueVisibility,progress:dentalState.cleaningProgress});
@@ -562,12 +580,12 @@ export function createExperience(configuration=experienceConfig) {
     if(manual.phase==='restoring'&&!changing){finishManualCleaning();return;}
     const state=manualCleaning.update(dt);
     if(state.phase==='result'&&!manual.resultAt)manual.resultAt=now;
-    const resultVisibility=state.phase==='result'?(reducedMotion?0:Math.max(0,1-(now-manual.resultAt)/350)):1;
+    const pose=state.phase==='result'?sampleManualResultBrush(state.pose,now-manual.resultAt,reducedMotion,manualResultPose):state.pose;
     const original=manual.returnPose;
-    brush.setPose({visibility:THREE.MathUtils.lerp(original.visibility,state.pose.visibility*resultVisibility,amount),
-      alignment:THREE.MathUtils.lerp(original.alignment,state.pose.alignment,amount),
-      insertion:THREE.MathUtils.lerp(original.insertion,state.pose.insertion,amount),
-      stroke:THREE.MathUtils.lerp(original.stroke,state.pose.stroke,amount),phase:state.pose.phase});
+    brush.setPose({visibility:THREE.MathUtils.lerp(original.visibility,pose.visibility,amount),
+      alignment:THREE.MathUtils.lerp(original.alignment,pose.alignment,amount),
+      insertion:THREE.MathUtils.lerp(original.insertion,pose.insertion,amount),
+      stroke:THREE.MathUtils.lerp(original.stroke,pose.stroke,amount),phase:pose.phase});
     plaque.setState({visible:true,opacity:1,progress:THREE.MathUtils.lerp(manual.returnPlaque,state.cleaningProgress,amount)});
     const grip=updateManualProjection();
     manualUI.update({chapterId:'brush',ready:true,active:true,phase:state.phase,
@@ -577,7 +595,7 @@ export function createExperience(configuration=experienceConfig) {
     try{renderer.info.reset();renderer.render(scene,rig.camera);renderedFrames++;}
     catch(error){showError('3D zobrazenie sa nepodarilo vykresliť.',error);return;}
     canvas.dataset.frameCount=String(renderedFrames);
-    if(manual.phase!=='active'||state.moving||state.dragging||changing||(state.phase==='result'&&resultVisibility>0))requestRender();
+    if(manual.phase!=='active'||state.moving||state.dragging||changing||(state.phase==='result'&&pose.visibility>0))requestRender();
     else {manualClock=0;lastFrame=0;}
   }
   function drawScene(){
@@ -591,9 +609,9 @@ export function createExperience(configuration=experienceConfig) {
     return true;
   }
   function renderOpening(now,shot){
-    sampleDentalStory(shot.progress,openingState);
+    sampleOpeningDentalStory(shot.progress,openingState);
     arch.setState(openingState);
-    const pose=rig.setProgress(shot.progress,{reducedMotion:false,alternateWeight:0});
+    const pose=rig.setProgress(shot.progress,{reducedMotion:false,alternateWeight:0,timeline:openingTimeline});
     if(shot.yaw){
       openingOffset.subVectors(pose.position,pose.target).applyAxisAngle(rig.camera.up,shot.yaw);
       pose.position.copy(pose.target).add(openingOffset);
@@ -646,8 +664,10 @@ export function createExperience(configuration=experienceConfig) {
     }
     const atlasWasEngaged=fullArchFocus.engaged;
     fullArchFocus.advance(now);
-    if(fullArchFocus.returning&&!fullArchFocus.moving)finishAtlasFocus();
-    const target=storyProgress;
+    const atlasReturned=fullArchFocus.returning&&!fullArchFocus.moving;
+    // Complete the visible return to the atlas before a newer scroll target
+    // can take the camera to the teaching tooth or a later chapter.
+    const target=focusOrigin?.progress??storyProgress;
     let following=false;
     if(!exploring) {
       const dt=progressFrame?Math.min(50,Math.max(0,now-progressFrame)):16.67;
@@ -706,7 +726,7 @@ export function createExperience(configuration=experienceConfig) {
     healthyAnatomyUI.update(anatomyState);
     anatomyControls.update({chapterId:dentalState.chapterId,enabled:ready&&heroReady,active:heroAnatomyState.active,weight:heroAnatomyState.weight,archWeight:fullAnatomyWeight});
     fullAnatomyControls.update({visible:finale&&finalView==='anatomy'&&atlasCoverage(dentalState.sceneProgress)===1,
-      enabled:canUseAtlas()&&!focusLeavesStory,active:interiorRequested,focused:selected!==null,selectedFdi:selected});
+      enabled:canUseAtlas(),active:interiorRequested,focused:selected!==null,selectedFdi:selected,returning:fullArchFocus.returning});
     if(pendingFinalView&&!focusOrigin&&fullAnatomyWeight===0){const next=pendingFinalView;pendingFinalView=null;selectFinalView(next);}
     const fullAnatomyMoving=fullAnatomyWeight!==fullTarget||(interiorTarget!==null&&interiorTarget!==interiorFdi);
     const atlasPose=fullArchFocus.apply(rig.pose,dentalState.sceneProgress);
@@ -729,6 +749,7 @@ export function createExperience(configuration=experienceConfig) {
     if(sensor?.enabled&&(atlasPose||brushingFraming>0)){
       const sx=THREE.MathUtils.lerp(atlasPose?.screenX??rig.pose.screenX??.5,.64,brushingFraming);
       const sy=THREE.MathUtils.lerp(atlasPose?.screenY??rig.pose.screenY??.5,.64,brushingFraming);
+      if(atlasPose)rig.camera.zoom=atlasPose.opticalZoom??rig.camera.zoom;
       rig.camera.setViewOffset(sensor.fullWidth,sensor.fullHeight,(.5-sx)*sensor.fullWidth,(.5-sy)*sensor.fullHeight,sensor.fullWidth,sensor.fullHeight);
     }
     arch.updateView(rig.camera);
@@ -737,6 +758,7 @@ export function createExperience(configuration=experienceConfig) {
     if(lastFrame&&(interaction||changing||scrolling||fullArchFocus.moving))adaptive.recordFrame(now-lastFrame);
     lastFrame=now;
     if(!drawScene())return;
+    if(atlasReturned&&fullAnatomyWeight===0)finishAtlasFocus();
     // The first numbered frame is the seated smile, or a restored chapter.
     if(crownsReady&&startupHandoff.active){
       if(openingShown)startupHandoff.finish();
@@ -763,7 +785,8 @@ export function createExperience(configuration=experienceConfig) {
     fittedRig=rig;
     if(manual){manualCameraPose(manual.cameraProgress);requestRender();return;}
     applyState(exploring?inspectionProgress:dentalState.progress,true);
-    if(focusOrigin)fullArchFocus.refit(rig,atlasFraming(),performance.now(),reducedMotion);
+    if(focusOrigin)fullArchFocus.refit(rig,atlasFraming(),performance.now(),reducedMotion,
+      fullArchFocus.returning?atlasOverviewPose():null);
     setProgress(progress);
     requestRender();
   }
@@ -842,6 +865,9 @@ export function createExperience(configuration=experienceConfig) {
 
   function installStoryRig() {
     const landmarks={...arch.landmarks,smile:crownsReady?arch.landmarks.smile:arch.landmarks.full};
+    if(crownsReady&&!openingTimeline&&playOpening&&!openingComplete){
+      openingTimeline=createTimeline({landmarks,cameraOptions:createOpeningCameraOptions(config,{compact:profile.compact})});
+    }
     for(const name of ['smile','anatomy']){
       const cameraConfig=createStoryCameraConfig(site,config,{finalView:name,compact:profile.compact,crownsReady});
       finalTimelines[name]=createTimeline({landmarks:{...landmarks,...cameraConfig.landmarks},cameraOptions:cameraConfig.camera});

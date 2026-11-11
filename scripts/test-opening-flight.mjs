@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createOpeningFlight } from '../src/experience/opening-flight.js';
-import { sampleDentalStory } from '../src/experience/dental-story.js';
+import { sampleDentalStory, sampleOpeningDentalStory } from '../src/experience/dental-story.js';
 import { floatingAmount } from '../src/experience/floating-teeth.js';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
@@ -10,7 +10,7 @@ const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
 const start=900;
 const first=intro.sample(start);
 assert.deepEqual(first,{progress:seed,yaw:0,growth:0,phase:'spin',done:false});
-assert.equal(sampleDentalStory(first.progress).assemblyReveal,0);
+assert.equal(sampleOpeningDentalStory(first.progress).assemblyReveal,0);
 for(let t=25;t<575;t+=25)intro.sample(start+t);
 const halfway={...intro.sample(start+575)};
 assert.equal(halfway.progress,seed);
@@ -30,7 +30,9 @@ let previous=seed, sawFlight=false, sawCrowns=false;
 for(let t=1151;t<3150;t++){
   const shot=intro.sample(start+t);
   assert.ok(shot.progress<=previous && previous-shot.progress<.001);
-  const scene=sampleDentalStory(shot.progress);
+  const scene=sampleOpeningDentalStory(shot.progress);
+  assert.equal(scene.openingFlight,true);
+  assert.equal(scene.toothExtraction,0,'Only the authored flight moves the teeth during the introduction');
   if(floatingAmount(shot.progress)>.5){
     assert.equal(scene.assemblyCrownCoverage,0,'The flying teeth retain their roots');
     sawFlight=true;
@@ -45,7 +47,11 @@ assert.ok(sawFlight&&sawCrowns);
 assert.ok(Math.abs(previous-atlasEnd)<.000001);
 const end=intro.sample(start+3150);
 assert.deepEqual(end,{progress:atlasStart,yaw:0,growth:1,phase:'done',done:true});
-assert.equal(sampleDentalStory(end.progress).assemblyCrownCoverage,1);
+const settledOpening=sampleOpeningDentalStory(end.progress);
+const settledStory=sampleDentalStory(end.progress);
+for (const key of ['sceneProgress','assemblyReveal','assemblyNeighborReveal','assemblyCrownCoverage','toothExtraction'])
+  assert.equal(settledOpening[key],settledStory[key],`The opening and skipped opening settle on the same ${key}`);
+assert.equal(settledOpening.assemblyCrownCoverage,1);
 assert.equal(intro.sample(start+5000),end);
 
 const sparse=createOpeningFlight();

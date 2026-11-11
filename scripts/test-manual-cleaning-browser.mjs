@@ -87,9 +87,29 @@ try {
       assert.ok(s.manualCleaning.cleaningProgress>0,'Actual travel cleans reachable plaque');
       assert.ok(Math.abs(s.storyProgress-before.storyProgress)<.004,'Manual cleaning freezes the story');
       assert.ok(Math.abs((await page.evaluate(()=>window.scrollY))-scrollBefore)<1,'Dragging the grip does not scroll the page');
+      await page.evaluate(()=>{
+        const trace=window.__manualResultTrace=[];
+        function capture(){
+          const {manualCleaning,story}=window.__dentalExperience.report();
+          if(!manualCleaning)return;
+          if(manualCleaning.phase==='result'){
+            const {insertion,visibility,tipArcMm}=story.brush;
+            trace.push({insertion,visibility,tipArcMm});
+            if(!visibility)return;
+          }
+          requestAnimationFrame(capture);
+        }
+        requestAnimationFrame(capture);
+      });
       for(let pass=0;pass<4&&(await state()).manualCleaning.phase!=='result';pass++) {await moveTo(0);await moveTo(1);}
       s=await state();assert.equal(s.manualCleaning.phase,'result');assert.ok(s.manualCleaning.passes>=3);
       assert.ok(s.story.plaque.cleaningProgress>0);
+      await wait(()=>window.__manualResultTrace.at(-1)?.visibility===0);
+      const withdrawal=await page.evaluate(()=>window.__manualResultTrace);
+      const first=withdrawal[0];
+      assert.ok(withdrawal.some(frame=>frame.visibility>.8&&first.tipArcMm-frame.tipArcMm>2),
+        'The working end visibly retracts along the measured path before it fades');
+      assert.equal(withdrawal.at(-1).insertion,0);
       if(out&&mobile){await page.waitForTimeout(500);await page.screenshot({path:`${out}/03-result.png`});}
       if(mobile){
         await page.locator('.manual-cleaning-exit').tap();
@@ -111,6 +131,17 @@ try {
         await nativeJump(page,1);
       }
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.brushStoryPhase==='smile'&&s.crownMix===1;});
+      await page.evaluate(()=>{
+        window.__returnedThroughOpening=false;
+        const observer=new MutationObserver(()=>{
+          if(document.body.hasAttribute('data-journey-loading'))window.__returnedThroughOpening=true;
+        });
+        observer.observe(document.body,{attributes:true,attributeFilter:['data-journey-loading']});
+      });
+      const atlas=page.locator('#journey-show-all');
+      if(mobile)await atlas.tap();else await atlas.click();
+      await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='dentition'&&s.crownMix===1&&s.renderProgress<.00002;});
+      assert.equal(await page.evaluate(()=>window.__returnedThroughOpening),false,'Returning from the finished smile does not replay startup');
       await page.locator('.journey-step').nth(brushIndex).click();
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='brush'&&Math.abs(s.renderProgress-s.storyProgress)<.00002;});
       assert.deepEqual(errors,[]);

@@ -74,6 +74,40 @@
 .full-arch-focus-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .full-arch-anatomy-toggle[aria-pressed="true"] { background: #286175; }
 
+.full-arch-focus-nav {
+  display: grid;
+  grid-template-columns: max-content minmax(0, auto);
+  justify-content: start;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.full-arch-focus-steps {
+  display: flex;
+  border: 1px solid var(--control-line);
+  border-radius: 999px;
+  background: var(--control-surface);
+}
+.full-arch-focus-nav button {
+  min-height: 44px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.full-arch-focus-steps button {
+  padding-inline: 10px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+}
+.full-arch-focus-steps button:hover:not(:disabled) { background: #f9fdff; }
+.full-arch-focus-steps button:disabled { opacity: .48; cursor: default; }
+.full-arch-focus-steps span { font-size: 15px; line-height: 0; }
+.full-arch-focus-continue { line-height: 1.2; text-align: left; }
+.full-arch-focus-continue:hover:not(:disabled) { text-decoration: underline; }
+
 #journey-stage[data-dental-atlas="detail"] .journey-copy {
   top: clamp(74px, 23%, 225px) !important;
   opacity: 1 !important;
@@ -138,4 +172,7 @@
 @media (max-width: 370px) {
   .full-arch-focus-actions { column-gap: 5px; }
   .full-arch-focus-actions > button { padding-inline: 8px; }
+  .full-arch-focus-nav { gap: 8px; }
+  .full-arch-focus-nav button { font-size: 11px; }
+  .full-arch-focus-steps button { padding-inline: 8px; }
 }

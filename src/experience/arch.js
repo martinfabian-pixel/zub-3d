@@ -84,10 +84,16 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   }));
   const arrivalTurn = new THREE.Matrix4(), rootPose = new THREE.Matrix4();
 
-  function setRootPose(item, neighbor, placement) {
+  function setRootPose(item, neighbor, placement, extraction) {
     rootPose.copy(item.seatedMatrix);
     const translation=rootPose.elements;
     if(item.upper)translation[13]-=closureCm;
+    if(extraction>0) {
+      const [x,y,z]=DENTAL_STORY.extractionOffset;
+      translation[12]+=x*extraction;
+      translation[13]+=y*extraction;
+      translation[14]+=z*extraction;
+    }
     if(neighbor&&sceneProgress>=DENTAL_STORY.neighbors[0]&&placement<1) {
       const remaining=1-placement;
       translation[12]+=neighbor.outward.x*remaining;
@@ -182,7 +188,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     closureCm=config.anatomy.smileClosureCm*Math.max(
       (1-smooth(...STORY_TIMING.assemblyClosure,sceneProgress))*smileWeight,
       smooth(...STORY_TIMING.finalClosure,sceneProgress));
-    const flying=floating?.update(sceneProgress,closureCm,profile.compact)>0;
+    const flying=state.openingFlight&&floating?.update(sceneProgress,closureCm,profile.compact)>0;
     const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
     crownMix.value=mix;
     smileBacking?.setCoverage(mix);
@@ -190,11 +196,13 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for (const [fdi,item] of teeth) {
       const hero=fdi===config.anatomy.hero,neighbor=neighbors.get(fdi);
       const placement=neighbor?sampleNeighborEntrance(sceneProgress,neighbor.order):1;
-      if(item.mesh&&!flying)setRootPose(item,neighbor,placement);
+      if(item.mesh&&!flying)setRootPose(item,neighbor,placement,hero?state.toothExtraction:0);
+      const assembly=state.openingFlight?flightReveal(sceneProgress,fdi)
+        :neighbor?state.assemblyNeighborReveal:state.assemblyReveal;
       const reveal=hero?1:Math.max(
         neighbor?smooth(0,.66,placement):0,
         item.upper?state.upperReveal:state.lowerReveal,
-        flightReveal(sceneProgress,fdi));
+        assembly);
       item.reveal=reveal;
       item.finish?.setReveal(mix===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {

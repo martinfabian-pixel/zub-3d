@@ -4,7 +4,7 @@ import { FINAL_SMILE_COPY, STORY_TIMING } from './story-config.js';
 // These are positions within the entire stage, never a separate text column.
 export const TYPE_COMPOSITIONS = Object.freeze({
   hero:      {desktop:[.067,.24,.36,70],mobile:[.06,.092,.66,32]},
-  assembly:  {desktop:[.067,.22,.27,57],mobile:[.06,.11,.72,32]},
+  assembly:  {desktop:[.067,.22,.34,57],mobile:[.06,.11,.72,32]},
   anatomy:   {desktop:[.067,.16,.30,62],mobile:[.06,.13,.62,32]},
   space:     {desktop:[.067,.22,.28,64],mobile:[.06,.165,.60,34]},
   plaque:    {desktop:[.067,.22,.29,64],mobile:[.06,.125,.64,33]},
@@ -39,11 +39,6 @@ export function sampleStageTypography(chapter,progress,{mobile=false,reducedMoti
   const outgoing=copy.end===1?1:smooth((copy.end-progress)/.004);
   let opacity=reducedMotion?1:Math.min(incoming,outgoing);
   if(!reducedMotion){
-    if(chapter.id==='assembly'){
-      const opening=smooth((progress-STORY_TIMING.flight[0])/.035);
-      const landing=smooth((progress-(STORY_TIMING.flight[1]-.038))/.04);
-      opacity*=1-.48*opening*(1-landing);
-    }
     if(chapter.id==='brush'&&copy===chapter)opacity*=smooth((STORY_TIMING.result[0]-progress)/.009);
     if(copy.phase==='result')opacity*=1-.75*smooth((progress-STORY_TIMING.result[1])/.018);
   }

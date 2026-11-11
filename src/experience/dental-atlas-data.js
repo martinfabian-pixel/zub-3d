@@ -26,3 +26,17 @@ export const DENTAL_ATLAS_GROUPS = QUADRANTS.map(({ digit, jaw, side, upper }) =
 }));
 
 export const DENTAL_ATLAS_TEETH = new Map(DENTAL_ATLAS_GROUPS.flatMap(({ teeth }) => teeth.map(tooth => [tooth.fdi, tooth])));
+
+// Traverse each arch from the patient's right to left. The ends stay on
+// their own arch; the FDI picker can still move between either jaw.
+const adjacent = new Map();
+for (const [right, left] of [[0, 1], [3, 2]]) {
+  const arch = [...DENTAL_ATLAS_GROUPS[right].teeth].reverse().concat(DENTAL_ATLAS_GROUPS[left].teeth);
+  arch.forEach(({ fdi }, i) => {
+    adjacent.set(fdi, { previous: arch[i - 1]?.fdi, next: arch[i + 1]?.fdi });
+  });
+}
+
+export function adjacentAtlasTooth(fdi, direction) {
+  return adjacent.get(fdi)?.[direction];
+}

@@ -19,9 +19,9 @@ export function createJourneyCamera({ timeline, alternateTimeline, config, camer
     if (disposed) return null;
     if (options?.reducedMotion !== undefined) reducedMotion = Boolean(options.reducedMotion);
     if (alternateTimeline && options?.alternateWeight !== undefined) alternateWeight=options.alternateWeight;
-    const active=alternateWeight===1 ? alternateTimeline : timeline;
+    const active=options?.timeline??(alternateWeight===1 ? alternateTimeline : timeline);
     active.sampleInto(pose, next, camera.aspect, reducedMotion);
-    if (alternateWeight>0 && alternateWeight<1) {
+    if (!options?.timeline && alternateWeight>0 && alternateWeight<1) {
       alternateTimeline.sampleInto(alternatePose,next,camera.aspect,reducedMotion);
       pose.position.lerp(alternatePose.position,alternateWeight);
       pose.target.lerp(alternatePose.target,alternateWeight);

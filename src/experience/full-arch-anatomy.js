@@ -224,11 +224,13 @@ function installCutaway(host, parts, shared) {
   let open=false;
   material.onBeforeCompile=function(shader,renderer){
     originalCompile.call(this,shader,renderer);
-    if(!open)return;
+    // Three shares one uniform table across a material's cached programs.
+    // Keep these bindings when the closed variant is the last one compiled.
     Object.assign(shader.uniforms,{
       atlasCutWeight:weight,atlasCutAxis:axis,atlasCutCenter:{value:parts.center},
       atlasCutHalf:{value:parts.halfSize},atlasCutMid:{value:parts.verticalMid},atlasCutSections:sections,atlasStoryLayer:layer,
     });
+    if(!open)return;
     shader.vertexShader=shader.vertexShader
       .replace('#include <common>','#include <common>\nvarying vec3 vAtlasCutPosition;')
       .replace('#include <begin_vertex>','#include <begin_vertex>\nvAtlasCutPosition = position;');

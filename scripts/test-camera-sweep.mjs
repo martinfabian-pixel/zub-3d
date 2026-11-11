@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Box3, Vector3, MathUtils } from 'three';
 import { experienceConfig } from '../src/experience/config.js';
-import { createStoryCameraConfig } from '../src/experience/story-camera.js';
+import { createOpeningCameraOptions, createStoryCameraConfig } from '../src/experience/story-camera.js';
 import { createTimeline } from '../src/experience/timeline.js';
 import { sampleReducedDentalStory } from '../src/experience/dental-story.js';
 import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
@@ -38,6 +38,8 @@ for (const compact of [false, true]) {
   const cameraOptions = composed.camera;
   const allLandmarks = { ...landmarks, ...composed.landmarks };
   const timeline = createTimeline({ landmarks: allLandmarks, cameraOptions });
+  const openingOptions = createOpeningCameraOptions(experienceConfig, { compact });
+  const opening = createTimeline({ landmarks, cameraOptions: openingOptions });
   const baselineOptions = { ...cameraOptions, keyframes: cameraOptions.keyframes.filter(frame => !frame.key.startsWith('brush-orbit-')) };
   const baseline = createTimeline({ landmarks: allLandmarks, cameraOptions: baselineOptions });
   const sample = progress => timeline.sample(progress, aspect);
@@ -45,8 +47,19 @@ for (const compact of [false, true]) {
   const hero = sample(chapterAt('hero')), anatomy = sample(chapterAt('anatomy'));
   assert.ok(atlas.target.distanceTo(hero.target) > 2, 'The camera leaves the full arch to frame the isolated tooth');
   assert.ok(atlas.target.distanceTo(sample(0).target) < 1e-8, 'The first settled screen frames the full arch');
+  assert.ok(openingOptions.keyframes.some(frame=>frame.key==='flight-arc') &&
+    !cameraOptions.keyframes.some(frame=>frame.key==='flight-arc'), 'Only the introductory camera follows the flight');
+  for (const [camera, progress] of [[opening, 0], [timeline, 1]]) {
+    const settled = camera.sample(progress, aspect);
+    assert.ok(atlas.target.distanceTo(settled.target) < 1e-8 && atlas.position.distanceTo(settled.position) < 1e-8,
+      'Completing or skipping the introduction and the closing smile all use the same camera');
+  }
   const isolated = sample(chapterAt('assembly'));
   assert.ok(hero.target.distanceTo(isolated.target) < 1e-8, 'Chapter two hands the isolated tooth to chapter three');
+  const approaching=[STORY_TIMING.atlas[1],.204,.263,chapterAt('assembly')].map(sample);
+  const scales=approaching.map(pose=>pose.opticalZoom/pose.position.distanceTo(pose.target));
+  assert.ok(scales.every((value,index)=>index===0||value>scales[index-1]),
+    'The apparent scale grows steadily across the approach on both sensor layouts');
   assert.ok(Math.abs(angleDifference(yaw(anatomy), yaw(hero))) > .05,
     'Anatomy turns the same hero tooth to show the cut');
   assert.notDeepEqual([anatomy.screenX, anatomy.screenY, anatomy.opticalZoom],

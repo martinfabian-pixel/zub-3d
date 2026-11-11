@@ -15,7 +15,7 @@ export function createInterface({config,section,stage,signal,navigate,navigation
   closingButton.addEventListener('click',()=>navigate(1),{signal});
   const modelButtons=['journey-hero-explore','journey-explore','journey-reset','journey-zoom-in','journey-zoom-out'].map(byId);
   let index=-1,liveReady=false,smallLayout,lastPhase,lastNavIndex,lastCopy,lastResult,currentProgress=0;
-  let wasExploring;
+  let lastExploreLabel;
   nav.replaceChildren();
   for(const [i,step] of steps.entries()) {
     const button=document.createElement('button');button.className='journey-step';button.type='button';button.dataset.progress=step.at;
@@ -49,7 +49,7 @@ export function createInterface({config,section,stage,signal,navigate,navigation
   const close=()=>help.close();
   byId('journey-close-help').addEventListener('click',close,{signal});byId('journey-help-done').addEventListener('click',close,{signal});
   help.addEventListener('click',event=>{if(event.target===help){const r=help.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)close();}},{signal});
-  function update({progress,ready,complete,exploring,finalView,compact,state,reducedMotion=false}) {
+  function update({progress,ready,complete,exploring,atlasFocused=false,finalView,compact,state,reducedMotion=false}) {
     const small=window.matchMedia('(max-width:700px)').matches;
     // Delayed assets and reduced-motion states use the actually rendered chapter.
     const active=state?.chapterIndex??0;
@@ -108,10 +108,11 @@ export function createInterface({config,section,stage,signal,navigate,navigation
     for(const name of ['smile','anatomy']){
       const button=byId('journey-view-'+name);button.disabled=!ready||!complete;button.setAttribute('aria-pressed',String(finalView===name));
     }
-    if(wasExploring!==exploring){
-      wasExploring=exploring;
+    const exploreLabel=exploring?(atlasFocused?'Ukončiť voľné 3D':'Pokračovať v príbehu'):'Voľné 3D';
+    if(lastExploreLabel!==exploreLabel){
+      lastExploreLabel=exploreLabel;
       freeExplore.setAttribute('aria-pressed',String(exploring));
-      freeExplore.textContent=exploring?'Pokračovať v príbehu':'Voľné 3D';
+      freeExplore.textContent=exploreLabel;
       freeExplore.classList.toggle('is-free',exploring);
     }
     byId('journey-orbit-hint').textContent=exploring?'Voľné 3D · otáčajte v oboch osiach · pinch alebo koliesko približuje':compact?'Ťah do strán otáča · zvislo pokračujete v príbehu':'Ťahaním otáčate · kolieskom pokračujete v príbehu';

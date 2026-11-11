@@ -11,7 +11,11 @@ assert.ok(camera.position.distanceTo(home)>.7);assert.ok(Math.abs(view.report().
 assert.ok(Math.abs(view.report().zoom-.8)<1e-4);
 const held=camera.position.clone();view.setStoryPose(pose);view.update(900);assert.ok(camera.position.distanceTo(held)<1e-4,'Same story sample must preserve the gesture');
 const changed={position:pose.position.clone().add(new Vector3(.1,.1,.3)),target:pose.target.clone().add(new Vector3(.1,.1,0))};
+const resizedReturn=view.poseWithOffsets(changed,view.captureDisplayed());
+assert.ok(camera.position.equals(held),'Sampling a return destination must not write the displayed camera');
 view.setStoryPose(changed);view.update(1000);assert.ok(Math.abs(view.report().zoom-.8)<1e-4,'Fit/resize must not reset user zoom');
+assert.ok(camera.position.distanceTo(resizedReturn.position)<1e-4&&view.target.distanceTo(resizedReturn.target)<1e-7,
+  'A resized atlas return lands on the same overview as restoring its saved offsets');
 view.orbit(Math.PI-.6,-.2,1001);for(let t=1016;t<=1800;t+=16)view.update(t);
 view.reset(1801);let min=Infinity;for(let t=1801;t<2300;t+=8){view.update(t);min=Math.min(min,camera.position.distanceTo(view.target));}
 assert.ok(min>2,'Returning from the opposite side must not cross the focus');assert.equal(view.active,false);assert.ok(camera.position.distanceTo(changed.position)<1e-7);

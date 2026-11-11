@@ -71,7 +71,7 @@ function visitLandmark(source, precise, emit) {
   });
 }
 
-function measure(source, stage, direction, targetOffset) {
+function measure(source, stage, direction, targetOffset, landmarkOffset) {
   const box = new Box3(), points = [];
   visitLandmark(source, stage === 'hero' || stage === 'neighbors', (point) => {
     if (!Number.isFinite(point.x) || !Number.isFinite(point.y) || !Number.isFinite(point.z)) {
@@ -93,6 +93,9 @@ function measure(source, stage, direction, targetOffset) {
     projected[i + 1] = p.dot(vertical);
     projected[i + 2] = p.dot(direction);
   }
+  // The extracted tooth is translated as a whole. Its local fit stays the
+  // same; only the resulting camera target follows the translated landmark.
+  if (landmarkOffset) target.add(new Vector3().fromArray(landmarkOffset));
   return { target, offset, projected, right, vertical, direction };
 }
 
@@ -157,7 +160,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
   let measured, xyz, logDistance, screenTracks, lastAspect;
 
   function refreshLandmarks() {
-    measured = frames.map((frame,i)=>measure(landmarks[frame.landmark??frame.key],frame.precise===false?'bounds':frame.landmark??frame.key,dirs[i],frame.targetOffset??cameraOptions.targetOffsets?.[frame.key]??[0,0,0]));
+    measured = frames.map((frame,i)=>measure(landmarks[frame.landmark??frame.key],frame.precise===false?'bounds':frame.landmark??frame.key,dirs[i],frame.targetOffset??cameraOptions.targetOffsets?.[frame.key]??[0,0,0],frame.landmarkOffset));
     lastAspect = undefined;
   }
 

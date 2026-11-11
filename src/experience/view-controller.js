@@ -3,6 +3,12 @@ import { createInspectionReturn } from './inspection.js';
 
 const shortest=a=>Math.atan2(Math.sin(a),Math.cos(a));
 const offsetKeys=['yaw','pitch','zoom'];
+function writeOrbit(position,target,yaw,pitch,radius,delta){
+  yaw+=delta.yaw;
+  pitch=MathUtils.clamp(pitch+delta.pitch,-Math.PI/2+.04,Math.PI/2-.04);
+  const c=Math.cos(pitch);
+  return position.set(Math.sin(yaw)*c,Math.sin(pitch),Math.cos(yaw)*c).multiplyScalar(radius*Math.exp(delta.zoom)).add(target);
+}
 /** Sole writer of the displayed camera. The timeline only samples a base pose;
  * pointer/keyboard/wheel input changes offsets, never a competing camera rig.
  */
@@ -39,9 +45,7 @@ export function createViewController({camera,config}) {
     focusOffset.lerp(desiredFocus,a);
     if(focusOffset.distanceToSquared(desiredFocus)<1e-10)focusOffset.copy(desiredFocus);else moving=true;
     target.copy(baseTarget).add(focusOffset);
-    const pitch=MathUtils.clamp(basePitch+current.pitch,-Math.PI/2+.04,Math.PI/2-.04),yaw=baseYaw+current.yaw;
-    const radius=baseRadius*Math.exp(current.zoom),c=Math.cos(pitch);
-    camera.position.set(Math.sin(yaw)*c,Math.sin(pitch),Math.cos(yaw)*c).multiplyScalar(radius).add(target);
+    writeOrbit(camera.position,target,baseYaw,basePitch,baseRadius,current);
     camera.lookAt(target);camera.updateMatrixWorld(true);return moving;
   }
   return {
@@ -69,6 +73,12 @@ export function createViewController({camera,config}) {
       spherical.setFromVector3(offset.subVectors(camera.position,target));
       return {yaw:shortest(spherical.theta-baseYaw),pitch:Math.PI/2-spherical.phi-basePitch,
         zoom:Math.log(spherical.radius/baseRadius),focus:offset.subVectors(target,baseTarget).toArray()};
+    },
+    poseWithOffsets(pose,snapshot){
+      spherical.setFromVector3(offset.subVectors(pose.position,pose.target));
+      const focus=pose.target.clone().add(offset.fromArray(snapshot.focus));
+      const position=writeOrbit(new Vector3(),focus,spherical.theta,Math.PI/2-spherical.phi,spherical.radius,snapshot);
+      return {...pose,position,target:focus};
     },
     restore(snapshot,{instant=false}={}){
       if(!valid||!snapshot)return;
