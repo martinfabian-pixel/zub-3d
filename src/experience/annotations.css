@@ -18,7 +18,7 @@
   stroke: rgb(72 100 120 / 13%);
   stroke-width: .75;
 }
-#journey-annotations [data-annotation-id] {
+:is(#journey-annotations, #healthy-anatomy) [data-annotation-id] {
   position: absolute;
   left: 0;
   top: 0;
@@ -41,7 +41,32 @@
   text-align: center;
   white-space: normal;
 }
-#journey-annotations .annotation-copy { text-wrap: balance; }
+:is(#journey-annotations, #healthy-anatomy) .annotation-copy { text-wrap: balance; }
+#healthy-anatomy [data-anatomy-annotation] {
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid rgb(79 112 128 / 17%);
+  background: rgb(245 252 255 / 94%);
+  box-shadow: 0 2px 8px rgb(47 78 99 / 8%);
+  font-size: 12px;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+#healthy-anatomy [data-anatomy-annotation][data-active] {
+  border-color: rgb(56 101 121 / 33%);
+  background: #f8fcfe;
+}
+#healthy-anatomy [data-anatomy-annotation][aria-pressed="true"] {
+  border-color: rgb(56 101 121 / 48%);
+  background: #e3f2f8;
+}
+#healthy-anatomy [data-anatomy-annotation]:focus-visible {
+  outline: 2px solid var(--accent, #173e50);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  #healthy-anatomy [data-anatomy-annotation]:hover { border-color: #6d9bac; }
+}
 #journey-annotations [data-annotation-id="space"] .annotation-copy { max-width: 89px; }
 #journey-annotations [data-annotation-id="cleaned"] {
   color: #315c4e;
@@ -59,7 +84,9 @@
   border-width: 0 1.5px 1.5px 0;
   transform: rotate(45deg);
 }
-#journey-annotations [hidden] { display: none; }
+#journey-annotations [hidden],
+#healthy-anatomy [data-anatomy-annotation][hidden],
+#journey-annotations[hidden] ~ #healthy-anatomy [data-anatomy-annotation] { display: none; }
 .journey-annotation-description {
   position: absolute;
   width: 1px;
@@ -77,4 +104,5 @@
   }
   #journey-annotations [data-annotation-id="space"] .annotation-copy { max-width: 82px; }
   #journey-annotations [data-annotation-id="cleaned"] .annotation-copy { max-width: 71px; }
+  #healthy-anatomy [data-anatomy-annotation] { min-height: 32px; padding: 4px 8px; font-size: 11px; }
 }

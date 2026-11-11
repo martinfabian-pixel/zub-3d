@@ -1,5 +1,5 @@
 import './healthy-anatomy-ui.css';
-import { anatomyLayers } from './story-anatomy.js';
+import { anatomyLayers, anatomyMax } from './story-anatomy.js';
 
 const layers = {
   whole: { name: 'Celý zub', text: 'Korunka a dva korene zdravej dolnej stoličky.' },
@@ -8,7 +8,7 @@ const layers = {
   pulp: { name: 'Dreň', text: 'Mäkké tkanivo s cievami a nervami v komore a koreňových kanálikoch.' },
 };
 
-export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCount, onSelect, onFollow }) {
+export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCount, onSelect, onScrub, onFollow }) {
   const doc = stage.ownerDocument;
   const anatomy = doc.createElement('section');
   anatomy.id = 'healthy-anatomy';
@@ -22,6 +22,10 @@ export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCo
       <h2 id="healthy-anatomy-title">Stavba zdravého zuba.</h2>
       <p class="healthy-anatomy-description" aria-live="polite" aria-atomic="true"></p>
       <div class="healthy-anatomy-layers" role="group" aria-label="Vrstvy zuba"></div>
+      <div class="healthy-anatomy-scrub">
+        <label for="healthy-anatomy-reveal">Odkryť zub</label>
+        <input id="healthy-anatomy-reveal" type="range" min="0" max="${anatomyMax}" step="0.01" value="0" aria-valuetext="Celý zub">
+      </div>
       <button type="button" class="healthy-anatomy-follow" hidden>Vrstvy podľa posunu</button>
     </div>`;
   stage.append(anatomy);
@@ -31,6 +35,7 @@ export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCo
   const layerCopy = doc.createTextNode('');
   description.append(name, layerCopy);
   const layerGroup = anatomy.querySelector('.healthy-anatomy-layers');
+  const slider = anatomy.querySelector('#healthy-anatomy-reveal');
   const follow = anatomy.querySelector('.healthy-anatomy-follow');
   const items = new Map();
 
@@ -45,25 +50,41 @@ export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCo
     layerGroup.append(control);
     items.set(id, control);
   }
+  slider.addEventListener('input', () => onScrub(slider.valueAsNumber), { signal });
   follow.addEventListener('click', () => {
     onFollow();
-    items.get(selected)?.focus({ preventScroll: true });
+    slider.focus({ preventScroll: true });
   }, { signal });
 
-  let selected;
+  let selected, explained, shownAmount;
   return {
-    update({ active, layer, manual }) {
+    update({ active, layer, preset, amount, manual }) {
       if (anatomy.hidden === active) {
         anatomy.hidden = !active;
         stage.toggleAttribute('data-healthy-anatomy', active);
       }
       if (!active) return;
       if (follow.hidden === manual) follow.hidden = !manual;
-      if (selected === layer) return;
-      selected = layer;
-      name.textContent = layers[layer].name;
-      layerCopy.data = ' ' + layers[layer].text;
-      for (const [id, control] of items) control.setAttribute('aria-pressed', String(id === layer));
+      const sliderAmount = Math.round(amount * 100) / 100;
+      if (shownAmount !== sliderAmount) {
+        shownAmount = sliderAmount;
+        if (slider.valueAsNumber !== sliderAmount) slider.valueAsNumber = sliderAmount;
+        const from = Math.floor(sliderAmount), to = Math.ceil(sliderAmount);
+        const start = layers[anatomyLayers[from]].name;
+        const value = from === to ? start
+          : `${start} – ${layers[anatomyLayers[to]].name}, ${Math.round((sliderAmount - from) * 100)} % prechodu`;
+        slider.setAttribute('aria-valuetext', value);
+        slider.style.setProperty('--reveal-progress', `${sliderAmount * 100 / anatomyMax}%`);
+      }
+      if (explained !== layer) {
+        explained = layer;
+        name.textContent = layers[layer].name;
+        layerCopy.data = ' ' + layers[layer].text;
+      }
+      if (selected !== preset) {
+        selected = preset;
+        for (const [id, control] of items) control.setAttribute('aria-pressed', String(id === preset));
+      }
     },
     dispose() {
       stage.removeAttribute('data-healthy-anatomy');

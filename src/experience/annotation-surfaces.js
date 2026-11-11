@@ -72,13 +72,13 @@ export function anchorWorld(anchor,arch,out) {
 
 // The broad-phase bounds are built once. Only intersected buckets require
 // exact triangle tests, even during an orbit.
-function buildBuckets(g) {
+export function buildTriangleBuckets(g) {
   const p=g.attributes.position,index=g.index;
   if(!g.boundingBox)g.computeBoundingBox();
   const min=g.boundingBox.min,span=g.boundingBox.getSize(new Vector3());
   const scale=11/Math.max(span.x,span.y,span.z),bins=new Map();
-  for(let f=0;f<index.count;f+=3) {
-    const ia=index.getX(f),ib=index.getX(f+1),ic=index.getX(f+2);
+  for(let f=0;f<(index?.count??p.count);f+=3) {
+    const ia=index?index.getX(f):f,ib=index?index.getX(f+1):f+1,ic=index?index.getX(f+2):f+2;
     a.fromBufferAttribute(p,ia);b.fromBufferAttribute(p,ib);c.fromBufferAttribute(p,ic);
     point.copy(a).add(b).add(c).multiplyScalar(1/3).sub(min).multiplyScalar(scale);
     const key=Math.floor(point.x)+16*Math.floor(point.y)+256*Math.floor(point.z);
@@ -108,7 +108,7 @@ export function createVisibilityTest(arch) {
       const distance=ray.origin.distanceToSquared(end);
       ray.direction.copy(end).sub(ray.origin).normalize();
       if(!ray.intersectsBox(g.boundingBox))continue;
-      if(!cache.has(g))cache.set(g,buildBuckets(g));
+      if(!cache.has(g))cache.set(g,buildTriangleBuckets(g));
       for(const bin of cache.get(g)) {
         if(!ray.intersectsBox(bin.box))continue;
         for(const f of bin.faces) {

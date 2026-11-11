@@ -49,11 +49,33 @@ async function assertPulpVisible(page) {
   assert.ok(coverage > .0012, 'The rendered cut visibly exposes the warm red pulp: ' + coverage);
 }
 
+async function dragSlider(context, page, slider, from, to, mobile, cancel = false) {
+  const bounds = await slider.boundingBox();
+  const x = t => bounds.x + bounds.width * t, y = bounds.y + bounds.height / 2;
+  if (!mobile) {
+    await page.mouse.move(x(from), y);
+    await page.mouse.down();
+    try { await page.mouse.move(x(to), y, { steps: 12 }); }
+    finally { await page.mouse.up(); }
+    return;
+  }
+  const input = await context.newCDPSession(page);
+  const touch = (type, t) => input.send('Input.dispatchTouchEvent', {
+    type, touchPoints: t === undefined ? [] : [{ x: x(t), y, id: 0 }],
+  });
+  try {
+    await touch('touchStart', from);
+    for (let i = 1; i <= 8; ++i) await touch('touchMove', from + (to - from) * i / 8);
+    await touch(cancel ? 'touchCancel' : 'touchEnd');
+  } finally { await input.detach(); }
+}
+
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
   for (const { width, height, mobile, reduced, fitOnly } of cases) {
     const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile,
       deviceScaleFactor: mobile ? 2 : 1, reducedMotion: reduced ? 'reduce' : 'no-preference' });
+    let releaseSite;
     try {
       const page = await context.newPage(), errors = [], cavityRequests = [];
       page.on('pageerror', error => errors.push(error.message));
@@ -82,10 +104,18 @@ try {
       });
 
       const startup = page.locator('#journey-startup');
-      let releaseHero;
+      let releaseHero, siteHeld = false;
       if (width === 390) {
         const gate = new Promise(resolve => { releaseHero = resolve; });
         await page.route('**/dentition-assets/hero-36*.glb*', async route => { await gate; await route.continue(); });
+      }
+      if (width === 390 && !reduced) {
+        const gate = new Promise(resolve => { releaseSite = resolve; });
+        await page.route('**/story-assets/site.json*', async route => {
+          siteHeld = true;
+          await gate;
+          if (!page.isClosed()) await route.continue();
+        });
       }
       try {
         await page.goto(url.href, { waitUntil: 'domcontentloaded' });
@@ -108,7 +138,6 @@ try {
               'Each startup revolution is slower than the previous one');
             await wait(frame => getComputedStyle(document.querySelector('.startup-tooth')).backgroundPositionX !== frame, spin.frame);
           }
-          if (screenshotDir && !reduced) await page.screenshot({ path: join(screenshotDir, width + '-nacitavanie-zuba.png') });
         }
       } finally { releaseHero?.(); }
       await wait(() => window.__dentalExperience?.report().ready, null, 90000);
@@ -119,12 +148,17 @@ try {
       const initial = await inspectTooth();
       assert.ok(!initial.lesion && (await report()).crownMix === 1, 'The first lesson opens on crowns and retains the intact native FDI 36');
 
-      await ready();
+      if (!releaseSite) await ready();
       await activate(page.locator('.journey-step').nth(DENTAL_CHAPTERS.indexOf(anatomy)));
       await at(anatomy.at, anatomy.id);
       await expectLayer('pulp', false);
       const plate = page.locator('#healthy-anatomy');
       await plate.waitFor({ state: 'visible' });
+      const slider = plate.getByRole('slider', { name: 'Odkryť zub' });
+      assert.ok(await slider.evaluate(input => {
+        const rect = input.getBoundingClientRect();
+        return [.15, .5, .93].every(t => document.elementFromPoint(rect.left + rect.width * t, rect.top + rect.height / 2) === input);
+      }), 'The full slider track is reachable on the current viewport');
       assert.equal(await page.locator('.journey-step').nth(3).getAttribute('aria-current'), 'step');
       assert.equal(await page.getByRole('button', { name: /pozrieť sa na kaz/i }).count(), 0);
       assert.equal(await page.locator('canvas').count(), 1);
@@ -133,6 +167,13 @@ try {
       assert.ok(cut.visible && !cut.lesion);
       assert.ok((await report()).healthyAnatomy.cut > 0 && (await report()).drawCalls > 0);
       await assertPulpVisible(page);
+      if (releaseSite) {
+        await wait(() => window.__dentalExperience.report().annotations.anatomyLabels.some(label => label.visible));
+        assert.equal(siteHeld, true, 'The teaching data request is being held');
+        assert.equal((await report()).assetsReady, false, 'Healthy layer labels work while the cleaning assets are still held');
+        releaseSite();
+        await ready();
+      }
       const labels = plate.locator(layerSelector);
       assert.equal(await labels.count(), 4);
       assert.match(await labels.nth(0).innerText(), /celý zub/i);
@@ -160,30 +201,103 @@ try {
           assert.ok(samples.some(value => value > .02 && value < .98), 'Manual layer selection visibly animates');
         }
         assert.equal(await button.getAttribute('aria-pressed'), 'true');
+        assert.equal(Number(await slider.inputValue()), i, 'The preset and slider share the same displayed amount');
         captions.add(await plate.locator('.healthy-anatomy-description').innerText());
         assert.deepEqual(await inspectTooth(), cut, 'Changing material layers does not move or replace the host mesh');
         const bounds = await button.boundingBox();
         assert.ok(bounds && bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= width + 1
           && bounds.y + bounds.height <= height + 1, 'Each layer control fits in the viewport');
-        if (screenshotDir && !reduced && layer !== 'enamel') {
-          await page.screenshot({ path: join(screenshotDir, width + '-anatomia-' + layer + '.png'), scale: 'css' });
-        }
       }
       await assertPulpVisible(page);
       assert.equal(captions.size, 4, 'Each layer provides its own teaching caption');
       assert.equal((await report()).shaderErrors, 0);
       if (!fitOnly) {
+        const amountBetween = (low, high) => wait(({ low, high }) => {
+          const state = window.__dentalExperience.report().healthyAnatomy;
+          return state.manual && !state.moving && state.amount >= low && state.amount <= high;
+        }, { low, high });
+        const selectPoint = ([x, y]) => mobile ? page.touchscreen.tap(x, y) : page.mouse.click(x, y);
+        const visibleLayer = id => wait(id => window.__dentalExperience.report().annotations.anatomyLabels.some(label => label.id === id && label.visible), id);
+        const pointFor = async id => {
+          await visibleLayer(id);
+          return (await report()).annotations.anatomyLabels.find(label => label.id === id).point;
+        };
+        const sameCamera = async (before, message) => {
+          const after = await cameraProbe(page);
+          assert.ok(angular(before.quat, after.quat) < .01 && distance(before.pos, after.pos) < .02, message);
+        };
+        const startCamera = await cameraProbe(page);
+        await slider.press('Home');
+        await amountBetween(0, 0);
+        await slider.press('ArrowRight');
+        await amountBetween(.009, .011);
+        await slider.press('Home');
+        await amountBetween(0, 0);
+        const nativeScroll = await page.evaluate(() => scrollY);
+        await dragSlider(context, page, slider, .04, .64, mobile);
+        await amountBetween(1.6, 2.2);
+        assert.equal(await plate.locator('[data-layer="dentin"]').getAttribute('aria-pressed'), 'true');
+        assert.match(await slider.getAttribute('aria-valuetext'), /dentín/i);
+        assert.equal(await page.evaluate(() => scrollY), nativeScroll, 'Dragging the range does not scroll the page');
+        const partial = (await report()).healthyAnatomy.amount;
+        await page.waitForTimeout(100);
+        assert.equal((await report()).healthyAnatomy.amount, partial, 'The scrubbed intermediate pose stays put');
+        if (screenshotDir && !mobile && !reduced) {
+          await visibleLayer('dentin');
+          await slider.blur();
+          await page.screenshot({ path: join(screenshotDir, 'odkryvanie-desktop.png'), scale: 'css' });
+        }
+        await dragSlider(context, page, slider, .64, .29, mobile);
+        await amountBetween(.5, 1.15);
+        if (mobile) await dragSlider(context, page, slider, .29, .43, mobile, true);
+        assert.equal(await page.evaluate(() => scrollY), nativeScroll, 'Reverse scrub and canceled touch do not scroll the page');
+        await slider.press('End');
+        await amountBetween(3, 3);
+        const pulpPoint = await pointFor('pulp');
+        await selectPoint(pulpPoint);
+        await wait(() => window.__dentalExperience.report().healthyAnatomy.highlight === 'pulp');
+        assert.equal((await report()).healthyAnatomy.amount, 3, 'Picking a visible surface keeps its disclosure amount');
+        await sameCamera(startCamera, 'Scrubbing and tapping the model keep the camera position');
+        if (!mobile) {
+          await visibleLayer('dentin');
+          await activate(plate.getByRole('button', { name: 'Preskúmať dentín' }));
+          await wait(() => {
+            const anatomy = window.__dentalExperience.report().healthyAnatomy;
+            return anatomy.layer === 'dentin' && anatomy.preset === 'pulp' && anatomy.highlight === 'dentin';
+          });
+        }
+        await activate(plate.getByRole('button', { name: 'Preskúmať dreň' }));
+        await wait(() => window.__dentalExperience.report().healthyAnatomy.highlight === 'pulp');
+        assert.equal((await report()).healthyAnatomy.amount, 3);
+        await sameCamera(startCamera, 'Clicking a layer label does not move the camera');
+        if (screenshotDir && mobile && !reduced) {
+          await page.screenshot({ path: join(screenshotDir, 'odkryvanie-mobile.png'), scale: 'css' });
+        }
+        await slider.press('Home');
+        await amountBetween(0, 0);
+        await selectPoint(pulpPoint);
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        assert.notEqual((await report()).healthyAnatomy.highlight, 'pulp', 'An occluded pulp surface cannot be picked through enamel');
+        assert.equal((await report()).annotations.anatomyLabels.filter(label => label.visible).length, 0);
+        await slider.press('End');
+        await amountBetween(3, 3);
+        const oldAnchor = await pointFor('pulp');
+        const beforeModelDrag = (await report()).healthyAnatomy.highlight;
         const beforeDrag = await cameraProbe(page);
         if (mobile) await touchDrag(context, page, 70, 0);
         else await mouseDrag(page, 70, 25);
         const afterDrag = await cameraProbe(page);
         assert.ok(angular(beforeDrag.quat, afterDrag.quat) > .05, 'The same cutaway remains freely rotatable');
         await expectLayer('pulp', true);
+        assert.equal((await report()).healthyAnatomy.highlight, beforeModelDrag, 'A model drag never picks the surface at release');
+        const newAnchor = await pointFor('pulp');
+        assert.ok(distance(oldAnchor, newAnchor) > 2, 'Layer leaders follow the changed camera');
         await activate(page.locator('#journey-zoom-in'));
         await wait(() => {
           const view = window.__dentalExperience.report().view;
           return Math.abs(view.zoom - view.desiredZoom) < .002 && Math.abs(view.yaw - view.desiredYaw) < .002;
         });
+        assert.ok(distance(newAnchor, await pointFor('pulp')) > 1, 'Layer leaders follow the camera zoom');
         const beforeLayerChange = await cameraProbe(page);
         await activate(plate.locator(layerSelector + '[data-layer="dentin"]'));
         await expectLayer('dentin', true);
@@ -228,11 +342,17 @@ try {
           await seek(checkpoints.at(-1)[0], 'anatomy');
           await expectLayer('pulp', false);
         }
+        await slider.press('Home');
+        await slider.press('End');
+        await amountBetween(3, 3);
         await activate(page.locator('#journey-mobile-next'));
         await at(chapter('space').at, 'space');
         const spaced = await report();
         assert.equal(spaced.healthyAnatomy.active, false);
+        assert.equal(spaced.healthyAnatomy.manual, false);
         assert.equal(spaced.healthyAnatomy.cut, 0);
+        assert.equal(spaced.healthyAnatomy.highlight, null);
+        assert.equal(spaced.annotations.anatomyLabels.filter(label => label.visible).length, 0);
         assert.deepEqual(spaced.fullyVisibleTeeth, [35, 36, 37], 'Only the three teaching teeth remain after the anatomy closes');
         if (!reduced) {
           const [start, end] = DENTAL_STORY.neighbors;
@@ -262,6 +382,6 @@ try {
       assert.deepEqual(cavityRequests, [], 'The old cavity asset is never requested');
       assert.deepEqual(errors, []);
       console.log('Healthy anatomy passed: ' + width + '×' + height + ', ' + (reduced ? 'reduced motion' : 'normal motion'));
-    } finally { await context.close(); }
+    } finally { releaseSite?.(); await context.close(); }
   }
 } finally { await browser.close(); }

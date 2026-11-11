@@ -171,4 +171,41 @@ anatomyController.follow(801);
 assert.equal(atLayer(chapter('anatomy').at, 801, true).amount, 3);
 assert.equal(atLayer(chapter('space').at, 802).manual, false);
 
+const anatomyAt = chapter('anatomy').at;
+atLayer(anatomyAt, 900);
+for (const level of [0, .24, .67, 1, 1.64, 2, 2.82, 3, 2.39, 1.27, .42, 0]) {
+  anatomyController.scrub(level);
+  const state = atLayer(anatomyAt, 900);
+  eq(state.amount, level, 'Scrubbing renders fractional amounts immediately in both directions');
+  eq(state.cut, Math.min(1, level), 'Scrubbing keeps amount and cut together');
+  assert.equal(state.preset, layers[Math.round(level)][1]);
+  assert.ok(state.manual && !state.moving);
+}
+anatomyController.scrub(2.36);
+const exposed = atLayer(anatomyAt, 902);
+anatomyController.inspect('enamel');
+const inspected = atLayer(anatomyAt, 903);
+assert.equal(inspected.layer, 'enamel');
+assert.equal(inspected.highlight, 'enamel');
+assert.equal(inspected.preset, 'dentin');
+eq(inspected.amount, exposed.amount, 'Inspecting a visible layer leaves the slider unchanged');
+eq(inspected.cut, exposed.cut, 'Inspecting a visible layer leaves the cut unchanged');
+anatomyController.follow(910);
+const handedBack = atLayer(anatomyAt, 910);
+eq(handedBack.amount, exposed.amount, 'Returning to scroll starts from the displayed section');
+assert.ok(!handedBack.manual && handedBack.moving && handedBack.highlight === null);
+assert.equal(atLayer(anatomyAt, 1370).amount, 3);
+anatomyController.inspect('pulp');
+assert.equal(atLayer(STORY_TIMING.anatomy.close[0] + .002, 1380).highlight, 'pulp',
+  'Inspection persists through a moving reveal while the layer can remain visible');
+assert.equal(atLayer(closingAt, 1390).highlight, null, 'Inspection clears when the selected pulp is covered');
+atLayer(closingAt, 1400);
+anatomyController.scrub(3);
+assert.equal(atLayer(closingAt, 1400).amount, 3, 'The full range remains usable on the closing beat');
+const almostClosed = atLayer((closingAt + STORY_TIMING.anatomy.close[1]) / 2, 1410);
+assert.ok(almostClosed.cut > 0 && almostClosed.cut < 1, 'Scroll can still close a manually reopened section');
+const afterChapter = atLayer(chapter('brush').at, 1500);
+assert.deepEqual([afterChapter.amount, afterChapter.cut, afterChapter.highlight, afterChapter.manual], [0, 0, null, false]);
+assert.equal(atLayer(anatomyAt, 1510).manual, false, 'A direct return reconstructs the guided section');
+
 console.log('Dental story: seven chapters, independent opening and closing smiles, anatomy layers and reverse/jump checks passed.');

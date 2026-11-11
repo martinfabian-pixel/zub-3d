@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createDentinSectionGeometry } from './exploded-tooth-parts.js';
+import { createLayerAnchorCandidates, createLayerSurfaceProbe } from './anatomy-layer-surfaces.js';
+import { storyPulpPickable, storyPulpReveal } from './story-anatomy.js';
 
 // The original Dundee assets supply only the exterior. These shapes are an
 // educational approximation, derived separately for each source tooth. They
@@ -190,6 +192,43 @@ function prepareInterior(item) {
 }
 
 const SECTION_COUNT=12;
+const ENAMEL_CERVICAL_HEIGHT=.00045;
+
+// Mirror the cutaway fragment discard for actual visible-surface picking.
+// The same fitted section uniforms are used for the exterior and dentin.
+function sectionDiscards(point,front,parts,{weight,layer,axis,sections},nested) {
+  if(!weight.value)return false;
+  const {clamp,lerp,smoothstep}=THREE.MathUtils;
+  const {center,halfSize:half,verticalMid}=parts;
+  const {x:axisX,y:axisZ}=axis.value;
+  const width=Math.hypot(half.x*axisZ,half.z*axisX);
+  const thickness=Math.hypot(half.x*axisX,half.z*axisZ);
+  const open=smoothstep(weight.value,0,1);
+  const band=clamp((point.y-verticalMid)/(half.y*2)+.5,0,1)*(SECTION_COUNT-1);
+  const low=Math.floor(band),t=band-low;
+  const a=sections.value[low],b=sections.value[Math.min(low+1,SECTION_COUNT-1)];
+  const across=lerp(center.x*axisZ-center.z*axisX,lerp(a.x,b.x,t),open);
+  const depth=lerp(center.x*axisX+center.z*axisZ,lerp(a.z,b.z,t),open);
+  const lesson=layer.value>=.00001;
+  const dentin=smoothstep(layer.value,1,2);
+  const whole=verticalMid+half.y*.015,crown=center.y+half.y*.18;
+  const rise=lerp(center.y,lesson?lerp(crown,whole,dentin):whole,open);
+  const span=lerp(width,Math.max(width*.11,lerp(a.y,b.y,t)),open);
+  let u=Math.abs(point.x*axisZ-point.z*axisX-across)/(span*lerp(.06,lesson?lerp(.58,.88,dentin):.88,open));
+  let v=Math.abs(point.y-rise)/(half.y*lerp(.045,lesson?lerp(.34,.88,dentin):.88,open));
+  let window=u*u+v**5;
+  const depthSpan=lerp(thickness,Math.max(thickness*.11,lerp(a.w,b.w,t)),open);
+  const cutDepth=(point.x*axisX+point.z*axisZ-depth)/depthSpan;
+  let boundary=lerp(1.02,lesson?lerp(.12,-.33,dentin):-.33,open);
+  if(nested) {
+    if(window>1.04)return true;
+    const pulp=smoothstep(layer.value,2,3);
+    u/=lerp(.14,.75,pulp);v/=lerp(.18,.92,pulp);
+    window=u*u+v**5;
+    boundary=lerp(1.03,-.34,pulp);
+  }
+  return front&&window<1&&cutDepth>boundary;
+}
 
 function fitSections(position, { halfSize,verticalMid }, axis, sections) {
   // Each band records the outside scan's projection. This keeps a small rim
@@ -214,13 +253,15 @@ function fitSections(position, { halfSize,verticalMid }, axis, sections) {
   for(const band of sections)band.set((band.x+band.y)*.5,(band.y-band.x)*.5,(band.z+band.w)*.5,(band.w-band.z)*.5);
 }
 
-function installCutaway(host, parts, shared) {
+function installCutaway(host, parts, shared, lesson=false) {
   const material=host.material;
   const originalCompile=material.onBeforeCompile, originalKey=material.customProgramCacheKey;
   const key=originalKey.call(material), originalSide=material.side;
   const weight=shared?.weight??{value:0}, layer=shared?.layer??{value:0};
   const axis=shared?.axis??{value:new THREE.Vector2(0,1)};
   const sections=shared?.sections??{value:Array.from({length:SECTION_COUNT},()=>new THREE.Vector4())};
+  const highlight={value:0};
+  const uniforms={weight,layer,axis,sections};
   let open=false;
   material.onBeforeCompile=function(shader,renderer){
     originalCompile.call(this,shader,renderer);
@@ -229,14 +270,25 @@ function installCutaway(host, parts, shared) {
     Object.assign(shader.uniforms,{
       atlasCutWeight:weight,atlasCutAxis:axis,atlasCutCenter:{value:parts.center},
       atlasCutHalf:{value:parts.halfSize},atlasCutMid:{value:parts.verticalMid},atlasCutSections:sections,atlasStoryLayer:layer,
+      atlasLayerHighlight:highlight,
     });
-    if(!open)return;
+    if(!open&&!lesson)return;
     shader.vertexShader=shader.vertexShader
       .replace('#include <common>','#include <common>\nvarying vec3 vAtlasCutPosition;')
       .replace('#include <begin_vertex>','#include <begin_vertex>\nvAtlasCutPosition = position;');
     shader.fragmentShader=shader.fragmentShader
+      .replace('#include <common>','#include <common>\nvarying vec3 vAtlasCutPosition;');
+    if(lesson){
+      shader.fragmentShader=shader.fragmentShader
+        .replace('#include <common>','#include <common>\nuniform float atlasLayerHighlight;')
+        .replace('#include <opaque_fragment>',`
+          float selectedTissue = atlasLayerHighlight * ${shared?'1.0':`(gl_FrontFacing ? smoothstep(${ENAMEL_CERVICAL_HEIGHT}, 0.0014, vAtlasCutPosition.y) : 0.0)`};
+          outgoingLight = mix(outgoingLight, outgoingLight * vec3(0.87, 0.98, 1.075) + vec3(0.012, 0.023, 0.036), selectedTissue);
+          #include <opaque_fragment>`);
+    }
+    if(!open)return;
+    shader.fragmentShader=shader.fragmentShader
       .replace('#include <common>',`#include <common>
-        varying vec3 vAtlasCutPosition;
         uniform float atlasCutWeight;
         uniform vec2 atlasCutAxis;
         uniform vec3 atlasCutCenter;
@@ -308,9 +360,11 @@ function installCutaway(host, parts, shared) {
         }
         #include <opaque_fragment>`);
   };
-  material.customProgramCacheKey=()=>open?`${key}-atlas-cutaway-v3-${shared?'dentin':'outer'}`:key;
+  material.customProgramCacheKey=()=>open?`${key}-atlas-cutaway-v4-${shared?'dentin':'outer'}-${lesson}`
+    :lesson?`${key}-atlas-enamel-highlight`:key;
   return {
-    weight, layer, axis, sections,
+    ...uniforms,highlight,
+    discards(point,front){return open&&sectionDiscards(point,front,parts,uniforms,Boolean(shared));},
     aim(direction){
       axis.value.set(direction?.x??0,direction?.z??1);
       if(axis.value.lengthSq()<.0001)axis.value.set(0,1);
@@ -335,12 +389,16 @@ function installCutaway(host, parts, shared) {
 /** A local illustration assembled lazily inside an existing rooted tooth. */
 export function createFullArchAnatomy({ arch }) {
   if (!arch?.assetsReady) throw new Error('The full anatomical atlas must be ready.');
-  const tissue=new THREE.MeshPhysicalMaterial({color:'#a94454',roughness:.48,clearcoat:.12,
+  const pulpColor=new THREE.Color('#a94454'),pulpHighlight=new THREE.Color('#cb7387');
+  const tissue=new THREE.MeshPhysicalMaterial({color:pulpColor,roughness:.48,clearcoat:.12,
     clearcoatRoughness:.44,transparent:true,opacity:.97,depthWrite:false});
   const strand=new THREE.MeshStandardMaterial({color:'#ffffff',vertexColors:true,roughness:.55,
     transparent:true,opacity:.86,depthWrite:false});
   const cache=new Map(), items=new Map();
-  let active=null,storyActive=false,disposed=false;
+  const probe=createLayerSurfaceProbe(),visibleSurfaces=[],anchors=[];
+  const localCamera=new THREE.Vector3(),world=new THREE.Vector3(),projected=new THREE.Vector3(),
+    viewDirection=new THREE.Vector3(),cameraDirection=new THREE.Vector3(),testRay=new THREE.Ray();
+  let active=null,storyActive=false,storyContext=false,highlighted=null,disposed=false;
 
   function prepare(fdi) {
     if(items.has(fdi))return items.get(fdi);
@@ -354,7 +412,7 @@ export function createFullArchAnatomy({ arch }) {
       group.add(mesh);
     }
     host.add(group);
-    const state={fdi,host,group,parts,cut:installCutaway(host,parts)};
+    const state={fdi,host,group,parts,cut:installCutaway(host,parts,undefined,fdi===36)};
     items.set(fdi,state);
     return state;
   }
@@ -367,7 +425,7 @@ export function createFullArchAnatomy({ arch }) {
     const mesh=new THREE.Mesh(createDentinSectionGeometry(state.host),material);
     mesh.name='Ilustračný rez dentínom FDI 36';mesh.raycast=()=>{};mesh.visible=false;
     state.host.add(mesh);
-    return state.dentin={mesh,cut:installCutaway(mesh,state.parts,state.cut)};
+    return state.dentin={mesh,cut:installCutaway(mesh,state.parts,state.cut,true)};
   }
 
   function closeDetail() {
@@ -400,10 +458,99 @@ export function createFullArchAnatomy({ arch }) {
     }
     active.cut.weight.value=value;
     active.cut.layer.value=layer;
-    const showPulp=story?THREE.MathUtils.smoothstep(layer,2.1,2.94):1;
+    const showPulp=story?storyPulpReveal(layer):1;
     active.group.visible=showPulp>.001;
     tissue.opacity=.97*showPulp;
     strand.opacity=.86*showPulp;
+  }
+
+  function setStoryHighlight(id) {
+    if(highlighted===id)return;
+    highlighted=id;
+    const story=items.get(36);
+    if(story)story.cut.highlight.value=id==='enamel'?.48:0;
+    if(story?.dentin)story.dentin.cut.highlight.value=id==='dentin'?.54:0;
+    tissue.color.copy(pulpColor).lerp(pulpHighlight,id==='pulp'?.36:0);
+  }
+
+  function layerSurfaces(state) {
+    if(state.layerSurfaces)return state.layerSurfaces;
+    const {host,cut,group}=state,{mesh,cut:dentinCut}=prepareDentin(state);
+    return state.layerSurfaces=[
+      {id:'enamel',object:host,heights:[.83,.93,.73],fragment(point,front){
+        if(cut.discards(point,front))return false;
+        return front&&point.y>ENAMEL_CERVICAL_HEIGHT?'enamel':null;
+      }},
+      {id:'dentin',object:mesh,heights:[.77,.68,.55],fragment:(point,front)=>dentinCut.discards(point,front)?false:'dentin'},
+      {id:'pulp',object:group.children[0],heights:[.84,.91,.70],fragment:()=> 'pulp'},
+      {id:'pulp',object:group.children[1],fragment:()=> 'pulp'},
+    ];
+  }
+
+  function visibleStorySurfaces(state) {
+    visibleSurfaces.length=0;
+    if(!state?.host.visible)return visibleSurfaces;
+    const [outer,dentin,solid,threads]=layerSurfaces(state);
+    visibleSurfaces.push(outer);
+    if(active===state&&storyActive){
+      if(dentin.object.visible)visibleSurfaces.push(dentin);
+      if(state.group.visible&&storyPulpPickable(state.cut.layer.value))visibleSurfaces.push(solid,threads);
+    }
+    return visibleSurfaces;
+  }
+
+  function cameraDepthPerUnit(ray,camera) {
+    return camera?-cameraDirection.copy(ray.direction).transformDirection(camera.matrixWorldInverse).z:1;
+  }
+
+  function pickStoryLayer(raycaster) {
+    const state=storyContext?items.get(36):null;
+    const surfaces=visibleStorySurfaces(state);
+    if(!surfaces.length)return null;
+    const {ray,camera}=raycaster,depth=cameraDepthPerUnit(ray,camera);
+    const near=Math.max(raycaster.near,(camera?.near??0)/depth);
+    const far=Math.min(raycaster.far,(camera?.far??Infinity)/depth);
+    return probe.nearest(surfaces,ray,near,far)?.id??null;
+  }
+
+  function getStoryLayerAnchors(camera) {
+    anchors.length=0;
+    const state=storyContext&&storyActive?active:null;
+    if(!state||state.cut.weight.value<.06)return anchors;
+    const surfaces=visibleStorySurfaces(state);
+    testRay.origin.setFromMatrixPosition(camera.matrixWorld);
+    for(const surface of surfaces) {
+      if(!surface.heights)continue;
+      const {object,id}=surface;
+      surface.candidates??=createLayerAnchorCandidates(object,id,surface.heights);
+      localCamera.copy(testRay.origin);
+      object.worldToLocal(localCamera);
+      for(const candidate of surface.candidates){
+        const facing=candidate.normal.dot(viewDirection.subVectors(localCamera,candidate.local).normalize());
+        const visibleSide=object.material.side===THREE.DoubleSide||facing>0;
+        candidate.rank=visibleSide&&surface.fragment(candidate.local,facing>0)===id
+          ? Math.abs(facing)-candidate.band*.20:-Infinity;
+      }
+      surface.candidates.sort((a,b)=>b.rank-a.rank);
+      let shown=0;
+      for(let i=0;i<Math.min(9,surface.candidates.length)&&shown<2;i++) {
+        const candidate=surface.candidates[i];
+        if(!Number.isFinite(candidate.rank))break;
+        world.copy(candidate.local).applyMatrix4(object.matrixWorld);
+        projected.copy(world).project(camera);
+        if(Math.abs(projected.x)>1||Math.abs(projected.y)>1||Math.abs(projected.z)>1)continue;
+        testRay.direction.subVectors(world,testRay.origin);
+        const distance=testRay.direction.length();
+        testRay.direction.divideScalar(distance);
+        const depth=cameraDepthPerUnit(testRay,camera),near=camera.near/depth;
+        const tolerance=.0015;
+        const visible=probe.nearest(surfaces,testRay,near,distance+tolerance);
+        if(visible?.object===object&&visible.id===id&&Math.abs(visible.distance-distance)<tolerance){
+          anchors.push(candidate);shown++;
+        }
+      }
+    }
+    return anchors;
   }
 
   function prewarmStory(renderer,scene,camera) {
@@ -411,16 +558,22 @@ export function createFullArchAnatomy({ arch }) {
     const state=prepare(36);
     if(!state)return Promise.resolve();
     const {cut}=prepareDentin(state);
+    for(const surface of layerSurfaces(state)){
+      probe.warm(surface.object);
+      if(surface.heights)surface.candidates=createLayerAnchorCandidates(surface.object,surface.id,surface.heights);
+    }
     state.cut.setOpen(true);
     cut.setOpen(true);
+    let opening;
     try {
       // compileAsync traverses the hidden meshes synchronously before it
       // returns. Keep the real tooth intact while the GPU builds the programs.
-      return renderer.compileAsync(state.host,camera,scene);
+      opening=renderer.compileAsync(state.host,camera,scene);
     } finally {
       state.cut.setOpen(false);
       cut.setOpen(false);
     }
+    return Promise.all([opening,renderer.compileAsync(state.host,camera,scene)]);
   }
 
   function dispose() {
@@ -442,8 +595,14 @@ export function createFullArchAnatomy({ arch }) {
     items.clear();cache.clear();
   }
   return {
-    setDetail(fdi,weight,direction){useDetail(fdi,weight,direction);},
-    setStoryLayer({cut,amount},direction){useDetail(36,cut,direction,amount);},
+    setDetail(fdi,weight,direction){storyContext=false;setStoryHighlight(null);useDetail(fdi,weight,direction);},
+    setStoryLayer({cut,amount,highlight},direction){
+      storyContext=true;
+      if(!items.has(36))prepare(36);
+      useDetail(36,cut,direction,amount);
+      setStoryHighlight(highlight??null);
+    },
+    pickStoryLayer,getStoryLayerAnchors,
     prewarmStory,
     dispose,
     report(){

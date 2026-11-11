@@ -2,20 +2,26 @@
  * explicit free mode changes touch-action BEFORE a new gesture starts.
  * This module never writes a camera or a story progress value.
  */
-export function createModelGestures({canvas,view,config,signal,onChange,onStart,onEnd}) {
+export function createModelGestures({canvas,view,config,signal,onChange,onStart,onEnd,getTapMode,onTap}) {
   const pointers=new Map();let free=false,pinching=false,pinchDistance=0,enabled=true;
+  const tapSlop=9;
   function firstTwo(){const a=[...pointers.values()];return a.length<2?null:a;}
   const distance=pair=>Math.hypot(pair[0].x-pair[1].x,pair[0].y-pair[1].y);
   function down(e){
     if(!enabled||(e.pointerType==='mouse'&&e.button!==0))return;
-    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,type:e.pointerType});
+    const tapMode=e.isPrimary&&!pointers.size&&e.button===0?getTapMode?.():null;
+    for(const pointer of pointers.values())pointer.tapMode=null;
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,tapMode});
     canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});
     const pair=firstTwo();pinching=Boolean(pair);if(pair)pinchDistance=distance(pair);
     canvas.style.cursor='grabbing';onStart();
   }
   function move(e){
     const previous=pointers.get(e.pointerId);if(!previous||!enabled)return;
-    const dx=e.clientX-previous.x,dy=e.clientY-previous.y;previous.x=e.clientX;previous.y=e.clientY;
+    const dx=e.clientX-previous.x,dy=e.clientY-previous.y;
+    if(previous.tapMode&&Math.hypot(dx,dy)<=tapSlop)return;
+    previous.tapMode=null;
+    previous.x=e.clientX;previous.y=e.clientY;
     const pair=firstTwo();
     if(pair){
       const next=distance(pair);if(pinchDistance>0&&next>0)view.zoomBy(pinchDistance/next);
@@ -30,10 +36,15 @@ export function createModelGestures({canvas,view,config,signal,onChange,onStart,
     if(e.cancelable&&(free||e.pointerType==='mouse'))e.preventDefault();onChange();
   }
   function up(e){
-    if(!pointers.delete(e.pointerId))return;
+    const pointer=pointers.get(e.pointerId);
+    if(!pointer)return;
+    pointers.delete(e.pointerId);
     if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);
     pinchDistance=0;pinching=pointers.size>1;
     if(!pointers.size){canvas.style.cursor='grab';onEnd();}
+    if(enabled&&e.type==='pointerup'&&pointer.tapMode&&Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)<=tapSlop){
+      onTap?.(e,pointer.tapMode);
+    }
   }
   canvas.style.touchAction='pan-y';canvas.style.cursor='grab';
   canvas.addEventListener('pointerdown',down,{signal});canvas.addEventListener('pointermove',move,{signal,passive:false});

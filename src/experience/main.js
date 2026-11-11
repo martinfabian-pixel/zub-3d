@@ -91,13 +91,12 @@ export function createExperience(configuration=experienceConfig) {
   let heroSpinAnchor=null;
   const anatomyMotion=createHeroAnatomyMotion();
   const storyAnatomy=createStoryAnatomy();
-  let anatomyState={active:false,layer:'whole',amount:0,cut:0,moving:false,manual:false};
+  let anatomyState={active:false,layer:'whole',preset:'whole',amount:0,cut:0,highlight:null,moving:false,manual:false};
   const fullArchFocus=createFullArchFocus();
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
   const detailDirection=new THREE.Vector3(),detailCenter=new THREE.Vector3();
   const storyCutDirection=new THREE.Vector3();
   const neutralView={yaw:0,pitch:0,zoom:0,focus:[0,0,0]};
-  let toothPointer=null;
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
   const ui=createInterface({config,section,stage,signal,navigate,navigationTarget,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
   const manualUI=createManualCleaningUI({stage,onStart:startManualCleaning,onExit:exitManualCleaning,
@@ -121,6 +120,7 @@ export function createExperience(configuration=experienceConfig) {
   const chapterNumber=config.presentation.steps.findIndex(step=>step.id==='anatomy')+1;
   const healthyAnatomyUI=createHealthyAnatomyUI({stage,signal,chapterNumber,chapterCount:config.presentation.steps.length,
     onSelect(layer){storyAnatomy.select(layer);requestRender();},
+    onScrub(amount){storyAnatomy.scrub(amount);requestRender();},
     onFollow(){storyAnatomy.follow();requestRender();}});
   const anatomyControls=createHeroAnatomyControls({stage,onToggle(active){anatomyMotion.setActive(active);requestRender();}});
   const fullAnatomyControls=createFullArchAnatomyControls({stage,onToggle(active){
@@ -195,6 +195,26 @@ export function createExperience(configuration=experienceConfig) {
   function canUseAtlas() {
     return crownsReady&&dentalState.chapterId==='dentition'&&finalView==='anatomy'&&
       !finalViewTransition&&!pendingFinalView&&!focusLeavesStory&&atlasCoverage(dentalState.sceneProgress)===1;
+  }
+  function canInspectStoryLayer(){return ready&&!manual&&!startupHandoff.active&&fullArchAnatomy&&anatomyState.active;}
+  function inspectStoryLayer(layer){
+    if(!layer||!canInspectStoryLayer())return;
+    storyAnatomy.inspect(layer);
+    requestRender();
+  }
+  function selectionMode(){return canInspectStoryLayer()?'layer':canUseAtlas()?'atlas':null;}
+  function pickInCanvas(event,mode){
+    if(mode!==selectionMode())return;
+    const box=canvas.getBoundingClientRect();
+    pointerNdc.set((event.clientX-box.left)/box.width*2-1,1-(event.clientY-box.top)/box.height*2);
+    raycaster.setFromCamera(pointerNdc,rig.camera);
+    if(mode==='layer'){
+      inspectStoryLayer(fullArchAnatomy.pickStoryLayer(raycaster));
+      return;
+    }
+    const candidates=[...arch.teeth.values()].map(item=>item.mesh).filter(mesh=>mesh?.visible);
+    const hit=raycaster.intersectObjects(candidates,false)[0];
+    if(hit?.object.userData.fdi)focusTooth(hit.object.userData.fdi);
   }
   function atlasFraming() {
     const compact=logicalWidth<=700;
@@ -713,11 +733,12 @@ export function createExperience(configuration=experienceConfig) {
     if(fullAnatomyWeight===0&&fullTarget===0)interiorFdi=null;
     const wasCut=anatomyState.cut>0;
     anatomyState=storyAnatomy.update({progress:dentalState.sceneProgress,now,reducedMotion});
-    if(anatomyState.cut>0&&fullArchAnatomy){
-      if(!wasCut){
+    if(anatomyState.active&&fullArchAnatomy){
+      if(anatomyState.cut>0&&!wasCut){
         const mesh=arch.teeth.get(config.anatomy.hero).mesh;
         mesh.geometry.boundingBox.getCenter(detailCenter);
-        mesh.worldToLocal(storyCutDirection.copy(rig.pose.position)).sub(detailCenter).normalize();
+        const observerPosition=anatomyState.manual&&view.modified?rig.camera.position:rig.pose.position;
+        mesh.worldToLocal(storyCutDirection.copy(observerPosition)).sub(detailCenter).normalize();
       }
       fullArchAnatomy.setStoryLayer(anatomyState,storyCutDirection);
     }else{
@@ -753,7 +774,7 @@ export function createExperience(configuration=experienceConfig) {
       rig.camera.setViewOffset(sensor.fullWidth,sensor.fullHeight,(.5-sx)*sensor.fullWidth,(.5-sy)*sensor.fullHeight,sensor.fullWidth,sensor.fullHeight);
     }
     arch.updateView(rig.camera);
-    annotations?.update({state:dentalState,camera:rig.camera,brush,free:exploring});
+    annotations?.update({state:dentalState,camera:rig.camera,brush,anatomy:anatomyState});
     if(smileBacking&&brushingRun?.demo?.jawOpening>.01)smileBacking.visible=false;
     if(lastFrame&&(interaction||changing||scrolling||fullArchFocus.moving))adaptive.recordFrame(now-lastFrame);
     lastFrame=now;
@@ -812,25 +833,6 @@ export function createExperience(configuration=experienceConfig) {
   const controller={dispose,ready:null,report,setProgress};
   if(qa)window.__dentalExperience=controller;
   retry.addEventListener('click',()=>location.reload(),{signal});
-  canvas.addEventListener('pointerdown',event=>{
-    if(!event.isPrimary||!canUseAtlas()){toothPointer=null;return;}
-    if(event.pointerType==='mouse'&&event.button!==0)return;
-    toothPointer={id:event.pointerId,x:event.clientX,y:event.clientY};
-  },{signal});
-  canvas.addEventListener('pointermove',event=>{
-    if(toothPointer?.id===event.pointerId&&Math.hypot(event.clientX-toothPointer.x,event.clientY-toothPointer.y)>9)toothPointer=null;
-  },{signal});
-  canvas.addEventListener('pointercancel',()=>{toothPointer=null;},{signal});
-  canvas.addEventListener('pointerup',event=>{
-    const start=toothPointer;toothPointer=null;
-    if(!start||start.id!==event.pointerId||Math.hypot(event.clientX-start.x,event.clientY-start.y)>9||!canUseAtlas())return;
-    const box=canvas.getBoundingClientRect();
-    pointerNdc.set((event.clientX-box.left)/box.width*2-1,1-(event.clientY-box.top)/box.height*2);
-    raycaster.setFromCamera(pointerNdc,rig.camera);
-    const candidates=[...arch.teeth.values()].map(item=>item.mesh).filter(mesh=>mesh?.visible);
-    const hit=raycaster.intersectObjects(candidates,false)[0];
-    if(hit?.object.userData.fdi)focusTooth(hit.object.userData.fdi);
-  },{signal});
   window.addEventListener('pagehide',(e)=>{
     if(ready){
       saveStoryPosition();
@@ -907,7 +909,7 @@ export function createExperience(configuration=experienceConfig) {
         path=createCleaningPath(value);
         brush=createInterdentalBrush({path,compact:profile.compact,options:config.brush});
         plaque=createPlaque({site:value,path,arch,compact:profile.compact,options:config.plaque});
-        annotations=createAnnotations({layer:document.querySelector('#journey-annotations'),canvas,site:value,arch,path,compact:profile.compact,requestRender});
+        annotations.setTeachingSite(value);
         scene.add(brush.object,plaque.object);
         site=value;studyReady=true;
         if(flightReady){installStoryRig();publishStoryReadiness();}
@@ -961,12 +963,14 @@ export function createExperience(configuration=experienceConfig) {
       if(disposed||contextLost){disposeObject(hero?.object);lighting?.dispose();hero=undefined;lighting=undefined;return controller;}
       for(const result of results)if(result.status==='rejected')throw result.reason;
       arch=createArch({manifest,hero,config,renderer,profile,clay});scene.add(arch.object);
+      annotations=createAnnotations({layer:document.querySelector('#journey-annotations'),canvas,arch,compact:profile.compact,requestRender,
+        onAnatomySelect:inspectStoryLayer,getAnatomyAnchors:(camera,layer)=>fullArchAnatomy?.getStoryLayerAnchors(camera,layer)??[]});
       heroAnatomy=createHeroAnatomy({arch});
       const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:createIntroCameraOptions(config)});
       rig=createJourneyCamera({timeline,config,sampleOnly:true});
       view=createViewController({camera:rig.camera,config});view.setStoryPose(rig.pose);view.update();
       adaptive=createAdaptiveQuality({renderer,profile,requestRender,config});
-      controls=createModelGestures({canvas,view,config,signal,
+      controls=createModelGestures({canvas,view,config,signal,getTapMode:selectionMode,onTap:pickInCanvas,
         onStart(){
           interaction=true;adaptive.beginInteraction();requestRender();
         },
