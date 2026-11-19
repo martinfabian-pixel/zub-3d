@@ -9,13 +9,20 @@ const INSTRUCTIONS = {
 
 /** Screen-space controls for the existing scene. Only actual controls accept
  * pointer events; the moving grip is projected by the scene owner. */
-export function createManualCleaningUI({stage, onStart, onExit, onReset, onPointerStart, onPointerMove, onPointerEnd, onKey}) {
+export function createManualCleaningUI({stage, onStart, onExit, onReset, onWindowToggle, onPointerStart, onPointerMove, onPointerEnd, onKey}) {
   const doc=stage.ownerDocument, copy=stage.querySelector('.journey-copy');
   if(!copy) throw new Error('Manual cleaning needs the journey copy layer.');
   const abort=new AbortController(), signal=abort.signal;
   const entry=doc.createElement('button');
   entry.type='button';entry.className='primary-button manual-cleaning-start';
   entry.textContent='Vyskúšať čistenie';entry.hidden=true;
+  const launch=doc.createElement('div');launch.className='manual-cleaning-launch';launch.hidden=true;
+  const windowToggle=doc.createElement('button');
+  windowToggle.type='button';windowToggle.className='outline-button cleaning-window-toggle';
+  windowToggle.textContent='Nahliadnuť medzi zuby';windowToggle.setAttribute('aria-pressed','false');
+  windowToggle.setAttribute('aria-label',windowToggle.textContent);
+  windowToggle.addEventListener('click',onWindowToggle,{signal});
+  launch.append(entry,windowToggle);
 
   const content=doc.createElement('div');content.className='manual-cleaning-content';content.hidden=true;
   const instruction=doc.createElement('h2');instruction.id='manual-cleaning-instruction';
@@ -27,7 +34,7 @@ export function createManualCleaningUI({stage, onStart, onExit, onReset, onPoint
   repeat.textContent='Zopakovať';repeat.hidden=true;
   const exit=doc.createElement('button');exit.type='button';exit.className='primary-button manual-cleaning-exit';
   exit.textContent='Pokračovať v príbehu';
-  actions.append(repeat,exit);content.append(instruction,note,actions);copy.append(entry,content);
+  actions.append(repeat,exit);content.append(instruction,note,actions);copy.append(launch,content);
 
   const grip=doc.createElement('button');grip.type='button';grip.className='manual-cleaning-grip';grip.hidden=true;
   grip.setAttribute('role','slider');grip.setAttribute('aria-label','Poloha medzizubnej kefky');
@@ -69,11 +76,17 @@ export function createManualCleaningUI({stage, onStart, onExit, onReset, onPoint
   },{signal});
 
   return {
-    update({chapterId,ready=true,active=false,phase='ready',started=false,gripX,gripY,position=0,canDrag=true,angle=0}) {
+    update({chapterId,ready=true,active=false,windowAvailable=false,windowEnabled=false,phase='ready',started=false,gripX,gripY,position=0,canDrag=true,angle=0}) {
       const visible=chapterId==='brush'&&!active;
       if(lastVisible!==visible){entry.hidden=!visible;lastVisible=visible;}
+      const showLaunch=!active&&(visible||windowAvailable);
+      if(launch.hidden===showLaunch)launch.hidden=!showLaunch;
+      if(windowToggle.hidden===windowAvailable)windowToggle.hidden=!windowAvailable;
+      const pressed=String(windowEnabled);
+      if(windowToggle.getAttribute('aria-pressed')!==pressed)windowToggle.setAttribute('aria-pressed',pressed);
       if(lastEnabled!==ready){entry.disabled=!ready;lastEnabled=ready;}
       if(lastActive!==active){
+        if(active)actions.prepend(windowToggle);else launch.append(windowToggle);
         content.hidden=!active;stage.dataset.manualCleaning=String(active);
         if(active)copy.setAttribute('aria-labelledby',instruction.id);
         else if(originalLabel)copy.setAttribute('aria-labelledby',originalLabel);
@@ -102,7 +115,7 @@ export function createManualCleaningUI({stage, onStart, onExit, onReset, onPoint
       }
     },
     get grip(){return grip;},
-    dispose(){observer.disconnect();abort.abort();entry.remove();content.remove();grip.remove();help.remove();delete stage.dataset.manualCleaning;
+    dispose(){observer.disconnect();abort.abort();launch.remove();content.remove();grip.remove();help.remove();delete stage.dataset.manualCleaning;
       if(originalLabel)copy.setAttribute('aria-labelledby',originalLabel);else copy.removeAttribute('aria-labelledby');},
   };
 }

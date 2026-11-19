@@ -37,10 +37,31 @@ try {
         assert.ok(Math.abs((await state()).view.desiredYaw)>.01,'Desktop orbit changes the view');
       }
       const before=await state(),scrollBefore=await page.evaluate(()=>window.scrollY);
+      const windowToggle=page.locator('.cleaning-window-toggle');
+      const materialIds=()=>page.evaluate(()=>[36,37].map(fdi=>window.__dentalExperience.arch.teeth.get(fdi).mesh.material.uuid));
+      async function assertRegisteredWindow(){
+        const errors=await page.evaluate(()=>{
+          const {rig,renderer,arch,path}=window.__dentalExperience;
+          const material=arch.teeth.get(37).mesh.material;
+          const u=renderer.properties.get(material).uniforms;
+          return [[u.windowEntry,path.contactRangeMm[0]-1.1],[u.windowEnd,path.tipRangeMm[1]+.45]].map(([uniform,arc])=>
+            uniform.value.clone().applyMatrix4(rig.camera.matrixWorld).distanceTo(path.sample(arc).position));
+        });
+        assert.ok(errors.every(error=>error<1e-5),'The live shader in this view opens at the registered 3D working corridor');
+      }
+      const closed=await materialIds();
+      if(mobile)await windowToggle.tap();else await windowToggle.click();
+      await wait(()=>window.__dentalExperience.report().cleaningWindow.amount===1);
+      const open=await materialIds();
+      assert.equal(open[0],closed[0],'FDI 36 retains its opaque enamel material');
+      assert.notEqual(open[1],closed[1],'Only the obstructing FDI 37 gains an optical window');
+      await assertRegisteredWindow();
       await page.locator('.manual-cleaning-start').click();
       await wait(()=>window.__dentalExperience.report().manualCleaning?.transition==='active');
       let s=await state();
       assert.equal(s.manualCleaning.phase,'ready');
+      assert.ok(s.cleaningWindow.enabled,'A released toggle remains on when entering manual cleaning');
+      await assertRegisteredWindow();
       assert.equal(s.manualCleaning.cleaningProgress,0);
       assert.equal(s.healthyAnatomy.active,false);
       if(out&&mobile)await page.screenshot({path:`${out}/01-before.png`});
@@ -110,6 +131,10 @@ try {
       assert.ok(withdrawal.some(frame=>frame.visibility>.8&&first.tipArcMm-frame.tipArcMm>2),
         'The working end visibly retracts along the measured path before it fades');
       assert.equal(withdrawal.at(-1).insertion,0);
+      assert.equal((await state()).cleaningWindow.amount,1,'The clean surface remains visible after withdrawal');
+      if(mobile)await windowToggle.tap();else await windowToggle.click();
+      await wait(()=>window.__dentalExperience.report().cleaningWindow.amount===0);
+      assert.deepEqual(await materialIds(),closed,'Closing restores the original surfaces');
       if(out&&mobile){await page.waitForTimeout(500);await page.screenshot({path:`${out}/03-result.png`});}
       if(mobile){
         await page.locator('.manual-cleaning-exit').tap();
@@ -131,6 +156,7 @@ try {
         await nativeJump(page,1);
       }
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.brushStoryPhase==='smile'&&s.crownMix===1;});
+      assert.equal(await windowToggle.isVisible(),false,'The optical window belongs only to the working site');
       await page.evaluate(()=>{
         window.__returnedThroughOpening=false;
         const observer=new MutationObserver(()=>{
@@ -144,6 +170,12 @@ try {
       assert.equal(await page.evaluate(()=>window.__returnedThroughOpening),false,'Returning from the finished smile does not replay startup');
       await page.locator('.journey-step').nth(brushIndex).click();
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='brush'&&Math.abs(s.renderProgress-s.storyProgress)<.00002;});
+      if(mobile)await windowToggle.tap();else await windowToggle.click();
+      await wait(()=>window.__dentalExperience.report().cleaningWindow.amount===1);
+      await nativeJump(page,STORY_TIMING.heroHold[0]);
+      await wait(()=>window.__dentalExperience.report().story.chapterId==='hero');
+      assert.equal((await state()).cleaningWindow.enabled,false,'Reverse scrolling clears the window');
+      assert.deepEqual(await materialIds(),closed);
       assert.deepEqual(errors,[]);
       console.log(`Manual cleaning passed: ${width}×${height}, ${mobile?'emulated touch':'mouse'}`);
       await cdp?.detach();

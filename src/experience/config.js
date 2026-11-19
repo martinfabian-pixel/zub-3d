@@ -42,11 +42,11 @@ export const experienceConfig = {
       'transition-tooth': {desktop:[.73,.52,.75],portrait:[.595,.55,.84],shortPortrait:[.64,.58,.64]},
       neighbors: {desktop:[.69,.54,.68],portrait:[.61,.59,.82]},
       space:     {desktop:[.68,.54,.65],portrait:[.65,.58,.66]},
-      cleaning:  {desktop:[.69,.55,.98],portrait:[.57,.575,.80]},
+      cleaning:  {desktop:[.69,.55,1.0],portrait:[.585,.615,.82]},
       arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
       flight:    {desktop:[.55,.50,.76],portrait:[.50,.52,.87]},
-      smile:     {desktop:[.67,.51,.87],portrait:[.50,.57,.325]},
+      smile:     {desktop:[.67,.51,.87],portrait:[.50,.57,.298]},
     },
   },
   material: {
@@ -64,6 +64,7 @@ export const experienceConfig = {
     fill: { color: '#eef7ff', intensity: 2.25, size: [3.05, 5.8], position: [4.8, .65, 2.8] },
     rim: { color: '#f4faff', intensity: 1.21, size: [3.4, 2.8], position: [2.5, 4.2, -2.8] },
     directional: { color: '#fffdf9', intensity: .58, position: [-3.0, 6.0, 4.4], shadowBias: -0.00012, shadowNormalBias: 0.006, shadowRadius: 3 },
+    smileKey: { position: [-2.65,2.45,4.65], size: [3.6,4.4], intensity: 4.05 },
     referenceRadius: 1.15,
   },
   quality: {
@@ -83,13 +84,13 @@ export const experienceConfig = {
     spaceDistanceCm: 3.65, cleaningDistanceCm: 2.45,
     // Allow the ferrule to exit above the desktop copy, or through the
     // side of a portrait frame with room for the working head underneath.
-    workingElevation: -23,
+    workingAzimuth: 29, workingElevation: -23,
     compact: {
       smileDistanceCm: 6.6,
-      spaceDistanceCm: 3.65, cleaningDistanceCm: 2.65, workingElevation: -11,
+      spaceDistanceCm: 3.65, cleaningDistanceCm: 2.72, workingAzimuth: 27, workingElevation: -15,
     },
   },
-  smileMaterial: {enamelColor:'#f4f3ef',roughness:.255,occlusionStrength:.33},
+  smileMaterial: {enamelColor:'#f4f3ef',roughness:.32,occlusionStrength:.33},
   plaque: {tint:'#9b647d',warmTint:'#bb868a'},
   brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
   assetsStory: {site:'story-assets/site.json'},

@@ -26,9 +26,9 @@ function flightFrames() {
     ['flight-lift', .820, [.59,.16,1], 8.9],
     ['flight-entry', .844, [.52,.20,1], 10.8],
     ['flight-pass', .884, [.21,.13,1], 12.3],
-    ['flight-arc', .907, [.145,.10,1], 11.85],
-    ['flight-approach', .931, [.09,.075,1], 10.8],
-    ['flight-seat', .969, [.057,.032,1], 8.7],
+    ['flight-arc', .907, [.34,.14,1], 11.85],
+    ['flight-approach', .931, [.36,.14,1], 10.8],
+    ['flight-seat', .969, [.33,.11,1], 8.7],
   ].reverse().map(([key,at,direction,distance])=>({key,at:flightProgress(at),landmark:'flight',direction,distance}));
 }
 
@@ -73,7 +73,13 @@ function siteApproachFrames() {
 
 export function createOpeningCameraOptions(base,{compact=false}={}) {
   const settings=compact?{...base.storyCamera,...base.storyCamera.compact}:base.storyCamera;
-  return {...base.camera,keyframes:[...openingFrames(base,settings,false),...flightFrames(),...isolatedToothFrames(base,STORY_TIMING.flight[1])]};
+  // The opening samples these stops in reverse. Hold the three-quarter
+  // view through seating, then ease to the identical frontal atlas pose.
+  const [front,seated]=STORY_TIMING.assemblyCrowns;
+  const oblique=archFrame(base,settings,{key:'smile-turn',at:MathUtils.lerp(front,seated,.62)});
+  oblique.direction=[.31,.10,1];
+  return {...base.camera,keyframes:[...openingFrames(base,settings,false),oblique,
+    ...flightFrames(),...isolatedToothFrames(base,STORY_TIMING.flight[1])]};
 }
 
 /** Measured site coordinates and a minimum viewing distance frame the macro
@@ -101,7 +107,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const distal = new Vector3().fromArray(site.basisWorld['36DistalToward37']);
   // From the cheek and just distal, the two proximal walls separate in
   // projection. Lower the lens slightly to see beneath the contact point.
-  const lateral=buccal.addScaledVector(distal, Math.tan(MathUtils.degToRad(17))).normalize();
+  const lateral=buccal.addScaledVector(distal, Math.tan(MathUtils.degToRad(settings.workingAzimuth))).normalize();
   const spaceDirection=lateral.clone().addScaledVector(occlusal, Math.tan(MathUtils.degToRad(4))).normalize().toArray();
   const brushDirection=lateral.clone().addScaledVector(occlusal, Math.tan(MathUtils.degToRad(settings.workingElevation))).normalize().toArray();
   const landmarks = {
@@ -114,7 +120,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     // The countershot is already settled before insertion. A matching
     // pose after withdrawal keeps film, bristle contact and wiped track
     // registered to the same screen pixels in either scroll direction.
-    ['plaque', plaqueAt, 'cleaning', brushDirection, settings.cleaningDistanceCm],
+    ['plaque', plaqueAt-.012, 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['result-hold', STORY_TIMING.return[0], 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['return-opening', .946, 'space', [.66,.23,1], 4.5],
     ['return-arch', .971, 'flight', [.16,.08,1], 8.8],

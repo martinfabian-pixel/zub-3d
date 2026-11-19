@@ -41,7 +41,13 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
             vec3 reverseLight=getIBLIrradiance(-normal)*RECIPROCAL_PI;
             totalDiffuse=mix(totalDiffuse,reverseLight*vec3(.83,.96,1.03),.13*thin);
           }
-          #endif`);
+          #endif
+          // The smile rig faces +Z. Let light fall away continuously behind
+          // the front teeth as both limbs of the arch recede into the mouth.
+          float depth = max(0., 2.42-vToothPosition.z);
+          float bounce = 1./(1.+depth*(.40+.105*depth));
+          totalDiffuse *= bounce;
+          totalSpecular *= mix(.22,1.,bounce);`);
     };
     material.customProgramCacheKey=()=>key+'-cervical-incisal';
   }

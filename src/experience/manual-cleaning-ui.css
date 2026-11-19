@@ -1,4 +1,9 @@
-.manual-cleaning-start { margin-top: 20px; }
+.manual-cleaning-launch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+.manual-cleaning-launch[hidden] { display: none; }
+.cleaning-window-toggle { min-height: 44px; touch-action: manipulation; }
+.cleaning-window-toggle::before { content: '✓'; width: 1em; margin-right: .35em; visibility: hidden; }
+.cleaning-window-toggle[aria-pressed="true"]::before { visibility: visible; }
+.journey-copy .cleaning-window-toggle[aria-pressed="true"] { color: #fff; background: var(--accent); border-color: var(--accent); }
 .manual-cleaning-content { max-width: 340px; }
 .manual-cleaning-instruction {
   font-size: clamp(30px, 3.4vw, 48px);
@@ -45,7 +50,8 @@
 #journey-stage[data-manual-cleaning="true"] :is(.journey-dock,.chapter-navigation) { visibility: hidden; pointer-events: none; }
 
 @media (max-width: 700px) {
-  .manual-cleaning-start { margin-top: 15px; }
+  .manual-cleaning-launch { margin-top: 12px; gap: 6px; }
+  .manual-cleaning-launch button { font-size: 11px; min-height: 44px; padding-inline: 12px; }
   .manual-cleaning-instruction { font-size: 27px; line-height: 1.08; margin-bottom: 11px; }
   .manual-cleaning-note { font-size: 12px; max-width: 215px; }
   .manual-cleaning-actions { margin-top: 13px; gap: 7px; }
@@ -55,4 +61,7 @@
   .manual-cleaning-instruction { font-size: 24px; }
   .manual-cleaning-note { font-size: 11px; }
   .manual-cleaning-actions { margin-top: 9px; }
+}
+@media (max-width: 370px) {
+  .manual-cleaning-actions { width: 88vw; }
 }

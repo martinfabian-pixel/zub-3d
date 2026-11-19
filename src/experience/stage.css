@@ -87,6 +87,18 @@ html:has(#dental-journey[data-scroll-limited]) { overscroll-behavior-y: none; }
 .brand-dot { color: var(--accent); }
 .brand-caption { display: none; }
 .header-actions { display: flex; align-items: center; gap: 23px; }
+.clinic-share { position: relative; display: inline-flex; }
+.clinic-share a { min-width: 44px; justify-content: center; gap: 5px; pointer-events: auto; text-decoration: none; }
+.clinic-share-short { display: none; }
+.clinic-copy-status:not(:empty) {
+  position: absolute; top: 100%; inset-inline-start: 50%; transform: translateX(-50%);
+  padding: 6px 10px; border-radius: 8px; background: var(--accent); color: #fff;
+  font-size: 12px; white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .clinic-share-full { display: none; }
+  .clinic-share-short { display: inline; }
+}
 .text-button {
   display: inline-flex;
   gap: 8px;
@@ -395,6 +407,7 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
 @media (max-width: 370px) {
   h1 { font-size: calc(var(--title-size) - 2px); }
   .header-actions { gap: 11px; }
+  .clinic-share svg { display: none; }
   .journey-step { width: 23px; }
 }
 @media (max-height: 650px) and (min-width: 701px) {

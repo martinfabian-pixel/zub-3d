@@ -25,6 +25,7 @@ export async function createLighting(scene, renderer, config, profile, signal) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   let target, source, label = 'Poly Haven Studio Small 09 — CC0', disposed = false;
   const offset = new THREE.Vector3();
+  const frontalKey = new THREE.Vector3().fromArray(settings.smileKey.position);
 
   function dispose() {
     if (disposed) return;
@@ -52,12 +53,22 @@ export async function createLighting(scene, renderer, config, profile, signal) {
     scene.environmentRotation.y = config.lighting.environmentRotation;
     return {
       label, dispose,
-      update(center, radius) {
+      update(center, radius, crownCoverage = 0) {
         const scale = Math.max(0.5, radius / settings.referenceRadius);
         for (const { light, specification } of areas) {
-          light.position.copy(center).add(offset.fromArray(specification.position).multiplyScalar(scale));
+          offset.fromArray(specification.position);
           light.width = specification.size[0] * scale;
           light.height = specification.size[1] * scale;
+          light.intensity = specification.intensity;
+          if (specification === settings.key && crownCoverage > 0) {
+            // Bring a broad horizontal reflection onto both labial surfaces
+            // as the last crowns seat. Interpolate the existing studio lamp.
+            offset.lerp(frontalKey, crownCoverage);
+            light.width = THREE.MathUtils.lerp(light.width, settings.smileKey.size[0] * scale, crownCoverage);
+            light.height = THREE.MathUtils.lerp(light.height, settings.smileKey.size[1] * scale, crownCoverage);
+            light.intensity = THREE.MathUtils.lerp(light.intensity, settings.smileKey.intensity, crownCoverage);
+          }
+          light.position.copy(center).addScaledVector(offset,scale);
           light.lookAt(center);
         }
         direct.position.copy(center).add(offset.fromArray(settings.directional.position).multiplyScalar(scale));

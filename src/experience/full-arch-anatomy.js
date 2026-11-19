@@ -380,10 +380,10 @@ export function createFullArchAnatomy({ arch }) {
     pulp.scale.setScalar(.001);
     const softTissue = pulp.children[0].material;
     softTissue.color.set('#edb6b5');
-    softTissue.roughness = .39;
-    softTissue.specularIntensity = .62;
-    softTissue.clearcoat = .14;
-    softTissue.clearcoatRoughness = .43;
+    softTissue.roughness = .56;
+    softTissue.specularIntensity = .42;
+    softTissue.clearcoat = .02;
+    softTissue.clearcoatRoughness = .55;
     pulp.visible=false;
     state.host.add(pulp);
     return state.section;

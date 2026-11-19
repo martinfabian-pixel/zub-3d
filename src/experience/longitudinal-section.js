@@ -129,12 +129,16 @@ export function createLongitudinalSection(host) {
       uniform sampler2D sectionExterior, sectionInterior;
       uniform vec3 sectionEnamel, sectionDentin, sectionRoot, sectionJunction;
       uniform float planeDepth, selectedLayer;
+      float fibreSeed(vec2 cell){
+        vec3 h=fract(cell.xyx*vec3(.1031,.1030,.0973));
+        h+=dot(h,h.yzx+33.33);
+        return fract((h.x+h.y)*h.z);
+      }
       float fibreNoise(vec2 p){
         vec2 c=floor(p), f=fract(p);
         f=f*f*(3.-2.*f);
-        float seed=dot(c,vec2(.06711056,.00583715));
-        vec4 corners=fract(52.9829189*fract(seed+vec4(0.,.06711056,.00583715,.07294771)));
-        return mix(mix(corners.x,corners.y,f.x),mix(corners.z,corners.w,f.x),f.y)-.5;
+        return mix(mix(fibreSeed(c),fibreSeed(c+vec2(1.,0.)),f.x),
+                   mix(fibreSeed(c+vec2(0.,1.)),fibreSeed(c+vec2(1.)),f.x),f.y)-.5;
       }
       float sectionDistance(vec4 depths) {
         return clamp(max(min(planeDepth-depths.r, depths.g-planeDepth), min(planeDepth-depths.b, depths.a-planeDepth)),-.03,.03);
@@ -156,10 +160,13 @@ export function createLongitudinalSection(host) {
         float crown = smoothstep(0.62,0.67,vCutUv.y);
         vec3 mantle = mix(sectionRoot, sectionEnamel, crown);
         vec2 mm = (vCutUv - vec2(.5,.64)) * vec2(12.7,21.9);
-        vec2 fibre = vec2(mm.x*5.4 + .8*sin(mm.y*1.65), mm.y*2.1);
-        float grain = fibreNoise(fibre);
+        // Two uneven scales of short, curving fibres. Their coordinates
+        // stay fixed in the section, with footprint filtering on distant views.
+        vec2 fibre = vec2(mm.x*1.7 + .62*sin(mm.y*.9), mm.y*6.6 + 2.4*sin(mm.x*.68));
+        float coarse = fibreNoise(fibre * vec2(.44,.36));
         float attenuation = 1.-smoothstep(.22,1.,length(fwidth(fibre)));
-        vec3 coreColor = sectionDentin * (1.0 + .018 * grain * attenuation);
+        float grain = fibreNoise(fibre + vec2(coarse,.6*coarse));
+        vec3 coreColor = sectionDentin * (1.0 + vec3(.056,.070,.088)*grain*attenuation + .029*coarse);
         coreColor = mix(sectionJunction,coreColor,.69+.31*smoothstep(.0,.036,coreDepth));
         float marked = selectedLayer==2.0 ? inner : selectedLayer==1.0 ? (1.0-inner)*crown : 0.0;
         diffuseColor.rgb *= mix(mantle,coreColor,inner) * mix(vec3(1.),vec3(.87,.97,1.055),marked);
@@ -170,10 +177,10 @@ export function createLongitudinalSection(host) {
       `).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
         // Bounded section relief (world centimetres). Light rounds off the
         // exposed lip, crosses a shallow junction and catches the dentin grain.
-        float height = .0009 * smoothstep(-.002,.030,outerDepth)
-                     - .0018 * smoothstep(-.006,.026,coreDepth);
+        float height = .0050 * smoothstep(-.002,.024,outerDepth)
+                     - .0026 * smoothstep(-.006,.026,coreDepth);
         vec2 dh = vec2(dFdx(height),dFdy(height));
-        dh += .00010 * inner * attenuation * vec2(dFdx(grain), dFdy(grain));
+        dh += .00024 * inner * attenuation * vec2(dFdx(grain), dFdy(grain));
         vec3 tx = dFdx(-vViewPosition), ty = dFdy(-vViewPosition);
         vec3 rx = cross(ty,normal), ry = cross(normal,tx);
         float determinant = dot(tx,rx);

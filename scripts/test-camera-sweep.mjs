@@ -54,6 +54,16 @@ for (const compact of [false, true]) {
     assert.ok(atlas.target.distanceTo(settled.target) < 1e-8 && atlas.position.distanceTo(settled.position) < 1e-8,
       'Completing or skipping the introduction and the closing smile all use the same camera');
   }
+  const [front, seated] = STORY_TIMING.assemblyCrowns;
+  const turnAt = opening.stops['smile-turn'];
+  assert.ok(front < turnAt && turnAt < seated, 'The oblique camera shows the arch during crown seating');
+  let lastYaw = yaw(opening.sample(turnAt, aspect));
+  assert.ok(lastYaw - yaw(atlas) > MathUtils.degToRad(12), 'The last part of the opening shows the depth of the arch');
+  for (let i = 1; i <= 30; i++) {
+    const angle = yaw(opening.sample(MathUtils.lerp(turnAt, front, i / 30), aspect));
+    assert.ok(angle <= lastYaw && angle >= yaw(atlas) - 1e-8, 'Settle to the atlas without overshooting');
+    lastYaw = angle;
+  }
   const locate = sample(chapterAt('assembly'));
   const {identify,identified,lift,reseat}=STORY_TIMING.teachingSite;
   assert.ok(yaw(locate) - yaw(atlas) > .65, 'The camera turns towards the patient’s left');
@@ -72,7 +82,7 @@ for (const compact of [false, true]) {
       'The longitudinal cut opens on the same molar with a stationary lens');
     for(const key of ['screenX','screenY','opticalZoom'])close(frame[key],hero[key],1e-12,'The cut retains the full-tooth composition');
   }
-  close(sample(1).opticalZoom, compact ? .325 : .87, 1e-7, 'The final smile retains its own framing');
+  close(sample(1).opticalZoom, compact ? .298 : .87, 1e-7, 'The smile leaves room at both sides of a phone');
   const nearBoundary = 1e-6;
   for (const { start: boundary } of DENTAL_CHAPTERS.slice(1)) {
     for (const key of ['position', 'target']) {
