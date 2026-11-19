@@ -798,9 +798,10 @@ export function createExperience(configuration=experienceConfig) {
     // Hold the loading cover until the requested model and camera are ready.
     // No cinematic or intermediate chapter is exposed on a clinic link.
     if(pendingClinicView){
-      if(!openingComplete||(pendingClinicView===clinicViews.cleaning&&!studyReady))return;
-      const motionFdi=motionViewTeeth[pendingClinicView];
+      const finale=pendingClinicView===clinicViews.smile;
       const cleaning=pendingClinicView===clinicViews.cleaning;
+      if(!openingComplete||((cleaning||finale)&&!studyReady))return;
+      const motionFdi=motionViewTeeth[pendingClinicView];
       pendingClinicView=null;
       if(motionFdi){
         // Prepare the same selected-tooth return destination as an atlas click, behind the cover.
@@ -813,20 +814,24 @@ export function createExperience(configuration=experienceConfig) {
         startupHandoff.start();
         return;
       }
-      const destination=cleaning?STORY_TIMING.manualReady:config.presentation.steps.find(step=>step.id==='anatomy').at;
-      restoreStoryPosition(destination);
-      applyState(renderProgress,true);
-      if(cleaning){
+      if(finale){
+        restoreStoryPosition(STORY_TIMING.finalHold[1]);
+      }else if(cleaning){
+        restoreStoryPosition(STORY_TIMING.manualReady);
+        applyState(renderProgress,true);
         canvas.dataset.stage=dentalState.chapterId;
         canvas.dataset.sceneProgress=dentalState.sceneProgress.toFixed(6);
         startManualCleaning({instant:true});
         renderManual(now);
         startupHandoff.start();
         return;
+      }else{
+        restoreStoryPosition(config.presentation.steps.find(step=>step.id==='anatomy').at);
+        applyState(renderProgress,true);
+        storyAnatomy.update({progress:dentalState.sceneProgress,now,reducedMotion});
+        storyAnatomy.select('pulp',now);
+        storyAnatomy.inspect('pulp');
       }
-      storyAnatomy.update({progress:dentalState.sceneProgress,now,reducedMotion});
-      storyAnatomy.select('pulp',now);
-      storyAnatomy.inspect('pulp');
     }
     if(navigationMotion){
       const {progress:at,done}=navigationMotion.motion.sample(now);

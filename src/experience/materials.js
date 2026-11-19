@@ -48,21 +48,26 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
           // The smile rig faces +Z. Let light fall away continuously behind
           // the front teeth as both limbs of the arch recede into the mouth.
           float depth = max(0., crownFrontDepth-vToothPosition.z);
-          float bounce = 1./(1.+depth*(.40+.105*depth));
+          float bounce = 1./(1.+depth*(.31+.085*depth));
           // Soft studio fill reaches the exposed labial surfaces; the side
           // walls retain their contact shadow. Keep the HDR's luminance detail.
           float labial = smoothstep(.14,.94,inverseTransformDirection(normal,viewMatrix).z);
-          totalDiffuse += reflectedLight.indirectDiffuse * (.13+.48*labial) * (1.-flank);
+          totalDiffuse += reflectedLight.indirectDiffuse * (.26+.34*labial) * (1.-.84*flank);
           totalDiffuse = mix(vec3(luminance(totalDiffuse)),totalDiffuse,.21);
-          totalDiffuse *= vec3(.88,.89,.90)*bounce;
-          // A broad frontal strip reflected by the polished enamel. Evaluate
-          // the reflection in studio space so it travels across the curvature
-          // as the observer moves. The authored roughness softens its edges.
+          totalDiffuse *= vec3(.93,.94,.96)*bounce;
+          // Two soft studio strips model the reflections on either side of
+          // the arch. The normal, view direction and authored roughness
+          // determine where and how broadly enamel reflects each strip.
           vec3 reflected = inverseTransformDirection(reflect(-normalize(vViewPosition),normal),viewMatrix);
-          vec2 strip = (reflected.xy-vec2(-.20,.19))/(vec2(.21,.35)+.38*material.roughness);
-          float sheen = exp(-dot(strip,strip))*smoothstep(.38,.8,reflected.z);
-          totalSpecular += .8*reflectedLight.directSpecular + vec3(.94,.96,.98)*sheen;
-          totalSpecular *= mix(.22,1.,bounce);`);
+          vec2 spread = vec2(.11,.26)+vec2(.29,.46)*material.roughness;
+          vec2 key = (reflected.xy-vec2(-.53,.12))/spread;
+          vec2 fill = (reflected.xy-vec2(.62,.13))/(spread*vec2(1.08,1.06));
+          float sheen = (exp(-dot(key,key))+exp(-dot(fill,fill)))*smoothstep(.30,.72,reflected.z);
+          // The strips are above the bite and subtend less solid angle at
+          // the back of the arch. Broader diffuse fill still shapes those teeth.
+          sheen *= mix(.30,1.,smoothstep(-.85,.14,vToothPosition.y))*bounce*bounce;
+          totalSpecular += .65*reflectedLight.directSpecular + vec3(2.35,2.37,2.4)*sheen;
+          totalSpecular *= mix(.46,1.,bounce);`);
     };
     material.customProgramCacheKey=()=>key+'-cervical-incisal';
   }

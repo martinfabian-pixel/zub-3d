@@ -9,6 +9,7 @@ const browser = await chromium.launch({ channel:'chrome', headless:true });
 
 async function openClinic(context, view) {
   const cleaning = view === clinicViews.cleaning;
+  const finale = view === clinicViews.smile;
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -20,6 +21,7 @@ async function openClinic(context, view) {
         return;
       }
       window.firstClinicFrame = { chapter:canvas.dataset.stage,
+        progress:Number(canvas.dataset.sceneProgress),
         manual:document.querySelector('#journey-stage').dataset.manualCleaning,
         selected:document.querySelector('.healthy-anatomy-layer[aria-pressed="true"]')?.dataset.layer };
     }
@@ -47,7 +49,24 @@ async function openClinic(context, view) {
   await page.locator('#journey-startup').waitFor({ state:'hidden', timeout:90000 });
   await page.waitForFunction(() => window.firstClinicFrame);
   const first = await page.evaluate(() => window.firstClinicFrame);
-  assert.equal(first.chapter, cleaning ? 'brush' : 'anatomy');
+  assert.equal(first.chapter, cleaning || finale ? 'brush' : 'anatomy');
+  if (finale) {
+    assert.equal(first.progress, 1, 'The first visible frame is the settled final smile.');
+    assert.equal(await page.locator('#journey-step-number').innerText(), '07 / 07');
+    assert.equal(await page.locator('#journey-title').textContent(), 'Malý návyk. Veľký rozdiel.');
+    const state = await page.evaluate(() => window.__dentalExperience.report());
+    assert.equal(state.crownMix, 1);
+    assert.equal(state.opening, null);
+    await page.locator('#journey-mobile-previous').tap();
+    await page.waitForFunction(() => window.__dentalExperience.report().story.brushStoryPhase === 'cleaning');
+    await page.locator('#journey-mobile-next').tap();
+    await page.waitForFunction(() => window.__dentalExperience.report().story.brushStoryPhase === 'smile');
+    await page.locator('#journey-show-all').tap();
+    await page.locator('#journey-view-anatomy').waitFor({ state:'visible' });
+    assert.deepEqual(errors, []);
+    await page.close();
+    return;
+  }
   if (cleaning) {
     assert.equal(first.manual, 'true');
     const state = await page.evaluate(() => window.__dentalExperience.report().manualCleaning);
@@ -145,7 +164,7 @@ try {
   await home.goto(base.href, { waitUntil:'domcontentloaded' });
   await home.locator('#journey-skip-intro').waitFor({ state:'visible', timeout:90000 });
   await context.close();
-  console.log('Clinic views: cleaning, pulp, bite 21, chew 36, their controls and ordinary cinematic entry passed in fresh tabs at 390×844.');
+  console.log('Clinic views: cleaning, pulp, final smile, bite 21, chew 36, their controls and ordinary cinematic entry passed in fresh tabs at 390×844.');
 } finally {
   await browser.close();
 }
