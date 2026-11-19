@@ -3,7 +3,7 @@ import { FINAL_SMILE_COPY, STORY_TIMING } from './story-config.js';
 // Screen-space art direction, sampled by the same progress as the WebGL scene.
 // These are positions within the entire stage, never a separate text column.
 export const TYPE_COMPOSITIONS = Object.freeze({
-  hero:      {desktop:[.067,.24,.36,70],mobile:[.06,.092,.66,32]},
+  hero:      {desktop:[.067,.24,.36,70],mobile:[.06,.092,.87,32]},
   assembly:  {desktop:[.067,.22,.34,57],mobile:[.06,.11,.72,32]},
   anatomy:   {desktop:[.067,.16,.30,62],mobile:[.06,.13,.62,32]},
   space:     {desktop:[.067,.22,.28,64],mobile:[.06,.165,.60,34]},

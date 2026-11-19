@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { addSmileDissolve, prepareJourneyMaterial } from './materials.js';
 import { disposeObject } from './scene.js';
-import { sampleDentalStory, sampleNeighborEntrance } from './dental-story.js';
-import { DENTAL_STORY, STORY_TIMING } from './story-config.js';
+import { sampleDentalStory } from './dental-story.js';
+import { STORY_TIMING } from './story-config.js';
 import { createFloatingTeeth, flightReveal } from './floating-teeth.js';
 import { createSmileLayout, measureSmileBounds } from './smile-layout.js';
 import { createSmileBacking } from './smile-backing.js';
+import { createGingiva } from './gingiva.js';
 
 const smooth = (a,b,value) => { const t=THREE.MathUtils.clamp((value-a)/(b-a),0,1); return t*t*(3-2*t); };
 
@@ -38,7 +39,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const proxies = [];
   let disposed=false, assetsReady=false, visibleCount=1;
   let finalView='smile', smileWeight=1, sceneProgress=0, closureCm=0;
-  let floating, smileBounds, smileBacking;
+  let floating, smileBounds, smileBacking, gingiva;
   const crownMix={value:0};
   const crownPosition=new THREE.Vector3(), crownScale=new THREE.Vector3(), crownRotation=new THREE.Quaternion();
   const smileCenter=new THREE.Vector3(), viewFromSmile=new THREE.Vector3();
@@ -73,34 +74,12 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const heroMesh=hero.meshes.get('ToothExterior')??[...hero.meshes.values()][0];
   const sources=new Map([[config.anatomy.hero,heroMesh]]);
   attach(config.anatomy.hero,heroMesh);
-  const heroCenter = new THREE.Vector3().setFromMatrixPosition(teeth.get(config.anatomy.hero).matrix);
-  const neighbors = new Map(config.anatomy.neighbors.filter(fdi => fdi !== config.anatomy.hero).map((fdi, index, items) => {
-    const item = teeth.get(fdi);
-    const outward = new THREE.Vector3().setFromMatrixPosition(item.matrix).sub(heroCenter);
-    outward.y = 0;
-    outward.normalize().multiplyScalar(profile.compact ? .83 : 1.18);
-    outward.y = index === 0 ? .28 : -.21;
-    return [fdi, { outward, order: index / Math.max(1, items.length - 1) }];
-  }));
-  const arrivalTurn = new THREE.Matrix4(), rootPose = new THREE.Matrix4();
+  const neighbors = new Set(config.anatomy.neighbors.filter(fdi => fdi !== config.anatomy.hero));
+  const rootPose = new THREE.Matrix4();
 
-  function setRootPose(item, neighbor, placement, extraction) {
+  function setRootPose(item) {
     rootPose.copy(item.seatedMatrix);
-    const translation=rootPose.elements;
-    if(item.upper)translation[13]-=closureCm;
-    if(extraction>0) {
-      const [x,y,z]=DENTAL_STORY.extractionOffset;
-      translation[12]+=x*extraction;
-      translation[13]+=y*extraction;
-      translation[14]+=z*extraction;
-    }
-    if(neighbor&&sceneProgress>=DENTAL_STORY.neighbors[0]&&placement<1) {
-      const remaining=1-placement;
-      translation[12]+=neighbor.outward.x*remaining;
-      translation[13]+=neighbor.outward.y*remaining;
-      translation[14]+=neighbor.outward.z*remaining;
-      rootPose.multiply(arrivalTurn.makeRotationY((1-2*neighbor.order)*.24*remaining));
-    }
+    if(item.upper)rootPose.elements[13]-=closureCm;
     if(!item.mesh.matrix.equals(rootPose)) {
       item.mesh.matrix.copy(rootPose);
       item.mesh.updateMatrixWorld(true);
@@ -154,7 +133,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
         geometry=mirroredCrowns.get(item.entry.source);
       }
       const crown=new THREE.Mesh(geometry,source.material);
-      item.crownFinish=prepareJourneyMaterial(crown,smileConfig,profile,renderer,clay);
+      item.crownFinish=prepareJourneyMaterial(crown,smileConfig,profile,renderer,clay,item.entry.fdi);
       addSmileDissolve(item.mesh.material,crownMix,false);
       addSmileDissolve(crown.material,crownMix,true);
       crown.name='Smile crown '+item.entry.fdi;
@@ -170,6 +149,8 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     smileBounds.getCenter(smileCenter);
     smileBacking=createSmileBacking(teeth,layout,config);
     object.add(smileBacking.object);
+    gingiva=createGingiva(teeth,layout);
+    object.add(gingiva.object);
     for (const [fdi,matrix] of layout) {
       const position=new THREE.Vector3(), rotation=new THREE.Quaternion(), scale=new THREE.Vector3();
       matrix.decompose(position,rotation,scale);
@@ -192,15 +173,14 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
     crownMix.value=mix;
     smileBacking?.setCoverage(mix);
+    gingiva?.update(state,mix,closureCm);
     visibleCount=0;
     for (const [fdi,item] of teeth) {
-      const hero=fdi===config.anatomy.hero,neighbor=neighbors.get(fdi);
-      const placement=neighbor?sampleNeighborEntrance(sceneProgress,neighbor.order):1;
-      if(item.mesh&&!flying)setRootPose(item,neighbor,placement,hero?state.toothExtraction:0);
+      const hero=fdi===config.anatomy.hero;
+      if(item.mesh&&!flying)setRootPose(item);
       const assembly=state.openingFlight?flightReveal(sceneProgress,fdi)
-        :neighbor?state.assemblyNeighborReveal:state.assemblyReveal;
+        :neighbors.has(fdi)?state.neighborsReveal:state.assemblyReveal;
       const reveal=hero?1:Math.max(
-        neighbor?smooth(0,.66,placement):0,
         item.upper?state.upperReveal:state.lowerReveal,
         assembly);
       item.reveal=reveal;
@@ -260,5 +240,8 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
     mirrored.clear(); teeth.clear();
   }
-  return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,updateView,report,dispose,ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix.value;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
+  return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,updateView,report,dispose,
+    setGumJawOpening(value){gingiva?.setJawOpening(value);},
+    occludesTissue(ray,near,far){return gingiva?.occludes(ray,near,far)??false;},
+    ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix.value;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

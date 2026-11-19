@@ -329,11 +329,11 @@ try {
     const forward = new Map();
     for (const progress of checkpoints) forward.set(progress, await extractionPose(mobile, progress));
     const firstPose = forward.get(checkpoints[0]), lastPose = forward.get(checkpoints.at(-1));
-    assert.ok(difference(firstPose[36].matrix, lastPose[36].matrix) > .2, 'The teaching tooth visibly leaves its seat');
+    assert.ok(difference(firstPose[36].matrix, lastPose[36].matrix) < .00001, 'The teaching tooth stays in its socket during the approach');
     assert.ok(firstPose[31].reveal > .8 && lastPose[31].reveal === 0, 'The rest of the arch recedes from its seats');
     for (const current of forward.values()) for (const fdi of [31, 35, 37]) {
       assert.ok(difference(firstPose[fdi].matrix, current[fdi].matrix) < .00001,
-        `FDI ${fdi} stays seated while the teaching tooth is extracted`);
+      `FDI ${fdi} stays seated during the camera approach`);
     }
 
     for (const progress of checkpoints.toReversed()) {
@@ -351,13 +351,13 @@ try {
     await atChapter(mobile, 'assembly');
     const second = await mobile.evaluate(readProgress);
     assert.equal(await mobile.locator('#journey-step-number').innerText(), '02 / 07');
-    assert.deepEqual(second.teeth, [36], 'The second chapter lands on the visible single tooth');
-    assert.equal(second.roots, 1);
+    assert.equal(second.teeth.length, 28, 'The second chapter identifies the tooth in the rooted arch');
+    assert.equal(second.roots, 28);
     assert.equal(second.crowns, 0);
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'hero');
-    assert.deepEqual((await mobile.evaluate(readProgress)).teeth, [36],
-      'The isolated tooth is chapter three, between the atlas and anatomical layers');
+    assert.deepEqual((await mobile.evaluate(readProgress)).teeth, [35,36,37],
+      'The root window keeps neighboring teeth as landmarks');
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'anatomy');
     await overshoot(mobile);
@@ -412,9 +412,9 @@ try {
     await desktop.locator('#journey-mobile-next').click();
     await atChapter(desktop, 'assembly');
     const trace = await desktop.evaluate(() => window.__finishFlightTrace());
-    const [leadStart, leadEnd] = STORY_TIMING.extraction.lead;
+    const [leadStart, leadEnd] = [STORY_TIMING.atlas[1], chapter('assembly').at];
     assert.ok(trace.filter(progress => progress > leadStart && progress < leadEnd).length >= 5,
-      'Button navigation passes through intermediate extraction poses');
+      'Button navigation passes through intermediate positions while locating 36');
     await desktop.locator('#journey-mobile-previous').click();
     await atChapter(desktop, 'dentition');
     await nativeSeek(desktop, chapter('plaque').at);

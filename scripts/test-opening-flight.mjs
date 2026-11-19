@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { createOpeningFlight } from '../src/experience/opening-flight.js';
 import { sampleDentalStory, sampleOpeningDentalStory } from '../src/experience/dental-story.js';
 import { floatingAmount } from '../src/experience/floating-teeth.js';
-import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
+import { STORY_TIMING } from '../src/experience/story-config.js';
 
 const intro=createOpeningFlight();
-const seed=DENTAL_CHAPTERS.find(chapter=>chapter.id==='assembly').at;
+const seed=STORY_TIMING.openingTooth;
 const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
 const start=900;
 const first=intro.sample(start);
@@ -32,7 +32,8 @@ for(let t=1151;t<3150;t++){
   assert.ok(shot.progress<=previous && previous-shot.progress<.001);
   const scene=sampleOpeningDentalStory(shot.progress);
   assert.equal(scene.openingFlight,true);
-  assert.equal(scene.toothExtraction,0,'Only the authored flight moves the teeth during the introduction');
+  assert.equal(scene.siteTissue,0,'The teaching site stays hidden during the flight');
+  assert.equal(scene.locate36,0,'Teaching identification never overlays the opening');
   if(floatingAmount(shot.progress)>.5){
     assert.equal(scene.assemblyCrownCoverage,0,'The flying teeth retain their roots');
     sawFlight=true;
@@ -49,7 +50,7 @@ const end=intro.sample(start+3150);
 assert.deepEqual(end,{progress:atlasStart,yaw:0,growth:1,phase:'done',done:true});
 const settledOpening=sampleOpeningDentalStory(end.progress);
 const settledStory=sampleDentalStory(end.progress);
-for (const key of ['sceneProgress','assemblyReveal','assemblyNeighborReveal','assemblyCrownCoverage','toothExtraction'])
+for (const key of ['sceneProgress','assemblyReveal','neighborsReveal','assemblyCrownCoverage','tissueWindow','cleaningWindow','locate36'])
   assert.equal(settledOpening[key],settledStory[key],`The opening and skipped opening settle on the same ${key}`);
 assert.equal(settledOpening.assemblyCrownCoverage,1);
 assert.equal(intro.sample(start+5000),end);

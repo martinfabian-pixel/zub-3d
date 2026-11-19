@@ -1,8 +1,8 @@
 import { MathUtils } from 'three';
-import { DENTAL_CHAPTERS, STORY_TIMING } from './story-config.js';
+import { STORY_TIMING } from './story-config.js';
 
 const spinMs=1150, flightMs=2000, maxFrameMs=75;
-const singleTooth=DENTAL_CHAPTERS.find(chapter=>chapter.id==='assembly').at;
+const singleTooth=STORY_TIMING.openingTooth;
 const [atlasStart,atlasEnd]=STORY_TIMING.atlas;
 
 /** Sample the existing story backwards to gather the teeth before chapter 01. */

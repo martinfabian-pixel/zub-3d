@@ -1,8 +1,8 @@
 import { Matrix4, Vector3 } from 'three';
-import { anchorWorld, createSurfaceAnchors, createVisibilityTest } from './annotation-surfaces.js';
+import { anchorWorld, createMolarAnchor, createSurfaceAnchors, createVisibilityTest } from './annotation-surfaces.js';
 import './annotations.css';
 
-const labels={space:'Medzizubný priestor',plaque:'Povlak',cleaned:'Vyčistený povrch'};
+const labels={molar:'Dolná ľavá šestka · 36',space:'Medzizubný priestor',plaque:'Povlak',cleaned:'Vyčistený povrch'};
 const anatomyLabels={enamel:'Sklovina',dentin:'Dentín',pulp:'Dreň'};
 const anatomyActions={enamel:'Preskúmať sklovinu',dentin:'Preskúmať dentín',pulp:'Preskúmať dreň'};
 const chapterLabels={space:['space'],plaque:['plaque']};
@@ -63,7 +63,7 @@ function place(point,width,height,bounds,obstacles,previous,anatomy) {
  */
 export function createAnnotations({layer,canvas,site,arch,compact=false,requestRender,getAnatomyAnchors,onAnatomySelect}) {
   if(!layer||!canvas)throw new Error('The shared scene needs an annotation layer and canvas.');
-  let anchors=site?createSurfaceAnchors(site,arch,compact):null;
+  const anchors={molar:createMolarAnchor(arch),...(site?createSurfaceAnchors(site,arch,compact):{})};
   const visibility=createVisibilityTest(arch);
   const doc=layer.ownerDocument,svg=doc.createElementNS(namespace,'svg'),entries={},anatomyEntries={};
   const abort=new AbortController(),stage=layer.closest('#journey-stage');
@@ -187,10 +187,11 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
     if(disposed||!state||!camera)return;
     const base=layer.getBoundingClientRect(),sensor=canvas.getBoundingClientRect();
     const isResult=state.chapterId==='brush'&&state.resultVisibility>.03;
-    const ids=isResult?['cleaned']:chapterLabels[state.chapterId]??[];
+    const locating=state.locate36>.06&&!state.openingFlight;
+    const ids=locating?['molar']:isResult?['cleaned']:chapterLabels[state.chapterId]??[];
     const group=isResult?'cleaned':state.chapterId;
-    const ready=Boolean(anchors)&&state.neighborsReveal>.95&&(!brush?.object.visible)&&
-      (state.chapterId!=='plaque'||state.plaqueDeposition>.08);
+    const ready=locating?Boolean(anchors.molar):Boolean(anchors.space)&&state.neighborsReveal>.95&&
+      !brush?.object.visible&&(state.chapterId!=='plaque'||state.plaqueDeposition>.08);
     const anatomyActive=state.chapterId==='anatomy'&&anatomy?.active&&anatomy.cut>.001;
     // Progress also drives the copy's small CSS translation at boundaries;
     // that transform can change its exclusion zone without firing resize.
@@ -199,8 +200,10 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
       sensor.left,sensor.top,sensor.width,sensor.height].join('/');
     if(signature===key&&matrix.equals(camera.matrixWorld)&&projection.equals(camera.projectionMatrix))return;
     signature=key;matrix.copy(camera.matrixWorld);projection.copy(camera.projectionMatrix);
+    const summaryText=ids.map(id=>labels[id]).join('. ');
+    if(summary.textContent!==summaryText)summary.textContent=summaryText;
     if(chapter!==group) {
-      chapter=group;summary.textContent=ids.map(id=>labels[id]).join('. ');
+      chapter=group;
       for(const entry of [...Object.values(entries),...Object.values(anatomyEntries)])entry.key=null;
     }
     for(const [id,entry] of Object.entries(entries)) {
@@ -223,6 +226,10 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
       const fit=place(measure.point,entry.label.offsetWidth,entry.label.offsetHeight,base,obstacles,entry.key);
       if(!fit){hide(entry,'layout',measure);continue;}
       show(entry,measure,fit);
+      if(id==='molar'){
+        entry.label.style.opacity=String(state.locate36);
+        entry.group.style.opacity=String(state.locate36);
+      }
     }
   }
   function probe(id,camera){return assess(id,camera,layer.getBoundingClientRect(),canvas.getBoundingClientRect());}
@@ -234,7 +241,7 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
     if(description)canvas.setAttribute('aria-describedby',description);else canvas.removeAttribute('aria-describedby');
   }
   function setTeachingSite(nextSite) {
-    anchors=createSurfaceAnchors(nextSite,arch,compact);
+    Object.assign(anchors,createSurfaceAnchors(nextSite,arch,compact));
     for(const [id,entry] of Object.entries(entries))entry.data.anchor=anchors[id];
     revision++;requestRender?.();
   }

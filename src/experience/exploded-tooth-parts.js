@@ -172,9 +172,21 @@ function makeDentin(surface, index, { crownColor = '#e7d3b0', rootColor = '#bda1
 
 /** Scan-fitted dentin in the same metre coordinate frame as the story tooth. */
 export function createDentinSectionGeometry(host) {
-  return makeDentin(readHealthySurface(host.geometry), host.geometry.index, {
-    crownColor: '#ebdfca', rootColor: '#d9c7a8',
-  }).scale(.001, .001, .001);
+  // The longitudinal lesson keeps dentin to the root tips. Contract just
+  // the crown to define enamel thickness; roots have a much thinner mantle.
+  const source = host.geometry, result = new THREE.BufferGeometry();
+  const position = source.attributes.position, normal = source.attributes.normal;
+  const points = new Float32Array(position.count * 3);
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i), y = position.getY(i), z = position.getZ(i);
+    const crown = smooth(-.0015, .002, y), root = .00012 * (1 - crown);
+    points[3*i] = x * (1 - crown * .16) - normal.getX(i) * root;
+    points[3*i+1] = y * (1 - crown * .17) - normal.getY(i) * root;
+    points[3*i+2] = z * (1 - crown * .17) - normal.getZ(i) * root;
+  }
+  result.setAttribute('position', new THREE.BufferAttribute(points, 3));
+  result.setIndex(source.index);
+  return result;
 }
 
 function toothPart(name, geometry, roughness, clearcoat) {

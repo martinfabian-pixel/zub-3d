@@ -1,4 +1,4 @@
-import { Box3, Matrix4, Ray, Triangle, Vector3 } from 'three';
+import { Box3, Matrix4, Ray, Raycaster, Triangle, Vector3 } from 'three';
 
 const point = new Vector3(), a = new Vector3(), b = new Vector3(), c = new Vector3();
 const triangle = new Triangle(a,b,c);
@@ -21,6 +21,23 @@ function bindLocal(mesh, local) {
   }
   if(!binding||best>1e-10)throw new Error('Annotation does not register to FDI '+mesh.userData.fdi);
   return binding;
+}
+
+/** Register the locator once on the buccal enamel of the actual loaded LOD.
+ * FDI 36's source points buccally along local +Z. The ray starts above the
+ * measured cervical ring, where the crown stays exposed as the gum seats. */
+export function createMolarAnchor(arch) {
+  const item=arch.teeth.get(36),mesh=item.mesh;
+  mesh.geometry.computeBoundingBox();
+  const box=mesh.geometry.boundingBox,center=box.getCenter(new Vector3());
+  const neck=item.entry.cervicalRing.reduce((sum,v)=>sum+v[1],0)/item.entry.cervicalRing.length;
+  const origin=new Vector3(center.x,neck+(box.max.y-neck)*.66,box.max.z+.001);
+  mesh.localToWorld(origin);
+  const direction=new Vector3(0,0,-1).transformDirection(mesh.matrixWorld);
+  const hit=new Raycaster(origin,direction).intersectObject(mesh,false)[0];
+  if(!hit)return null;
+  const {a,b,c}=hit.face;
+  return {fdi:36,vertexIndices:[a,b,c],barycentric:hit.barycoord.toArray()};
 }
 
 /** Fixed source points. A paired air-space landmark has one term on each
@@ -91,6 +108,7 @@ export function buildTriangleBuckets(g) {
 
 export function createVisibilityTest(arch) {
   const cache=new Map(),start=new Vector3(),end=new Vector3(),dir=new Vector3(),nearPoint=new Vector3();
+  const tissueRay=new Ray();
   function blocked(world,camera) {
     const depth=-point.copy(world).applyMatrix4(camera.matrixWorldInverse).z;
     nearPoint.setFromMatrixPosition(camera.matrixWorld);
@@ -98,6 +116,9 @@ export function createVisibilityTest(arch) {
     // Geometry between the lens and its near plane is clipped in WebGL.
     nearPoint.lerp(world,camera.near/depth);
     start.copy(world).addScaledVector(dir,toleranceCm);
+    tissueRay.origin.copy(nearPoint);
+    tissueRay.direction.copy(dir).negate();
+    if(arch.occludesTissue?.(tissueRay,0,nearPoint.distanceTo(start)))return true;
     for(const item of arch.teeth.values()) {
       const mesh=item.mesh;
       if(!mesh?.visible||item.reveal<.01)continue;

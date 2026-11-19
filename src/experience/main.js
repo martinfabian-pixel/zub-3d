@@ -21,7 +21,6 @@ import { createModelGestures } from './gestures.js';
 import { createAnnotations } from './annotations.js';
 import { createHealthyAnatomyUI } from './healthy-anatomy-ui.js';
 import { createStoryAnatomy } from './story-anatomy.js';
-import { createHeroSpin } from './hero-spin.js';
 import { createHeroAnatomy } from './hero-anatomy.js';
 import { createHeroAnatomyMotion } from './hero-anatomy-motion.js';
 import { createHeroAnatomyControls } from './hero-anatomy-controls.js';
@@ -87,15 +86,12 @@ export function createExperience(configuration=experienceConfig) {
   let fullBrushing,brushingRun=null,smileBacking,brushingFraming=0;
   const brushingFocus=new THREE.Vector3();
   let focusOrigin=null,focusLeavesStory=false;
-  const heroSpin=createHeroSpin();
-  let heroSpinAnchor=null;
   const anatomyMotion=createHeroAnatomyMotion();
   const storyAnatomy=createStoryAnatomy();
   let anatomyState={active:false,layer:'whole',preset:'whole',amount:0,cut:0,highlight:null,moving:false,manual:false};
   const fullArchFocus=createFullArchFocus();
   const raycaster=new THREE.Raycaster(),pointerNdc=new THREE.Vector2();
   const detailDirection=new THREE.Vector3(),detailCenter=new THREE.Vector3();
-  const storyCutDirection=new THREE.Vector3();
   const neutralView={yaw:0,pitch:0,zoom:0,focus:[0,0,0]};
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
   const ui=createInterface({config,section,stage,signal,navigate,navigationTarget,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
@@ -269,21 +265,6 @@ export function createExperience(configuration=experienceConfig) {
   function skipOpening(){
     openingSkipped=true;
     requestRender();
-  }
-  function isolatedHero(p){
-    const [start,end]=STORY_TIMING.heroHold;
-    return p>=start&&p<=end;
-  }
-  function updateHeroOrbit(now){
-    // Start the one-time orbit after the isolated tooth has settled, never
-    // while the assembly, extraction or next chapter is still scrolling.
-    const isolated=isolatedHero(renderProgress);
-    if(heroSpinAnchor===null){
-      if(!isolated||exploring||Math.abs(storyProgress-renderProgress)>.001)return false;
-      heroSpinAnchor=storyProgress;
-    }
-    const leaving=!isolated||Math.abs(storyProgress-heroSpinAnchor)>.006;
-    return heroSpin.update(now,{progress:leaving?1:0,reducedMotion,interacting:interaction,exploring,modified:view?.modified});
   }
   function manualCameraPose(p) {
     const pose=rig.setProgress(p,{reducedMotion:false,alternateWeight:1-smileWeight});
@@ -474,7 +455,6 @@ export function createExperience(configuration=experienceConfig) {
   }
   function resetView() {
     if(!ready||brushingRun)return;
-    if(heroSpinAnchor!==null)heroSpin.release();
     manualChapter=null;view.reset(performance.now(),reducedMotion);
     requestRender();
   }
@@ -538,7 +518,6 @@ export function createExperience(configuration=experienceConfig) {
     brush?.setPose(dentalState.brushPose);
     if(!moveCamera)return null;
     const pose=rig.setProgress(dentalState.sceneProgress,{reducedMotion:false,alternateWeight:1-smileWeight});
-    heroSpin.apply(pose);
     applyCameraPose(pose);
     return pose;
   }
@@ -556,7 +535,6 @@ export function createExperience(configuration=experienceConfig) {
       manualCleaning:manual?{active:true,transition:manual.phase,position:manualCleaning.state.position,
         target:manualCleaning.state.target,phase:manualCleaning.state.phase,cleaningProgress:manualCleaning.state.cleaningProgress,
         travelled:manualCleaning.state.travelled,passes:manualCleaning.state.completedPasses}:null,
-      heroSpin:{state:heroSpin.state,angle:heroSpin.angle},
       fullBrushing:brushingRun?.demo?{phase:brushingRun.demo.phase,done:brushingRun.demo.done,
         angleDegrees:brushingRun.demo.angleDegrees,jawOpening:brushingRun.demo.jawOpening}:null,
       healthyAnatomy:{...anatomyState},
@@ -575,6 +553,7 @@ export function createExperience(configuration=experienceConfig) {
       shaderErrors:shaderError||renderer?.info.programs?.some((p)=>p.diagnostics?.runnable===false)?1:0,
       environment:lighting?.label,heroBytes:hero?.bytes,atlasBytes:atlas?.bytes,upperMolarBytes:upperMolar?.bytes,
       story:{chapterId:dentalState.chapterId,sceneProgress:dentalState.sceneProgress,
+        locate36:dentalState.locate36,tissueWindow:dentalState.tissueWindow,cleaningWindow:dentalState.cleaningWindow,
         brushStoryPhase:dentalState.chapterId!=='brush'?null:dentalState.sceneProgress>=STORY_TIMING.finalHold[0]?'smile':
           dentalState.sceneProgress>=STORY_TIMING.return[0]?'return':dentalState.sceneProgress>=STORY_TIMING.result[0]?'result':'cleaning',
         finalSmile:dentalState.finalSmile,cleaningProgress:dentalState.cleaningProgress,plaqueDeposition:dentalState.plaqueDeposition,
@@ -675,7 +654,6 @@ export function createExperience(configuration=experienceConfig) {
       setProgress(at);
       if(done)navigationMotion=null;
     }
-    const heroSpinning=!startupHandoff.active&&updateHeroOrbit(now);
     if(finalViewTransition){
       const t=THREE.MathUtils.clamp((now-finalViewTransition.start)/(config.interaction.returnDurationMs??480),0,1);
       smileWeight=THREE.MathUtils.lerp(finalViewTransition.from,finalViewTransition.to,t*t*(3-2*t));
@@ -711,7 +689,7 @@ export function createExperience(configuration=experienceConfig) {
     // every moving frame forces synchronous layout on mobile browsers.
     const heroReady=dentalState.chapterId==='hero'&&dentalState.sceneProgress>=STORY_TIMING.heroHold[0];
     const heroAnatomyState=anatomyMotion.update(now,{
-      hero:heroReady,preview:isolatedHero(dentalState.sceneProgress)&&Math.abs(storyProgress-renderProgress)<.001,
+      hero:heroReady,preview:false,
       reducedMotion,interacting:interaction||exploring||Boolean(view?.modified),
     });
     heroAnatomy?.setWeight(heroAnatomyState.weight);
@@ -731,16 +709,10 @@ export function createExperience(configuration=experienceConfig) {
     fullAnatomyWeight=reducedMotion||!finale?fullTarget:THREE.MathUtils.damp(fullAnatomyWeight,fullTarget,11,fullDt*.001);
     if(Math.abs(fullTarget-fullAnatomyWeight)<.004)fullAnatomyWeight=fullTarget;
     if(fullAnatomyWeight===0&&fullTarget===0)interiorFdi=null;
-    const wasCut=anatomyState.cut>0;
     anatomyState=storyAnatomy.update({progress:dentalState.sceneProgress,now,reducedMotion});
+    fullArchAnatomy?.setLocated(dentalState.locate36);
     if(anatomyState.active&&fullArchAnatomy){
-      if(anatomyState.cut>0&&!wasCut){
-        const mesh=arch.teeth.get(config.anatomy.hero).mesh;
-        mesh.geometry.boundingBox.getCenter(detailCenter);
-        const observerPosition=anatomyState.manual&&view.modified?rig.camera.position:rig.pose.position;
-        mesh.worldToLocal(storyCutDirection.copy(observerPosition)).sub(detailCenter).normalize();
-      }
-      fullArchAnatomy.setStoryLayer(anatomyState,storyCutDirection);
+      fullArchAnatomy.setStoryLayer(anatomyState);
     }else{
       fullArchAnatomy?.setDetail(interiorFdi,fullAnatomyWeight*atlasCoverage(dentalState.sceneProgress),detailDirection);
     }
@@ -757,6 +729,7 @@ export function createExperience(configuration=experienceConfig) {
       lighting?.update(atlasPose.target,radius);
     }
     const brushingMoving=updateFullBrushing(now);
+    arch.setGumJawOpening(brushingRun?.demo?.jawOpening??0);
     brushingControls.update({visible:canBrushFullArch(),demo:brushingRun?.demo});
     const brushingFrameTarget=profile.compact
       ?THREE.MathUtils.smoothstep(Math.abs(brushingRun?.demo?.viewYaw??0),1.02,2.3)
@@ -788,7 +761,7 @@ export function createExperience(configuration=experienceConfig) {
     if(changing||interaction||finalViewTransition||following||navigationMotion||fullArchFocus.moving||anatomyState.moving||brushingMoving){adaptive.beginInteraction();requestRender();}
     else {
       if(!scrolling)adaptive.endInteraction();
-      if(heroSpinning||heroAnatomyState.moving||fullAnatomyMoving||brushingFraming!==brushingFrameTarget)requestRender();
+      if(heroAnatomyState.moving||fullAnatomyMoving||brushingFraming!==brushingFrameTarget)requestRender();
       else if(!scrolling){lastFrame=0;progressFrame=0;}
     }
   }

@@ -29,9 +29,9 @@ function join(a, b, blend) {
   return Math.min(a, b) - k * k * blend * .25;
 }
 
-function tissueProfile(y) {
+function tissueProfile(y, nativeSeat) {
   const [left, right] = canalCenters(y);
-  const taper = smooth(2.3, 11.3, -y);
+  const taper = nativeSeat ? 0 : smooth(2.3, 11.3, -y);
   const radius = (.94 - .79 * smooth(.1, 10.7, -y)) * smooth(-11.36, -10.76, y);
   return { y, mesial: left - 1.03 * taper, distal: right - 1.92 * taper, radius };
 }
@@ -51,13 +51,13 @@ function distanceToPulp(x, z, { y, mesial, distal, radius }) {
   return join(chamber, Math.min(left, right), .53);
 }
 
-function makePulpGeometry() {
+function makePulpGeometry(nativeSeat) {
   const { minX, maxX, minY, maxY, minZ, maxZ } = limits;
-  const nx = 75, ny = 112, nz = 22;
+  const [nx,ny,nz] = nativeSeat ? [55,85,18] : [75,112,22];
   const row = nx + 1, slab = row * (ny + 1);
   const dx = (maxX - minX) / nx, dy = (maxY - minY) / ny, dz = (maxZ - minZ) / nz;
   const field = new Float32Array(slab * (nz + 1));
-  const profiles = Array.from({ length: ny + 1 }, (_, j) => tissueProfile(minY + j * dy));
+  const profiles = Array.from({ length: ny + 1 }, (_, j) => tissueProfile(minY + j * dy, nativeSeat));
   for (let k = 0; k <= nz; k++) {
     const z = minZ + k * dz;
     for (let j = 0; j <= ny; j++) {
@@ -89,10 +89,10 @@ function makePulpGeometry() {
     const z = minZ + (az + ratio * (bz - az)) * dz;
     const id = positions.length / 3;
     positions.push(x, y, z);
-    const d = .012, profile = tissueProfile(y);
+    const d = .012, profile = tissueProfile(y, nativeSeat);
     const gz = distanceToPulp(x, z + d, profile) - distanceToPulp(x, z - d, profile);
     const gx = distanceToPulp(x + d, z, profile) - distanceToPulp(x - d, z, profile);
-    const gy = distanceToPulp(x, z, tissueProfile(y + d)) - distanceToPulp(x, z, tissueProfile(y - d));
+    const gy = distanceToPulp(x, z, tissueProfile(y + d, nativeSeat)) - distanceToPulp(x, z, tissueProfile(y - d, nativeSeat));
     const length = Math.hypot(gx, gy, gz) || 1;
     normals.push(gx / length, gy / length, gz / length);
     color.copy(rootColor).lerp(crownColor, smooth(-7, 2.5, y));
@@ -176,10 +176,10 @@ function taperedVessel(points, radius) {
   return geometry;
 }
 
-function pulpBranches() {
+function pulpBranches(nativeSeat) {
   const stem = (side, offset) => Array.from({ length: 16 }, (_, i) => {
     const y = .28 - 11 * i / 15;
-    const { mesial, distal, radius } = tissueProfile(y);
+    const { mesial, distal, radius } = tissueProfile(y, nativeSeat);
     const x = side ? distal : mesial;
     return [x + radius * (offset + .16 * Math.sin(i * 1.27)), y, -.12 + radius * .63];
   });
@@ -203,10 +203,10 @@ function pulpBranches() {
 }
 
 /** Volumetric soft tissue with fine illustrative vascular and neural branches. */
-export function createHealthyPulp() {
+export function createHealthyPulp({ nativeSeat = false } = {}) {
   const object = new THREE.Group();
   object.name = 'Healthy FDI 36 · schematic pulp and root canals';
-  const tissue = new THREE.Mesh(makePulpGeometry(), new THREE.MeshPhysicalMaterial({
+  const tissue = new THREE.Mesh(makePulpGeometry(nativeSeat), new THREE.MeshPhysicalMaterial({
     vertexColors: true, roughness: .46, clearcoat: .09, clearcoatRoughness: .52,
     specularIntensity: .48, transparent: true, depthWrite: false, opacity: .96,
   }));
@@ -215,7 +215,7 @@ export function createHealthyPulp() {
   tissue.raycast = () => {};
   object.add(tissue);
 
-  const [vessels, nerves] = pulpBranches();
+  const [vessels, nerves] = pulpBranches(nativeSeat);
   for (const [paths, color] of [[vessels, '#74323e'], [nerves, '#eac2ae']]) {
     const parts = paths.map(([points, radius]) => taperedVessel(points, radius));
     const geometry = mergeGeometries(parts);

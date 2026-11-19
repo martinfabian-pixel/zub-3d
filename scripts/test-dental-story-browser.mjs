@@ -6,7 +6,7 @@ import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
-import { DENTAL_CHAPTERS as chapters, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS as chapters, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 import { getStoryCopy } from '../src/experience/stage-typography.js';
 import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
 import { measureSharedStage,readWebGLPixels,sampleCopyTransition } from './shared-stage-probes.mjs';
@@ -23,7 +23,7 @@ const prefixOnly=process.env.DENTAL_STORY_PREFIX_ONLY==='1';
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const report = { date: new Date().toISOString(), browser:browser.version(), site:site.href,
-  scope:'Fresh local headless Chrome. Screenshots are real WebGL frames; touch and phone viewports are emulated on the desktop GPU. No soft tissue or clinical validation.',
+  scope:'Local Chrome WebGL with emulated phone dimensions and touch. The illustrated tissues are schematic.',
   checks:[], issues:[], errors:[], warnings:[], failedRequests:[], views:[], navigation:[], scenarios:[] };
 const closingContexts=new WeakSet();
 async function closeContext(ctx){closingContexts.add(ctx);await ctx.close();}
@@ -119,7 +119,6 @@ async function read(page) {
 async function saveView(page,label,p,index,expected,base) {
   const chapter=chapters[index],copy=getStoryCopy(chapter,p);
   await scroll(page,p);
-  if(chapter.id==='hero')await page.waitForFunction(()=>['done','paused'].includes(window.__dentalExperience.report().heroSpin.state),null,{timeout:15000});
   const raster=await restingRaster(page),s=await read(page);
   s.raster=raster;s.optics=await opticalState(page);
   if(/^(desktop|mobile)-(hero|brush|full)$/.test(label)){
@@ -170,9 +169,6 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' copy passes input through to the actual 3D canvas',a.hit?.isCanvas===true,a.hit);
   check(label+' actual educational focus stays clear of every rendered text line',a.protected.sampleCount>0&&a.protected.covered.length===0,a.protected);
   const expectedPose=base.pose36.slice();
-  if(chapter.id==='assembly'||chapter.id==='hero'){
-    DENTAL_STORY.extractionOffset.forEach((offset,axis)=>expectedPose[12+axis]+=offset);
-  }
   check(label+' healthy source geometry and teaching-site pose',
     s.healthy&&s.geometry36!==s.geometry46&&
     (chapter.id==='dentition'||copy.phase==='closing'||s.pose36.every((value,i)=>near(value,expectedPose[i]))));
@@ -185,7 +181,7 @@ async function saveView(page,label,p,index,expected,base) {
 }
 const three=[35,36,37];
 const standard=chapters.map(({id,at},index)=>{
-  const visible=id==='hero'||id==='anatomy'||id==='assembly'?[36]:id==='dentition'?allFDI:three;
+  const visible=id==='dentition'||id==='assembly'?allFDI:three;
   return [id==='dentition'?'full':id,at,index,visible];
 }).concat([['result',STORY_TIMING.resultAt,brushIndex,three],['closing',finaleAt,brushIndex,allFDI]]);
 const extra=[['brush-align',.51],['brush-entry',.542],['brush-insert',.58],['brush-stroke',.64]]
@@ -645,7 +641,7 @@ try {
   const audit=JSON.parse(await readFile(new URL('../docs/proximal-reframe-review/independent-geometry.json',import.meta.url),'utf8'));
   const siteData=JSON.parse(await readFile(new URL('../public/story-assets/site.json',import.meta.url),'utf8'));
   report.offlineEvidence={geometryAudit:'docs/proximal-reframe-review/independent-geometry.json',summary:audit.summary,
-    rigidEnvelope:siteData.brush.rigidEnvelope,note:'Precomputed hard-tooth surface/path checks only; no gingiva is modelled. This run does not validate clinical fit.'};
+    rigidEnvelope:siteData.brush.rigidEnvelope,note:'The precomputed clearance certificate covers the hard-tooth surfaces on the illustrated path.'};
   const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
   const protectedHashes=await Promise.all(Object.entries(audit.assetComparison).map(async([path,source])=>({
     path,expected:source.currentSha256,actual:digest(await readFile(new URL('../'+path,import.meta.url))),

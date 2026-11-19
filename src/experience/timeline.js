@@ -71,7 +71,7 @@ function visitLandmark(source, precise, emit) {
   });
 }
 
-function measure(source, stage, direction, targetOffset, landmarkOffset) {
+function measure(source, stage, direction, targetOffset) {
   const box = new Box3(), points = [];
   visitLandmark(source, stage === 'hero' || stage === 'neighbors', (point) => {
     if (!Number.isFinite(point.x) || !Number.isFinite(point.y) || !Number.isFinite(point.z)) {
@@ -93,9 +93,6 @@ function measure(source, stage, direction, targetOffset, landmarkOffset) {
     projected[i + 1] = p.dot(vertical);
     projected[i + 2] = p.dot(direction);
   }
-  // The extracted tooth is translated as a whole. Its local fit stays the
-  // same; only the resulting camera target follows the translated landmark.
-  if (landmarkOffset) target.add(new Vector3().fromArray(landmarkOffset));
   return { target, offset, projected, right, vertical, direction };
 }
 
@@ -160,7 +157,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
   let measured, xyz, logDistance, screenTracks, lastAspect;
 
   function refreshLandmarks() {
-    measured = frames.map((frame,i)=>measure(landmarks[frame.landmark??frame.key],frame.precise===false?'bounds':frame.landmark??frame.key,dirs[i],frame.targetOffset??cameraOptions.targetOffsets?.[frame.key]??[0,0,0],frame.landmarkOffset));
+    measured = frames.map((frame,i)=>measure(landmarks[frame.landmark??frame.key],frame.precise===false?'bounds':frame.landmark??frame.key,dirs[i],frame.targetOffset??cameraOptions.targetOffsets?.[frame.key]??[0,0,0]));
     lastAspect = undefined;
   }
 
@@ -205,10 +202,11 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
       // Intersect all resulting intervals for cx (and cy). Their midpoints
       // optically centre the asymmetric arch in this particular perspective,
       // instead of wasting phone width on an empty corner of its world AABB.
-      const cx = (maxX + minX) / 2, cy = (maxY + minY) / 2;
+      const cx = frame.centerTarget ? 0 : (maxX + minX) / 2;
+      const cy = frame.centerTarget ? 0 : (maxY + minY) / 2;
       let distance = Math.max(maxDepth + near*2, (maxX - minX)/(2*kx), (maxY - minY)/(2*ky));
       targets.push(target.clone().addScaledVector(right, cx).addScaledVector(vertical, cy).add(offset));
-      if (offset.lengthSq() > 0) {
+      if (frame.centerTarget || offset.lengthSq() > 0) {
         const ox = cx + offset.dot(right), oy = cy + offset.dot(vertical), oz = offset.dot(direction);
         distance = near;
         for (let i = 0; i < projected.length; i += 3) {

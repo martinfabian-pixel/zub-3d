@@ -1,17 +1,16 @@
 // Pure narrative/clinical invariants, independent of renderer, DOM, and frame rate.
 import assert from 'node:assert/strict';
 import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
-import { getDentalChapter, sampleDentalStory, sampleNeighborEntrance, sampleReducedDentalStory } from '../src/experience/dental-story.js';
+import { getDentalChapter, sampleDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
 import { createStoryAnatomy } from '../src/experience/story-anatomy.js';
 
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
 const ids = ['dentition', 'assembly', 'hero', 'anatomy', 'space', 'plaque', 'brush'];
 const visual = s => [s.sceneProgress, s.neighborsReveal, s.gapFocus, s.lowerReveal, s.upperReveal,
-  s.assemblyReveal, s.assemblyNeighborReveal, s.toothExtraction, s.finaleReveal, s.assemblyCrownCoverage, s.finalCrownCoverage,
+  s.assemblyReveal, s.locate36, s.tissueWindow, s.siteTissue, s.cleaningWindow, s.finaleReveal, s.assemblyCrownCoverage, s.finalCrownCoverage,
   s.plaqueDeposition, s.plaqueCoverage, s.cleaningProgress, { ...s.brushPose }];
 const chapter = id => DENTAL_CHAPTERS.find(c => c.id === id);
-const [neighborStart, neighborEnd] = DENTAL_STORY.neighbors;
-const { lead, recede, recedeNeighbors, settle } = STORY_TIMING.extraction;
+const { identify, identified, background, openWindow, cleaningAccess } = STORY_TIMING.teachingSite;
 const [dissolveStart, dissolveEnd] = STORY_TIMING.assemblyCrowns;
 const [returnStart, returnEnd] = STORY_TIMING.return;
 const [finalDissolveStart, finalDissolveEnd] = STORY_TIMING.finalCrowns;
@@ -49,7 +48,7 @@ for (const p of samples) {
   maxReach = Math.max(maxReach, s.brushPose.insertion);
   for (const k of ['neighborsReveal', 'lowerReveal', 'upperReveal', 'plaqueDeposition', 'plaqueCoverage',
     'cleaningProgress', 'brushVisibility', 'brushAlignment', 'brushInsertion', 'brushStroke',
-    'assemblyReveal', 'assemblyNeighborReveal', 'toothExtraction', 'finaleReveal', 'assemblyCrownCoverage', 'finalCrownCoverage']) {
+    'assemblyReveal', 'locate36', 'tissueWindow', 'siteTissue', 'cleaningWindow', 'finaleReveal', 'assemblyCrownCoverage', 'finalCrownCoverage']) {
     assert.ok(Number.isFinite(s[k]) && s[k] >= 0 && s[k] <= 1, `${k} is normalized`);
   }
   assert.ok(s.cleaningProgress >= previous.cleaningProgress);
@@ -63,14 +62,15 @@ for (const p of samples) {
   if (p >= brushProgress(.68)) assert.equal(s.cleaningProgress, 1);
   if (p < brushProgress(.48) || p >= brushProgress(.72)) assert.equal(s.brushVisibility, 0);
   assert.equal(s.openingFlight, false, 'Scroll never plays the introduction');
-  if (p <= recede[0]) assert.equal(s.assemblyReveal, 1, 'The arch remains seated until the molar approach');
-  if (p >= recede[1]) assert.equal(s.assemblyReveal, 0, 'Other teeth recede during the approach');
-  if (p >= recedeNeighbors[1]) assert.equal(s.assemblyNeighborReveal, 0, 'The adjacent teeth also leave the isolated shot');
-  assert.ok(s.assemblyNeighborReveal >= s.assemblyReveal, 'The adjacent teeth stay visible longer');
+  if (p <= background[0]) assert.equal(s.assemblyReveal, 1, 'The molar is identified in the complete arch');
+  if (p >= background[1]) assert.equal(s.assemblyReveal, 0, 'The background teeth recede from the local window');
+  assert.equal(s.neighborsReveal, 1, 'The measured 35–37 segment remains seated through the entire visit');
   if (p >= dissolveEnd) assert.equal(s.assemblyCrownCoverage, 0, 'The tooth is shown in full during the approach');
-  if (p <= lead[0] || p >= settle[1]) assert.equal(s.toothExtraction, 0, 'The anatomical scene uses the teaching seat');
-  if (p > lead[0] && p < lead[1]) assert.ok(s.toothExtraction > previous.toothExtraction, 'The molar leads the approach');
-  if (p >= lead[1] && p <= settle[0]) assert.equal(s.toothExtraction, 1, 'The close-up holds the extracted molar');
+  if (p >= identify[1] && p <= identified[0]) assert.equal(s.locate36, 1, 'The locator holds before the close-up');
+  if (p >= openWindow[0] && p <= openWindow[1]) assert.ok(s.tissueWindow >= previous.tissueWindow);
+  if (p >= openWindow[1] && p <= cleaningAccess[0]) assert.equal(s.tissueWindow, 1, 'The root window stays open during sectioning');
+  if (p >= cleaningAccess[0] && p <= cleaningAccess[1]) eq(s.tissueWindow + s.cleaningWindow, 1, 'The local aperture hands over to the brush corridor');
+  if (s.brushVisibility > 0) assert.equal(s.cleaningWindow, 1, 'The working head always has an open corridor');
   if (p < returnStart) assert.equal(s.finaleReveal, 0);
   if (p >= returnEnd) assert.equal(s.finaleReveal, 1, 'All teeth remain visible for the end hold');
   if (p < finalDissolveStart) assert.equal(s.finalCrownCoverage, 0);
@@ -88,31 +88,21 @@ const assembly = sampleDentalStory((dissolveStart + dissolveEnd) / 2);
 assert.ok(assembly.assemblyCrownCoverage > 0 && assembly.assemblyCrownCoverage < 1);
 assert.equal(chapter('dentition').at, 0, 'The first settled screen is the atlas');
 assert.equal(sampleDentalStory(chapter('dentition').at).assemblyCrownCoverage, 1);
-assert.equal(sampleDentalStory(chapter('assembly').at).assemblyReveal, 0, 'Chapter two settles on the isolated tooth');
+assert.equal(sampleDentalStory(chapter('assembly').at).assemblyReveal, 1, 'Chapter two identifies the molar among the surrounding teeth');
+assert.equal(sampleDentalStory(chapter('assembly').at).locate36, 1);
 const hero = sampleDentalStory(chapter('hero').at);
 assert.equal(hero.assemblyReveal, 0, 'Chapter three has released the opening arch');
 assert.equal(hero.assemblyCrownCoverage, 0, 'Chapter three uses the original rooted tooth');
-assert.equal(hero.neighborsReveal, 0);
+assert.equal(hero.tissueWindow, 1);
 const anatomy = sampleDentalStory(chapter('anatomy').at);
 assert.equal(anatomy.chapter.title, 'Stavba zdravého zuba');
 assert.equal(anatomy.cleaningProgress, 0);
 assert.equal(anatomy.brushVisibility, 0);
-assert.equal(anatomy.neighborsReveal, 0);
-assert.equal(neighborStart, STORY_TIMING.anatomy.close[1], 'The cut closes before the neighbors arrive');
+assert.equal(anatomy.neighborsReveal, 1);
+assert.equal(cleaningAccess[0], STORY_TIMING.anatomy.close[1], 'The section closes before the working corridor opens');
 assert.equal(anatomy.plaqueDeposition, 0);
-assert.equal(sampleNeighborEntrance(neighborStart, 0), 0, 'The local scene opens on the same single tooth');
-const firstArrival = neighborStart + .1 * (neighborEnd - neighborStart);
-assert.ok(sampleNeighborEntrance(firstArrival, 0) > 0 && sampleNeighborEntrance(firstArrival, 1) === 0,
-  'The two neighboring teeth start their arrivals separately');
-assert.equal(sampleNeighborEntrance(neighborEnd, 0), 1);
-assert.equal(sampleNeighborEntrance(neighborEnd, 1), 1);
-for (const order of [0, 1]) {
-  const progress = [0, .1, .45, .8, 1].map(t => neighborStart + (neighborEnd - neighborStart) * t);
-  const forward = progress.map(p => sampleNeighborEntrance(p, order));
-  const backward = progress.slice().reverse().map(p => sampleNeighborEntrance(p, order)).reverse();
-  assert.deepEqual(forward, backward, 'Neighbor placement has no animation history');
-  assert.ok(forward.every((p, index) => index === 0 || p >= forward[index - 1]));
-}
+assert.equal(sampleDentalStory(cleaningAccess[0]).cleaningWindow, 0);
+assert.equal(sampleDentalStory(cleaningAccess[1]).tissueWindow, 0);
 const space = sampleDentalStory(chapter('space').at);
 assert.equal(space.chapterId, 'space');
 assert.equal(space.neighborsReveal, 1);

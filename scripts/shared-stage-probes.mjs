@@ -32,7 +32,19 @@ export async function measureSharedStage(page) {
     }
     const chapter=state.story.chapterId, brushPhase=state.story.brushStoryPhase;
     const host=app.arch.teeth.get(36).mesh;
-    if(chapter==='hero'||(chapter==='assembly'&&state.fullyVisibleTeeth.length===1)){
+    if(chapter==='assembly'){
+      // Here the story identifies the seated 36 while 37 provides context.
+      // Project their actual crown landmarks in the current arch pose.
+      for(const fdi of [36,37]){
+        const item=app.arch.teeth.get(fdi),mesh=item.crown?.visible?item.crown:item.mesh;
+        const p=mesh.geometry.attributes.position;
+        let cusp=0;
+        for(let i=1;i<p.count;i++)if(p.getY(i)>p.getY(cusp))cusp=i;
+        mesh.getVertexPosition(cusp,point).applyMatrix4(mesh.matrixWorld);sample('FDI '+fdi+' cusp');
+      }
+      const locator=state.annotations.labels.find(label=>label.id==='molar'&&label.visible);
+      if(locator){point.fromArray(locator.world);sample('FDI 36 buccal label anchor');}
+    }else if(chapter==='hero'){
       host.geometry.computeBoundingBox();host.geometry.boundingBox.getCenter(point).applyMatrix4(host.matrixWorld);sample('FDI36 center');
       const p=host.geometry.attributes.position,box=host.geometry.boundingBox;
       let mostCrown=0,mostRoot=0;
@@ -53,7 +65,7 @@ export async function measureSharedStage(page) {
     } else if(chapter==='brush'&&brushPhase==='cleaning'){
       point.fromArray(app.site.brush.centerline[0].position);sample('buccal shaft entry');
       if(state.story.brush.tipWorld){point.fromArray(state.story.brush.tipWorld);sample('brush tip');}
-    } else if(chapter==='assembly'||chapter==='dentition'||chapter==='brush'){
+    } else if(chapter==='dentition'||chapter==='brush'){
       for(const fdi of [11,12,13,21,22,23,31,32,33,41,42,43]){
         const item=app.arch.teeth.get(fdi),m=item.crown?.visible?item.crown:item.mesh;
         if(!m?.visible)continue;

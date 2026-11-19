@@ -39,9 +39,7 @@
     background: radial-gradient(ellipse 66% 32% at 50% 54%,
       #b9daed 0%, #cde7f5 38%, #e0f1facc 68%, transparent 100%);
   }
-  .hero-anatomy-control { max-width: 175px; margin-top: 13px; }
+  .hero-anatomy-control:not([hidden]) { display: inline-block; max-width: 143px; margin-top: 12px; vertical-align: top; }
   .hero-anatomy-toggle { min-height: 40px; padding-inline: 13px; font-size: 12px; }
   .hero-anatomy-note { font-size: 11px; }
-  /* Keep the exploration button away from the exposed roots in this view. */
-  .journey-copy:has(.hero-anatomy-toggle[aria-pressed="true"]) #journey-hero-explore { top: 59svh; }
 }

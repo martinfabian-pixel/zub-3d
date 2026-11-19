@@ -12,6 +12,7 @@ export function createModelGestures({canvas,view,config,signal,onChange,onStart,
     const tapMode=e.isPrimary&&!pointers.size&&e.button===0?getTapMode?.():null;
     for(const pointer of pointers.values())pointer.tapMode=null;
     pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,tapMode});
+    canvas.dataset.pointerFocus='';
     canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});
     const pair=firstTwo();pinching=Boolean(pair);if(pair)pinchDistance=distance(pair);
     canvas.style.cursor='grabbing';onStart();
@@ -47,6 +48,9 @@ export function createModelGestures({canvas,view,config,signal,onChange,onStart,
     }
   }
   canvas.style.touchAction='pan-y';canvas.style.cursor='grab';
+  const restoreFocusRing=()=>{delete canvas.dataset.pointerFocus;};
+  canvas.addEventListener('keydown',restoreFocusRing,{signal});
+  canvas.addEventListener('blur',restoreFocusRing,{signal});
   canvas.addEventListener('pointerdown',down,{signal});canvas.addEventListener('pointermove',move,{signal,passive:false});
   canvas.addEventListener('pointerup',up,{signal});canvas.addEventListener('pointercancel',up,{signal});
   canvas.addEventListener('lostpointercapture',up,{signal});

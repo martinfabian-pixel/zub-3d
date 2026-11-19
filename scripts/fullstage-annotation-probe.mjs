@@ -5,13 +5,14 @@ import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js
 import { nativeJump, restingRaster } from './browser-camera-probes.mjs';
 
 const captions = {
+  molar: 'Dolná ľavá šestka · 36',
   space: 'Medzizubný priestor',
   plaque: 'Povlak',
   cleaned: 'Vyčistený povrch',
 };
 const chapters = {
   hero: [],
-  assembly: [],
+  assembly: ['molar'],
   dentition: [],
   anatomy: [],
   space: ['space'],

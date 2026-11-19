@@ -27,6 +27,7 @@ button:disabled { cursor: default; opacity: .38; }
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
+#journey-canvas[data-pointer-focus]:focus-visible { outline: none; }
 
 #dental-journey {
   --journey-screens: 7.6;
@@ -377,10 +378,8 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   #journey-note { font-size: 11px; margin-top: 8px; max-width: 180px; }
   #journey-final-views { margin-top: 15px; }
   #journey-hero-explore {
-    position: absolute;
-    top: 49svh;
-    left: 0;
-    margin: 0;
+    margin: 12px 6px 0 0;
+    vertical-align: top;
   }
   .primary-button { font-size: 12px; padding-inline: 14px; }
   #journey-final-views button { padding-inline: 13px; font-size: 12px; }
@@ -411,7 +410,6 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   #journey-step-number { margin-bottom: 9px; }
   h1 { font-size: min(var(--title-size), 28px); }
   #journey-final-views { margin-top: 10px; }
-  #journey-hero-explore { top: 53svh; }
 }
 @media (prefers-reduced-motion: reduce) {
   #dental-journey { --journey-screens: 4; }

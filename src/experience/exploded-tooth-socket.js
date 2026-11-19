@@ -26,7 +26,7 @@ function texture(bytes, w, h, color = false) {
 }
 
 /** Bake a fine trabecular cut surface with varied, rounded pore contours. */
-function boneMaps() {
+export function createBoneSectionMaps(poreContrast = 1) {
   const w = 384, h = 208;
   const rng = randomFrom(0x3677);
   const pores = new Float32Array(w * h);
@@ -61,7 +61,7 @@ function boneMaps() {
   const color = new Uint8Array(w * h * 4);
   const height = new Uint8Array(w * h * 4);
   for (let i = 0; i < pores.length; i++) {
-    const x = i % w, y = Math.floor(i / w), p = pores[i], rim = rims[i];
+    const x = i % w, y = Math.floor(i / w), p = pores[i] * poreContrast, rim = rims[i] * poreContrast;
     const fleck = (rng() - .5) * 8;
     const drift = 4 * Math.sin(x * .056 + y * .031) * Math.sin(y * .081 - x * .016);
     const shade = 1 - .53 * p;
@@ -156,7 +156,7 @@ function grid(columns, rows, sample, invert = false) {
 export function createExplodedToothSocket() {
   const object = new THREE.Group();
   object.name = 'exploded-bone';
-  const { color, bump } = boneMaps();
+  const { color, bump } = createBoneSectionMaps();
   const gumBump = gumTexture();
   const materials = [
     new THREE.MeshStandardMaterial({ map: color, bumpMap: bump, bumpScale: .24, roughness: .77 }),

@@ -1,7 +1,6 @@
 import { Box3, MathUtils, Spherical, Vector3 } from 'three';
-import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from './story-config.js';
+import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from './story-config.js';
 import { flightProgress } from './floating-teeth.js';
-import { sampleToothExtraction } from './dental-story.js';
 
 const spaceAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').at;
 const plaqueAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'plaque').at;
@@ -60,13 +59,16 @@ function isolatedToothFrames(base,entryAt) {
   return [...transition,...toothFrames(base,['hero','hero-hold'],STORY_TIMING.heroHold)];
 }
 
-function extractionFrames(base) {
-  const approach=toothFrames(base,['tooth-in-arch','tooth-approach'],[.204,.263]);
-  Object.assign(approach[0],{ direction:[.77,.25,1],distance:7.0,framing:'extraction-arch' });
-  Object.assign(approach[1],{ direction:[1,.49,.52],distance:5.65,framing:'transition-tooth' });
-  return [...approach,...isolatedToothFrames(base,STORY_TIMING.extraction.holdAt)].map(frame=>({
-    ...frame,landmarkOffset:DENTAL_STORY.extractionOffset.map(offset=>offset*sampleToothExtraction(frame.at)),
-  }));
+function siteApproachFrames() {
+  const locate={landmark:'neighbors',direction:[.98,.32,.82],distance:8.2,framing:'locate-molar'};
+  const roots={landmark:'hero',direction:[.96,.22,.40],distance:5.8,framing:'root-window'};
+  return [
+    {key:'find-six',at:STORY_TIMING.teachingSite.identify[1],...locate},
+    {key:'hold-six',at:STORY_TIMING.teachingSite.identified[0],...locate},
+    {key:'enter-window',at:STORY_TIMING.teachingSite.openWindow[0],...roots,distance:7.1},
+    {key:'roots-in-bone',at:STORY_TIMING.teachingSite.openWindow[1],...roots},
+    {key:'root-hold',at:STORY_TIMING.heroHold[1],...roots},
+  ];
 }
 
 export function createOpeningCameraOptions(base,{compact=false}={}) {
@@ -77,7 +79,7 @@ export function createOpeningCameraOptions(base,{compact=false}={}) {
 function anatomyFrames() {
   // Along the broad buccal face of FDI 36. The opening and the first two
   // anatomical layers share an angle so the view cannot outrun the cut.
-  const direction=[.90,.22,.43];
+  const direction=[.92,.16,.37];
   const body={landmark:'hero',framing:'anatomy-tooth',direction};
   const pulp={landmark:'hero',framing:'anatomy-pulp',direction,targetOffset:[0,.055,0]};
   return [
@@ -98,13 +100,19 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const settings = compact ? { ...base.storyCamera, ...base.storyCamera.compact } : base.storyCamera;
   const roots=finalView==='anatomy'||!crownsReady;
   const keyframes=[
-    ...openingFrames(base,settings,roots),...extractionFrames(base),
+    ...openingFrames(base,settings,roots),...siteApproachFrames(),
     ...anatomyFrames(),
   ];
   if(!site)return {landmarks:{},camera:{...base.camera,keyframes}};
   const surface = new Vector3().fromArray(site.teachingSurfaceWorldCm);
-  const gap = new Vector3().fromArray(site.tightestGapFocusWorldCm);
-  const entry = new Vector3().fromArray(site.brush.centerline[0].position);
+  // The first actual bilateral bristle contact, looking in from the cheek.
+  // Use the matching LOD measurements. This is the landmark for BOTH the
+  // incoming camera and the working head, including manual cleaning.
+  const contactKey=compact?'contactsMobile':'contacts';
+  const bilateral=site.brush.centerline.find(row=>[36,37].every(fdi=>
+    row[contactKey]?.some(wall=>wall.fdi===fdi && wall.distanceMm<=site.brush.dimensionsMm.bristleRadius)));
+  if(!bilateral)throw new Error('The teaching camera requires a measured bilateral brush contact.');
+  const contact=new Vector3().fromArray(bilateral.position);
   const buccal = new Vector3().fromArray(site.basisWorld.buccal);
   const occlusal = new Vector3().fromArray(site.basisWorld.occlusal);
   const distal = new Vector3().fromArray(site.basisWorld['36DistalToward37']);
@@ -113,14 +121,12 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
 
   // These volumes live at the actual contact and insertion side. No tooth
   // or instrument can be displaced to satisfy the photography.
-  const space = gap.clone().lerp(surface, 0.45).addScaledVector(occlusal, settings.spaceOcclusalShiftCm);
-  const plaque = surface.clone().addScaledVector(occlusal, -0.035);
-  const cleaning = surface.clone().lerp(entry, settings.cleaningEntryFraction);
+  const plaque=new Vector3().fromArray(bilateral[contactKey].find(wall=>wall.fdi===36).nearestWorld);
   const result = surface.clone().addScaledVector(occlusal, -settings.resultApicalShiftCm);
   const landmarks = {
-    space: region(space, new Vector3(0.35, 0.35, 0.49)),
+    space: region(contact, new Vector3(0.35, 0.35, 0.49)),
     plaque: region(plaque, new Vector3(0.13, 0.19, 0.32)),
-    cleaning: region(cleaning, new Vector3(0.19, 0.13, 0.21)),
+    cleaning: region(contact, new Vector3(0.19, 0.13, 0.21)),
     result: region(result, new Vector3(0.11, 0.17, 0.27)),
   };
   // Turn toward the side of the working head. Looking along the wire hides
@@ -132,7 +138,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     settings.brushPitchDegrees + (settings.brushSweepPitchDegrees ?? 0));
   const resultDirection = adjustDirection(macro, settings.resultYawDegrees, settings.resultPitchDegrees);
   const specs = [
-    ['neighbors', .624, 'neighbors', settings.neighborDirection],
+    ['neck-to-contact', .624, 'space', spaceDirection, 4.95],
     ['space', spaceAt, 'space', spaceDirection, settings.spaceDistanceCm],
     // Look slightly across the contact so the deliberately disclosed,
     // brush-reachable film is visible instead of hidden behind tooth 37.
@@ -154,6 +160,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   // rather than backing the camera away to fit the whole neighboring crowns.
   keyframes.push(...specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
+    centerTarget: ['space','plaque','cleaning'].includes(landmark),
     minimumFitAspect: ['cleaning','result'].includes(landmark) ? .72 : undefined,
   })));
   // The final smile is a story beat, independent of the visitor's atlas mode.

@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { angular, cameraProbe, distance, mouseDrag, nativeJump, touchDrag } from './browser-camera-probes.mjs';
-import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
@@ -16,7 +16,7 @@ const chapter = id => DENTAL_CHAPTERS.find(c => c.id === id);
 const anatomy = chapter('anatomy');
 assert.equal(DENTAL_CHAPTERS[0].id, 'dentition', 'The settled full arch opens the story');
 assert.equal(DENTAL_CHAPTERS[1].id, 'assembly', 'The second chapter moves from the atlas to one tooth');
-assert.equal(DENTAL_CHAPTERS[2].id, 'hero', 'The isolated tooth precedes the healthy anatomy chapter');
+assert.equal(DENTAL_CHAPTERS[2].id, 'hero', 'The root window precedes the healthy tooth section');
 assert.equal(DENTAL_CHAPTERS[3], anatomy);
 const layerSelector = '.healthy-anatomy-layer';
 const cases = [
@@ -338,7 +338,7 @@ try {
           const beforeSpace = await report();
           assert.ok(beforeSpace.healthyAnatomy.cut > 0 && beforeSpace.healthyAnatomy.cut < 1,
             'The internal section closes progressively');
-          assert.deepEqual(beforeSpace.visibleTeeth, [36], 'Neighbors wait for the section to close');
+          assert.deepEqual(beforeSpace.visibleTeeth, [35,36,37], 'Both neighbors stay present while the section closes');
           await seek(checkpoints.at(-1)[0], 'anatomy');
           await expectLayer('pulp', false);
         }
@@ -355,14 +355,14 @@ try {
         assert.equal(spaced.annotations.anatomyLabels.filter(label => label.visible).length, 0);
         assert.deepEqual(spaced.fullyVisibleTeeth, [35, 36, 37], 'Only the three teaching teeth remain after the anatomy closes');
         if (!reduced) {
-          const [start, end] = DENTAL_STORY.neighbors;
-          await seek(start + .16 * (end - start), 'space');
-          const early = (await report()).teeth;
-          const first = early.find(tooth => tooth.fdi === 35), second = early.find(tooth => tooth.fdi === 37);
-          assert.ok(first.reveal > 0 && second.reveal === 0, 'Neighbors enter separately');
-          const seated = spaced.teeth.find(tooth => tooth.fdi === 35).worldMatrix;
-          assert.ok(Math.hypot(...first.worldMatrix.slice(12, 15).map((value, i) => value - seated[i + 12])) > .3,
-            'The neighbor travels through 3D space instead of appearing at its seat');
+          await seek(.609, 'space');
+          const early = await report();
+          for(const fdi of [35,36,37]){
+            const tooth=early.teeth.find(t=>t.fdi===fdi);
+            assert.equal(tooth.reveal,1);
+            assert.deepEqual(tooth.worldMatrix,spaced.teeth.find(t=>t.fdi===fdi).worldMatrix,
+              'The approach follows the seated teeth to the measured contact');
+          }
         }
         await seek(chapter('brush').at, 'brush');
         await activate(page.locator('.manual-cleaning-start'));

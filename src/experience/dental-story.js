@@ -15,17 +15,6 @@ export function getDentalChapter(progress) {
   return DENTAL_CHAPTERS[indexAt(unit(progress))];
 }
 
-export function sampleNeighborEntrance(progress, order) {
-  const [start, end] = story.neighbors;
-  const stagger = .17 * (end - start);
-  const delay = stagger * order;
-  return smooth(start + delay, end - stagger + delay, progress);
-}
-
-export function sampleToothExtraction(progress) {
-  return ramp(timing.extraction.lead, progress) * (1 - ramp(timing.extraction.settle, progress));
-}
-
 function sampleBrush(p, pose) {
   const {keys, appear, align, work, withdraw, fade} = story.brush;
   // Evaluate the absolute path, never advance an animation or keep a previous
@@ -70,17 +59,21 @@ function evaluate(progress, reduced, out, sceneLimit=1, openingFlight=false) {
   out.chapterId = ch.id;
   out.chapter = ch;
   out.chapterProgress = unit((raw - ch.start) / (ch.end - ch.start));
-  out.neighborsReveal = ramp(story.neighbors, p);
+  out.neighborsReveal = openingFlight ? flightReveal(p) : 1;
   out.gapFocus = ramp(story.gapFocus, p) * (1 - ramp(story.gapRelease, p));
   out.lowerReveal = ramp(story.lower, p);
   out.upperReveal = ramp(story.upper, p);
   out.finaleReveal = Math.max(out.lowerReveal,out.upperReveal);
   out.openingFlight = openingFlight;
-  out.toothExtraction = openingFlight ? 0 : sampleToothExtraction(p);
-  out.assemblyReveal = openingFlight ? flightReveal(p) : 1 - ramp(timing.extraction.recede,p);
-  out.assemblyNeighborReveal = openingFlight ? out.assemblyReveal : 1 - ramp(timing.extraction.recedeNeighbors,p);
+  out.assemblyReveal = openingFlight ? flightReveal(p) : 1 - ramp(timing.teachingSite.background,p);
   out.assemblyCrownCoverage = 1 - ramp(timing.assemblyCrowns,p);
   out.finalCrownCoverage = ramp(timing.finalCrowns,p);
+  const site = timing.teachingSite;
+  out.locate36 = openingFlight ? 0 : ramp(site.identify,p) * (1 - ramp(site.identified,p));
+  out.siteTissue = openingFlight ? 0 : (1 - out.assemblyCrownCoverage) * (1 - out.finalCrownCoverage);
+  const access = ramp(site.cleaningAccess,p);
+  out.tissueWindow = openingFlight ? 0 : ramp(site.openWindow,p) * (1 - access);
+  out.cleaningWindow = openingFlight ? 0 : access * (1 - ramp(timing.return,p));
   out.resultVisibility = smooth(timing.result[0],.903,p) * (1 - smooth(.913,timing.result[1],p));
   out.finalSmile = ramp(timing.finalCopy,p);
   out.plaqueDeposition = ramp(story.deposition, p);
