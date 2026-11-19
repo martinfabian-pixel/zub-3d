@@ -30,6 +30,8 @@ import { createFullArchAnatomyControls } from './full-arch-anatomy-controls.js';
 import { atlasCoverage, createFullArchFocus } from './full-arch-focus.js';
 import { createFullArchBrushing } from './full-arch-brushing.js';
 import { createFullArchBrushingControls } from './full-arch-brushing-controls.js';
+import { createToothFunctionMotion } from './tooth-function-motion.js';
+import { createToothFunctionControls } from './tooth-function-controls.js';
 import { createStartupHandoff } from './startup-handoff.js';
 import { createOpeningFlight } from './opening-flight.js';
 import { prewarmSmileMaterials } from './smile-prewarm.js';
@@ -91,6 +93,7 @@ export function createExperience(configuration=experienceConfig) {
   let fullBrushing,brushingRun=null,smileBacking,brushingFraming=0;
   const brushingFocus=new THREE.Vector3();
   let focusOrigin=null,focusLeavesStory=false;
+  let toothMotion, motionRun=null;
   const anatomyMotion=createHeroAnatomyMotion();
   const storyAnatomy=createStoryAnatomy();
   let anatomyState={active:false,layer:'whole',preset:'whole',amount:0,cut:0,highlight:null,moving:false,manual:false};
@@ -130,8 +133,116 @@ export function createExperience(configuration=experienceConfig) {
     if(!fullArchFocus.engaged||fullArchFocus.returning)return;
     interiorRequested=active;
     requestRender();
-  },onSelect:focusTooth,onReturn:()=>returnToArch(),onContinue:continueFromAtlas});
+  },onSelect:focusTooth,onReturn:()=>returnToArch(),onContinue:continueFromAtlas,onMotion:startToothMotion});
   const brushingControls=createFullArchBrushingControls({stage,signal,onToggle:toggleFullBrushing,onNext:nextBrushingPhase});
+  const motionControls=createToothFunctionControls({stage,signal,
+    onScrub(value){
+      if(!motionRun)return;
+      pauseToothMotion();
+      motionRun.progress=THREE.MathUtils.clamp(value,0,1);
+      requestRender();
+    },
+    onTogglePlay(){
+      if(!motionRun)return;
+      if(motionRun.playing)pauseToothMotion();
+      else {if(motionRun.progress>=1)motionRun.progress=0;motionRun.playing=true;motionRun.last=0;}
+      requestRender();
+    },onReturn:stopToothMotion});
+
+  function startToothMotion(fdi) {
+    if(motionRun||!canUseAtlas()||fullArchFocus.moving||fullArchFocus.returning||![21,36].includes(fdi))return;
+    cancelNavigation();
+    if(!toothMotion){toothMotion=createToothFunctionMotion({arch});scene.add(toothMotion.object);}
+    if(!toothMotion.start(fdi))return;
+    motionRun={fdi,progress:0,playing:!reducedMotion,entering:!reducedMotion,
+      began:performance.now(),last:0,from:captureAtlasPose(),savedView:view.captureDisplayed(),
+      guide:null,held:false,scrollY:window.scrollY,interiorRequested,
+      canvasLabel:canvas.getAttribute('aria-label'),canvasDescription:canvas.getAttribute('aria-describedby')};
+    arch.object.visible=false;
+    canvas.setAttribute('aria-label',fdi===21?'3D ukážka odhryznutia rezákom 21':'3D ukážka žuvania stoličkou 36');
+    canvas.setAttribute('aria-describedby','tooth-function-hint');
+    view.restore(neutralView,{instant:true});
+    controls.setFree(true);
+    motionControls.update({active:true,...motionRun});
+    requestRender();
+  }
+  // Once a visitor pauses, scrubs or touches the scene, hold the guide. Jaw
+  // sampling never writes the visitor's orbit/zoom offsets in view-controller.
+  function pauseToothMotion() {
+    if(!motionRun)return;
+    if(motionRun.entering){
+      // Interrupt the camera flight at its displayed base, before pointer
+      // input adds an orbit offset. Paused means the camera stops as well.
+      motionRun.guide=motionRun.displayedPose??motionRun.from;
+      motionRun.entering=false;
+    }
+    motionRun.playing=false;motionRun.last=0;motionRun.held=true;
+  }
+  function stopToothMotion() {
+    if(!motionRun)return;
+    const saved=motionRun;motionRun=null;
+    toothMotion.stop();arch.object.visible=true;
+    canvas.setAttribute('aria-label',saved.canvasLabel);
+    canvas.setAttribute('aria-describedby',saved.canvasDescription);
+    delete canvas.dataset.motionProgress;
+    interiorRequested=saved.interiorRequested;
+    controls.setFree(exploring);
+    applyState(exploring?inspectionProgress:renderProgress,true);
+    if(saved.resized){
+      const now=performance.now();
+      fullArchFocus.refit(rig,atlasFraming(),now,true);
+      fullArchFocus.advance(now);
+    }
+    const pose=fullArchFocus.apply(rig.pose,dentalState.sceneProgress);
+    if(pose)view.setStoryPose(pose);
+    view.restore(saved.savedView,{instant:true});
+    view.update(performance.now());
+    motionControls.update({active:false});
+    lastFrame=0;progressFrame=0;
+    updateUI();requestRender();
+  }
+  function renderToothMotion(now) {
+    const run=motionRun;
+    if(!run)return;
+    const dt=run.last?Math.min(80,Math.max(0,now-run.last)):0;
+    run.last=now;
+    if(!run.entering&&run.playing){
+      run.progress=Math.min(1,run.progress+dt/10000);
+      if(run.progress===1)run.playing=false;
+    }
+    toothMotion.setProgress(run.progress);
+    const destination=toothMotion.cameraPose({aspect:rig.camera.aspect,compact:logicalWidth<=700,
+      fov:rig.camera.fov,progress:run.progress});
+    if(!run.held||!run.guide)run.guide=destination;
+    let pose=run.guide;
+    if(run.entering){
+      const t=THREE.MathUtils.smootherstep((now-run.began)/1200,0,1);
+      const a=new THREE.Spherical().setFromVector3(run.from.position.clone().sub(run.from.target));
+      const b=new THREE.Spherical().setFromVector3(destination.position.clone().sub(destination.target));
+      const target=run.from.target.clone().lerp(destination.target,t);
+      const delta=Math.atan2(Math.sin(b.theta-a.theta),Math.cos(b.theta-a.theta));
+      const orbit=new THREE.Spherical(THREE.MathUtils.lerp(a.radius,b.radius,t),THREE.MathUtils.lerp(a.phi,b.phi,t),a.theta+delta*t);
+      pose={target,position:new THREE.Vector3().setFromSpherical(orbit).add(target),
+        screenX:THREE.MathUtils.lerp(run.from.screenX,destination.screenX,t),
+        screenY:THREE.MathUtils.lerp(run.from.screenY,destination.screenY,t),
+        opticalZoom:THREE.MathUtils.lerp(run.from.opticalZoom,destination.opticalZoom??1,t)};
+      if(t===1){run.entering=false;run.last=now;}
+    }
+    run.displayedPose=pose;
+    view.setStoryPose(pose);
+    const changing=view.update(now);
+    const camera=rig.camera;
+    camera.zoom=pose.opticalZoom??1;
+    camera.setViewOffset(logicalWidth,logicalHeight,(.5-pose.screenX)*logicalWidth,(.5-pose.screenY)*logicalHeight,logicalWidth,logicalHeight);
+    lighting?.update(pose.target,Math.max(1.1,pose.position.distanceTo(pose.target)*.2),1);
+    motionControls.update({active:true,fdi:run.fdi,progress:run.progress,playing:run.playing,entering:run.entering});
+    canvas.dataset.motionProgress=run.progress.toFixed(6);
+    if(lastFrame&&(run.playing||changing||interaction))adaptive.recordFrame(now-lastFrame);
+    lastFrame=now;
+    if(!drawScene())return;
+    if(run.playing||run.entering||changing||interaction){adaptive.beginInteraction();requestRender();}
+    else {adaptive.endInteraction();lastFrame=0;run.last=0;}
+  }
 
   function canBrushFullArch() {
     return crownsReady&&dentalState.chapterId==='dentition'&&finalView==='smile'&&atlasCoverage(dentalState.sceneProgress)===1&&
@@ -196,7 +307,7 @@ export function createExperience(configuration=experienceConfig) {
   }
 
   function canUseAtlas() {
-    return crownsReady&&dentalState.chapterId==='dentition'&&finalView==='anatomy'&&
+    return !motionRun&&crownsReady&&dentalState.chapterId==='dentition'&&finalView==='anatomy'&&
       !finalViewTransition&&!pendingFinalView&&!focusLeavesStory&&atlasCoverage(dentalState.sceneProgress)===1;
   }
   function canInspectStoryLayer(){return ready&&!manual&&!startupHandoff.active&&fullArchAnatomy&&anatomyState.active;}
@@ -426,6 +537,7 @@ export function createExperience(configuration=experienceConfig) {
     try{sessionStorage.setItem(resumeKey,String(resumeProgress??progress));}catch{}
   }
   function navigate(next) {
+    if(motionRun)stopToothMotion();
     if(manual){exitManualCleaning(next);return;}
     resumeProgress=null;
     storyAnatomy.follow();
@@ -482,6 +594,7 @@ export function createExperience(configuration=experienceConfig) {
     requestRender();
   }
   function markManual(){
+    if(motionRun)pauseToothMotion();
     manualProgress=progress;manualChapter=dentalState.chapterId;requestRender();
   }
   function zoom(factor) {
@@ -504,6 +617,12 @@ export function createExperience(configuration=experienceConfig) {
   }
   function setProgress(next,{reducedMotion:motion=reducedMotion}={}) {
     if(disposed||!rig)return null;
+    if(motionRun){
+      reducedMotion=Boolean(motion);
+      if(reducedMotion){pauseToothMotion();motionRun.entering=false;requestRender();}
+      if(Math.abs(window.scrollY-motionRun.scrollY)>1)window.scrollTo({top:motionRun.scrollY,behavior:'instant'});
+      return null;
+    }
     if(manual){reducedMotion=Boolean(motion);return null;}
     if(motion&&navigationMotion){
       next=navigationMotion.target;navigationMotion=null;ui.scrollTo(next,true);
@@ -561,6 +680,8 @@ export function createExperience(configuration=experienceConfig) {
         travelled:manualCleaning.state.travelled,passes:manualCleaning.state.completedPasses}:null,
       fullBrushing:brushingRun?.demo?{phase:brushingRun.demo.phase,done:brushingRun.demo.done,
         angleDegrees:brushingRun.demo.angleDegrees,jawOpening:brushingRun.demo.jawOpening}:null,
+      toothMotion:motionRun?{...toothMotion.report(),active:true,fdi:motionRun.fdi,progress:motionRun.progress,
+        playing:motionRun.playing,entering:motionRun.entering,cameraHeld:motionRun.held}:null,
       healthyAnatomy:{...anatomyState},
       heroAnatomy:{weight:heroAnatomy?.weight??0},
       fullAnatomy:fullArchAnatomy?.report()??{weight:0,teeth:0},
@@ -664,6 +785,7 @@ export function createExperience(configuration=experienceConfig) {
   function render(now) {
     frame=0;
     if(disposed||document.hidden||!ready){lastFrame=0;return;}
+    if(motionRun){renderToothMotion(now);return;}
     if(manual){renderManual(now);return;}
     if(crownsReady&&!openingComplete){
       if(playOpening&&!openingSkipped&&!reducedMotion){
@@ -765,7 +887,7 @@ export function createExperience(configuration=experienceConfig) {
     healthyAnatomyUI.update(anatomyState);
     anatomyControls.update({chapterId:dentalState.chapterId,enabled:ready&&heroReady,active:heroAnatomyState.active,weight:heroAnatomyState.weight,archWeight:fullAnatomyWeight});
     fullAnatomyControls.update({visible:finale&&finalView==='anatomy'&&atlasCoverage(dentalState.sceneProgress)===1,
-      enabled:canUseAtlas(),active:interiorRequested,focused:selected!==null,selectedFdi:selected,returning:fullArchFocus.returning});
+      enabled:canUseAtlas(),active:interiorRequested,focused:selected!==null,selectedFdi:selected,returning:fullArchFocus.returning,moving:fullArchFocus.moving});
     if(pendingFinalView&&!focusOrigin&&fullAnatomyWeight===0){const next=pendingFinalView;pendingFinalView=null;selectFinalView(next);}
     const fullAnatomyMoving=fullAnatomyWeight!==fullTarget||(interiorTarget!==null&&interiorTarget!==interiorFdi);
     const atlasPose=fullArchFocus.apply(rig.pose,dentalState.sceneProgress);
@@ -823,6 +945,19 @@ export function createExperience(configuration=experienceConfig) {
     // the model beside the HTML type without an inner cropped viewport.
     rig.resize(width,height);
     fittedRig=rig;
+    if(motionRun){
+      // Refit the guide for a new viewport without changing manual offsets.
+      motionRun.resized=true;
+      const refit=toothMotion.cameraPose({aspect:rig.camera.aspect,compact:width<=700,fov:rig.camera.fov,progress:motionRun.progress});
+      if(motionRun.held&&motionRun.guide){
+        const radius=refit.position.distanceTo(refit.target);
+        refit.position.copy(motionRun.guide.position).sub(motionRun.guide.target).setLength(radius).add(refit.target);
+      }
+      motionRun.guide=refit;
+      const metrics=getJourneyScrollMetrics(section,stage);
+      motionRun.scrollY=metrics.base+progress*metrics.travel;
+      requestRender();return;
+    }
     if(manual){manualCameraPose(manual.cameraProgress);requestRender();return;}
     applyState(exploring?inspectionProgress:dentalState.progress,true);
     if(focusOrigin)fullArchFocus.refit(rig,atlasFraming(),performance.now(),reducedMotion,
@@ -838,6 +973,7 @@ export function createExperience(configuration=experienceConfig) {
     releaseRendererLuts(renderer,scene);
     observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();healthyAnatomyUI.dispose();anatomyControls.dispose();fullAnatomyControls.dispose();brushingControls.dispose();manualUI.dispose();ui.dispose();
     fullBrushing?.dispose();
+    motionControls.dispose();toothMotion?.dispose();
     cleaningWindow?.dispose();
     fullArchAnatomy?.dispose();
     heroAnatomy?.dispose();
@@ -866,6 +1002,7 @@ export function createExperience(configuration=experienceConfig) {
     if(!event.target.closest?.('#journey-mobile-next, #journey-mobile-previous, .journey-step, #journey-home, #journey-show-all'))cancelNavigation();
   },{passive:true,signal});
   window.addEventListener('keydown',(event)=>{
+    if(!event.defaultPrevented&&event.key==='Escape'&&motionRun&&!document.querySelector('dialog[open]')){event.preventDefault();stopToothMotion();return;}
     if(!event.defaultPrevented&&event.key==='Escape'&&focusOrigin&&!document.querySelector('dialog[open]')){
       event.preventDefault();returnToArch();return;
     }
@@ -877,7 +1014,7 @@ export function createExperience(configuration=experienceConfig) {
   },{signal});
   window.addEventListener('resize',()=>{navigationMotion=null;},{signal});
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){cancelNavigation();if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;openingFlight.pause();anatomyMotion.resetClock();adaptive?.endInteraction();}
+    if(document.hidden){cancelNavigation();if(motionRun)pauseToothMotion();if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;openingFlight.pause();anatomyMotion.resetClock();adaptive?.endInteraction();}
     else {scroll?.refresh();requestRender();}
   },{signal});
   canvas.addEventListener('webglcontextlost',(e)=>{
@@ -994,6 +1131,7 @@ export function createExperience(configuration=experienceConfig) {
       adaptive=createAdaptiveQuality({renderer,profile,requestRender,config});
       controls=createModelGestures({canvas,view,config,signal,getTapMode:selectionMode,onTap:pickInCanvas,
         onStart(){
+          if(motionRun)pauseToothMotion();
           interaction=true;adaptive.beginInteraction();requestRender();
         },
         onEnd(){interaction=false;requestRender();},onChange:markManual});
@@ -1001,7 +1139,8 @@ export function createExperience(configuration=experienceConfig) {
         if(startupHandoff.active||manual||!controls.enabled)return;
         if(event.altKey||event.metaKey||event.ctrlKey)return;
         if(event.key==='Escape'){
-          if(focusOrigin){event.preventDefault();returnToArch();}
+          if(motionRun){event.preventDefault();stopToothMotion();}
+          else if(focusOrigin){event.preventDefault();returnToArch();}
           else if(exploring){event.preventDefault();toggleExplore();(explore.hidden?document.querySelector('#journey-hero-explore'):explore).focus({preventScroll:true});}
           else if(view.modified){event.preventDefault();resetView();}
           return;

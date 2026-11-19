@@ -43,6 +43,7 @@ jobs:
       - run: node scripts/test-manual-cleaning.mjs
       - run: node scripts/test-inspection-return.mjs
       - run: node scripts/test-view-controller.mjs
+      - run: node scripts/test-tooth-function-motion.mjs
       - run: pnpm build
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3

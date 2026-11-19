@@ -6,6 +6,8 @@ Začnite pri dolnej ľavej šestke **FDI 36 s dvoma koreňmi**. V druhej kapitol
 
 Sedem kapitol **Zub / Stavba zuba / Priestor / Povlak / Čistenie / Výsledok / Chrup** ovláda prirodzený zvislý posun stránky alebo priama navigácia. **Model môžete rovno chytiť a otočiť**, už od prvého zuba. Na mobile vodorovne otáčate a zvislo posúvate príbeh. **Voľné 3D** pozastaví ukážku, umožní obe osi a zoom kolieskom alebo dvoma prstami. **Pokračovať v príbehu** sa plynulo vráti do pripravenej kompozície. Záver ponúka **Úsmev** s korunkami a **Anatómiu** s celými zubami vrátane koreňov.
 
+V atlase **Anatómia** vyberte zub **21** alebo **36**. Pri jeho funkcii nájdete **Ukázať odhryznutie** alebo **Ukázať žuvanie**. Ukážka s jablkom sa raz pomaly prehrá; posuvník ovláda čeľusť aj sústo dopredu a dozadu. Dotyk modelu alebo posuvníka prehrávanie zastaví. Model možno otočiť a priblížiť dvoma prstami, kolieskom alebo klávesmi; ďalší posun zachová ručný pohľad. **Späť na zub** obnoví vybraný zub a jeho pôvodný pohľad. Pri obmedzených animáciách sa ukážka spúšťa pozastavená.
+
 ## Spustenie
 
 Node.js 22.12+ a pnpm 10, z koreňa repozitára:

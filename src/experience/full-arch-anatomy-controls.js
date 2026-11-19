@@ -1,7 +1,7 @@
 import './full-arch-anatomy-controls.css';
 import { adjacentAtlasTooth, DENTAL_ATLAS_GROUPS, DENTAL_ATLAS_TEETH } from './dental-atlas-data.js';
 
-export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onReturn, onContinue }) {
+export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onReturn, onContinue, onMotion }) {
   const doc = stage.ownerDocument;
   const copy = stage.querySelector('.journey-copy');
   const abort = new AbortController();
@@ -16,7 +16,8 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
       <p class="full-arch-focus-kicker"><span>Atlas chrupu</span><span class="full-arch-focus-type"></span></p>
       <h2 class="full-arch-focus-title"></h2>
       <p class="full-arch-focus-location"></p>
-      <p class="full-arch-focus-function"><strong>Funkcia:</strong> <span></span></p>
+      <p class="full-arch-focus-function" id="full-arch-focus-function"><strong>Funkcia:</strong> <span></span></p>
+      <button type="button" class="primary-button full-arch-focus-motion" aria-describedby="full-arch-focus-function" hidden></button>
     </div>
     <div class="full-arch-focus-actions">
       <select class="full-arch-focus-select" aria-label="Vybrať zub podľa čísla FDI">
@@ -43,6 +44,7 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   const note = container.querySelector('.full-arch-anatomy-note');
   const select = container.querySelector('.full-arch-focus-select');
   const button = container.querySelector('.full-arch-anatomy-toggle');
+  const motion = container.querySelector('.full-arch-focus-motion');
   const back = container.querySelector('.full-arch-focus-return');
   const navigation = container.querySelector('.full-arch-focus-nav');
   const previous = container.querySelector('.full-arch-focus-previous');
@@ -76,6 +78,7 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
     onSelect?.(fdi);
   };
   button.addEventListener('click', () => onToggle?.(!pressed), { signal });
+  motion.addEventListener('click', () => onMotion?.(currentTooth?.fdi), { signal });
   select.addEventListener('change', () => { if (select.value) onSelect?.(Number(select.value)); }, { signal });
   back.addEventListener('click', () => onReturn?.(), { signal });
   previous.addEventListener('click', () => selectAdjacent('previous'), { signal });
@@ -83,11 +86,11 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   continueButton.addEventListener('click', () => onContinue?.(), { signal });
 
   return {
-    update({ visible, enabled, active, focused = false, selectedFdi = null, returning = false }) {
+    update({ visible, enabled, active, focused = false, selectedFdi = null, returning = false, moving = false }) {
       const tooth = focused ? DENTAL_ATLAS_TEETH.get(selectedFdi) : null;
       const mode = visible ? (tooth ? 'detail' : 'overview') : null;
       if (mode !== lastMode) {
-        const returnFocus = mode === 'overview' && (doc.activeElement === back || doc.activeElement === button || navigation.contains(doc.activeElement));
+        const returnFocus = mode === 'overview' && (doc.activeElement === back || doc.activeElement === button || doc.activeElement === motion || navigation.contains(doc.activeElement));
         container.hidden = !mode;
         if (mode) stage.dataset.dentalAtlas = mode;
         else delete stage.dataset.dentalAtlas;
@@ -96,6 +99,8 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
         if (returnFocus) select.focus({ preventScroll: true });
         lastMode = mode;
       }
+      motion.hidden = mode !== 'detail' || !onMotion || (tooth?.fdi !== 21 && tooth?.fdi !== 36);
+      motion.disabled = !enabled || returning || moving;
       if (lastEnabled !== enabled || currentTooth !== tooth || lastReturning !== returning) {
         select.disabled = back.disabled = continueButton.disabled = !enabled;
         button.disabled = !enabled || returning;
@@ -125,6 +130,7 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
           title.textContent = `${tooth.fdi} — ${tooth.name}`;
           location.textContent = `${tooth.jaw} · ${tooth.side}`;
           purpose.textContent = tooth.purpose;
+          motion.textContent = tooth.fdi === 21 ? 'Ukázať odhryznutie' : 'Ukázať žuvanie';
         }
         announcement.textContent = tooth ? `${title.textContent}. ${location.textContent}. ${tooth.purpose}` : '';
       }
