@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { clinicViews } from '../src/experience/clinical-views.js';
+import { clinicViews, motionViewTeeth } from '../src/experience/clinical-views.js';
 
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const base = new URL(process.env.DENTAL_STORY_TEST_URL || 'http://127.0.0.1:4173/');
@@ -89,15 +89,63 @@ async function openClinic(context, view) {
   await page.close();
 }
 
+async function openMotion(context, view, fdi) {
+  const page = await context.newPage();
+  const reduced = fdi === 36;
+  await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const target = new URL(base);
+  target.searchParams.set('pohlad', view);
+  let releaseSite;
+  const siteGate = new Promise(resolve => { releaseSite = resolve; });
+  await page.route(url => url.pathname.endsWith('/story-assets/site.json'), async route => {
+    await siteGate;
+    await route.continue();
+  });
+  try {
+    await page.goto(target.href, { waitUntil:'domcontentloaded' });
+    const stage = page.locator('#journey-stage'), slider = page.locator('#tooth-function-progress');
+    await slider.waitFor({ state:'visible', timeout:90000 });
+    await page.locator('#journey-startup').waitFor({ state:'hidden', timeout:90000 });
+    assert.equal(await stage.getAttribute('data-tooth-motion'), String(fdi));
+    assert.equal(await page.locator('#journey-skip-intro').count(), 0);
+    assert.equal(await slider.isEnabled(), true);
+    const play = page.locator('.tooth-function-play');
+    assert.equal(await play.innerText(), reduced ? 'Prehrať' : 'Pozastaviť');
+    if (reduced) assert.equal(await slider.inputValue(), '0');
+    else {
+      await page.waitForFunction(() => document.querySelector('#tooth-function-progress').valueAsNumber > 0);
+      await play.tap();
+    }
+    await slider.press('Home');
+    await slider.press('PageUp');
+    assert.equal(await slider.inputValue(), '100');
+    releaseSite();
+    await page.waitForFunction(() => document.querySelector('#journey-canvas').dataset.assetsReady === 'true');
+    assert.equal(await slider.inputValue(), '100', 'Loading other chapters preserves a scrubbed demonstration.');
+    await page.locator('.tooth-function-return').tap();
+    await page.locator('.full-arch-focus-motion').waitFor({ state:'visible' });
+    assert.equal(await page.locator('.full-arch-focus-select').inputValue(), String(fdi));
+    await page.locator('.full-arch-focus-return').tap();
+    await page.locator('.full-arch-focus-motion').waitFor({ state:'hidden' });
+    assert.deepEqual(errors, []);
+  } finally {
+    releaseSite();
+    await page.close();
+  }
+}
+
 try {
   const context = await browser.newContext({ viewport:{ width:390,height:844 }, deviceScaleFactor:2, isMobile:true, hasTouch:true });
   await context.grantPermissions(['clipboard-read','clipboard-write'], { origin:base.origin });
   for (const view of Object.values(clinicViews)) await openClinic(context, view);
+  for (const [view, fdi] of Object.entries(motionViewTeeth)) await openMotion(context, view, fdi);
   const home = await context.newPage();
   await home.goto(base.href, { waitUntil:'domcontentloaded' });
   await home.locator('#journey-skip-intro').waitFor({ state:'visible', timeout:90000 });
   await context.close();
-  console.log('Clinic views: late dependencies, first visible frame, copying, both fresh tabs and ordinary cinematic entry passed at 390×844.');
+  console.log('Clinic views: cleaning, pulp, bite 21, chew 36, their controls and ordinary cinematic entry passed in fresh tabs at 390×844.');
 } finally {
   await browser.close();
 }

@@ -3,9 +3,14 @@ export const clinicViews = Object.freeze({
   pulp: 'dren-36',
 });
 
+export const motionViewTeeth = Object.freeze({
+  'odhryznutie-21': 21,
+  'zuvanie-36': 36,
+});
+
 export function readClinicView(params) {
   const view = params.get('pohlad');
-  return Object.values(clinicViews).includes(view) ? view : null;
+  return Object.values(clinicViews).includes(view) || Object.hasOwn(motionViewTeeth, view) ? view : null;
 }
 
 /** Keep a native link for long-press and open-in-new-tab. A normal tap

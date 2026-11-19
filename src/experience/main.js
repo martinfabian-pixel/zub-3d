@@ -10,7 +10,7 @@ import { createScrollDriver, getJourneyScrollMetrics } from './scroll.js';
 import { createScrollReadiness } from './scroll-readiness.js';
 import { createNavigationMotion } from './navigation-motion.js';
 import { createInterface } from './interface.js';
-import { clinicViews, createClinicShare, readClinicView } from './clinical-views.js';
+import { clinicViews, createClinicShare, motionViewTeeth, readClinicView } from './clinical-views.js';
 import { sampleDentalStory, sampleOpeningDentalStory, sampleReducedDentalStory } from './dental-story.js';
 import { STORY_TIMING } from './story-config.js';
 import { createIntroCameraOptions, createOpeningCameraOptions, createStoryCameraConfig } from './story-camera.js';
@@ -149,12 +149,12 @@ export function createExperience(configuration=experienceConfig) {
       requestRender();
     },onReturn:stopToothMotion});
 
-  function startToothMotion(fdi) {
+  function startToothMotion(fdi,{instant=reducedMotion}={}) {
     if(motionRun||!canUseAtlas()||fullArchFocus.moving||fullArchFocus.returning||![21,36].includes(fdi))return;
     cancelNavigation();
     if(!toothMotion){toothMotion=createToothFunctionMotion({arch});scene.add(toothMotion.object);}
     if(!toothMotion.start(fdi))return;
-    motionRun={fdi,progress:0,playing:!reducedMotion,entering:!reducedMotion,
+    motionRun={fdi,progress:0,playing:!reducedMotion,entering:!instant,
       began:performance.now(),last:0,from:captureAtlasPose(),savedView:view.captureDisplayed(),
       guide:null,held:false,scrollY:window.scrollY,interiorRequested,
       canvasLabel:canvas.getAttribute('aria-label'),canvasDescription:canvas.getAttribute('aria-describedby')};
@@ -340,11 +340,11 @@ export function createExperience(configuration=experienceConfig) {
       screenX:sensor?.enabled ? .5-sensor.offsetX/sensor.fullWidth : .5,
       screenY:sensor?.enabled ? .5-sensor.offsetY/sensor.fullHeight : .5,opticalZoom:camera.zoom};
   }
-  function focusTooth(fdi) {
+  function focusTooth(fdi,{instant=reducedMotion}={}) {
     if(!canUseAtlas())return;
     const firstFocus=!focusOrigin;
     const from=captureAtlasPose();
-    if(!fullArchFocus.select(Number(fdi),{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant:reducedMotion}))return;
+    if(!fullArchFocus.select(Number(fdi),{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant}))return;
     cancelNavigation();
     if(firstFocus){
       focusOrigin={view:view.captureDisplayed(),progress:renderProgress,next:null};
@@ -601,7 +601,7 @@ export function createExperience(configuration=experienceConfig) {
     if(!ready||brushingRun)return;
     view.zoomBy(factor);markManual();
   }
-  function selectFinalView(next){
+  function selectFinalView(next,{instant=reducedMotion}={}){
     stopFullBrushing();
     if(!crownsReady||!finalTimelines[next]||dentalState.chapterId!=='dentition')return;
     if(next===finalView){pendingFinalView=null;return;}
@@ -611,8 +611,8 @@ export function createExperience(configuration=experienceConfig) {
     pendingFinalView=null;
     finalView=next;
     const now=performance.now(),to=next==='smile'?1:0;
-    if(reducedMotion){smileWeight=to;finalViewTransition=null;}else finalViewTransition={from:smileWeight,to,start:now};
-    applyState(exploring?inspectionProgress:dentalState.progress,true);view.reset(now,reducedMotion);manualChapter=null;
+    if(instant){smileWeight=to;finalViewTransition=null;}else finalViewTransition={from:smileWeight,to,start:now};
+    applyState(exploring?inspectionProgress:dentalState.progress,true);view.reset(now,instant);manualChapter=null;
     Object.assign(controller,{rig,timeline:finalTimelines[next]});updateUI();requestRender();
   }
   function setProgress(next,{reducedMotion:motion=reducedMotion}={}) {
@@ -799,8 +799,20 @@ export function createExperience(configuration=experienceConfig) {
     // No cinematic or intermediate chapter is exposed on a clinic link.
     if(pendingClinicView){
       if(!openingComplete||(pendingClinicView===clinicViews.cleaning&&!studyReady))return;
+      const motionFdi=motionViewTeeth[pendingClinicView];
       const cleaning=pendingClinicView===clinicViews.cleaning;
       pendingClinicView=null;
+      if(motionFdi){
+        // Prepare the same selected-tooth return destination as an atlas click, behind the cover.
+        restoreStoryPosition(config.presentation.steps.find(step=>step.id==='dentition').at);
+        selectFinalView('anatomy',{instant:true});
+        focusTooth(motionFdi,{instant:true});
+        fullArchFocus.advance(now);
+        startToothMotion(motionFdi,{instant:true});
+        renderToothMotion(now);
+        startupHandoff.start();
+        return;
+      }
       const destination=cleaning?STORY_TIMING.manualReady:config.presentation.steps.find(step=>step.id==='anatomy').at;
       restoreStoryPosition(destination);
       applyState(renderProgress,true);
