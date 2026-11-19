@@ -63,7 +63,7 @@ export function createInterdentalBrush({path,compact=false,options={}}) {
   bristles.castShadow=false;bristles.receiveShadow=true;object.add(bristles);
   geometries.add(bristles.geometry);materials.add(nylon);
   const fibres=[],sample=makePathSample(),station=makePathSample();
-  const color=new Color(),baseTone=new Color('#b9b4c2'),tipTone=new Color('#e9e4ee');
+  const color=new Color(),baseTone=new Color('#a294b1'),tipTone=new Color('#ded6e5');
   for(let i=0;i<pairs;i++){
     const t=(i+.5)/pairs,back=dims.tipMarginMm+t*length;
     const angle=TAU*back/pitch+Math.PI*.5+(noise(i+2)-.5)*.52;

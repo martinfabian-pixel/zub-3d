@@ -254,6 +254,13 @@ try {
         await slider.press('End');
         await amountBetween(3, 3);
         const pulpPoint = await pointFor('pulp');
+        const emphasis = await page.evaluate(() => {
+          const leader = id => document.querySelector('[data-leader-for="' + id + '"]');
+          const width = id => parseFloat(getComputedStyle(leader(id).querySelector('path')).strokeWidth);
+          return document.querySelector('[data-annotation-id="pulp"]').hasAttribute('data-active')
+            && width('pulp') > width('enamel') && Number(getComputedStyle(leader('enamel')).opacity) < 1;
+        });
+        assert.ok(emphasis, 'Selecting Dreň emphasizes its own caption and leader before picking any surface');
         await selectPoint(pulpPoint);
         await wait(() => window.__dentalExperience.report().healthyAnatomy.highlight === 'pulp');
         assert.equal((await report()).healthyAnatomy.amount, 3, 'Picking a visible surface keeps its disclosure amount');
@@ -338,7 +345,7 @@ try {
           const beforeSpace = await report();
           assert.ok(beforeSpace.healthyAnatomy.cut > 0 && beforeSpace.healthyAnatomy.cut < 1,
             'The internal section closes progressively');
-          assert.deepEqual(beforeSpace.visibleTeeth, [35,36,37], 'Both neighbors stay present while the section closes');
+          assert.deepEqual(beforeSpace.visibleTeeth, [36], 'The cut closes completely on the isolated molar before reseating');
           await seek(checkpoints.at(-1)[0], 'anatomy');
           await expectLayer('pulp', false);
         }
@@ -359,9 +366,15 @@ try {
           const early = await report();
           for(const fdi of [35,36,37]){
             const tooth=early.teeth.find(t=>t.fdi===fdi);
-            assert.equal(tooth.reveal,1);
-            assert.deepEqual(tooth.worldMatrix,spaced.teeth.find(t=>t.fdi===fdi).worldMatrix,
-              'The approach follows the seated teeth to the measured contact');
+            const seated=spaced.teeth.find(t=>t.fdi===fdi);
+            if(fdi===36){
+              assert.equal(tooth.reveal,1);
+              assert.ok(tooth.worldMatrix[13]>seated.worldMatrix[13]+.15,
+                'The closed teaching molar is returning to the cleaning position');
+            }else{
+              assert.ok(tooth.reveal>0&&tooth.reveal<1, 'Neighbors reappear during the return');
+              assert.deepEqual(tooth.worldMatrix,seated.worldMatrix,'Each neighbor retains its original seat');
+            }
           }
         }
         await seek(chapter('brush').at, 'brush');

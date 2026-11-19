@@ -3,7 +3,7 @@ import { createDentinSectionGeometry } from './exploded-tooth-parts.js';
 
 // Local metres, +Z buccal, +Y occlusal. The section remains registered to
 // the anatomy when the camera moves. Its normal is independent of the viewer.
-const width = 288;
+const width = 384;
 
 // Project the real triangles into a depth atlas once. Two disjoint solid
 // intervals per texel preserve undercuts and the space between the roots.
@@ -35,11 +35,15 @@ function makeDepthAtlas(geometry, box, height, sealEdge = false) {
       (intersections[pixel] ??= []).push(az + u * uz + v * vz);
     }
   }
-  const data = new Uint8Array(width * height * 4);
+  // Distance endpoints need sub-texel depth precision at shallow angles.
+  // RGBA16F is sampled with texelFetch; it needs no float texture filtering.
+  const data = new Uint16Array(width * height * 4);
+  const one = THREE.DataUtils.toHalfFloat(1);
+  const encode = z => THREE.DataUtils.toHalfFloat(THREE.MathUtils.clamp((z - box.min.z) / span.z, 0, 1));
   for (let p = 0; p < intersections.length; p++) {
     const hits = intersections[p];
     const offset = p * 4;
-    data[offset] = data[offset + 2] = 255;
+    data[offset] = data[offset + 2] = one;
     if (!hits || hits.length < 2) continue;
     hits.sort((a, b) => a - b);
     // Retain the widest exterior gap if a very oblique voxel hits more
@@ -48,7 +52,6 @@ function makeDepthAtlas(geometry, box, height, sealEdge = false) {
     for (let j = 2; j < hits.length - 1; j += 2) {
       if (hits[j] - hits[j - 1] > gap) { gap = hits[j] - hits[j - 1]; split = j; }
     }
-    const encode = z => Math.round(255 * THREE.MathUtils.clamp((z - box.min.z) / span.z, 0, 1));
     data[offset] = encode(hits[0]); data[offset + 1] = encode(hits[split ? split - 1 : hits.length - 1]);
     if (split) { data[offset + 2] = encode(hits[split]); data[offset + 3] = encode(hits.at(-1)); }
   }
@@ -62,19 +65,19 @@ function makeDepthAtlas(geometry, box, height, sealEdge = false) {
       if (original[p] <= original[p + 1]) continue;
       let widest = 0;
       for (const neighbor of [p - width*4, p + width*4, p - 4, p + 4]) {
-        const range = original[neighbor + 1] - original[neighbor];
+        const range = THREE.DataUtils.fromHalfFloat(original[neighbor + 1]) - THREE.DataUtils.fromHalfFloat(original[neighbor]);
         if (range <= widest) continue;
         widest = range;
         data.set(original.subarray(neighbor, neighbor + 4), p);
       }
     }
   }
-  const texture = new THREE.DataTexture(data, width, height);
-  texture.minFilter = texture.magFilter = THREE.LinearFilter;
+  const texture = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.HalfFloatType);
   texture.needsUpdate = true;
   function distanceAt(offset, z) {
-    const first=Math.min(z-data[offset]/255,data[offset+1]/255-z);
-    const second=Math.min(z-data[offset+2]/255,data[offset+3]/255-z);
+    const decode = THREE.DataUtils.fromHalfFloat;
+    const first=Math.min(z-decode(data[offset]),decode(data[offset+1])-z);
+    const second=Math.min(z-decode(data[offset+2]),decode(data[offset+3])-z);
     return THREE.MathUtils.clamp(Math.max(first,second),-.03,.03);
   }
   return { texture, distance(u, v, depth) {
@@ -110,8 +113,8 @@ export function createLongitudinalSection(host) {
     shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float sectionZ; varying float vSectionZ;')
       .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif(vSectionZ>sectionZ)discard;');
   };
-  const enamel = new THREE.Color('#f8f2e5'), ivory = new THREE.Color('#dfc69e');
-  const cementum = new THREE.Color('#d2bea1'), junction = new THREE.Color('#bda27f');
+  const enamel = new THREE.Color('#f6f3eb'), ivory = new THREE.Color('#e3ccb0');
+  const cementum = new THREE.Color('#d3bea5'), junction = new THREE.Color('#bfa989');
   const material = new THREE.MeshStandardMaterial({ roughness: .64, side: THREE.DoubleSide });
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, {
@@ -126,6 +129,13 @@ export function createLongitudinalSection(host) {
       uniform sampler2D sectionExterior, sectionInterior;
       uniform vec3 sectionEnamel, sectionDentin, sectionRoot, sectionJunction;
       uniform float planeDepth, selectedLayer;
+      float fibreNoise(vec2 p){
+        vec2 c=floor(p), f=fract(p);
+        f=f*f*(3.-2.*f);
+        float seed=dot(c,vec2(.06711056,.00583715));
+        vec4 corners=fract(52.9829189*fract(seed+vec4(0.,.06711056,.00583715,.07294771)));
+        return mix(mix(corners.x,corners.y,f.x),mix(corners.z,corners.w,f.x),f.y)-.5;
+      }
       float sectionDistance(vec4 depths) {
         return clamp(max(min(planeDepth-depths.r, depths.g-planeDepth), min(planeDepth-depths.b, depths.a-planeDepth)),-.03,.03);
       }
@@ -139,19 +149,38 @@ export function createLongitudinalSection(host) {
         return mix(mix(sectionDistance(texelFetch(atlas,lo,0)),sectionDistance(texelFetch(atlas,ivec2(hi.x,lo.y),0)),t.x),
                    mix(sectionDistance(texelFetch(atlas,ivec2(lo.x,hi.y),0)),sectionDistance(texelFetch(atlas,hi,0)),t.x),t.y);
       }`).replace('#include <color_fragment>', `#include <color_fragment>
-        if(distanceAtUv(sectionExterior) < -0.002) discard;
+        float outerDepth = distanceAtUv(sectionExterior);
+        if(outerDepth < -0.002) discard;
         float coreDepth = distanceAtUv(sectionInterior);
         float inner = smoothstep(-0.004,0.004,coreDepth);
         float crown = smoothstep(0.62,0.67,vCutUv.y);
         vec3 mantle = mix(sectionRoot, sectionEnamel, crown);
         vec2 mm = (vCutUv - vec2(.5,.64)) * vec2(12.7,21.9);
-        float orientation = atan(mm.y*.58,mm.x);
-        float grain = sin(orientation*99.0 + length(mm)*1.4) * sin(orientation*37.0 - length(mm)*.75);
-        float attenuation = 1.0-smoothstep(.02,.16,fwidth(orientation));
-        vec3 coreColor = sectionDentin * (1.0 + .014 * grain * attenuation);
+        vec2 fibre = vec2(mm.x*5.4 + .8*sin(mm.y*1.65), mm.y*2.1);
+        float grain = fibreNoise(fibre);
+        float attenuation = 1.-smoothstep(.22,1.,length(fwidth(fibre)));
+        vec3 coreColor = sectionDentin * (1.0 + .018 * grain * attenuation);
         coreColor = mix(sectionJunction,coreColor,.69+.31*smoothstep(.0,.036,coreDepth));
         float marked = selectedLayer==2.0 ? inner : selectedLayer==1.0 ? (1.0-inner)*crown : 0.0;
         diffuseColor.rgb *= mix(mantle,coreColor,inner) * mix(vec3(1.),vec3(.87,.97,1.055),marked);
+      `).replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        // Lacquer-like reflections would obscure a sawn section. The enamel
+        // mantle takes a satin highlight; the cut dentin has a broader lobe.
+        roughnessFactor = mix(mix(.54,.34,crown), .70 + .06*grain*attenuation, inner);
+      `).replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        // Bounded section relief (world centimetres). Light rounds off the
+        // exposed lip, crosses a shallow junction and catches the dentin grain.
+        float height = .0009 * smoothstep(-.002,.030,outerDepth)
+                     - .0018 * smoothstep(-.006,.026,coreDepth);
+        vec2 dh = vec2(dFdx(height),dFdy(height));
+        dh += .00010 * inner * attenuation * vec2(dFdx(grain), dFdy(grain));
+        vec3 tx = dFdx(-vViewPosition), ty = dFdy(-vViewPosition);
+        vec3 rx = cross(ty,normal), ry = cross(normal,tx);
+        float determinant = dot(tx,rx);
+        if(abs(determinant)>1e-12){
+          vec3 slope = (dh.x*rx + dh.y*ry) / determinant;
+          normal = normalize(normal - slope / max(1., 2.*length(slope)));
+        }
       `);
   };
   const geometry = new THREE.PlaneGeometry(size.x, size.y);

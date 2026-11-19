@@ -14,9 +14,11 @@ export const STORY_TIMING = Object.freeze({
   teachingSite: Object.freeze({
     identify: range(.168, .195),
     identified: range(.233, .276),
-    background: range(.220, .305),
-    openWindow: range(.285, .370),
-    cleaningAccess: range(.590, .650),
+    lift: range(.235, .348),
+    background: range(.236, .316),
+    releaseNeighbors: range(.252, .348),
+    returnNeighbors: range(.596, .651),
+    reseat: range(.590, .655),
   }),
   heroHold: range(.364, .412),
   anatomy: Object.freeze({
@@ -61,7 +63,7 @@ export const DENTAL_CHAPTERS = Object.freeze([
     'V dolnom oblúku nájdeme ľavú šestku.'),
   chapter('hero', 'Zub', .33, .43, .386, .386,
     ['Pozrite sa', 'pod povrch.'],
-    'Cez okno v ďasne vidno korene šestky uložené v kosti.'),
+    'Prezrite si šestku od korunky až po konce oboch koreňov.'),
   chapter('anatomy', 'Stavba zuba', .43, .59, .555, .555,
     ['Stavba', 'zdravého zuba'],
     'Preskúmajte, čo sa skrýva pod povrchom zdravej stoličky.', {
@@ -70,7 +72,7 @@ export const DENTAL_CHAPTERS = Object.freeze([
   chapter('space', 'Priestor', .59, .69, .680, .680,
     ['Aj medzi', 'zubami.'],
     'Pozornosť si zaslúžia aj plochy medzi zubami.', {
-      education: 'Medzi dolnou šestkou a sedmičkou sa pri krčkoch zubov otvára medzizubný priestor. V modeli je miestne odkrytý, aby bolo vidieť miesto čistenia.',
+      education: 'Medzi dolnou šestkou a sedmičkou sa pri krčkoch zubov otvára medzizubný priestor.',
     }),
   chapter('plaque', 'Povlak', .69, .78, .765, .765,
     ['Nenápadný', 'povlak.'],
@@ -82,7 +84,7 @@ export const DENTAL_CHAPTERS = Object.freeze([
     ['Jemne tam', 'a späť.'],
     'Na zdravom zube ukazujeme, ako kefka odstraňuje povlak.', {
       instructions: Object.freeze(['Vhodná veľkosť.', 'Jemné zasunutie.', 'Pohyb tam a späť.']),
-      note: 'Ďasno je pri kefke schematicky odkryté.',
+      note: 'Priestor medzi zubami je zobrazený schematicky.',
       resultLabels: Object.freeze(['Vyčistený povrch']),
       education: 'S výberom vhodnej veľkosti pomôže zubný lekár alebo dentálna hygienička. Zasúvajte jemne, bez násilia. Medzizubná kefka odstraňuje povlak v dosahu štetiniek a dopĺňa bežné čistenie.',
     }),
@@ -92,6 +94,8 @@ const brushRange = (a, b) => range(brushProgress(a), brushProgress(b));
 export const DENTAL_STORY = Object.freeze({
   chapters: DENTAL_CHAPTERS,
   fdi: Object.freeze({ hero: 36, distalNeighbor: 37, neighbors: Object.freeze([35, 36, 37]) }),
+  // Centimetres in the native arch frame: buccal clearance and an occlusal lift.
+  extractionOffset: Object.freeze([1.07, .63, .47]),
   gapFocus: range(.594, .680), gapRelease: STORY_TIMING.return,
   deposition: range(.690, .765),
   plaqueExit: range(.922, .947),

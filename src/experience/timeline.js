@@ -239,6 +239,7 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
     while (i < knots.length - 2 && sceneProgress > knots[i + 1]) i++;
     const t = unit((sceneProgress - knots[i]) / (knots[i + 1] - knots[i]));
     out.target.set(xyz[0](i, t), xyz[1](i, t), xyz[2](i, t));
+    cameraOptions.followTarget?.(out.target,sceneProgress);
     const azimuth = yaw(i, t), pitch = elevation(i, t), cosPitch = Math.cos(pitch);
     out.position.set(Math.sin(azimuth)*cosPitch, Math.sin(pitch), Math.cos(azimuth)*cosPitch)
       .multiplyScalar(Math.exp(logDistance(i, t))).add(out.target);

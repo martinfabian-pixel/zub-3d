@@ -378,7 +378,12 @@ export function createFullArchAnatomy({ arch }) {
     state.lessonPulp=createHealthyPulp({nativeSeat:true});
     const pulp=state.lessonPulp.object;
     pulp.scale.setScalar(.001);
-    pulp.children[0].material.color.set('#dfa599');
+    const softTissue = pulp.children[0].material;
+    softTissue.color.set('#edb6b5');
+    softTissue.roughness = .39;
+    softTissue.specularIntensity = .62;
+    softTissue.clearcoat = .14;
+    softTissue.clearcoatRoughness = .43;
     pulp.visible=false;
     state.host.add(pulp);
     return state.section;
@@ -427,7 +432,7 @@ export function createFullArchAnatomy({ arch }) {
     const story=items.get(36);
     if(story)story.cut.highlight.value=id==='enamel'?.48:0;
     if(story?.lessonPulp)story.lessonPulp.object.children[0].material.color
-      .set(id==='pulp'?'#f0b4bb':'#dfa599');
+      .set(id==='pulp'?'#f5c6c5':'#edb6b5');
   }
 
   function layerSurfaces(state) {
@@ -475,7 +480,7 @@ export function createFullArchAnatomy({ arch }) {
     const near=Math.max(raycaster.near,(camera?.near??0)/depth);
     const far=Math.min(raycaster.far,(camera?.far??Infinity)/depth);
     const hit=probe.nearest(surfaces,ray,near,far);
-    return hit?.id&&!arch.occludesTissue?.(ray,near,hit.distance-.001)?hit.id:null;
+    return hit?.id??null;
   }
 
   function getStoryLayerAnchors(camera) {
@@ -510,8 +515,7 @@ export function createFullArchAnatomy({ arch }) {
         const depth=cameraDepthPerUnit(testRay,camera),near=camera.near/depth;
         const tolerance=.0015;
         const visible=probe.nearest(surfaces,testRay,near,distance+tolerance);
-        if(visible?.object===object&&visible.id===id&&Math.abs(visible.distance-distance)<tolerance&&
-          !arch.occludesTissue?.(testRay,near,distance-tolerance)){
+        if(visible?.object===object&&visible.id===id&&Math.abs(visible.distance-distance)<tolerance){
           anchors.push(candidate);shown++;
         }
       }

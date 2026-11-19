@@ -9,7 +9,7 @@ const chapterLabels={space:['space'],plaque:['plaque']};
 const namespace='http://www.w3.org/2000/svg';
 const overlaps=(a,b,p=0)=>a.x<b.x+b.width+p&&a.x+a.width>b.x-p&&a.y<b.y+b.height+p&&a.y+a.height>b.y-p;
 const relative=(r,base)=>({x:r.left-base.left,y:r.top-base.top,width:r.width,height:r.height});
-const labelReaches=[1,1.5],anatomyReaches=[1,1.5,2.4,3.2];
+const labelReaches=[1,1.5],anatomyReaches=[1,1.5,2.4,3.2,4.6,6];
 
 function overlapArea(a,b) {
   return Math.max(0,Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x))*
@@ -52,7 +52,7 @@ function place(point,width,height,bounds,obstacles,previous,anatomy) {
     const key=dir+'/'+v+'/'+reach;
     const score=(dir===-1?0:dir===0?4:9)+Math.abs(v+1)*4+(reach-1)*16+
       Math.hypot(end[0]-x,end[1]-y)*.07-(previous===key?6:0)+
-      (anatomy?.modelBounds?overlapArea(rect,anatomy.modelBounds)/(width*height)*75:0);
+      (anatomy?.modelBounds?overlapArea(rect,anatomy.modelBounds)/(width*height)*120:0);
     if(!best||score<best.score)best={key,score,rect,leader:[point,joint,end]};
   }
   return best;
@@ -181,6 +181,15 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
       if(!best){hide(entry,'layout',clear[0]);continue;}
       show(entry,best.measure,best.fit);
       obstacles.push(best.fit.rect);
+    }
+    // The lesson, slider and model selection all resolve to the same layer.
+    // Keep secondary labels readable, even if the active anchor is occluded.
+    const focused=anatomyEntries[anatomy.layer]?.data.visible;
+    for(const [id,entry] of Object.entries(anatomyEntries)){
+      const active=Boolean(focused&&id===anatomy.layer);
+      entry.group.toggleAttribute('data-active',active);
+      entry.group.toggleAttribute('data-secondary',Boolean(focused&&!active));
+      entry.label.toggleAttribute('data-secondary',Boolean(focused&&!active));
     }
   }
   function update({state,camera,brush,anatomy}) {

@@ -7,7 +7,7 @@ import { createTimeline } from '../src/experience/timeline.js';
 import { createJourneyCamera } from '../src/experience/camera.js';
 import { createCleaningPath } from '../src/experience/cleaning-path.js';
 import { sampleDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
-import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 
 // Real measured proximal site with small mock landmark boxes. The browser tests
 // independently check actual tooth occlusion and the visible camera framing.
@@ -42,12 +42,10 @@ for (const compact of [false, true]) {
   const timeline = createTimeline({ landmarks: allLandmarks, cameraOptions });
   const openingOptions = createOpeningCameraOptions(experienceConfig, { compact });
   const opening = createTimeline({ landmarks, cameraOptions: openingOptions });
-  const baselineOptions = { ...cameraOptions, keyframes: cameraOptions.keyframes.filter(frame => !frame.key.startsWith('brush-orbit-')) };
-  const baseline = createTimeline({ landmarks: allLandmarks, cameraOptions: baselineOptions });
   const sample = progress => timeline.sample(progress, aspect);
   const atlas = sample(chapterAt('dentition'));
   const hero = sample(chapterAt('hero')), anatomy = sample(chapterAt('anatomy'));
-  assert.ok(atlas.target.distanceTo(hero.target) > 2, 'The camera leaves the full arch to frame the molar in its seat');
+  assert.ok(atlas.target.distanceTo(hero.target) > 2, 'The camera leaves the full arch to frame the lifted molar');
   assert.ok(atlas.target.distanceTo(sample(0).target) < 1e-8, 'The first settled screen frames the full arch');
   assert.ok(openingOptions.keyframes.some(frame=>frame.key==='flight-arc') &&
     !cameraOptions.keyframes.some(frame=>frame.key==='flight-arc'), 'Only the introductory camera follows the flight');
@@ -57,7 +55,7 @@ for (const compact of [false, true]) {
       'Completing or skipping the introduction and the closing smile all use the same camera');
   }
   const locate = sample(chapterAt('assembly'));
-  const {identify,identified,openWindow}=STORY_TIMING.teachingSite;
+  const {identify,identified,lift,reseat}=STORY_TIMING.teachingSite;
   assert.ok(yaw(locate) - yaw(atlas) > .65, 'The camera turns towards the patient’s left');
   assert.ok(sample(identify[1]).position.distanceTo(sample(identified[0]).position)<1e-8,
     'The identifying label has a stationary hold before the macro move');
@@ -66,13 +64,14 @@ for (const compact of [false, true]) {
   assert.ok(relativeScale>.72 && relativeScale<1.28,
     'The turn holds a wide contextual scale while the molar is identified');
   assert.ok(apparentScale(hero)>apparentScale(locate)*1.25,
-    'The camera moves into the root window after the identification hold');
-  assert.ok(hero.target.distanceTo(landmarks.hero.getCenter(new Vector3()))<.22,
-    'The root window is aimed at the anatomical seat');
-  assert.ok(Math.abs(angleDifference(yaw(anatomy), yaw(hero))) < .15,
-    'The open root window and the section face the same observer');
-  assert.notDeepEqual([anatomy.screenX, anatomy.screenY, anatomy.opticalZoom],
-    [hero.screenX, hero.screenY, hero.opticalZoom], 'Anatomy eases into a distinct composition');
+    'The camera approaches after the identification hold');
+  const liftedCenter = landmarks.hero.getCenter(new Vector3()).add(new Vector3(...DENTAL_STORY.extractionOffset));
+  assert.ok(hero.target.distanceTo(liftedCenter)<.22, 'The lens follows the displaced tooth');
+  for(const frame of [sample(lift[1]), anatomy, sample(reseat[0])]){
+    for(const key of ['position','target'])assert.ok(frame[key].distanceTo(hero[key])<1e-8,
+      'The longitudinal cut opens on the same molar with a stationary lens');
+    for(const key of ['screenX','screenY','opticalZoom'])close(frame[key],hero[key],1e-12,'The cut retains the full-tooth composition');
+  }
   close(sample(1).opticalZoom, compact ? .325 : .87, 1e-7, 'The final smile retains its own framing');
   const nearBoundary = 1e-6;
   for (const { start: boundary } of DENTAL_CHAPTERS.slice(1)) {
@@ -81,14 +80,14 @@ for (const compact of [false, true]) {
         `Camera ${key} stays continuous across chapter boundary ${boundary}`);
     }
   }
-  const [start, side, hold, returned] = [.62, .667, .676, .72].map(brushProgress).map(sample);
+  const start = sample(brushProgress(.62));
   const contact=sample(chapterAt('space')).target;
   const row=site.brush.centerline.find(point=>new Vector3(...point.position).distanceTo(contact)<1e-6);
   assert.ok(row,'The camera arrives on the measured brush centerline');
   const contacts=compact?row.contactsMobile:row.contacts;
   assert.ok([36,37].every(fdi=>contacts.some(wall=>wall.fdi===fdi &&
     wall.distanceMm<=site.brush.dimensionsMm.bristleRadius)), 'The landmark has bilateral bristle contact');
-  assert.ok(start.target.distanceTo(contact)<1e-8 && side.target.distanceTo(contact)<1e-8,
+  assert.ok(start.target.distanceTo(contact)<1e-8,
     'The working head and incoming surface approach share one physical focus');
   if(compact){
     const path=createCleaningPath(site), rig=createJourneyCamera({timeline});
@@ -97,31 +96,26 @@ for (const compact of [false, true]) {
     rig.setProgress(at);
     const tip=path.tipArcMm(state.brushInsertion,state.brushAlignment);
     const project=arc=>path.sample(arc).position.project(rig.camera);
-    const ferrule=project(tip-path.dimensions.ferruleBackMm);
     const front=project(tip-path.dimensions.tipMarginMm);
     const back=project(tip-path.dimensions.tipMarginMm-path.dimensions.bristledLengthMm);
-    for(const p of [ferrule,front,back]) {
-      assert.ok(Math.abs(p.x)<.96 && Math.abs(p.y)<.76,'The mobile camera includes the ferrule nose and both ends of the working head');
+    for(const p of [front,back]) {
+      assert.ok(Math.abs(p.x)<.96 && Math.abs(p.y)<.76,'Both ends of the working head fit the phone');
     }
-    assert.ok(Math.hypot((back.x-front.x)*195,(back.y-front.y)*422)>65,
-      'The working head remains readable at 390 CSS pixels');
+    assert.ok(Math.hypot((back.x-front.x)*195,(back.y-front.y)*422)>95,
+      'The bristled length occupies at least a quarter of the 390px phone width');
     rig.dispose();
   }
 
-  const settings=compact?experienceConfig.storyCamera.compact:experienceConfig.storyCamera;
-  const expectedYaw = MathUtils.degToRad(settings.brushSweepYawDegrees);
-  close(angleDifference(yaw(side), yaw(start)), expectedYaw, 1e-7, 'Camera follows the authored side angle');
-  close(angleDifference(yaw(hold), yaw(side)), 0, 1e-7, 'Side view holds steady');
-  close(angleDifference(yaw(returned), yaw(start)), 0, 1e-7, 'Camera returns to its brush view');
   const [resultStart, resultEnd] = STORY_TIMING.result;
-  for (const progress of [0, .12, .34, .475, .69, ...[.515, .62, .72].map(brushProgress), (resultStart + resultEnd) / 2, 1]) {
-    const pose = sample(progress), original = baseline.sample(progress, aspect);
-    assert.ok(pose.position.distanceTo(original.position) < 1e-7, `Unchanged pose at ${progress}`);
-    assert.ok(pose.target.distanceTo(original.target) < 1e-7, `Unchanged target at ${progress}`);
+  for (const progress of [chapterAt('plaque'), ...[.48,.515,.62,.68,.72].map(brushProgress), resultStart, resultEnd]) {
+    const pose = sample(progress);
+    assert.ok(pose.position.distanceTo(start.position) < 1e-7, `Approach, contact and result share one viewing angle at ${progress}`);
+    assert.ok(pose.target.distanceTo(start.target) < 1e-7);
+    for (const key of ['screenX','screenY','opticalZoom']) close(pose[key],start[key],1e-10,'Same surface point stays registered on screen');
   }
 
   // C1 interpolation at every new knot, with deterministic absolute sampling.
-  for (const knot of [identify[1],identified[0],...openWindow,.624,...[.62, .667, .676, .72].map(brushProgress)]) {
+  for (const knot of [identify[1],identified[0],...lift,...reseat,.624,...[.62, .667, .676, .72].map(brushProgress)]) {
     const epsilon = 1e-6, before = sample(knot - epsilon), at = sample(knot), after = sample(knot + epsilon);
     for (const key of ['position', 'target']) {
       const left = at[key].clone().sub(before[key]).divideScalar(epsilon);
@@ -144,9 +138,8 @@ for (const compact of [false, true]) {
   for (const progress of [resultStart, (resultStart + resultEnd) / 2, resultEnd - .001]) {
     const reduced = sampleReducedDentalStory(progress);
     assert.equal(reduced.sceneProgress, (resultStart + resultEnd) / 2);
-    const unchanged = baseline.sample(reduced.sceneProgress, aspect);
-    assert.ok(sample(reduced.sceneProgress).position.distanceTo(unchanged.position) < 1e-7, 'Reduced motion result remains unchanged');
+    assert.ok(sample(reduced.sceneProgress).position.distanceTo(start.position) < 1e-7, 'Reduced motion result keeps the working angle');
   }
   assert.equal(sampleReducedDentalStory(resultEnd).sceneProgress, 1, 'Reduced motion uses a settled final smile');
 }
-console.log('Camera sweep: authored angle, C1 continuity, reverse and reduced-motion holds passed on desktop and portrait.');
+console.log('Camera: molar follow, registered brush/contact hold, C1 continuity, reverse and reduced motion passed on desktop and portrait.');

@@ -300,7 +300,7 @@ try {
       await seek(page, 'hero');
       assert.equal(await page.locator(selector).isVisible(), false);
       const storyTooth = await read(page);
-      assert.deepEqual(storyTooth.visibleTeeth, [35,36,37], 'Moving forward from the atlas keeps the teaching segment seated');
+      assert.deepEqual(storyTooth.visibleTeeth, [36], 'The teaching molar is presented on its own after leaving the atlas');
       assert.equal(storyTooth.focusHasOrigin, false, 'Native scroll releases the atlas before the story detail');
       await seek(page, 'assembly');
       assert.equal(await page.locator(selector).isVisible(), false);
@@ -313,7 +313,7 @@ try {
         await choose(36);
         await settleFocus(page, 36);
         await seek(page, 'hero');
-        assert.deepEqual((await read(page)).visibleTeeth, [35,36,37], 'Atlas extraction ends before the root window opens');
+        assert.deepEqual((await read(page)).visibleTeeth, [36], 'Atlas selection releases its transforms before the story lift');
         await seek(page, 'dentition');
         await waitForMode(page, 'anatomy');
         assertRestored(await read(page), baseline);

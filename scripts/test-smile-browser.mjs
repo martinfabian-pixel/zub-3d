@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { mouseDrag, touchDrag, pinchOut, wheelOnCanvas } from './browser-camera-probes.mjs';
-import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
 const url=process.env.DENTAL_STORY_TEST_URL||'http://127.0.0.1:4173/';
@@ -17,7 +17,7 @@ const brushAt=DENTAL_CHAPTERS.find(chapter=>chapter.id==='brush').at;
 const [dissolveFrom,dissolveTo]=STORY_TIMING.assemblyCrowns;
 const dissolveAt=fraction=>dissolveFrom+(dissolveTo-dissolveFrom)*fraction;
 const seatedAt=assemblyChapter.at;
-const rootWindowAt=heroChapter.at;
+const liftedAt=heroChapter.at;
 try {
  for(const [width,height] of [[1440,900],[390,844]]) {
   const mobile=width<700;
@@ -91,15 +91,18 @@ try {
   expectMeshes(seated,0,28);
   assert.equal(seated.crownMix,0);
 
-  await seek(rootWindowAt);
-  const windowView=await readState();
-  expectMeshes(windowView,0,3);
-  assert.equal(windowView.crownMix,0);
-  assert.equal(windowView.backingVisible,false);
-  assert.ok(windowView.matrices.every((matrix,i)=>{
-   const fdi=windowView.fdis[i];
-   return matrix.every((value,j)=>j===13&&fdi<30||Math.abs(value-seated.matrices[i][j])<1e-5);
-  }), 'The tooth stays seated as the root window opens');
+  await seek(liftedAt);
+  const lifted=await readState();
+  expectMeshes(lifted,0,1);
+  assert.equal(lifted.crownMix,0);
+  assert.equal(lifted.backingVisible,false);
+  assert.ok(lifted.matrices.every((matrix,i)=>{
+   const fdi=lifted.fdis[i];
+   return matrix.every((value,j)=>{
+    const delta=fdi===36&&j>=12&&j<=14?DENTAL_STORY.extractionOffset[j-12]:0;
+    return Math.abs(value-seated.matrices[i][j]-delta)<1e-5;
+   });
+  }), 'Only 36 translates out from its seat for the anatomy shot');
 
   await seek(dissolveAt(.25));
   const dissolveStart=await readState();
@@ -125,12 +128,12 @@ try {
   await seek(dissolveAt(.25));
   const reversedDissolve=await readState();
   assert.equal(reversedDissolve.crownMix,dissolveStart.crownMix);
-  await seek(rootWindowAt);
+  await seek(liftedAt);
   const reversed=await readState();
-  expectMeshes(reversed,0,3);
+  expectMeshes(reversed,0,1);
   assert.equal(reversed.backingVisible,false);
   for(let i=0;i<reversed.matrices.length;i++) for(let j=0;j<16;j++)
-   assert.ok(Math.abs(reversed.matrices[i][j]-windowView.matrices[i][j])<1e-5,'Reverse restores the same approach transforms');
+   assert.ok(Math.abs(reversed.matrices[i][j]-lifted.matrices[i][j])<1e-5,'Reverse restores the same approach transforms');
   await seek(brushAt);
   const beforeDrag=await page.evaluate(()=>window.__dentalExperience.report().view.desiredYaw);
   if(mobile)await touchDrag(context,page,60,0);else await mouseDrag(page,60,20);
@@ -154,12 +157,12 @@ try {
   assert.equal(await page.locator('#journey-view-anatomy').isVisible(),false);
   await page.screenshot({path:`${out}/${width}-molar-in-arch.png`});
   await navigateTo('#journey-mobile-next',heroChapter,3);
-  expectMeshes(await readState(),0,3);
+  expectMeshes(await readState(),0,1);
   assert.equal(await page.locator('#journey-hero-explore').isVisible(),true);
   assert.equal(await page.locator('#journey-view-anatomy').isVisible(),false);
-  const windowCamera=await page.evaluate(()=>window.__dentalExperience.report().camera);
+  const heldCamera=await page.evaluate(()=>window.__dentalExperience.report().camera);
   await page.waitForTimeout(300);
-  assert.deepEqual(await page.evaluate(()=>window.__dentalExperience.report().camera),windowCamera,'A paused window keeps the same camera');
+  assert.deepEqual(await page.evaluate(()=>window.__dentalExperience.report().camera),heldCamera,'A paused tooth keeps the same camera');
   await navigateTo('#journey-mobile-previous',assemblyChapter,2);
   expectMeshes(await readState(),0,28);
   await navigateTo('#journey-mobile-previous',atlasChapter,1);
@@ -183,7 +186,7 @@ try {
   assert.deepEqual(closing.crownMatrices,smile.crownMatrices,'Both smiles use the same approved crown seating');
   await page.screenshot({path:`${out}/${width}-zaverecny-usmev.png`});
   assert.deepEqual(errors,[]);
-  const stages=Object.entries({seated,windowView,dissolveStart,dissolveEnd,smile,anatomy,calmReturn,closing})
+  const stages=Object.entries({seated,lifted,dissolveStart,dissolveEnd,smile,anatomy,calmReturn,closing})
    .map(([name,{chapter,crownMix,crowns,anatomy}])=>({name,chapter,crownMix,crowns,anatomy}));
   results.push({width,height,motion,stages,errors});
   console.log(width, 'passed');

@@ -6,7 +6,8 @@ import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises';
 import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
-import { DENTAL_CHAPTERS as chapters, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
+import { DENTAL_CHAPTERS as chapters, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
+import { sampleToothExtraction } from '../src/experience/dental-story.js';
 import { getStoryCopy } from '../src/experience/stage-typography.js';
 import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
 import { measureSharedStage,readWebGLPixels,sampleCopyTransition } from './shared-stage-probes.mjs';
@@ -169,6 +170,7 @@ async function saveView(page,label,p,index,expected,base) {
   check(label+' copy passes input through to the actual 3D canvas',a.hit?.isCanvas===true,a.hit);
   check(label+' actual educational focus stays clear of every rendered text line',a.protected.sampleCount>0&&a.protected.covered.length===0,a.protected);
   const expectedPose=base.pose36.slice();
+  DENTAL_STORY.extractionOffset.forEach((offset,axis)=>expectedPose[12+axis]+=offset*sampleToothExtraction(s.sceneProgress));
   check(label+' healthy source geometry and teaching-site pose',
     s.healthy&&s.geometry36!==s.geometry46&&
     (chapter.id==='dentition'||copy.phase==='closing'||s.pose36.every((value,i)=>near(value,expectedPose[i]))));
@@ -181,7 +183,7 @@ async function saveView(page,label,p,index,expected,base) {
 }
 const three=[35,36,37];
 const standard=chapters.map(({id,at},index)=>{
-  const visible=id==='dentition'||id==='assembly'?allFDI:three;
+  const visible=id==='dentition'||id==='assembly'?allFDI:id==='hero'||id==='anatomy'?[36]:three;
   return [id==='dentition'?'full':id,at,index,visible];
 }).concat([['result',STORY_TIMING.resultAt,brushIndex,three],['closing',finaleAt,brushIndex,allFDI]]);
 const extra=[['brush-align',.51],['brush-entry',.542],['brush-insert',.58],['brush-stroke',.64]]

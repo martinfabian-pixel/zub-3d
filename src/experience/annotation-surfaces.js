@@ -108,7 +108,6 @@ export function buildTriangleBuckets(g) {
 
 export function createVisibilityTest(arch) {
   const cache=new Map(),start=new Vector3(),end=new Vector3(),dir=new Vector3(),nearPoint=new Vector3();
-  const tissueRay=new Ray();
   function blocked(world,camera) {
     const depth=-point.copy(world).applyMatrix4(camera.matrixWorldInverse).z;
     nearPoint.setFromMatrixPosition(camera.matrixWorld);
@@ -116,9 +115,6 @@ export function createVisibilityTest(arch) {
     // Geometry between the lens and its near plane is clipped in WebGL.
     nearPoint.lerp(world,camera.near/depth);
     start.copy(world).addScaledVector(dir,toleranceCm);
-    tissueRay.origin.copy(nearPoint);
-    tissueRay.direction.copy(dir).negate();
-    if(arch.occludesTissue?.(tissueRay,0,nearPoint.distanceTo(start)))return true;
     for(const item of arch.teeth.values()) {
       const mesh=item.mesh;
       if(!mesh?.visible||item.reveal<.01)continue;

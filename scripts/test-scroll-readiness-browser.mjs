@@ -325,11 +325,11 @@ try {
     assert.equal(await mobile.locator('#journey-title').innerText(), 'Celý chrup.');
     assert.equal(await mobile.locator('#journey-step-number').innerText(), '01 / 07');
 
-    const checkpoints = [.182, .216, .248, .280, .316];
+    const checkpoints = [.182, .216, .248, .280, .316, .348];
     const forward = new Map();
     for (const progress of checkpoints) forward.set(progress, await extractionPose(mobile, progress));
     const firstPose = forward.get(checkpoints[0]), lastPose = forward.get(checkpoints.at(-1));
-    assert.ok(difference(firstPose[36].matrix, lastPose[36].matrix) < .00001, 'The teaching tooth stays in its socket during the approach');
+    assert.ok(lastPose[36].matrix[13]-firstPose[36].matrix[13] > .6, 'The molar lifts above its neighbors before entering the cut');
     assert.ok(firstPose[31].reveal > .8 && lastPose[31].reveal === 0, 'The rest of the arch recedes from its seats');
     for (const current of forward.values()) for (const fdi of [31, 35, 37]) {
       assert.ok(difference(firstPose[fdi].matrix, current[fdi].matrix) < .00001,
@@ -356,8 +356,8 @@ try {
     assert.equal(second.crowns, 0);
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'hero');
-    assert.deepEqual((await mobile.evaluate(readProgress)).teeth, [35,36,37],
-      'The root window keeps neighboring teeth as landmarks');
+    assert.deepEqual((await mobile.evaluate(readProgress)).teeth, [36],
+      'The lifted molar is the only visible tooth in the hero composition');
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'anatomy');
     await overshoot(mobile);

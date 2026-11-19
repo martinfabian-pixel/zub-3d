@@ -53,12 +53,26 @@
   touch-action: manipulation;
 }
 #healthy-anatomy [data-anatomy-annotation][data-active] {
-  border-color: rgb(56 101 121 / 33%);
-  background: #f8fcfe;
+  background: #234858;
+  border-color: #234858;
+  color: white;
 }
-#healthy-anatomy [data-anatomy-annotation][aria-pressed="true"] {
-  border-color: rgb(56 101 121 / 48%);
-  background: #e3f2f8;
+#journey-annotations [data-leader-for][data-active] path {
+  stroke: #34596b;
+  stroke-width: 1.6;
+}
+#journey-annotations [data-leader-for][data-active] circle {
+  stroke: #34596b;
+  stroke-width: 1.5;
+}
+#healthy-anatomy [data-anatomy-annotation][data-secondary] {
+  background: rgb(248 253 255 / 81%);
+  border-color: rgb(79 112 128 / 13%);
+  color: #536976;
+  box-shadow: none;
+}
+#journey-annotations [data-leader-for][data-secondary] {
+  opacity: .54;
 }
 #healthy-anatomy [data-anatomy-annotation]:focus-visible {
   outline: 2px solid var(--accent, #173e50);

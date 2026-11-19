@@ -32,7 +32,7 @@ for(let t=1151;t<3150;t++){
   assert.ok(shot.progress<=previous && previous-shot.progress<.001);
   const scene=sampleOpeningDentalStory(shot.progress);
   assert.equal(scene.openingFlight,true);
-  assert.equal(scene.siteTissue,0,'The teaching site stays hidden during the flight');
+  assert.equal(scene.toothExtraction,0,'The story lift never displaces the opening molar');
   assert.equal(scene.locate36,0,'Teaching identification never overlays the opening');
   if(floatingAmount(shot.progress)>.5){
     assert.equal(scene.assemblyCrownCoverage,0,'The flying teeth retain their roots');
@@ -50,7 +50,7 @@ const end=intro.sample(start+3150);
 assert.deepEqual(end,{progress:atlasStart,yaw:0,growth:1,phase:'done',done:true});
 const settledOpening=sampleOpeningDentalStory(end.progress);
 const settledStory=sampleDentalStory(end.progress);
-for (const key of ['sceneProgress','assemblyReveal','neighborsReveal','assemblyCrownCoverage','tissueWindow','cleaningWindow','locate36'])
+for (const key of ['sceneProgress','assemblyReveal','neighborsReveal','assemblyCrownCoverage','toothExtraction','locate36'])
   assert.equal(settledOpening[key],settledStory[key],`The opening and skipped opening settle on the same ${key}`);
 assert.equal(settledOpening.assemblyCrownCoverage,1);
 assert.equal(intro.sample(start+5000),end);

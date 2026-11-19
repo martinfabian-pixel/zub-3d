@@ -553,7 +553,7 @@ export function createExperience(configuration=experienceConfig) {
       shaderErrors:shaderError||renderer?.info.programs?.some((p)=>p.diagnostics?.runnable===false)?1:0,
       environment:lighting?.label,heroBytes:hero?.bytes,atlasBytes:atlas?.bytes,upperMolarBytes:upperMolar?.bytes,
       story:{chapterId:dentalState.chapterId,sceneProgress:dentalState.sceneProgress,
-        locate36:dentalState.locate36,tissueWindow:dentalState.tissueWindow,cleaningWindow:dentalState.cleaningWindow,
+        locate36:dentalState.locate36,toothExtraction:dentalState.toothExtraction,
         brushStoryPhase:dentalState.chapterId!=='brush'?null:dentalState.sceneProgress>=STORY_TIMING.finalHold[0]?'smile':
           dentalState.sceneProgress>=STORY_TIMING.return[0]?'return':dentalState.sceneProgress>=STORY_TIMING.result[0]?'result':'cleaning',
         finalSmile:dentalState.finalSmile,cleaningProgress:dentalState.cleaningProgress,plaqueDeposition:dentalState.plaqueDeposition,
@@ -729,7 +729,6 @@ export function createExperience(configuration=experienceConfig) {
       lighting?.update(atlasPose.target,radius);
     }
     const brushingMoving=updateFullBrushing(now);
-    arch.setGumJawOpening(brushingRun?.demo?.jawOpening??0);
     brushingControls.update({visible:canBrushFullArch(),demo:brushingRun?.demo});
     const brushingFrameTarget=profile.compact
       ?THREE.MathUtils.smoothstep(Math.abs(brushingRun?.demo?.viewYaw??0),1.02,2.3)
