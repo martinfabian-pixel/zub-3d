@@ -54,8 +54,31 @@ async function checkInitialHTML(browser) {
   } finally { await context.close(); }
 }
 
-async function firstModelBounds(page) {
-  return page.evaluate(() => {
+function observeStartup() {
+  const metrics = window.startupMeasurement = { maxYaw: 0, maxGrowth: 0, rootedTeeth: 0 };
+  function compareFirstPixels(canvas, img) {
+    const box = img.getBoundingClientRect(), stage = canvas.getBoundingClientRect();
+    const dx = canvas.width / stage.width, dy = canvas.height / stage.height;
+    const crop = document.createElement('canvas');
+    crop.width = Math.round(box.width * dx); crop.height = Math.round(box.height * dy);
+    const ctx = crop.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(canvas, (box.left - stage.left) * dx, (box.top - stage.top) * dy,
+      box.width * dx, box.height * dy, 0, 0, crop.width, crop.height);
+    const live = ctx.getImageData(0, 0, crop.width, crop.height).data;
+    ctx.clearRect(0, 0, crop.width, crop.height);
+    ctx.drawImage(img, 0, 0, crop.width, crop.height);
+    const poster = ctx.getImageData(0, 0, crop.width, crop.height).data;
+    let overlap = 0, union = 0, difference = 0;
+    for (let i = 0; i < poster.length; i += 4) {
+      const a = live[i + 3] >= 128, b = poster[i + 3] >= 128;
+      if (a || b) union++;
+      if (!a || !b) continue;
+      overlap++;
+      for (let c = i; c < i + 3; c++) difference += Math.abs(live[c] - poster[c]);
+    }
+    return { silhouetteOverlap: overlap / union, meanRGBError: difference / (3 * overlap) };
+  }
+  function firstModelBounds() {
     const app = window.__dentalExperience;
     const camera = app.rig.camera, mesh = app.arch.teeth.get(36).mesh;
     const canvas = document.querySelector('#journey-canvas'), rect = canvas.getBoundingClientRect();
@@ -69,11 +92,41 @@ async function firstModelBounds(page) {
       left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x); bottom = Math.max(bottom, y);
     }
     return { left, top, right, bottom };
+  }
+  function sample() {
+    const img = document.querySelector('#journey-startup img');
+    const canvas = document.querySelector('#journey-canvas');
+    if (img?.complete && img.naturalWidth && !metrics.poster) metrics.poster = performance.now();
+    if (!canvas?.dataset.frameCount || document.body.dataset.journeyHandoff !== 'cinematic' ||
+      getComputedStyle(canvas).visibility !== 'visible') return;
+    const app = window.__dentalExperience, shot = app.report().opening;
+    if (!shot) return;
+    if (!metrics.live) {
+      metrics.live = performance.now();
+      metrics.buffer = [canvas.width, canvas.height];
+      metrics.first = shot;
+      metrics.bounds = firstModelBounds();
+      metrics.firstPixels = compareFirstPixels(canvas, img);
+    }
+    metrics.maxYaw = Math.max(metrics.maxYaw, Math.abs(shot.yaw));
+    metrics.maxGrowth = Math.max(metrics.maxGrowth, shot.growth);
+    const teeth = Number(canvas.dataset.visibleTeeth), coverage = app.arch.crownMix;
+    if (coverage === 0) metrics.rootedTeeth = Math.max(metrics.rootedTeeth, teeth);
+    if (teeth > 1 && coverage === 0 && !metrics.flight) metrics.flight = performance.now();
+    if (coverage > .01 && coverage < .99 && !metrics.seating) metrics.seating = performance.now();
+  }
+  // Observe the draw that actually exposes the renderer before another frame
+  // can advance the camera. A later Playwright round trip is already too late.
+  new MutationObserver(sample).observe(document, {
+    subtree: true, attributes: true, attributeFilter: ['data-frame-count', 'data-journey-handoff'],
   });
+  document.addEventListener('load', event => {
+    if (event.target.matches?.('#journey-startup img')) sample();
+  }, true);
 }
 
-async function coldOpen(browser, browserName, measured, slowed = false) {
-  const context = await browser.newContext(mobile);
+async function coldOpen(browser, browserName, measured, { slowed = false, reduced = false } = {}) {
+  const context = await browser.newContext({ ...mobile, reducedMotion: reduced ? 'reduce' : 'no-preference' });
   try {
     const page = await context.newPage();
     const errors = [];
@@ -86,62 +139,52 @@ async function coldOpen(browser, browserName, measured, slowed = false) {
         offline: false, latency: 120, downloadThroughput: 1_250_000, uploadThroughput: 500_000,
       });
     }
-    await page.addInitScript(() => {
-      const metrics = window.startupMeasurement = {};
-      function sample(now) {
-        const img = document.querySelector('#journey-startup img');
-        const canvas = document.querySelector('#journey-canvas');
-        if (img?.complete && img.naturalWidth && !metrics.poster) metrics.poster = now;
-        if (canvas?.dataset.frameCount > 0 && getComputedStyle(canvas).visibility === 'visible' &&
-          document.body.dataset.journeyHandoff === 'cinematic') {
-          metrics.live = now;
-          metrics.buffer = [canvas.width, canvas.height];
-          return;
-        }
-        requestAnimationFrame(sample);
-      }
-      requestAnimationFrame(sample);
-    });
+    await page.addInitScript(observeStartup);
     const exercise = async () => {
       await page.goto(url.href, { waitUntil: 'commit' });
-      await page.waitForFunction(() => window.startupMeasurement?.live && window.__dentalExperience?.report().opening,
-        null, { timeout: 120_000 });
-      const bounds = await firstModelBounds(page);
-      for (const edge of Object.keys(bounds))
-        assert.ok(Math.abs(bounds[edge] - measured.bounds[edge]) <= 5, edge + ': poster ' + measured.bounds[edge] + ', live ' + bounds[edge]);
-      const shot = () => page.evaluate(() => window.__dentalExperience.report().opening);
-      const initial = await shot();
-      assert.equal(initial.yaw, 0);
-      assert.equal(initial.growth, 0);
-      await page.waitForTimeout(400);
-      assert.deepEqual(await shot(), initial, 'A user can study the still tooth until the first gesture');
-      const metrics = await page.evaluate(() => window.startupMeasurement);
-      assert.ok(metrics.live >= metrics.poster && metrics.poster > 0);
-      assert.ok(metrics.buffer[0] >= 2 * mobile.viewport.width && metrics.buffer[1] >= 2 * mobile.viewport.height,
-        'Initial visible WebGL frame preserves compact quality: ' + metrics.buffer);
-      console.log(browserName + (slowed ? ' 10 Mbit/s, 120 ms' : ' unthrottled'), JSON.stringify({ ...metrics, bounds }));
-      if (cdp) {
-        // A native finger drag on the stage (not a programmatic timeline jump).
-        const touch = (type, y) => cdp.send('Input.dispatchTouchEvent', {
-          type, touchPoints: y === undefined ? [] : [{ x: 168, y, id: 0 }],
-        });
-        await touch('touchStart', 655);
-        for (let i = 1; i <= 40; i++) {
-          await touch('touchMove', 655 - 2 * i);
-          await page.waitForTimeout(18);
-        }
-        await touch('touchEnd');
-        await page.waitForFunction(() => (window.__dentalExperience.report().opening?.growth ?? 0) > .01);
-        await page.waitForTimeout(350);
+      await page.waitForFunction(() => {
+        if (document.body.hasAttribute('data-journey-loading')) return false;
+        const app = window.__dentalExperience;
+        return app?.arch?.crownMix === 1 && app.arch.visibleCount === 28 && !app.report().opening;
+      }, null, { timeout: 120_000 });
+      const final = await page.evaluate(() => {
+        const { camera, target, story, finalView, reducedMotion } = window.__dentalExperience.report();
+        return { camera, target, chapter: story.chapterId, finalView, reducedMotion, scroll: scrollY };
+      });
+      assert.equal(final.chapter, 'dentition');
+      assert.equal(final.finalView, 'smile');
+      assert.equal(final.scroll, 0);
+      assert.equal(final.reducedMotion, reduced);
+      const m = await page.evaluate(() => ({ ...window.startupMeasurement, settled: performance.now() }));
+      assert.ok(m.poster > 0);
+      if (reduced) {
+        assert.equal(m.live, undefined, 'Reduced motion goes straight to the smile');
       } else {
-        await page.getByRole('button', { name: 'Preskočiť úvod' }).tap();
-        await page.waitForFunction(() => window.__dentalExperience.report().crownMix > .99 && !window.__dentalExperience.report().opening);
+        assert.ok(m.live >= m.poster && m.flight > m.live && m.seating > m.flight);
+        assert.equal(m.first.yaw, 0);
+        assert.equal(m.first.growth, 0);
+        assert.ok(m.firstPixels.silhouetteOverlap > .985, JSON.stringify(m.firstPixels));
+        assert.ok(m.firstPixels.meanRGBError < 5, JSON.stringify(m.firstPixels));
+        for (const edge of Object.keys(m.bounds))
+          assert.ok(Math.abs(m.bounds[edge] - measured.bounds[edge]) <= 5,
+            edge + ': poster ' + measured.bounds[edge] + ', first live frame ' + m.bounds[edge]);
+        assert.ok(m.buffer[0] >= 2 * mobile.viewport.width && m.buffer[1] >= 2 * mobile.viewport.height,
+          'Initial WebGL frame preserves compact pixel density: ' + m.buffer);
+        assert.ok(m.maxYaw > Math.PI && m.maxGrowth > .99, 'The tooth turns and grows without input');
+        assert.equal(m.rootedTeeth, 28, 'All rooted teeth precede seating the crowns');
       }
+      await page.waitForTimeout(800);
+      const held = await page.evaluate(() => {
+        const { camera, target, opening } = window.__dentalExperience.report();
+        return { camera, target, opening, scroll: scrollY };
+      });
+      assert.deepEqual(held, { camera: final.camera, target: final.target, opening: null, scroll: 0 });
+      console.log(browserName + (slowed ? ' 10 Mbit/s, 120 ms' : reduced ? ' reduced motion' : ' unthrottled'), JSON.stringify(m));
       assert.deepEqual(errors, []);
     };
-    if (slowed && video) {
+    if (video && browserName === 'Chrome' && !slowed && !reduced) {
       await mkdir(dirname(video), { recursive: true });
-      await recordBrowserInteraction(page, video, process.env.FFMPEG_PATH || 'ffmpeg', exercise, { minFrames: 16 });
+      await recordBrowserInteraction(page, video, process.env.FFMPEG_PATH || 'ffmpeg', exercise);
     } else await exercise();
   } finally { await context.close(); }
 }
@@ -153,6 +196,7 @@ for (const name of process.argv.slice(2).length ? process.argv.slice(2) : ['Chro
     const measured = await checkInitialHTML(browser);
     console.log(name + ' HTML poster', JSON.stringify(measured));
     await coldOpen(browser, name, measured);
-    if (name === 'Chrome') await coldOpen(browser, name, measured, true);
+    if (name === 'Chrome') await coldOpen(browser, name, measured, { slowed: true });
+    await coldOpen(browser, name, measured, { reduced: true });
   } finally { await browser.close(); }
 }

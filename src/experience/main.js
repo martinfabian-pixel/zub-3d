@@ -31,7 +31,7 @@ import { atlasCoverage, createFullArchFocus } from './full-arch-focus.js';
 import { createFullArchBrushing } from './full-arch-brushing.js';
 import { createFullArchBrushingControls } from './full-arch-brushing-controls.js';
 import { createStartupHandoff } from './startup-handoff.js';
-import { createOpeningFlight, OPENING_SCROLL_SPAN, OPENING_TURN_END } from './opening-flight.js';
+import { createOpeningFlight } from './opening-flight.js';
 import { prewarmSmileMaterials } from './smile-prewarm.js';
 import { createManualCleaning, sampleManualResultBrush } from './manual-cleaning.js';
 import { createManualCleaningUI } from './manual-cleaning-ui.js';
@@ -78,7 +78,6 @@ export function createExperience(configuration=experienceConfig) {
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
   let renderProgress=0,progressFrame=0;
   let openingComplete=false,openingSkipped=false,openingShown=false,openingShot=null,openingTimeline;
-  let openingAmount=0,openingLimit=0;
   applyScrollLimit();
   let navigationMotion=null, openCleaningOnArrival=false;
   const manualCleaning=createManualCleaning(),manualState={brushPose:{}},manualResultPose={};
@@ -400,7 +399,7 @@ export function createExperience(configuration=experienceConfig) {
   }
   function leaveExplore(){if(!exploring)return;exploring=false;controls.setFree(false);interaction=false;}
   function applyScrollLimit() {
-    const limit=openingShown&&!openingComplete?openingLimit*OPENING_SCROLL_SPAN:scrollReadiness.limit;
+    const limit=scrollReadiness.limit;
     section.style.setProperty('--journey-ready-limit',String(limit));
     section.toggleAttribute('data-scroll-limited',limit<1);
   }
@@ -522,14 +521,8 @@ export function createExperience(configuration=experienceConfig) {
   function setProgress(next,{reducedMotion:motion=reducedMotion}={}) {
     if(disposed||!rig)return null;
     if(manual){reducedMotion=Boolean(motion);return null;}
-    if(playOpening&&!openingComplete&&!motion){
-      // Discard movement beyond the available models, including inertial overscroll.
-      const allowed=openingLimit*OPENING_SCROLL_SPAN;
-      const bounded=THREE.MathUtils.clamp(next,0,allowed);
-      if(next>allowed+.00025)ui.scrollTo(allowed,true);
-      // A native scrollbar can round the end position to a whole CSS pixel.
-      openingAmount=openingLimit===1&&bounded>OPENING_SCROLL_SPAN-.00022?1:bounded/OPENING_SCROLL_SPAN;
-      reducedMotion=false;
+    if(playOpening&&!openingComplete){
+      reducedMotion=Boolean(motion);
       requestRender();
       return rig.pose;
     }
@@ -687,11 +680,11 @@ export function createExperience(configuration=experienceConfig) {
     if(!drawScene())return;
     if(!openingShown){
       openingShown=true;
-      openingLimit=crownsReady?1:OPENING_TURN_END;
       startupHandoff.startIntro();
-      applyScrollLimit();
     }
-    startupHandoff.setWaiting(!crownsReady&&(openingSkipped||openingAmount>=openingLimit-.001));
+    const waiting=shot.phase==='waiting'||(openingSkipped&&!crownsReady);
+    startupHandoff.setWaiting(waiting);
+    if(!waiting)requestRender();
   }
   function render(now) {
     frame=0;
@@ -699,12 +692,11 @@ export function createExperience(configuration=experienceConfig) {
     if(manual){renderManual(now);return;}
     if(!openingComplete){
       if(playOpening&&!reducedMotion&&(!openingSkipped||!crownsReady)){
-        openingShot=openingFlight.sample(openingAmount);
+        if(!openingSkipped||!openingShot)openingShot=openingFlight.sample(now,crownsReady);
         if(!openingShot.done){renderOpening(now,openingShot);return;}
       }
       if(!crownsReady)return;
       openingShot=null;openingComplete=true;
-      if(openingShown)ui.scrollTo(0,true);
       publishStoryReadiness();
     }
     // Hold the loading cover until the requested model and camera are ready.
@@ -922,7 +914,7 @@ export function createExperience(configuration=experienceConfig) {
   },{signal});
   window.addEventListener('resize',()=>{navigationMotion=null;},{signal});
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){cancelNavigation();if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;anatomyMotion.resetClock();adaptive?.endInteraction();}
+    if(document.hidden){cancelNavigation();if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;openingFlight.pause();anatomyMotion.resetClock();adaptive?.endInteraction();}
     else {scroll?.refresh();requestRender();}
   },{signal});
   canvas.addEventListener('webglcontextlost',(e)=>{
@@ -1003,7 +995,6 @@ export function createExperience(configuration=experienceConfig) {
       if(playOpening&&!openingComplete){
         // Only the smile landmark changes when the final crowns arrive.
         openingTimeline=createTimeline({landmarks:arch.landmarks,cameraOptions:createOpeningCameraOptions(config,{compact:profile.compact})});
-        openingLimit=1;
       }
       installStoryRig();publishStoryReadiness();
       const teaching=await teachingRequest;

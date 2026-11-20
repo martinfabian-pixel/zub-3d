@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { flightEnd, flightStart } from '../src/experience/floating-teeth.js';
-import { createOpeningFlight, OPENING_SCROLL_SPAN, OPENING_TURN_END } from '../src/experience/opening-flight.js';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
@@ -165,49 +164,47 @@ async function waitForOpening(page) {
   assert.equal(await page.locator('#journey-title').isVisible(), false);
 }
 
-async function readOpening(page) {
-  return page.evaluate(() => {
-    const app = window.__dentalExperience, state = app.report();
-    const teeth = [...app.arch.teeth.values()];
-    const camera = app.rig.camera.position;
-    const incisor = teeth.find(item => item.entry.fdi === 11);
-    return {
-      shot: state.opening, camera: camera.toArray(), zoom: app.rig.camera.zoom, scroll: scrollY,
-      crowns: teeth.filter(item => item.crown?.visible).length, crownMix: state.crownMix,
-      roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
-      incisor: incisor?.mesh?.matrixWorld.elements.slice(12, 15),
-    };
+async function observeOpeningFrames(page) {
+  await page.evaluate(() => {
+    const canvas = document.querySelector('#journey-canvas');
+    const frames = window.__openingFrames = [];
+    const observer = new MutationObserver(() => {
+      const app = window.__dentalExperience, state = app.report();
+      if (!state.opening) { observer.disconnect(); return; }
+      const teeth = [...app.arch.teeth.values()];
+      const incisor = app.arch.teeth.get(11)?.mesh;
+      frames.push({
+        shot: state.opening, camera: app.rig.camera.position.toArray(), zoom: app.rig.camera.zoom,
+        scroll: scrollY, progress: state.progress, at: performance.now(),
+        crowns: teeth.filter(item => item.crown?.visible).length, crownMix: state.crownMix,
+        roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
+        incisor: incisor?.matrixWorld.elements.slice(12, 15),
+      });
+    });
+    observer.observe(canvas, { attributes: true, attributeFilter: ['data-frame-count'] });
   });
 }
 
-async function openingSeek(page, amount) {
-  await nativeSeek(page, amount * OPENING_SCROLL_SPAN);
-  const expected = createOpeningFlight().sample(amount);
-  await page.waitForFunction(({ growth, progress }) => {
-    const shot = window.__dentalExperience.report().opening;
-    return shot && Math.abs(shot.progress - progress) < .001 && Math.abs(shot.growth - growth) < .015;
-  }, expected);
-  return readOpening(page);
-}
-
-async function assertCrownFlight(page) {
-  const poses = [];
-  for (const amount of [.50, .54, .58, .62, .66, .70, .74, .79, .84, .89, .94]) {
-    poses.push(await openingSeek(page, amount));
-  }
-  const flight = poses.filter(({ shot, roots, crowns }) => !crowns && roots.length >= 8
-    && roots.includes(11) && shot.progress > flightStart && shot.progress < flightEnd);
-  assert.ok(flight.length >= 3, 'Several rendered poses show the flying anatomical teeth with roots');
-  assert.ok(flight.some(pose => difference(pose.incisor, flight[0].incisor) > .08),
-    'The rooted incisor moves through space');
-  assert.ok(poses.every((p, i) => !i || p.shot.progress < poses[i - 1].shot.progress),
-    'The original rooted flight choreography runs towards the seated arch');
-  assert.ok(poses.some(p => p.crownMix > 0 && p.crownMix < 1 && p.roots.length && p.crowns),
-    'The prologue blends the seated roots into the smile crowns');
-  const reverse = await openingSeek(page, .62);
-  assert.ok(difference(reverse.incisor, poses[3].incisor) < .0001, 'Reverse scroll restores the flight pose');
-  await nativeSeek(page, OPENING_SCROLL_SPAN);
-  await waitForLesson(page);
+function assertOpeningFlight(frames) {
+  const first = frames[0];
+  assert.deepEqual(first.roots, [36]);
+  assert.equal(first.shot.growth, 0);
+  const spinning = frames.filter(p => p.shot.phase === 'spin' && p.roots.length === 1 && p.roots[0] === 36);
+  assert.ok(spinning.length >= 3, 'A real tooth is rendered through multiple poses of the unprompted turn');
+  assert.ok(spinning.some(p => difference(p.camera, first.camera) > 1), 'The camera circles the first molar');
+  const held = frames.find(p => p.shot.phase === 'waiting');
+  assert.ok(held && held.zoom > first.zoom * 1.08, 'The tooth grows into the authored composition before waiting');
+  const flight = frames.filter(p => p.shot.phase === 'flight' && p.crowns === 0 && p.roots.length === 28
+    && p.shot.progress > flightStart && p.shot.progress < flightEnd);
+  assert.ok(flight.length >= 3, 'Several rendered poses show all 28 rooted teeth in flight');
+  assert.ok(flight.some(p => difference(p.incisor, flight[0].incisor) > .08), 'The rooted incisor moves through space');
+  assert.ok(frames.every((p, i) => !i || p.shot.progress <= frames[i - 1].shot.progress + 1e-6),
+    'The flight advances towards the seats without replaying the original turn');
+  assert.ok(frames.some(p => p.crownMix > 0 && p.crownMix < 1 && p.roots.length && p.crowns),
+    'Rendered frames blend the seated roots into the smile crowns');
+  assert.ok(frames.every(p => p.scroll === 0 && p.progress === 0), 'The opening consumes no chapter scroll');
+  console.log('Hands-free opening:', spinning.length, 'solo frames,', flight.length,
+    'fully rooted flight frames,', Math.round(held.at - first.at), 'ms to the waiting pose.');
 }
 
 async function waitForLesson(page) {
@@ -238,8 +235,7 @@ async function assertHeroAndFlight(page, gates) {
   assert.equal(await page.locator('#journey-canvas').isVisible(), false);
   assert.equal(await page.locator('#journey-title').isVisible(), false);
   await compareFirstDrawWithPoster(page);
-  await overshoot(page);
-  assert.equal(await page.evaluate(() => scrollY), 0, 'Scrolling is gated until the first tooth is ready');
+  await observeOpeningFrames(page);
   hero.release();
   await waitForOpening(page);
   const paint = await (await page.waitForFunction(() => window.__firstTooth)).jsonValue();
@@ -249,36 +245,26 @@ async function assertHeroAndFlight(page, gates) {
     'The first actual WebGL silhouette must overlay the HTML tooth: ' + JSON.stringify(paint));
   console.log('First paint, 390×844:', JSON.stringify(paint));
 
-  const first = await readOpening(page);
-  assert.deepEqual(first.roots, [36]);
-  assert.equal(first.crowns, 0);
-  assert.equal(first.scroll, 0);
-  await page.waitForTimeout(550);
-  assert.deepEqual(await readOpening(page), first, 'The live portrait waits for user input');
-  const turn = await openingSeek(page, OPENING_TURN_END / 2);
-  assert.deepEqual(turn.roots, [36]);
-  assert.ok(difference(turn.camera, first.camera) > 1, 'Scroll turns the live molar');
-  assert.ok(turn.zoom > first.zoom * 1.08, 'The turn grows out of the first aligned portrait');
-
-  await overshoot(page);
-  const held = await readOpening(page);
-  assert.ok(held.shot.growth > .999, 'The entire single-tooth turn is available before the atlas arrives');
+  await page.waitForFunction(() => window.__openingFrames.at(-1)?.shot.phase === 'waiting', null, { timeout: 30000 });
+  const held = await page.evaluate(() => window.__openingFrames.at(-1));
+  assert.equal(held.shot.growth, 1);
   assert.equal(held.shot.progress, STORY_TIMING.openingTooth);
   assert.deepEqual(held.roots, [36]);
+  assert.equal(held.crowns, 0);
   assert.ok(teaching.held.length && upper.held.length && crowns.held.length);
   teaching.release();
   upper.release();
   await page.waitForFunction(() => window.__dentalExperience.report().readiness.flight, null, { timeout: 90000 });
-  await overshoot(page);
-  assert.equal((await readOpening(page)).scroll, held.scroll, 'Rooted teeth alone do not unlock the atlas flight');
+  const waiting = await page.evaluate(() => {
+    const app = window.__dentalExperience;
+    return { shot: app.report().opening, camera: app.rig.camera.position.toArray(), zoom: app.rig.camera.zoom };
+  });
+  assert.equal(waiting.shot.phase, 'waiting', 'Ready rooted meshes alone cannot start the crown handover');
+  assert.deepEqual(waiting.camera, held.camera, 'A stage arriving during the wait cannot reset the view');
+  assert.equal(waiting.zoom, held.zoom);
   crowns.release();
-  await page.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
-  await page.waitForTimeout(350);
-  const ready = await readOpening(page);
-  assert.equal(ready.scroll, held.scroll, 'Completing the atlas never replays an earlier scroll');
-  assert.deepEqual(ready.camera, held.camera);
-  assert.deepEqual(ready.roots, [36]);
-  await assertCrownFlight(page);
+  await waitForLesson(page);
+  assertOpeningFlight(await page.evaluate(() => window.__openingFrames));
 }
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -375,7 +361,10 @@ try {
   try {
     await openStory(desktop);
     await waitForOpening(desktop);
-    assert.deepEqual((await readOpening(desktop)).roots, [36]);
+    await overshoot(desktop);
+    const waiting = await desktop.evaluate(readProgress);
+    assert.equal(waiting.scrollY, 0, 'A fling while the opening is loading is discarded');
+    assert.equal(waiting.roots, 1);
     assert.ok(delayed.held.length, 'Desktop opening is waiting for a real held asset');
     await desktop.evaluate(() => {
       const samples = [];
@@ -393,7 +382,6 @@ try {
     });
     delayed.release();
     await desktop.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
-    await nativeSeek(desktop, OPENING_SCROLL_SPAN);
     await waitForLesson(desktop);
     await atChapter(desktop, 'dentition');
     await desktop.locator('#journey-mobile-next').click();

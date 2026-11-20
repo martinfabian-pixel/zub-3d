@@ -2,8 +2,6 @@
 
 body[data-journey-loading] {
   margin: 0;
-}
-body[data-journey-loading]:not([data-journey-handoff='cinematic']) {
   overflow: hidden;
 }
 
