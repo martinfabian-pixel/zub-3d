@@ -14,14 +14,23 @@ const smooth = (a,b,value) => { const t=THREE.MathUtils.clamp((value-a)/(b-a),0,
  */
 function mirrorGeometry(source) {
   const geometry = source.clone();
-  geometry.applyMatrix4(new THREE.Matrix4().makeScale(-1,1,1));
+  for(const attribute of [geometry.attributes.position,geometry.attributes.normal,geometry.attributes.tangent]){
+    if(attribute)for(let i=0;i<attribute.count;i++)attribute.setX(i,-attribute.getX(i));
+  }
   const tangent = geometry.attributes.tangent;
   if (tangent) { for (let i=0;i<tangent.count;i++) tangent.setW(i,-tangent.getW(i)); tangent.needsUpdate=true; }
   const indices = geometry.index?.array;
   if (!indices) throw new Error('The anatomical atlas must be indexed.');
-  for (let i=0;i<indices.length;i+=3) [indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
+  for (let i=0;i<indices.length;i+=3) {
+    const b=indices[i+1];indices[i+1]=indices[i+2];indices[i+2]=b;
+  }
   geometry.index.needsUpdate=true;
-  geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+  if(geometry.boundingBox){
+    const {min,max}=geometry.boundingBox;
+    const left=min.x; min.x=-max.x; max.x=-left;
+  }else geometry.computeBoundingBox();
+  if(geometry.boundingSphere)geometry.boundingSphere.center.x*=-1;
+  else geometry.computeBoundingSphere();
   return geometry;
 }
 
@@ -66,6 +75,9 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       mesh.geometry=mirrored.get(item.entry.source); mesh.matrix.multiply(mirror);
     }
     item.finish=prepareJourneyMaterial(mesh,config,profile,renderer,clay);
+    // Keep the live molar's program throughout loading. Installing the
+    // dissolve when the crowns arrive recompiles its visible surface mid-turn.
+    addSmileDissolve(mesh.material,crownMix,false);
     item.mesh=mesh; item.seatedMatrix=mesh.matrix.clone(); object.add(mesh); mesh.updateMatrixWorld(true);
     item.finish.setReveal(fdi===config.anatomy.hero?1:0);
     item.reveal=fdi===config.anatomy.hero?1:0;
@@ -110,25 +122,32 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     registerAtlas(atlas);
     for (const fdi of neighbors.keys()) attachFromAtlas(fdi,teeth.get(fdi));
   }
-  function attachAtlas(atlas, upperMolar) {
+  async function attachAtlas(atlas, upperMolar, afterPaint) {
     if (disposed) { disposeObject(atlas.object);disposeObject(upperMolar.object);return; }
     sourceObjects.add(upperMolar.object);
     registerAtlas(atlas);
     if (assetsReady) return;
     sources.set(26,upperMolar.meshes.get('ToothExterior')??[...upperMolar.meshes.values()][0]);
+    let batchStart=performance.now();
     for (const [fdi,item] of teeth) {
       attachFromAtlas(fdi,item);
+      if(afterPaint&&performance.now()-batchStart>=8){
+        await afterPaint();
+        if(disposed)return;
+        batchStart=performance.now();
+      }
     }
     floating=createFloatingTeeth(teeth);
     assetsReady=true; object.updateMatrixWorld(true);
   }
-  function attachCrowns(atlas) {
+  async function attachCrowns(atlas, afterPaint) {
     sourceObjects.add(atlas.object);
     const mirroredCrowns=new Map();
     const smileConfig={...config,material:{...config.material,
       enamel:{...config.material.enamel,color:config.smileMaterial.enamelColor,roughness:config.smileMaterial.roughness},
       root:{...config.material.root,color:config.smileMaterial.enamelColor,roughness:.34},
       occlusionStrength:config.smileMaterial.occlusionStrength}};
+    let batchStart=performance.now();
     for(const item of teeth.values()) {
       const source=atlas.meshes.get('FDI_'+item.entry.source);
       if(!source)throw new Error('Missing crown '+item.entry.source);
@@ -143,7 +162,6 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
         item.crownNeutral=crown.material.color.clone();
         item.crownLocated=item.crownNeutral.clone().multiply(new THREE.Color(.68,.94,1.03));
       }
-      addSmileDissolve(item.mesh.material,crownMix,false);
       addSmileDissolve(crown.material,crownMix,true);
       crown.name='Smile crown '+item.entry.fdi;
       crown.userData.smileFdi=item.entry.fdi;
@@ -152,10 +170,18 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       crown.visible=false;
       object.add(crown);
       item.crown=crown;
+      if(afterPaint&&performance.now()-batchStart>=8){
+        await afterPaint();
+        if(disposed)return;
+        batchStart=performance.now();
+      }
     }
     const layout=createSmileLayout(teeth);
-    smileBounds=measureSmileBounds(teeth,layout);
-    smileBounds.getCenter(smileCenter);
+    if(afterPaint)await afterPaint();
+    if(disposed)return;
+    const bounds=measureSmileBounds(teeth,layout);
+    if(afterPaint)await afterPaint();
+    if(disposed)return;
     smileBacking=createSmileBacking(teeth,layout,config);
     object.add(smileBacking.object);
     for (const [fdi,matrix] of layout) {
@@ -163,6 +189,8 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       matrix.decompose(position,rotation,scale);
       teeth.get(fdi).smilePose={matrix,position,rotation,scale};
     }
+    smileBounds=bounds;
+    smileBounds.getCenter(smileCenter);
   }
   const sampled={brushPose:{}};
   function setFinalView(view, weight=view==='smile'?1:0) {

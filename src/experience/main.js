@@ -362,6 +362,7 @@ export function createExperience(configuration=experienceConfig) {
       ready=false;canvas.dataset.ready='false';
       if(!crownsReady)canvas.style.visibility='hidden';
       startupHandoff.finish();
+      releaseOpeningWork?.();
       document.querySelector('#journey-annotations').hidden=true;
     }
     updateUI();
@@ -683,9 +684,7 @@ export function createExperience(configuration=experienceConfig) {
       openingShown=true;
       startupHandoff.startIntro();
     }
-    const waiting=shot.phase==='waiting'||(openingSkipped&&!crownsReady);
-    startupHandoff.setWaiting(waiting);
-    if(!openingSkipped)requestRender();
+    requestRender();
   }
   function render(now) {
     frame=0;
@@ -694,7 +693,7 @@ export function createExperience(configuration=experienceConfig) {
     if(!openingComplete){
       if(playOpening&&!reducedMotion&&(!openingSkipped||!crownsReady)){
         openingFlight??=createOpeningFlight(startupHandoff.takePosterYaw());
-        if(!openingSkipped||!openingShot)openingShot=openingFlight.sample(now,crownsReady);
+        openingShot=openingFlight.sample(now,crownsReady);
         if(!openingShot.done){renderOpening(now,openingShot);return;}
       }
       if(!crownsReady)return;
@@ -841,6 +840,7 @@ export function createExperience(configuration=experienceConfig) {
     if(crownsReady&&startupHandoff.active){
       if(openingShown)startupHandoff.finish();
       else startupHandoff.start();
+      releaseOpeningWork?.();
     }
     if(changing||interaction||finalViewTransition||following||navigationMotion||fullArchFocus.moving||anatomyState.moving||brushingMoving){adaptive.beginInteraction();requestRender();}
     else {
@@ -944,9 +944,23 @@ export function createExperience(configuration=experienceConfig) {
     canvas.dataset.assetsReady=String(storyReady);
     advanceScrollLimit(!crownsReady||!openingComplete?0:!studyReady?studyLimit:1);
   }
+  let releaseOpeningWork;
   async function loadStoryStages(siteRequest) {
     const alive=()=>!disposed&&!contextLost;
     const settled=promise=>promise.then(value=>({value}),error=>({error}));
+    // Yield each batch to the existing renderer. Run work after its paint,
+    // including when the renderer's RAF was queued later than this callback.
+    const afterPaint=()=>new Promise(resolve=>{
+      if(!alive()){resolve();return;}
+      let timer;
+      const raf=requestAnimationFrame(()=>{timer=setTimeout(done,0);});
+      function done(){
+        cancelAnimationFrame(raf);clearTimeout(timer);
+        signal.removeEventListener('abort',done);
+        resolve();
+      }
+      signal.addEventListener('abort',done,{once:true});
+    });
     const atlasRequest=settled(loadModel(config,profile.compact?config.assets.compact:config.assets.desktop,signal));
     const upperRequest=settled(loadModel(config,profile.compact?config.assets.upperCompact:config.assets.upperDesktop,signal));
     const crownRequest=settled(loadCrownAtlas(config,signal));
@@ -956,29 +970,8 @@ export function createExperience(configuration=experienceConfig) {
       atlas=lowerData.value;upperMolar=upperData.value;
       if(!alive())return;
       if(lowerData.error||upperData.error)throw lowerData.error??upperData.error;
-      arch.attachAtlas(atlas,upperMolar);
-      heroAnatomy=createHeroAnatomy({arch});
-      // The translucent lesson is prepared in the staged atlas load. Restore
-      // the exterior synchronously so no pending compilation can expose it.
-      try {
-        heroAnatomy.setWeight(1);
-        void renderer.compileAsync(scene,rig.camera).catch(error=>console.warn('Hero interior warm-up:',error));
-      } finally { heroAnatomy.setWeight(0); }
-      // Teaching registration uses the canonical tooth seats, so the site
-      // may arrive while the opening flight or the atlas is already visible.
-      const teachingRequest=settled(siteRequest.then(({value,error})=>{
-        if(!alive())return;
-        if(error)throw error;
-        path=createCleaningPath(value);
-        brush=createInterdentalBrush({path,compact:profile.compact,options:config.brush});
-        plaque=createPlaque({site:value,path,arch,compact:profile.compact,options:config.plaque});
-        cleaningWindow=createCleaningWindow(arch.teeth.get(37),path);
-        void cleaningWindow.prewarm(renderer,rig.camera,scene).catch(error=>console.warn('Cleaning window warm-up:',error));
-        annotations.setTeachingSite(value);
-        scene.add(brush.object,plaque.object);
-        site=value;studyReady=true;
-        if(flightReady){installStoryRig();publishStoryReadiness();}
-      }));
+      await arch.attachAtlas(atlas,upperMolar,afterPaint);
+      if(!alive())return;
       await renderer.compileAsync(arch.object,rig.camera,scene);
       if(!alive())return;
       flightReady=true;installStoryRig();publishStoryReadiness();
@@ -986,11 +979,11 @@ export function createExperience(configuration=experienceConfig) {
       const crownData=await crownRequest;
       if(crownData.error)throw crownData.error;
       if(!alive())return;
-      arch.attachCrowns(crownData.value);
       crownsTransferred=true;
+      await arch.attachCrowns(crownData.value,afterPaint);
+      if(!alive())return;
       fullArchAnatomy=createFullArchAnatomy({arch});
-      void fullArchAnatomy.prewarmStory(renderer,scene,rig.camera).catch(error=>console.warn('Dental layers warm-up:',error));
-      await prewarmSmileMaterials({arch,renderer,scene,camera:rig.camera,isAlive:alive});
+      await prewarmSmileMaterials({arch,renderer,scene,camera:rig.camera});
       if(!alive())return;
       if(shaderError)throw new Error('Dental surface shader failed to compile.');
       crownsReady=true;
@@ -999,8 +992,40 @@ export function createExperience(configuration=experienceConfig) {
         openingTimeline=createTimeline({landmarks:arch.landmarks,cameraOptions:createOpeningCameraOptions(config,{compact:profile.compact})});
       }
       installStoryRig();publishStoryReadiness();
-      const teaching=await teachingRequest;
-      if(teaching.error)throw teaching.error;
+      if(playOpening&&!openingComplete&&!reducedMotion){
+        // Registration, section textures and picking data are not used by
+        // the flying teeth. Do this work after the seated smile is drawn.
+        await new Promise(resolve=>{
+          releaseOpeningWork=resolve;
+          signal.addEventListener('abort',resolve,{once:true});
+        });
+        signal.removeEventListener('abort',releaseOpeningWork);
+        releaseOpeningWork=undefined;
+      }
+      if(!alive())return;
+      await afterPaint();
+      if(!alive())return;
+      heroAnatomy=createHeroAnatomy({arch});
+      // The clinical links can need these models on their very first frame.
+      const {value,error}=await siteRequest;
+      if(!alive())return;
+      if(error)throw error;
+      path=createCleaningPath(value);
+      brush=createInterdentalBrush({path,compact:profile.compact,options:config.brush});
+      await afterPaint();
+      if(!alive())return;
+      plaque=createPlaque({site:value,path,arch,compact:profile.compact,options:config.plaque});
+      cleaningWindow=createCleaningWindow(arch.teeth.get(37),path);
+      void cleaningWindow.prewarm(renderer,rig.camera,scene).catch(error=>console.warn('Cleaning window warm-up:',error));
+      annotations.setTeachingSite(value);
+      scene.add(brush.object,plaque.object);
+      site=value;studyReady=true;
+      installStoryRig();publishStoryReadiness();
+      const mayWarmLesson=async()=>{
+        await afterPaint();
+        return alive()&&!manual&&!interaction&&!scrolling&&!navigationMotion&&!fullArchFocus.engaged&&!brushingRun;
+      };
+      void fullArchAnatomy.prewarmStory(renderer,scene,rig.camera,mayWarmLesson).catch(error=>console.warn('Dental layers warm-up:',error));
     } catch(error) {
       if(!alive())return;
       atlasError=true;

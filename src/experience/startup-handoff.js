@@ -15,7 +15,6 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
   const window=document.defaultView;
   const loader=stage.querySelector('#journey-startup');
   const tooth=loader?.querySelector('.startup-tooth');
-  const prompt=stage.querySelector('.startup-prompt');
   const view=stage.querySelector('.view-shell');
   const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const portraitTurn=createPortraitTurn(tooth,reducedMotion);
@@ -34,7 +33,6 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
       introListeners.abort();introListeners=null;
       view?.toggleAttribute('inert',viewWasInert);
       skip.remove();skip=null;
-      if(prompt)prompt.textContent='';
     }
     if(wasCinematic&&!reducedMotion.matches){
       for(const item of stage.querySelectorAll('.site-header, .journey-copy, .journey-dock, .journey-footer')){
@@ -103,10 +101,6 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
     startIntro,frameTooth,finish,
     startPosterTurn:portraitTurn.start,
     takePosterYaw:portraitTurn.freeze,
-    setWaiting(waiting){
-      const text=waiting?'Načítavam zvyšok chrupu…':'';
-      if(prompt&&prompt.textContent!==text)prompt.textContent=text;
-    },
     get active(){return body.hasAttribute('data-journey-loading');},
   };
 }

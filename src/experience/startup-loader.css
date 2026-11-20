@@ -1,4 +1,4 @@
-#journey-startup, .startup-prompt { display: none; }
+#journey-startup { display: none; }
 
 body[data-journey-loading] {
   margin: 0;
@@ -7,7 +7,7 @@ body[data-journey-loading] {
 
 body[data-journey-loading] .skip-link,
 body[data-journey-loading]:not([data-journey-handoff='reveal'], [data-journey-handoff='cinematic']) #journey-stage > :not(#journey-startup, noscript),
-body[data-journey-handoff='cinematic'] #journey-stage > :not(#journey-startup, .view-shell, .startup-skip, .startup-prompt, noscript),
+body[data-journey-handoff='cinematic'] #journey-stage > :not(#journey-startup, .view-shell, .startup-skip, noscript),
 body[data-journey-handoff='cinematic'] #journey-status {
   visibility: hidden;
 }
@@ -50,19 +50,6 @@ body[data-journey-loading] #journey-startup {
 @media (prefers-reduced-motion: reduce) {
   .startup-portrait.is-turning .startup-tooth { opacity: 1; }
   .startup-turn-window { display: none; }
-}
-
-body[data-journey-handoff='cinematic'] .startup-prompt {
-  display: block;
-  position: absolute;
-  z-index: 8;
-  left: max(16px, env(safe-area-inset-left, 0px));
-  bottom: max(20px, env(safe-area-inset-bottom, 0px));
-  max-width: calc(100% - 176px);
-  padding-block: 12px;
-  color: #385664;
-  font: 500 14px/1.4 system-ui, sans-serif;
-  pointer-events: none;
 }
 
 body[data-journey-handoff='cinematic'] #journey-stage .startup-skip {

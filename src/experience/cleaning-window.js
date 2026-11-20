@@ -21,7 +21,12 @@ const fragment = `
 `;
 
 function windowMaterial(source, uniforms, veil) {
-  const material=source.clone(), compile=source.onBeforeCompile, key=source.customProgramCacheKey();
+  // Material.copy serializes userData, which would encode the original
+  // tooth's region texture into an image twice just to construct this view.
+  // The original already owns those shader uniforms and texture resources.
+  const borrowed=Object.create(source);
+  borrowed.userData={};
+  const material=new source.constructor().copy(borrowed), compile=source.onBeforeCompile, key=source.customProgramCacheKey();
   material.transparent=veil;
   material.depthWrite=!veil;
   material.opacity=1;

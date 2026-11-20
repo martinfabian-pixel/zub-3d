@@ -14,8 +14,8 @@ assert.equal(sampleOpeningDentalStory(first.progress).assemblyReveal,0);
 for(let t=25;t<575;t+=25)intro.sample(start+t);
 const halfway={...intro.sample(start+575)};
 assert.equal(halfway.progress,seed);
-assert.equal(halfway.yaw,Math.PI);
-assert.ok(halfway.growth>0&&halfway.growth<1,'The shot grows during the same revolution');
+assert.ok(halfway.yaw>0&&halfway.yaw<Math.PI/2);
+assert.ok(halfway.growth>0&&halfway.growth<1,'The tooth turns gently during the zoom');
 for(let t=600;t<1149;t+=25)intro.sample(start+t);
 const beforeLaunch={...intro.sample(start+1149)};
 const launch=intro.sample(start+1150);
@@ -23,8 +23,9 @@ assert.equal(launch,first,'Samples reuse one frame record');
 assert.equal(launch.phase,'flight');
 assert.equal(launch.progress,seed);
 assert.ok(1-beforeLaunch.growth<.00001&&launch.growth===1,'The flight inherits the final spin framing');
-assert.ok(Math.abs(Math.sin(beforeLaunch.yaw)-Math.sin(launch.yaw))<.00001,
-  'The completed revolution does not rotate abruptly at launch');
+const speed=2*Math.PI/3600;
+assert.ok(Math.abs(launch.yaw-beforeLaunch.yaw-speed)<1e-12,
+  'A ready arch begins its flight immediately with the exact loading velocity');
 
 let previous=seed, sawFlight=false, sawCrowns=false;
 for(let t=1151;t<3900;t++){
@@ -47,7 +48,7 @@ for(let t=1151;t<3900;t++){
 assert.ok(sawFlight&&sawCrowns);
 assert.ok(Math.abs(previous-atlasEnd)<.000001);
 const end=intro.sample(start+3900);
-assert.deepEqual(end,{progress:atlasStart,yaw:0,growth:1,phase:'done',done:true});
+assert.deepEqual(end,{progress:atlasStart,yaw:2*Math.PI,growth:1,phase:'done',done:true});
 const settledOpening=sampleOpeningDentalStory(end.progress);
 const settledStory=sampleDentalStory(end.progress);
 for (const key of ['sceneProgress','assemblyReveal','neighborsReveal','assemblyCrownCoverage','toothExtraction','locate36'])
@@ -83,35 +84,56 @@ for(let t=10;t<=1150;t+=10){
   if(t===110)assert.ok(actual.growth<.00001,'The framing holds throughout the 110 ms handoff');
 }
 
-// Release the download while the camera moves outward, at its turning point,
-// and on its way back. In each case launch carries both position and speed.
-for(const waitingTime of [1150,2200,3350]){
-  const staged=createOpeningFlight(posterYaw),stillWaiting=createOpeningFlight(posterYaw);
-  const launchTime=1150+waitingTime;
-  let min=Infinity,max=-Infinity;
-  for(let t=0;t<launchTime;t+=10){
-    const shot=staged.sample(t,false);
-    stillWaiting.sample(t,false);
-    if(t>=1150){
-      assert.equal(shot.phase,'waiting');assert.equal(shot.growth,1);
-      assert.equal(shot.progress,seed,'Only the single rooted molar is visible');
-      min=Math.min(min,shot.yaw);max=Math.max(max,shot.yaw);
+const slow=createOpeningFlight(posterYaw);
+let last=posterYaw,waitingStart;
+for(let t=0;t<=19150;t+=10){
+  const shot=slow.sample(t,false);
+  if(t===1150)waitingStart=shot.yaw;
+  if(t>=1100){
+    assert.ok(Math.abs(shot.yaw-last-10*speed)<1e-12,'Enlargement and the loading message never stop or reset the orbit');
+    assert.equal(shot.phase,t<1150?'spin':'waiting');
+    assert.equal(shot.progress,seed);
+  }
+  last=shot.yaw;
+}
+assert.ok(Math.abs(slow.sample(19150,false).yaw-waitingStart-5*2*Math.PI)<1e-12,'Five entire forward turns while crown assets are held');
+const beforeHide={...slow.sample(19150,false)};
+slow.pause();
+assert.deepEqual(slow.sample(50000,false),beforeHide,'No orbit time accumulates in a hidden tab');
+
+// Complete the download at many different displayed orientations, including
+// either side of the zero-degree seam and of the minimum braking distance.
+const releaseAngles=[0,.001,16,17.999,18,100,101,140,180,225,285,341.999,342,342.001,359.999];
+for(const angle of releaseAngles){
+  const staged=createOpeningFlight();
+  const release=145+7200+10*angle;
+  for(let t=0;t<release;t+=20)staged.sample(t,false);
+  let previousYaw=staged.sample(release,false).yaw;
+  const ready=staged.sample(release,true);
+  assert.ok(Math.abs(ready.yaw-previousYaw)<1e-12,'Readiness uses the actual unwrapped loading angle');
+  const dt=10;
+  let firstFlight=ready.phase==='flight'?release:null,doneAt;
+  for(let t=release+dt;t<=release+4100;t+=dt){
+    const shot=staged.sample(t,true);
+    const angularStep=shot.yaw-previousYaw;
+    assert.ok(angularStep>=-1e-12 && angularStep<=1.55*speed*dt,'The camera never reverses or whips around when assets arrive');
+    if(shot.phase==='spin')assert.ok(Math.abs(angularStep-speed*dt)<1e-12,'Any alignment before launch keeps the same velocity');
+    if(sampleOpeningDentalStory(shot.progress).assemblyCrownCoverage>0){
+      const offset=Math.atan2(Math.sin(shot.yaw),Math.cos(shot.yaw));
+      assert.ok(Math.abs(offset)<Math.PI/12,'Crown seating retains its near-frontal camera even for the longest forward turn');
+    }
+    if(shot.phase==='flight'&&firstFlight===null)firstFlight=t;
+    if(t===release+dt)assert.ok(Math.abs(angularStep-speed*dt)<.0005,'Speed is continuous across the loading boundary');
+    previousYaw=shot.yaw;
+    if(shot.done){
+      assert.ok(Math.abs(Math.sin(shot.yaw))<1e-12 && Math.cos(shot.yaw)>.999999,'The front camera is settled before the smile takes over');
+      assert.equal(shot.progress,atlasStart);
+      doneAt=t;
+      break;
     }
   }
-  assert.ok(max-min>.15&&max<.46,'Long loads keep exploring a bounded three-quarter view');
-  const moving=staged.sample(launchTime,true);
-  assert.equal(moving.phase,'flight');assert.equal(moving.progress,seed);
-  assert.equal(moving.yaw,stillWaiting.sample(launchTime,false).yaw);
-  let lastYaw=moving.yaw;
-  for(let dt=16;dt<2750;dt+=16){
-    const shot=staged.sample(launchTime+dt,true);
-    if(dt===16)assert.ok(Math.abs(shot.yaw-stillWaiting.sample(launchTime+dt,false).yaw)<.0001);
-    assert.ok(Math.abs(shot.yaw-lastYaw)<.025,'No sudden camera turn when the arch arrives');
-    if(dt>=850)assert.equal(shot.yaw,0,'The rest of the flight uses its original camera');
-    assert.equal(shot.done,false);
-    lastYaw=shot.yaw;
-  }
-  assert.deepEqual(staged.sample(launchTime+2750,true),end);
+  assert.ok(firstFlight!==null && firstFlight-release<1200,'Even an unfavorable arrival angle needs less than 1.2 s of alignment');
+  assert.equal(doneAt-firstFlight,2750,'The rooted assembly still plays for its full authored duration');
 }
 
-console.log('Poster pose handoff, continuous loading orbit, timed rooted flight and crown seating passed.');
+console.log('Poster handoff, uninterrupted full orbits, forward-only launch, hidden-tab pause and crown seating passed.');

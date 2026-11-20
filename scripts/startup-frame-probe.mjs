@@ -15,7 +15,7 @@ export function assertFirstDraw(m) {
 // Runs in the browser, before application scripts or input.
 export function observeStartup() {
   const metrics = window.startupMeasurement = { hadPortraitTurn: false, maxYaw: 0, maxGrowth: 0, rootedTeeth: 0, waitingArc: 0 };
-  let priorWaitYaw;
+  let priorWaitHeading;
   async function compareFirstPixels(canvas, img) {
     const cell = document.querySelector('.startup-portrait.is-turning .startup-turn-window');
     const box = (cell || img).getBoundingClientRect(), stage = canvas.getBoundingClientRect();
@@ -83,7 +83,7 @@ export function observeStartup() {
     if (img?.parentElement.classList.contains('is-turning')) metrics.hadPortraitTurn = true;
     if (!canvas?.dataset.frameCount || document.body.dataset.journeyHandoff !== 'cinematic' ||
       getComputedStyle(canvas).visibility !== 'visible') return;
-    const app = window.__dentalExperience, shot = app.report().opening;
+    const app = window.__dentalExperience, state = app.report(), shot = state.opening;
     if (!shot) return;
     if (!metrics.live) {
       metrics.live = performance.now();
@@ -95,8 +95,15 @@ export function observeStartup() {
     metrics.maxYaw = Math.max(metrics.maxYaw, Math.abs(shot.yaw));
     metrics.maxGrowth = Math.max(metrics.maxGrowth, shot.growth);
     if (shot.phase === 'waiting') {
-      if (priorWaitYaw !== undefined) metrics.waitingArc += Math.abs(Math.atan2(Math.sin(shot.yaw - priorWaitYaw), Math.cos(shot.yaw - priorWaitYaw)));
-      priorWaitYaw = shot.yaw;
+      const [x, , z] = state.camera;
+      const heading = Math.atan2(x - state.target[0], z - state.target[2]);
+      if (priorWaitHeading !== undefined) {
+        const step = Math.atan2(Math.sin(heading - priorWaitHeading), Math.cos(heading - priorWaitHeading));
+        metrics.waitingArc += step;
+        if (step < -.00001) metrics.reversed = true;
+      }
+      priorWaitHeading = heading;
+      if (document.body.textContent.includes('Načítavam zvyšok chrupu')) metrics.waitMessage = true;
     }
     if (shot.phase === 'flight' && !metrics.flightStart) metrics.flightStart = performance.now();
     const teeth = Number(canvas.dataset.visibleTeeth), coverage = app.arch.crownMix;

@@ -71,7 +71,7 @@ async function coldOpen(browser, browserName, { slowed = false, reduced = false,
       await cdp.send('Network.enable');
       await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
       if (slowed) await cdp.send('Network.emulateNetworkConditions', {
-        offline: false, latency: 120, downloadThroughput: 3_125_000, uploadThroughput: 500_000,
+        offline: false, latency: 120, downloadThroughput: 1_500_000, uploadThroughput: 500_000,
       });
     }
     await page.addInitScript(observeStartup);
@@ -103,7 +103,8 @@ async function coldOpen(browser, browserName, { slowed = false, reduced = false,
           assert.equal(m.firstPixels.turning, false, 'An unavailable optional image sheet retains the sharp still');
         }
         assert.ok(m.settled - m.flightStart >= 2675, 'The full seating sequence uses the longer 2.75 s choreography');
-        if (slowed) assert.ok(m.waitingArc > .12, 'The molar stays in motion while the remaining arch downloads');
+        assert.ok(!m.reversed && !m.waitMessage, 'The waiting orbit never reverses or displays a loading message');
+        if (slowed) assert.ok(m.waitingArc >= 2 * Math.PI, 'A full waiting orbit was rendered on a cold mobile connection');
         assert.ok(m.buffer[0] >= 2 * mobile.viewport.width && m.buffer[1] >= 2 * mobile.viewport.height,
           'Initial WebGL frame preserves compact pixel density: ' + m.buffer);
         assert.ok(m.maxYaw > Math.PI && m.maxGrowth > .99, 'The tooth turns and grows without input');
@@ -115,7 +116,7 @@ async function coldOpen(browser, browserName, { slowed = false, reduced = false,
         return { camera, target, opening, scroll: scrollY };
       });
       assert.deepEqual(held, { camera: final.camera, target: final.target, opening: null, scroll: 0 });
-      console.log(browserName + (slowed ? ' 25 Mbit/s, 120 ms' : reduced ? ' reduced motion' : blockTurn ? ' unavailable sheet' : ' unthrottled'), JSON.stringify(m));
+      console.log(browserName + (slowed ? ' 12 Mbit/s, 120 ms' : reduced ? ' reduced motion' : blockTurn ? ' unavailable sheet' : ' unthrottled'), JSON.stringify(m));
       assert.deepEqual(errors, []);
     };
     if (video && browserName === 'Chrome' && slowed) {

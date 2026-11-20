@@ -373,8 +373,8 @@ export function createFullArchAnatomy({ arch }) {
   }
 
   function prepareSection(state) {
-    if(state.section)return state.section;
-    state.section=createLongitudinalSection(state.host);
+    state.section??=createLongitudinalSection(state.host);
+    if(state.lessonPulp)return state.section;
     state.lessonPulp=createHealthyPulp({nativeSeat:true});
     const pulp=state.lessonPulp.object;
     pulp.scale.setScalar(.001);
@@ -523,12 +523,15 @@ export function createFullArchAnatomy({ arch }) {
     return anchors;
   }
 
-  function prewarmStory(renderer,scene,camera) {
-    if(disposed||active)return Promise.resolve();
+  async function prewarmStory(renderer,scene,camera,mayWarm) {
+    if(!await mayWarm()||disposed||active)return;
     const state=prepare(36);
-    if(!state)return Promise.resolve();
+    if(!state)return;
+    state.section??=createLongitudinalSection(state.host);
+    if(!await mayWarm()||disposed||active)return;
     prepareSection(state);
     for(const surface of layerSurfaces(state)){
+      if(!await mayWarm()||disposed||active)return;
       probe.warm(surface.object);
       if(surface.heights)surface.candidates=createLayerAnchorCandidates(surface.object,surface.id,surface.heights);
     }
@@ -573,7 +576,7 @@ export function createFullArchAnatomy({ arch }) {
   return {
     setDetail(fdi,weight,direction){storyContext=false;setStoryHighlight(null);useDetail(fdi,weight,direction);},
     setLocated(weight){
-      const state=items.get(36);
+      const state=items.get(36)??(weight>0?prepare(36):null);
       if(state)state.cut.located.value=weight;
     },
     setStoryLayer({cut,amount,highlight}){

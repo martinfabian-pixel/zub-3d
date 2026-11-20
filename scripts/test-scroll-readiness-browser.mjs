@@ -127,13 +127,23 @@ async function observeOpeningFrames(page) {
   await page.evaluate(() => {
     const canvas = document.querySelector('#journey-canvas');
     const frames = window.__openingFrames = [];
+    let previousHeading, travel = 0;
     const observer = new MutationObserver(() => {
       const app = window.__dentalExperience, state = app.report();
       if (!state.opening) { observer.disconnect(); return; }
       const teeth = [...app.arch.teeth.values()];
       const incisor = app.arch.teeth.get(11)?.mesh;
+      const eye = app.rig.camera.position;
+      const heading = Math.atan2(eye.x - state.target[0], eye.z - state.target[2]);
+      let step = 0;
+      if (state.opening.phase === 'waiting' && previousHeading !== undefined) {
+        step = Math.atan2(Math.sin(heading - previousHeading), Math.cos(heading - previousHeading));
+        travel += step;
+      }
+      previousHeading = state.opening.phase === 'waiting' ? heading : undefined;
       frames.push({
-        shot: state.opening, camera: app.rig.camera.position.toArray(), target: state.target, zoom: app.rig.camera.zoom,
+        shot: state.opening, camera: eye.toArray(), target: state.target, zoom: app.rig.camera.zoom, step, travel,
+        loadingMessage: document.body.textContent.includes('Načítavam zvyšok chrupu'),
         scroll: scrollY, progress: state.progress, at: performance.now(),
         crowns: teeth.filter(item => item.crown?.visible).length, crownMix: state.crownMix,
         roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
@@ -144,31 +154,45 @@ async function observeOpeningFrames(page) {
   });
 }
 
-async function waitForWaitingTurn(page, direction) {
-  return (await page.waitForFunction(direction => {
-    const shot = window.__openingFrames.at(-1);
-    const prior = window.__openingFrames.at(-2);
-    if (shot?.shot.phase !== 'waiting' || prior?.shot.phase !== 'waiting') return false;
-    const yaw = shot.shot.yaw;
-    return yaw > .16 && yaw < .31 && Math.sign(yaw - prior.shot.yaw) === direction && shot;
-  }, direction, { timeout: 25000 })).jsonValue();
+async function waitForWaitingTurn(page, radians) {
+  return (await page.waitForFunction(radians => {
+    const frame = window.__openingFrames.at(-1);
+    return frame?.shot.phase === 'waiting' && frame.travel >= radians && frame;
+  }, radians, { timeout: 35000 })).jsonValue();
+}
+
+function assertWholeOrbit(frames) {
+  const waiting = frames.filter(frame => frame.shot.phase === 'waiting');
+  assert.ok(waiting.length >= 24 && waiting.at(-1).travel - waiting[0].travel >= 2 * Math.PI,
+    'FDI 36 must complete a full camera orbit while the crowns are still withheld');
+  assert.ok(waiting.slice(1).every(frame => frame.step > 0 && frame.step < .17),
+    'Every waiting draw advances continuously in one direction across the azimuth wrap');
+  assert.ok(waiting.every(frame => frame.roots.length === 1 && frame.roots[0] === 36 && frame.crowns === 0));
+  assert.ok(frames.every(frame => !frame.loadingMessage), 'The cinematic never displays the secondary loading message');
+  console.log('Isolated FDI 36:', Math.round((waiting.at(-1).travel - waiting[0].travel) * 180 / Math.PI),
+    'degrees measured across', waiting.length, 'waiting draws');
+  return waiting;
 }
 
 function assertWaitingHandoff(frames) {
-  const waiting = frames.filter(frame => frame.shot.phase === 'waiting');
-  assert.ok(waiting.length >= 3);
-  assert.ok(waiting.every(frame => frame.roots.length === 1 && frame.roots[0] === 36 && frame.crowns === 0));
-  assert.ok(waiting.some(frame => difference(waiting[0].camera, frame.camera) > .2),
-    'The actual view continues around the molar until the arch can depart');
+  const waiting = assertWholeOrbit(frames);
   const firstFlight = frames.find(frame => frame.shot.phase === 'flight');
   assert.ok(firstFlight);
   const previous = waiting.at(-1);
   const axis = frame => frame.camera.map((x, i) => x - frame.target[i]);
-  const a = axis(previous), b = axis(firstFlight);
-  const dot = a.reduce((sum, n, i) => sum + n * b[i], 0) / (Math.hypot(...a) * Math.hypot(...b));
-  const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
-  assert.ok(angle < .15, 'Camera skipped ' + angle + ' radians between the waiting and flight draws');
-  assert.ok(Math.abs(firstFlight.zoom - previous.zoom) < .02, 'The flight begins at the displayed scale');
+  const bridge = frames.slice(frames.indexOf(previous), frames.indexOf(firstFlight) + 1);
+  for (let i = 1; i < bridge.length; i++) {
+    const a = axis(bridge[i - 1]), b = axis(bridge[i]);
+    const dot = a.reduce((sum, n, i) => sum + n * b[i], 0) / (Math.hypot(...a) * Math.hypot(...b));
+    const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+    assert.ok(angle < .15, 'Camera skipped ' + angle + ' radians across adjacent rendered frames before launch');
+    const turn = Math.atan2(b[0], b[2]) - Math.atan2(a[0], a[2]);
+    assert.ok(Math.atan2(Math.sin(turn), Math.cos(turn)) >= -.001, 'Any alignment before launch stays in the current direction');
+    assert.ok(Math.abs(bridge[i].zoom - bridge[i - 1].zoom) < .02, 'The flight begins at the displayed scale');
+  }
+  const duration = Math.round(firstFlight.at - previous.at);
+  const worstGap = Math.max(...bridge.slice(1).map((frame, i) => Math.round(frame.at - bridge[i].at)));
+  assert.ok(duration < 2500, 'The alignment took ' + duration + ' ms across ' + bridge.length + ' draws; largest interval ' + worstGap + ' ms');
   console.log('Last waiting yaw / first flight yaw:', previous.shot.yaw, firstFlight.shot.yaw);
 }
 
@@ -249,9 +273,9 @@ async function assertHeroAndFlight(page, gates) {
   teaching.release();
   upper.release();
   await page.waitForFunction(() => window.__dentalExperience.report().readiness.flight, null, { timeout: 90000 });
-  const waiting = await waitForWaitingTurn(page, 1);
+  const waiting = await waitForWaitingTurn(page, 2 * Math.PI + .7);
   assert.equal(waiting.shot.phase, 'waiting', 'Ready rooted meshes alone cannot start the crown handover');
-  assert.ok(difference(waiting.camera, held.camera) > .2, 'Downloading the next stage leaves the molar turning');
+  assert.ok(waiting.travel - held.travel >= 2 * Math.PI, 'Downloading the next stage leaves the molar turning');
   assert.equal(waiting.zoom, held.zoom);
   crowns.release();
   await waitForLesson(page);
@@ -373,7 +397,7 @@ try {
         return samples;
       };
     });
-    await waitForWaitingTurn(desktop, -1);
+    await waitForWaitingTurn(desktop, 3 * Math.PI + .4);
     delayed.release();
     await desktop.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
     await waitForLesson(desktop);
@@ -402,15 +426,26 @@ try {
   }
 
   const skippable = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  const skipCrowns = await holdAssets(skippable, geometry.crowns);
   try {
     await openStory(skippable);
     const skip = skippable.getByRole('button', { name: 'Preskočiť úvod' });
     await skip.waitFor({ state: 'visible', timeout: 90000 });
     assert.equal(await skippable.locator('#journey-title').isVisible(), false);
+    await observeOpeningFrames(skippable);
     await skip.tap();
+    const skipFrame = await skippable.evaluate(() => window.__openingFrames.length);
+    const start = await skippable.evaluate(() => window.__openingFrames.at(-1)?.travel ?? 0);
+    await waitForWaitingTurn(skippable, start + 2 * Math.PI + .25);
+    const afterTap = await skippable.evaluate(n => window.__openingFrames.slice(n), skipFrame);
+    assertWholeOrbit(afterTap);
+    assert.ok(skipCrowns.held.length > 0, 'The requested skip really waited for the crowns');
+    skipCrowns.release();
     await waitForLesson(skippable);
     await atChapter(skippable, 'dentition');
     const scene = await skippable.evaluate(readProgress);
+    assert.ok((await skippable.evaluate(() => window.__openingFrames)).every(f => f.shot.phase !== 'flight'),
+      'A pending skip opens the smile without playing a second assembly once the crowns arrive');
     assert.equal(scene.crowns, 28);
     assert.equal(scene.scrollY, 0);
     assert.ok(difference(scene.camera, openingCamera) < .00001, 'Skipping and watching use the same settled camera');
@@ -421,6 +456,7 @@ try {
     await waitForLesson(skippable);
     await atChapter(skippable, 'dentition');
   } finally {
+    skipCrowns.release();
     await skippable.close();
   }
 
