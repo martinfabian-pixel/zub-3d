@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { flightEnd, flightStart } from '../src/experience/floating-teeth.js';
+import { createOpeningFlight, OPENING_SCROLL_SPAN, OPENING_TURN_END } from '../src/experience/opening-flight.js';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
@@ -11,16 +12,14 @@ url.searchParams.set('qa', '1');
 
 const chapter = id => DENTAL_CHAPTERS.find(step => step.id === id);
 const geometry = {
+  hero: /\/dentition-assets\/hero-36(?:-mobile)?\.glb$/,
   teaching: /\/dentition-assets\/dentition(?:-mobile)?\.glb$/,
   upper: /\/prototype-assets\/molar(?:-mobile)?\.glb$/,
   crowns: /\/dentition-assets\/crowns\.glb$/,
   site: /\/story-assets\/site\.json$/,
   opening: /\/dentition-assets\/crowns\.glb$|\/prototype-assets\/molar(?:-mobile)?\.glb$/,
 };
-const stops = {
-  opening: 0,
-  study: chapter('space').start - .001,
-};
+const studyGate = chapter('space').start - .001;
 const targetEpsilon = .003;
 
 async function holdAssets(page, paths) {
@@ -118,111 +117,97 @@ async function openStory(page) {
   await page.waitForFunction(() => window.__dentalExperience?.arch, null, { timeout: 90000 });
 }
 
-async function assertLoadingOpening(page) {
-  const state = await atLoadingStop(page, stops.opening, 'dentition');
-  assert.equal(await page.locator('#journey-startup').isVisible(), true);
-  assert.equal(await page.locator('#journey-title').isVisible(), false,
-    'The loading cover conceals the first scene until it has its 28 crowns');
-  assert.equal(await page.locator('#journey-canvas').isVisible(), false,
-    'The isolated loader tooth never flashes in the actual chapter canvas');
-  assert.equal(state.assetsReady, false);
-  return state;
-}
-
-async function watchOpeningFrames(page) {
+// Sample the first WebGL draw in the same microtask as its frame marker. Waiting
+// until a later screenshot can lose the default framebuffer on mobile GPUs.
+async function compareFirstDrawWithPoster(page) {
   await page.evaluate(async () => {
-    const app = window.__dentalExperience;
+    const image = document.querySelector('img.startup-tooth');
     const canvas = document.querySelector('#journey-canvas');
-    const title = document.querySelector('#journey-title');
-    const loaderTooth = document.querySelector('.startup-tooth');
-    const sprite = new Image();
-    sprite.src = getComputedStyle(loaderTooth).backgroundImage.slice(5, -2);
-    await sprite.decode();
-    const cell = sprite.naturalHeight;
-    const cellCount = sprite.naturalWidth / cell;
+    await image.decode();
+    const imageRect = image.getBoundingClientRect();
+    const view = canvas.getBoundingClientRect();
     const pixels = document.createElement('canvas');
-    pixels.width = sprite.naturalWidth;
-    pixels.height = cell;
-    const context = pixels.getContext('2d');
-    context.drawImage(sprite, 0, 0);
-    const rgba = context.getImageData(0, 0, pixels.width, cell).data;
-    const spriteHeights = Array.from({ length: cellCount }, (_, frame) => {
-      let top = cell, bottom = 0;
-      for (let y = 0; y < cell; y++) {
-        const row = (y * pixels.width + frame * cell) * 4;
-        for (let x = 0; x < cell; x++) {
-          if (rgba[row + x * 4 + 3] < 24) continue;
-          top = Math.min(top, y);
-          bottom = y;
-          break;
+    pixels.width = Math.round(view.width);
+    pixels.height = Math.round(view.height);
+    const ctx = pixels.getContext('2d', { willReadFrequently: true });
+    const rgba = () => ctx.getImageData(0, 0, pixels.width, pixels.height).data;
+    ctx.drawImage(image, imageRect.left - view.left, imageRect.top - view.top, imageRect.width, imageRect.height);
+    const poster = rgba();
+    const observer = new MutationObserver(() => {
+      observer.disconnect();
+      ctx.clearRect(0, 0, pixels.width, pixels.height);
+      ctx.drawImage(canvas, 0, 0, pixels.width, pixels.height);
+      const live = rgba();
+      const bounds = () => [pixels.width, pixels.height, -1, -1];
+      const posterBounds = bounds(), liveBounds = bounds();
+      let overlap = 0, union = 0;
+      for (let y = 0; y < pixels.height; y++) for (let x = 0; x < pixels.width; x++) {
+        const alpha = (y * pixels.width + x) * 4 + 3;
+        const a = poster[alpha] >= 128, b = live[alpha] >= 128;
+        if (a && b) overlap++;
+        if (a || b) union++;
+        for (const box of [a && posterBounds, b && liveBounds]) if (box) {
+          box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y);
+          box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y);
         }
       }
-      return (bottom - top + 1) / cell;
+      window.__firstTooth = { posterBounds, liveBounds, overlap: overlap / union,
+        naturalWidth: image.naturalWidth, cssWidth: imageRect.width,
+        bufferWidth: canvas.width, stageWidth: view.width };
     });
-    const frames = [];
-    const camera = app.rig.camera;
-    const tooth = app.arch.teeth.get(36).mesh;
-    const vertices = tooth.geometry.attributes.position;
-    const vertex = camera.position.clone();
-    let loaderToothHeight;
-    let previousFrame = null;
-
-    function projectedToothHeight() {
-      let top = -Infinity, bottom = Infinity;
-      for (let i = 0; i < vertices.count; i += 4) {
-        vertex.fromBufferAttribute(vertices, i).applyMatrix4(tooth.matrixWorld).project(camera);
-        top = Math.max(top, vertex.y);
-        bottom = Math.min(bottom, vertex.y);
-      }
-      return (top - bottom) * canvas.clientHeight / 2;
-    }
-
-    function observe(now) {
-      const frameCount = canvas.dataset.frameCount;
-      const visible = element => getComputedStyle(element).visibility === 'visible';
-      if (visible(loaderTooth)) {
-        const turn = Number.parseFloat(getComputedStyle(loaderTooth).backgroundPositionX) / 100;
-        const height = loaderTooth.getBoundingClientRect().height;
-        if (height) loaderToothHeight = height * spriteHeights[Math.round(turn * (cellCount - 1))];
-      }
-      const lessonVisible = visible(title);
-      if (visible(canvas) && frameCount && (frameCount !== previousFrame || lessonVisible)) {
-        previousFrame = frameCount;
-        const state = app.report();
-        const teeth = [...app.arch.teeth.values()];
-        const position = app.rig.camera.position.toArray();
-        const target = state.target;
-        const frame = {
-          now,
-          chapter: state.story.chapterId,
-          progress: state.progress,
-          sceneProgress: state.opening?.progress ?? state.story.sceneProgress,
-          openingPhase: state.opening?.phase,
-          openingYaw: state.opening?.yaw,
-          toothHeight: state.opening?.phase === 'spin' ? projectedToothHeight() : null,
-          limit: state.readiness.limit,
-          crowns: teeth.filter(item => item.crown?.visible).length,
-          roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
-          crownMix: state.crownMix,
-          yaw: Math.atan2(position[0] - target[0], position[2] - target[2]),
-          toothPosition: app.arch.teeth.get(11).mesh.matrixWorld.elements.slice(12, 15),
-          scroll: scrollY,
-        };
-        if (lessonVisible) {
-          window.__openingTrace = { frames, firstLesson: frame, loaderToothHeight };
-          return;
-        }
-        frames.push(frame);
-      }
-      requestAnimationFrame(observe);
-    }
-    requestAnimationFrame(observe);
+    observer.observe(canvas, { attributes: true, attributeFilter: ['data-frame-count'] });
   });
 }
 
-async function openingTrace(page) {
-  const result = await page.waitForFunction(() => window.__openingTrace);
-  return result.jsonValue();
+async function waitForOpening(page) {
+  await page.locator('body[data-journey-handoff="cinematic"]').waitFor({ timeout: 90000 });
+  assert.equal(await page.locator('#journey-canvas').isVisible(), true);
+  assert.equal(await page.locator('#journey-title').isVisible(), false);
+}
+
+async function readOpening(page) {
+  return page.evaluate(() => {
+    const app = window.__dentalExperience, state = app.report();
+    const teeth = [...app.arch.teeth.values()];
+    const camera = app.rig.camera.position;
+    const incisor = teeth.find(item => item.entry.fdi === 11);
+    return {
+      shot: state.opening, camera: camera.toArray(), zoom: app.rig.camera.zoom, scroll: scrollY,
+      crowns: teeth.filter(item => item.crown?.visible).length, crownMix: state.crownMix,
+      roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
+      incisor: incisor?.mesh?.matrixWorld.elements.slice(12, 15),
+    };
+  });
+}
+
+async function openingSeek(page, amount) {
+  await nativeSeek(page, amount * OPENING_SCROLL_SPAN);
+  const expected = createOpeningFlight().sample(amount);
+  await page.waitForFunction(({ growth, progress }) => {
+    const shot = window.__dentalExperience.report().opening;
+    return shot && Math.abs(shot.progress - progress) < .001 && Math.abs(shot.growth - growth) < .015;
+  }, expected);
+  return readOpening(page);
+}
+
+async function assertCrownFlight(page) {
+  const poses = [];
+  for (const amount of [.50, .54, .58, .62, .66, .70, .74, .79, .84, .89, .94]) {
+    poses.push(await openingSeek(page, amount));
+  }
+  const flight = poses.filter(({ shot, roots, crowns }) => !crowns && roots.length >= 8
+    && roots.includes(11) && shot.progress > flightStart && shot.progress < flightEnd);
+  assert.ok(flight.length >= 3, 'Several rendered poses show the flying anatomical teeth with roots');
+  assert.ok(flight.some(pose => difference(pose.incisor, flight[0].incisor) > .08),
+    'The rooted incisor moves through space');
+  assert.ok(poses.every((p, i) => !i || p.shot.progress < poses[i - 1].shot.progress),
+    'The original rooted flight choreography runs towards the seated arch');
+  assert.ok(poses.some(p => p.crownMix > 0 && p.crownMix < 1 && p.roots.length && p.crowns),
+    'The prologue blends the seated roots into the smile crowns');
+  const reverse = await openingSeek(page, .62);
+  assert.ok(difference(reverse.incisor, poses[3].incisor) < .0001, 'Reverse scroll restores the flight pose');
+  await nativeSeek(page, OPENING_SCROLL_SPAN);
+  await waitForLesson(page);
 }
 
 async function waitForLesson(page) {
@@ -241,37 +226,59 @@ async function watchCinematicOnLoad(page) {
   });
 }
 
-function assertOpeningFlight({ frames, firstLesson, loaderToothHeight }) {
-  assert.equal(firstLesson.chapter, 'dentition');
-  assert.equal(firstLesson.crowns, 28);
-  assert.deepEqual(firstLesson.roots, [], 'The first numbered lesson opens on the settled crown-only smile');
-  assert.equal(firstLesson.scroll, 0);
-  const solo = frames.filter(frame => frame.crowns === 0 && frame.roots.length === 1 && frame.roots[0] === 36);
-  assert.ok(solo.length >= 3, 'Multiple actual rendered intro frames show only FDI 36');
-  const turnHeights = solo.filter(frame => frame.openingPhase === 'spin').map(frame => frame.toothHeight);
-  const firstHeight = turnHeights[0];
-  assert.ok(firstHeight >= loaderToothHeight * .8 && firstHeight <= loaderToothHeight * 1.2,
-    `The first rendered tooth matches the loading silhouette: ${firstHeight}px vs ${loaderToothHeight}px`);
-  assert.ok(turnHeights.at(-1) > firstHeight * 1.5, 'The tooth grows into the authored framing during the turn');
-  assert.ok(turnHeights.every((height, index) => !index || height < turnHeights[index - 1] * 1.28),
-    'The tooth grows without a one-frame size jump');
-  console.log(`Opening tooth height: ${loaderToothHeight.toFixed(1)}px in the loader → ${firstHeight.toFixed(1)}px on the first 3D frame → ${turnHeights.at(-1).toFixed(1)}px after the turn.`);
-  const initialYaw = solo[0].yaw;
-  assert.ok(solo.some(({ yaw }) => Math.abs(Math.atan2(Math.sin(yaw - initialYaw), Math.cos(yaw - initialYaw))) > .7),
-    'The single tooth rotates visibly in the live 3D view: ' + JSON.stringify(
-      solo.map(({ now, openingPhase, openingYaw, yaw }) => ({ now, openingPhase, openingYaw, yaw }))));
-  const flight = frames.filter(frame => frame.crowns === 0 && frame.roots.includes(11)
-    && frame.roots.length >= 8 && frame.sceneProgress > flightStart && frame.sceneProgress < flightEnd);
-  assert.ok(flight.length >= 3, 'The intro shows multiple rendered rooted flight poses before crown handover');
-  assert.ok(flight.some(frame => Math.hypot(...frame.toothPosition.map((value, index) => value - flight[0].toothPosition[index])) > .08),
-    'An actual rooted mesh flies through space');
-  assert.ok(flight.every((frame, index) => !index || frame.sceneProgress <= flight[index - 1].sceneProgress + .00001),
-    'The opening follows its original assembly trajectory before the first chapter');
-  assert.ok(frames.some(frame => frame.crownMix > 0 && frame.crownMix < 1 && frame.roots.length && frame.crowns),
-    'Rendered frames show the crown handover after rooted flight');
-  assert.ok(frames.every(frame => frame.scroll === 0 && frame.progress === 0), 'The intro leaves native scroll at the top');
-  assert.ok(frames.filter(frame => frame.crownMix < 1).every(frame => frame.limit === 0),
-    'Scroll stays locked until the arch settles');
+async function assertHeroAndFlight(page, gates) {
+  const { hero, teaching, upper, crowns } = gates;
+  await Promise.all([
+    page.waitForRequest(request => geometry.hero.test(new URL(request.url()).pathname)),
+    page.goto(url.href, { waitUntil: 'domcontentloaded' }),
+  ]);
+  const poster = page.locator('img.startup-tooth');
+  await poster.waitFor();
+  assert.equal(await poster.evaluate(el => getComputedStyle(el).animationName), 'none');
+  assert.equal(await page.locator('#journey-canvas').isVisible(), false);
+  assert.equal(await page.locator('#journey-title').isVisible(), false);
+  await compareFirstDrawWithPoster(page);
+  await overshoot(page);
+  assert.equal(await page.evaluate(() => scrollY), 0, 'Scrolling is gated until the first tooth is ready');
+  hero.release();
+  await waitForOpening(page);
+  const paint = await (await page.waitForFunction(() => window.__firstTooth)).jsonValue();
+  assert.ok(paint.naturalWidth >= paint.cssWidth * 3, 'The poster supplies Retina detail at this viewport');
+  assert.ok(paint.bufferWidth >= paint.stageWidth, 'The live canvas has at least CSS resolution');
+  assert.ok(paint.overlap > .96 && paint.posterBounds.every((edge, i) => Math.abs(edge - paint.liveBounds[i]) < 4),
+    'The first actual WebGL silhouette must overlay the HTML tooth: ' + JSON.stringify(paint));
+  console.log('First paint, 390×844:', JSON.stringify(paint));
+
+  const first = await readOpening(page);
+  assert.deepEqual(first.roots, [36]);
+  assert.equal(first.crowns, 0);
+  assert.equal(first.scroll, 0);
+  await page.waitForTimeout(550);
+  assert.deepEqual(await readOpening(page), first, 'The live portrait waits for user input');
+  const turn = await openingSeek(page, OPENING_TURN_END / 2);
+  assert.deepEqual(turn.roots, [36]);
+  assert.ok(difference(turn.camera, first.camera) > 1, 'Scroll turns the live molar');
+  assert.ok(turn.zoom > first.zoom * 1.08, 'The turn grows out of the first aligned portrait');
+
+  await overshoot(page);
+  const held = await readOpening(page);
+  assert.ok(held.shot.growth > .999, 'The entire single-tooth turn is available before the atlas arrives');
+  assert.equal(held.shot.progress, STORY_TIMING.openingTooth);
+  assert.deepEqual(held.roots, [36]);
+  assert.ok(teaching.held.length && upper.held.length && crowns.held.length);
+  teaching.release();
+  upper.release();
+  await page.waitForFunction(() => window.__dentalExperience.report().readiness.flight, null, { timeout: 90000 });
+  await overshoot(page);
+  assert.equal((await readOpening(page)).scroll, held.scroll, 'Rooted teeth alone do not unlock the atlas flight');
+  crowns.release();
+  await page.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
+  await page.waitForTimeout(350);
+  const ready = await readOpening(page);
+  assert.equal(ready.scroll, held.scroll, 'Completing the atlas never replays an earlier scroll');
+  assert.deepEqual(ready.camera, held.camera);
+  assert.deepEqual(ready.roots, [36]);
+  await assertCrownFlight(page);
 }
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -281,6 +288,7 @@ try {
   const mobile = await browser.newPage({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2,
   });
+  const hero = await holdAssets(mobile, geometry.hero);
   const teaching = await holdAssets(mobile, geometry.teaching);
   const upper = await holdAssets(mobile, geometry.upper);
   const crowns = await holdAssets(mobile, geometry.crowns);
@@ -288,35 +296,10 @@ try {
   const errors = [];
   mobile.on('pageerror', error => errors.push(error.message));
   try {
-    await openStory(mobile);
-    const boot = await assertLoadingOpening(mobile);
-    await overshoot(mobile);
-    await assertLoadingOpening(mobile);
-    assert.ok(teaching.held.length, 'The neighbor atlas is still waiting on the network');
-    teaching.release();
-    await mobile.waitForTimeout(350);
-    const afterTeaching = await assertLoadingOpening(mobile);
-    assert.ok(Math.abs(afterTeaching.scrollY - boot.scrollY) <= 2,
-      'Releasing the neighbor asset does not replay discarded native scroll');
-    assert.ok(upper.held.length, 'The flight gate waits for the second rooted source');
-    upper.release();
-    await mobile.waitForFunction(() => window.__dentalExperience.report().readiness.flight, null, { timeout: 90000 });
-    await overshoot(mobile);
-    const afterUpper = await assertLoadingOpening(mobile);
-    assert.ok(Math.abs(afterUpper.scrollY - boot.scrollY) <= 2,
-      'Rooted meshes alone do not reveal chapter one or let the scroll leave the top');
-
-    assert.ok(crowns.held.length, 'The opening atlas is waiting for real crown data');
-    await watchOpeningFrames(mobile);
-    crowns.release();
-    await waitForLesson(mobile);
-    assertOpeningFlight(await openingTrace(mobile).catch(error => {
-      if (errors.length) throw new Error(errors.join('\n'), { cause: error });
-      throw error;
-    }));
+    await assertHeroAndFlight(mobile, { hero, teaching, upper, crowns });
     await atChapter(mobile, 'dentition');
     const first = await mobile.evaluate(readProgress);
-    assert.ok(Math.abs(first.scrollY - boot.scrollY) <= 2, 'No native overshoot is replayed on reveal');
+    assert.equal(first.scrollY, 0, 'The settled arch starts at chapter one');
     assert.equal(first.assetsReady, false, 'The atlas opens independently of the teaching site');
     assert.equal(first.crownMix, 1);
     assert.equal(first.crowns, 28);
@@ -361,7 +344,7 @@ try {
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'anatomy');
     await overshoot(mobile);
-    const studyStop = await atLoadingStop(mobile, stops.study, 'anatomy');
+    const studyStop = await atLoadingStop(mobile, studyGate, 'anatomy');
     assert.ok(site.held.length, 'The anatomical chapter works before the measured teaching site is ready');
     site.release();
     await mobile.waitForFunction(() => window.__dentalExperience.report().assetsReady, null, { timeout: 90000 });
@@ -379,6 +362,7 @@ try {
     assert.deepEqual(errors, []);
     console.log('390×844 Chrome: single rotating tooth, rooted flight, crown handover, independent gates and reversible chapter arrows.');
   } finally {
+    hero.release();
     teaching.release();
     upper.release();
     crowns.release();
@@ -390,7 +374,8 @@ try {
   const delayed = await holdAssets(desktop, geometry.opening);
   try {
     await openStory(desktop);
-    await assertLoadingOpening(desktop);
+    await waitForOpening(desktop);
+    assert.deepEqual((await readOpening(desktop)).roots, [36]);
     assert.ok(delayed.held.length, 'Desktop opening is waiting for a real held asset');
     await desktop.evaluate(() => {
       const samples = [];
@@ -407,6 +392,8 @@ try {
       };
     });
     delayed.release();
+    await desktop.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
+    await nativeSeek(desktop, OPENING_SCROLL_SPAN);
     await waitForLesson(desktop);
     await atChapter(desktop, 'dentition');
     await desktop.locator('#journey-mobile-next').click();

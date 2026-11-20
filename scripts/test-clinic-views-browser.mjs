@@ -130,7 +130,7 @@ try {
   await home.goto(base.href, { waitUntil:'domcontentloaded' });
   await home.locator('#journey-skip-intro').waitFor({ state:'visible', timeout:90000 });
   await home.locator('#journey-skip-intro').tap();
-  await home.locator('#journey-startup').waitFor({state:'hidden',timeout:90000});
+  await home.locator('body[data-journey-loading]').waitFor({state:'hidden',timeout:90000});
   const picker=home.locator('#journey-chapter-picker');
   await picker.focus();
   await home.keyboard.press('Enter');

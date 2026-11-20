@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { angular, cameraProbe, distance, mouseDrag, nativeJump, projectedFootprints, restingRaster, touchDrag } from './browser-camera-probes.mjs';
+import { enterStory, angular, cameraProbe, distance, mouseDrag, nativeJump, projectedFootprints, restingRaster, touchDrag } from './browser-camera-probes.mjs';
 import { DENTAL_CHAPTERS, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 import { recordMolarTransition } from './record-molar-transition.mjs';
 
@@ -49,6 +49,7 @@ try{
         await withoutInterface(()=>page.screenshot({path:join(output,name+'.png'),scale:'css'}));
       }
       await page.goto(url.href,{waitUntil:'domcontentloaded'});
+      await enterStory(page);
       await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:100000});
       await page.locator('#journey-startup').waitFor({state:'hidden'});
       assert.equal((await read()).crownMix,1);

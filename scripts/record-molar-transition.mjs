@@ -34,7 +34,7 @@ export async function recordMolarTransition(page, output, ffmpeg) {
 
 // Preserve the actual browser compositor timestamps so that a slow WebGL
 // frame remains visible in the recording.
-export async function recordBrowserInteraction(page, output, ffmpeg, interact) {
+export async function recordBrowserInteraction(page, output, ffmpeg, interact, { minFrames = 121 } = {}) {
   const { width, height } = page.viewportSize();
   const cdp = await page.context().newCDPSession(page);
   const first = await page.screenshot({ type: 'jpeg', quality: 94, scale: 'css' });
@@ -55,7 +55,7 @@ export async function recordBrowserInteraction(page, output, ffmpeg, interact) {
     await cdp.detach();
   }
   const end = Date.now() / 1000;
-  assert.ok(frames.length > 120, 'Capture must contain a moving sequence');
+  assert.ok(frames.length >= minFrames, 'Capture must contain the requested moving sequence');
   const dir = await mkdtemp(join(tmpdir(), 'zub-molar-film-')), files = [];
   const manifest = ['ffconcat version 1.0'];
   try {

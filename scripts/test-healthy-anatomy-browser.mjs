@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { angular, cameraProbe, distance, mouseDrag, nativeJump, touchDrag } from './browser-camera-probes.mjs';
+import { enterStory, angular, cameraProbe, distance, mouseDrag, nativeJump, touchDrag } from './browser-camera-probes.mjs';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
@@ -127,19 +127,18 @@ try {
           }
           const tooth = startup.locator('.startup-tooth');
           assert.equal(await tooth.isVisible(), true);
-          const animations = await tooth.evaluate(element => element.getAnimations({ subtree: true }).length);
-          assert.equal(animations > 0, !reduced, 'Only the normal-motion loader animates');
-          if (!reduced) {
-            const spin = await tooth.evaluate(element => {
-              const style = getComputedStyle(element);
-              return { frame: style.backgroundPositionX, turns: style.animationDuration.split(',').map(parseFloat) };
-            });
-            assert.ok(spin.turns.length > 1 && spin.turns.every((duration, index) => !index || duration > spin.turns[index - 1]),
-              'Each startup revolution is slower than the previous one');
-            await wait(frame => getComputedStyle(document.querySelector('.startup-tooth')).backgroundPositionX !== frame, spin.frame);
-          }
+          const portrait = await tooth.evaluate(async image => {
+            await image.decode();
+            const { width } = image.getBoundingClientRect();
+            return { tag: image.tagName, animations: image.getAnimations().length,
+              pixels: image.naturalWidth, required: width * devicePixelRatio };
+          });
+          assert.equal(portrait.tag, 'IMG');
+          assert.equal(portrait.animations, 0, 'The detailed portrait stays still while the hero is loading');
+          assert.ok(portrait.pixels >= portrait.required, 'The portrait resolves the full mobile pixel density');
         }
       } finally { releaseHero?.(); }
+      await enterStory(page);
       await wait(() => window.__dentalExperience?.report().ready, null, 90000);
       await page.locator('body[data-journey-loading]').waitFor({ state: 'hidden' });
       assert.equal(await page.locator('body[data-journey-loading]').count(), 0);

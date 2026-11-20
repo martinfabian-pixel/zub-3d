@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
-import { nativeJump, touchDrag } from './browser-camera-probes.mjs';
+import { enterStory, nativeJump, touchDrag } from './browser-camera-probes.mjs';
 import { recordBrowserInteraction } from './record-molar-transition.mjs';
 
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
@@ -20,6 +20,7 @@ try {
   const wait = (fn, value) => page.waitForFunction(fn, value, { timeout: 60000 });
   const picker = page.locator('#journey-chapter-picker');
   await page.goto(url.href);
+  await enterStory(page);
   await wait(() => window.__dentalExperience?.report().assetsReady);
   await page.locator('#journey-startup').waitFor({ state: 'hidden' });
   assert.equal(await page.locator('#journey-canvas').getAttribute('data-stage'), 'dentition');

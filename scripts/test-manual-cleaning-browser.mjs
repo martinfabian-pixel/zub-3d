@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
-import { nativeJump } from './browser-camera-probes.mjs';
+import { enterStory, nativeJump } from './browser-camera-probes.mjs';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require=createRequire(import.meta.url);
@@ -26,6 +26,7 @@ try {
       const state=()=>page.evaluate(()=>window.__dentalExperience.report());
       const wait=predicate=>page.waitForFunction(predicate,null,{timeout:20000});
       await page.goto(new URL('?qa=1',url).href);
+      await enterStory(page);
       await wait(()=>window.__dentalExperience?.report().assetsReady);
       await page.locator('.journey-step').nth(brushIndex).click();
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='brush'&&Math.abs(s.renderProgress-s.storyProgress)<.00002;});

@@ -88,8 +88,12 @@ export function createOpeningCameraOptions(base,{compact=false}={}) {
   const [front,seated]=STORY_TIMING.assemblyCrowns;
   const oblique=archFrame(base,settings,{key:'smile-turn',at:MathUtils.lerp(front,seated,.62)});
   oblique.direction=[.31,.10,1];
+  // This is also the physical camera used to photograph the transparent loading still.
+  const molarFrames=isolatedToothFrames(base,STORY_TIMING.flight[1]).map(frame=>({
+    ...frame,direction:[1,.56,.44],distance:7.2,minimumFitAspect:1,centerTarget:true,
+  }));
   return {...base.camera,keyframes:[...openingFrames(base,settings,false),oblique,
-    ...flightFrames(),...isolatedToothFrames(base,STORY_TIMING.flight[1])]};
+    ...flightFrames(),...molarFrames]};
 }
 
 /** Measured site coordinates and a minimum viewing distance frame the macro

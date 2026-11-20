@@ -4,6 +4,14 @@
 import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 
 const canvas = '#journey-canvas';
+// Tests for the chapters enter through the same optional skip as a visitor.
+export async function enterStory(page) {
+  await page.waitForFunction(() => !document.body.hasAttribute('data-journey-loading')
+    || document.querySelector('#journey-skip-intro')?.getBoundingClientRect().height > 0, null, {timeout:90000});
+  const skip = page.locator('#journey-skip-intro');
+  if (await skip.isVisible()) await skip.click();
+  await page.waitForFunction(() => !document.body.hasAttribute('data-journey-loading'), null, {timeout:90000});
+}
 const plaqueAt = DENTAL_CHAPTERS.find(chapter=>chapter.id==='plaque').at;
 const brushIndex = DENTAL_CHAPTERS.findIndex(chapter=>chapter.id==='brush');
 const brushAt = DENTAL_CHAPTERS[brushIndex].at;

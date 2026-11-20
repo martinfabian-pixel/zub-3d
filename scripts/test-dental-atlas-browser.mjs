@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { angular, cameraProbe, distance, mouseDrag, nativeJump, pinchOut, touchDrag } from './browser-camera-probes.mjs';
+import { enterStory, angular, cameraProbe, distance, mouseDrag, nativeJump, pinchOut, touchDrag } from './browser-camera-probes.mjs';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
 const require = createRequire(import.meta.url);
@@ -153,6 +153,7 @@ try {
       const activate = css => mobile ? page.locator(css).tap() : page.locator(css).click();
       const choose = fdi => page.locator(selector).selectOption(String(fdi));
       await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+      await enterStory(page);
       await wait(page, () => window.__dentalExperience?.report().assetsReady, null, 90000);
       await page.locator('#journey-startup').waitFor({ state: 'hidden' });
       await seek(page, 'dentition');

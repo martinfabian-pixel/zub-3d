@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { nativeJump, restingRaster, touchDrag } from './browser-camera-probes.mjs';
+import { enterStory, nativeJump, restingRaster, touchDrag } from './browser-camera-probes.mjs';
 
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const url = new URL(process.env.DENTAL_STORY_TEST_URL || 'http://127.0.0.1:4173/');
@@ -90,6 +90,7 @@ try{
   const page=await context.newPage(), errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url.href,{waitUntil:'domcontentloaded'});
+  await enterStory(page);
   await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:120000});
   await page.locator('#journey-startup').waitFor({state:'hidden'});
   for(const progress of [0,1]){

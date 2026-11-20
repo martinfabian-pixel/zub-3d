@@ -9,7 +9,7 @@ import { extname, relative, resolve, sep, isAbsolute } from 'node:path';
 import { DENTAL_CHAPTERS as chapters, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 import { sampleToothExtraction } from '../src/experience/dental-story.js';
 import { getStoryCopy } from '../src/experience/stage-typography.js';
-import { cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
+import { enterStory, cameraProbe, mouseDrag, touchDrag, nativeJump, desktopInputSequence, mobileInputSequence, projectedFootprints, opticalState, restingRaster, angular, zoomTravel } from './browser-camera-probes.mjs';
 import { measureSharedStage,readWebGLPixels,sampleCopyTransition } from './shared-stage-probes.mjs';
 import { auditAnnotations } from './fullstage-annotation-probe.mjs';
 
@@ -72,6 +72,7 @@ async function open(settings={},allowedOrigin=site.origin) {
   return {ctx,page};
 }
 async function ready(page) {
+  await enterStory(page);
   await page.waitForSelector(q+'[data-ready="true"][data-assets-ready="true"]',{timeout:60000});
   await page.waitForFunction(()=>{const d=window.__dentalExperience?.report();return d?.story?.plaque && d.story.brush;},null,{timeout:30000});
   await page.locator('#journey-startup').waitFor({state:'hidden'});
@@ -477,6 +478,7 @@ async function malformedStoryOwnership() {
     let corruptResponses=0;
     await page.route('**/story-assets/site.json*',r=>{corruptResponses++;return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(bad)});});
     await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
+    await enterStory(page);
     await page.locator('.journey-step').nth(brushIndex).click();
     await page.locator('#journey-retry').waitFor({state:'visible',timeout:60000});await threeFrames(page);
     const fail=await page.evaluate(()=>{
@@ -534,7 +536,7 @@ async function pendingAssetsWithInput() {
     try{
       await page.route('**/story-assets/site.json*',async r=>{noticed();await gate;return r.continue();});
       await goto(page);await page.waitForSelector(q+'[data-ready="true"]',{timeout:60000});
-      await page.waitForFunction(()=>!document.body.hasAttribute('data-journey-loading'),null,{timeout:60000});
+      await enterStory(page);
       let timer;try{await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Story data gate not reached')),15000);})]);}finally{clearTimeout(timer);}
       if(mode==='free')await page.locator('#journey-explore').click();
       await mouseDrag(page,65,-40);await page.locator('#journey-zoom-in').click();await page.waitForTimeout(450);
@@ -584,7 +586,7 @@ async function pagesPrefix() {
         else valid&&=selector==='#tooth-canvas'?Number(details.assetTriangles)===388032:Number(details.modelMeshes)===1;
         const modules=await page.locator('script[type="module"][src]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src).pathname));
         const assets=requests.slice(before);valid&&=modules.length>0&&modules.every(x=>x.startsWith(prefix))&&assets.some(x=>x.endsWith('.glb'));
-        if(selector===q)valid&&=assets.some(x=>/\/startup-tooth-[^/]+\.webp$/.test(x));
+        if(selector===q)valid&&=assets.filter(x=>/\/startup-molar-[^/]+\.webp$/.test(x)).length===1;
         check('GitHub Pages prefix loads actual models and script: '+entry,valid,{details,modules,assets});
         routes.push({entry,modules,requests:assets.length,models:assets.filter(x=>x.endsWith('.glb'))});
       }finally{await closeContext(ctx);}

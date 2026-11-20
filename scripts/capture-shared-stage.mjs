@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { nativeJump, restingRaster, cameraProbe, projectedFootprints } from './browser-camera-probes.mjs';
+import { enterStory, nativeJump, restingRaster, cameraProbe, projectedFootprints } from './browser-camera-probes.mjs';
 import { measureSharedStage } from './shared-stage-probes.mjs';
 import { DENTAL_CHAPTERS, STORY_TIMING } from '../src/experience/story-config.js';
 
@@ -31,6 +31,7 @@ try {
     const page=await ctx.newPage();
     page.on('pageerror',e=>report.errors.push(e.message));
     await page.goto(new URL('?qa=1',base).href,{waitUntil:'domcontentloaded'});
+    await enterStory(page);
     await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:60000});
     await page.locator('body[data-journey-loading]').waitFor({state:'hidden'});
     for(const [chapter,progress] of chapters) {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { mouseDrag, touchDrag, pinchOut, wheelOnCanvas, projectedFootprints, restingRaster } from './browser-camera-probes.mjs';
+import { enterStory, mouseDrag, touchDrag, pinchOut, wheelOnCanvas, projectedFootprints, restingRaster } from './browser-camera-probes.mjs';
 import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
@@ -26,6 +26,7 @@ try {
   page.on('pageerror',e=>errors.push(e.message));
   page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url());});
   await page.goto(url+'?qa=1',{waitUntil:'domcontentloaded'});
+  await enterStory(page);
   await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:90000});
   await page.locator('#journey-startup').waitFor({state:'hidden'});
   assert.equal(await page.locator('#journey-step-number').innerText(),'01 / 07');

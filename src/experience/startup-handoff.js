@@ -1,49 +1,24 @@
-import { MathUtils, Matrix4, Vector3 } from 'three';
+import { MathUtils } from 'three';
 
-// Alpha bounds of the first and last cells of startup-tooth.webp.
-const sprite={size:128,centerX:60,centerY:55.5,height:103,steps:30};
+// Calibration of startup-molar.webp in the original square camera sensor.
+// The tight crop has four transparent output pixels of padding on each side.
+const portrait = {
+  sensor: 2800, zoom: 1.35, cropWidth: 1285, cropOffsetX: -41.5, cropOffsetY: -135.5,
+  width: 608, padding: 4,
+};
 
-/** Reveal the 3D canvas first, then release the chapter controls. */
+/** Reveal the first completed live frame, then release the chapter controls. */
 export function createStartupHandoff(stage, requestRender, onSkip) {
   const document=stage.ownerDocument;
   const body=document.body;
   const window=document.defaultView;
   const loader=stage.querySelector('#journey-startup');
   const tooth=loader?.querySelector('.startup-tooth');
+  const prompt=stage.querySelector('.startup-prompt');
+  const scrollHint=prompt?.textContent;
   const view=stage.querySelector('.view-shell');
   const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const projection=new Matrix4(),vertex=new Vector3();
-  let fade=null, alignment=null, framing=null, skip=null, introListeners=null, viewWasInert=false;
-
-  function measureFraming(mesh,camera,sensor){
-    const position=mesh?.geometry?.getAttribute('position');
-    const spriteRect=tooth?.getBoundingClientRect();
-    if(!position||!spriteRect?.height||!view)return null;
-    const {fullWidth:width,fullHeight:height,offsetX,offsetY}=sensor;
-    const viewRect=view.getBoundingClientRect();
-    mesh.updateWorldMatrix(true,false);
-    projection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse).multiply(mesh.matrixWorld);
-    let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
-    for(let i=0;i<position.count;i++){
-      vertex.fromBufferAttribute(position,i).applyMatrix4(projection);
-      minX=Math.min(minX,vertex.x);maxX=Math.max(maxX,vertex.x);
-      minY=Math.min(minY,vertex.y);maxY=Math.max(maxY,vertex.y);
-    }
-    const modelHeight=(maxY-minY)*height*.5;
-    if(!Number.isFinite(modelHeight)||modelHeight<=0)return null;
-    const scale=Math.min(1,spriteRect.height*sprite.height/sprite.size/modelHeight);
-    const modelX=(minX+maxX)*width*.25+offsetX;
-    const modelY=-(minY+maxY)*height*.25+offsetY;
-    const spriteX=spriteRect.left-viewRect.left+spriteRect.width*sprite.centerX/sprite.size;
-    const spriteY=spriteRect.top-viewRect.top+spriteRect.height*sprite.centerY/sprite.size;
-    return {scale,x:width*.5+modelX*scale-spriteX,y:height*.5+modelY*scale-spriteY};
-  }
-
-  function clearAlignment(){
-    alignment?.cancel();alignment=null;
-    tooth?.style.removeProperty('animation');
-    tooth?.style.removeProperty('background-position-x');
-  }
+  let fade=null, skip=null, introListeners=null, viewWasInert=false, framing=null;
 
   function finish() {
     const wasLoading=body.hasAttribute('data-journey-loading');
@@ -52,12 +27,12 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
     body.removeAttribute('data-journey-loading');
     body.removeAttribute('data-journey-handoff');
     fade?.cancel();fade=null;
-    clearAlignment();framing=null;
     loader?.style.removeProperty('visibility');
     if(introListeners){
       introListeners.abort();introListeners=null;
       view?.toggleAttribute('inert',viewWasInert);
       skip.remove();skip=null;
+      if(prompt)prompt.textContent=scrollHint;
     }
     if(wasCinematic&&!reducedMotion.matches){
       for(const item of stage.querySelectorAll('.site-header, .journey-copy, .journey-dock, .journey-footer')){
@@ -68,15 +43,15 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
     if(wasLoading)requestRender();
   }
 
-  function fadeLoader(afterFade,duration=260) {
+  function fadeLoader(afterFade,duration) {
     if(reducedMotion.matches||!loader?.animate){afterFade();return;}
     fade=loader.animate([{opacity:1},{opacity:0}],{duration,easing:'ease-out',fill:'forwards'});
     fade.finished.then(afterFade,()=>{});
   }
 
-  function revealIntro(){
+  function startIntro(){
+    if(!body.hasAttribute('data-journey-loading')||body.hasAttribute('data-journey-handoff'))return;
     body.dataset.journeyHandoff='cinematic';
-    clearAlignment();
     viewWasInert=Boolean(view?.hasAttribute('inert'));
     view?.setAttribute('inert','');
     introListeners=new AbortController();
@@ -88,51 +63,45 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
     skip.textContent='Preskočiť úvod';
     skip.setAttribute('aria-keyshortcuts','Escape');
     stage.append(skip);
-    skip.addEventListener('click',()=>onSkip?.(),{signal});
+    skip.addEventListener('click',onSkip,{signal});
     window.addEventListener('keydown',event=>{
       if(event.key!=='Escape'||event.defaultPrevented)return;
       event.preventDefault();
-      onSkip?.();
+      onSkip();
     },{signal});
-    fadeLoader(()=>{if(loader)loader.style.visibility='hidden';},110);
-    requestRender();
+    fadeLoader(()=>{
+      loader.style.visibility='hidden';
+      loader.setAttribute('aria-hidden','true');
+    },110);
+  }
+
+  function frameTooth(camera,growth){
+    const sensor=camera.view;
+    if(!sensor?.enabled||growth===1||!tooth||!view)return;
+    const {fullWidth:w,fullHeight:h,offsetX,offsetY}=sensor;
+    if(!framing||framing.w!==w||framing.h!==h){
+      const box=tooth.getBoundingClientRect(),stageBox=view.getBoundingClientRect();
+      if(!box.width||!box.height)return;
+      const scale=box.width*(1-2*portrait.padding/portrait.width)/portrait.cropWidth;
+      framing={w,h,zoom:portrait.zoom*portrait.sensor*scale/h,
+        x:w*.5+portrait.cropOffsetX*scale-(box.left-stageBox.left+box.width*.5),
+        y:h*.5+portrait.cropOffsetY*scale-(box.top-stageBox.top+box.height*.5)};
+    }
+    camera.zoom=MathUtils.lerp(framing.zoom,camera.zoom,growth);
+    camera.setViewOffset(w,h,MathUtils.lerp(framing.x,offsetX,growth),MathUtils.lerp(framing.y,offsetY,growth),w,h);
   }
 
   return {
     start(){
       if(!body.hasAttribute('data-journey-loading')||body.hasAttribute('data-journey-handoff'))return;
       body.dataset.journeyHandoff='reveal';
-      fadeLoader(finish);
+      fadeLoader(finish,140);
     },
-    startIntro(){
-      if(alignment||!body.hasAttribute('data-journey-loading')||body.hasAttribute('data-journey-handoff'))return;
-      if(!tooth?.animate)return revealIntro();
-      const progress=parseFloat(window.getComputedStyle(tooth).backgroundPositionX)/100||0;
-      const frame=Math.round(MathUtils.clamp(progress,0,1)*sprite.steps);
-      if(frame===0||frame===sprite.steps)return revealIntro();
-      // Finish the current sprite revolution at the pose used by the live mesh.
-      const remaining=sprite.steps-frame;
-      const from=`${frame/sprite.steps*100}%`;
-      tooth.style.backgroundPositionX=from;
-      tooth.style.animation='none';
-      alignment=tooth.animate([{backgroundPositionX:from},{backgroundPositionX:'100%'}],{
-        duration:Math.min(220,remaining*16),easing:`steps(${remaining}, end)`,fill:'forwards',
-      });
-      alignment.finished.then(revealIntro,()=>{});
+    startIntro,frameTooth,finish,
+    setWaiting(waiting){
+      const text=waiting?'Načítavam zvyšok chrupu…':scrollHint;
+      if(prompt&&prompt.textContent!==text)prompt.textContent=text;
     },
-    frameTooth(mesh,camera,growth){
-      const sensor=camera.view;
-      if(!sensor?.enabled||growth===1)return;
-      framing??=measureFraming(mesh,camera,sensor);
-      if(!framing)return;
-      const {fullWidth,fullHeight,offsetX,offsetY}=sensor;
-      camera.zoom*=MathUtils.lerp(framing.scale,1,growth);
-      camera.setViewOffset(fullWidth,fullHeight,MathUtils.lerp(framing.x,offsetX,growth),
-        MathUtils.lerp(framing.y,offsetY,growth),fullWidth,fullHeight);
-    },
-    resize(){framing=null;},
-    finish,
-    get aligning(){return alignment!==null;},
     get active(){return body.hasAttribute('data-journey-loading');},
   };
 }

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { nativeJump, restingRaster, touchDrag } from './browser-camera-probes.mjs';
+import { enterStory, nativeJump, restingRaster, touchDrag } from './browser-camera-probes.mjs';
 import { recordBrowserInteraction } from './record-molar-transition.mjs';
 import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 
@@ -21,6 +21,7 @@ async function reviewArtwork() {
   const ctx = await browser.newContext(phone);
   const page = await ctx.newPage();
   await page.goto(base.href);
+  await enterStory(page);
   await page.waitForFunction(() => window.__dentalExperience?.report().assetsReady, null, { timeout: 90000 });
   await page.locator('#journey-startup').waitFor({ state: 'hidden' });
   const capture = async name => {
