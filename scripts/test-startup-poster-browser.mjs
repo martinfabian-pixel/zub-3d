@@ -102,7 +102,7 @@ async function coldOpen(browser, browserName, { slowed = false, reduced = false,
           assert.ok(blocked > 0);
           assert.equal(m.firstPixels.turning, false, 'An unavailable optional image sheet retains the sharp still');
         }
-        assert.ok(m.settled - m.flightStart >= 2675, 'The full seating sequence uses the longer 2.75 s choreography');
+        assert.ok(m.settled - m.flightStart >= 3575, 'The complete 3.65 s assembly includes the separate crown handover');
         assert.ok(!m.reversed && !m.waitMessage, 'The waiting orbit never reverses or displays a loading message');
         if (slowed) assert.ok(m.waitingArc >= 2 * Math.PI, 'A full waiting orbit was rendered on a cold mobile connection');
         assert.ok(m.buffer[0] >= 2 * mobile.viewport.width && m.buffer[1] >= 2 * mobile.viewport.height,

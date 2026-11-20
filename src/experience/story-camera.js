@@ -20,15 +20,20 @@ function toothFrames(base, keys, range) {
   return keys.map((key,index)=>({key,at:range[index],landmark:'hero',direction,padding,portraitPadding}));
 }
 
-function flightFrames() {
+function flightFrames(base, settings) {
+  // Use the smile's lens throughout the gather. Once the rooted arches
+  // settle, the optical centre, distance and angle match the live atlas.
+  // Only the teeth should change silhouette during the crown handover.
   return [
-    ['flight-lift', .820, [.59,.16,1], 8.9],
-    ['flight-entry', .844, [.52,.20,1], 10.8],
-    ['flight-pass', .884, [.21,.13,1], 12.3],
-    ['flight-arc', .907, [.34,.14,1], 11.85],
-    ['flight-approach', .931, [.36,.14,1], 10.8],
-    ['flight-seat', .969, [.33,.11,1], 8.7],
-  ].reverse().map(([key,at,direction,distance])=>({key,at:flightProgress(at),landmark:'flight',direction,distance}));
+    ['flight-lift', .820, [.63,.19,1], 10.6],
+    ['flight-entry', .844, [.55,.16,1], 12.1],
+    ['flight-pass', .884, [.44,.13,1], 13.4],
+    ['flight-arc', .907, [.31,.10,1], 12.1],
+    ['flight-approach', .931, [.17,.06,1], 9.8],
+    ['flight-seat', .969, settings.smileDirection, settings.smileDistanceCm],
+  ].reverse().map(([key,at,direction,distance])=>({
+    ...archFrame(base,settings,{key,at:flightProgress(at)}),direction,distance,
+  }));
 }
 
 export function createIntroCameraOptions(base) {
@@ -83,17 +88,12 @@ function teachingOpeningFrames(base,settings,roots) {
 
 export function createOpeningCameraOptions(base,{compact=false}={}) {
   const settings=compact?{...base.storyCamera,...base.storyCamera.compact}:base.storyCamera;
-  // The opening samples these stops in reverse. Hold the three-quarter
-  // view through seating, then ease to the identical frontal atlas pose.
-  const [front,seated]=STORY_TIMING.assemblyCrowns;
-  const oblique=archFrame(base,settings,{key:'smile-turn',at:MathUtils.lerp(front,seated,.62)});
-  oblique.direction=[.31,.10,1];
   // This is also the physical camera used to photograph the transparent loading still.
   const molarFrames=isolatedToothFrames(base,STORY_TIMING.flight[1]).map(frame=>({
     ...frame,direction:[1,.56,.44],distance:7.2,minimumFitAspect:1,centerTarget:true,
   }));
-  return {...base.camera,keyframes:[...openingFrames(base,settings,false),oblique,
-    ...flightFrames(),...molarFrames]};
+  return {...base.camera,keyframes:[...openingFrames(base,settings,false),
+    ...flightFrames(base,settings),...molarFrames]};
 }
 
 /** Measured site coordinates and a minimum viewing distance frame the macro

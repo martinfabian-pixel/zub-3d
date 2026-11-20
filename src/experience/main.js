@@ -659,6 +659,13 @@ export function createExperience(configuration=experienceConfig) {
     return true;
   }
   function renderOpening(now,shot){
+    // The close-up starts at Retina resolution. Use the same adaptive
+    // budget as a touch gesture while the entire mobile arch is moving.
+    if(profile.compact&&shot.phase==='flight'){
+      adaptive.beginInteraction();
+      if(lastFrame)adaptive.recordFrame(now-lastFrame);
+      lastFrame=now;
+    }
     sampleOpeningDentalStory(shot.progress,openingState);
     arch.setState(openingState);
     const pose=rig.setProgress(shot.progress,{reducedMotion:false,alternateWeight:0,timeline:openingTimeline});

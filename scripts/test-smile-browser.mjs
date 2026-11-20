@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { enterStory, mouseDrag, touchDrag, pinchOut, wheelOnCanvas, projectedFootprints, restingRaster } from './browser-camera-probes.mjs';
 import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
+import { sampleDentalStory } from '../src/experience/dental-story.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
 const url=process.env.DENTAL_STORY_TEST_URL||'http://127.0.0.1:4173/';
@@ -47,6 +48,34 @@ try {
   assert.equal(smile.backingOpacity,1);
   await page.screenshot({path:`${out}/${width}-smile.png`});
 
+  // The last lower incisors used to flash back for one or two draws:
+  // their JS easing was below one while their WebGL uniform rounded up.
+  const finalPixels=await page.evaluate(state=>{
+    const {arch,renderer,scene,rig}=window.__dentalExperience;
+    const gl=renderer.getContext(), width=gl.drawingBufferWidth, height=gl.drawingBufferHeight;
+    function draw(mix){
+      arch.setState({...state,assemblyCrownCoverage:mix});
+      renderer.render(scene,rig.camera);
+      const pixels=new Uint8Array(width*height*4);
+      gl.readPixels(0,0,width,height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+      return pixels;
+    }
+    const reference=draw(1);
+    let bottom=height;
+    for(let y=0;y<height&&bottom===height;y++)for(let x=0;x<width;x++){
+      if(reference[(y*width+x)*4+3]>128){bottom=y;break;}
+    }
+    const near=draw(.99997);
+    let below=0;
+    for(let i=3;i<(bottom-2)*width*4;i+=4)if(near[i]>128)below++;
+    const stray=[...arch.teeth.values()].filter(t=>t.mesh.visible&&Math.fround(t.smileMix.value)===1).map(t=>t.entry.fdi);
+    arch.setState(state);
+    return {bottom,height,below,stray};
+  },sampleDentalStory(atlasAt));
+  assert.ok(finalPixels.bottom>0&&finalPixels.bottom<finalPixels.height);
+  assert.deepEqual(finalPixels.stray,[],'A fully covered root is hidden in CPU and GPU precision');
+  assert.equal(finalPixels.below,0,'No incisor root reappears below the seated smile on its last moving frame');
+
   const motion=await page.evaluate(async({start,end})=>{
    const box=document.querySelector('#dental-journey').getBoundingClientRect();
    const length=box.height-document.querySelector('#journey-stage').clientHeight,base=scrollY+box.top;
@@ -66,6 +95,8 @@ try {
     const backing=arch.object.getObjectByName('Discreet enamel-coloured smile contact backing');
     return {chapter:r.story.chapterId,crownMix:arch.crownMix,
      crowns:teeth.filter(t=>t.crown?.visible).length,anatomy:teeth.filter(t=>t.mesh?.visible).length,
+     coveredSeats:teeth.filter(t=>t.crown?.visible||t.mesh?.visible).length,
+     crownIds:teeth.filter(t=>t.crown?.visible).map(t=>t.entry.fdi),
      healthy:teeth.every(t=>!t.mesh.geometry.hasAttribute('lesionRegion')&&!t.mesh.geometry.morphAttributes.position?.length),
      backingVisible:backing?.visible??false,backingOpacity:backing?.material.opacity??0,
      fdis:teeth.map(t=>t.entry.fdi),matrices:teeth.map(t=>t.mesh.matrix.toArray()),
@@ -107,11 +138,18 @@ try {
 
   await seek(dissolveAt(.25));
   const dissolveStart=await readState();
-  expectMeshes(dissolveStart,28,28);
+  expectMeshes(dissolveStart,28,14);
+  assert.equal(dissolveStart.coveredSeats,28);
   assert.ok(dissolveStart.crownMix>.5&&dissolveStart.crownMix<1);
+  await seek(dissolveAt(.55));
+  const crossing=await readState();
+  assert.equal(crossing.coveredSeats,28);
+  assert.equal(crossing.anatomy,28);
+  assert.ok(crossing.crownIds.includes(17)&&crossing.crownIds.includes(27));
+  assert.ok(!crossing.crownIds.some(fdi=>fdi%10===1),'The rear crowns appear before the central pair');
   await seek(dissolveAt(.80));
   const dissolveEnd=await readState();
-  expectMeshes(dissolveEnd,28,28);
+  expectMeshes(dissolveEnd,0,28);
   assert.ok(dissolveEnd.crownMix>0&&dissolveEnd.crownMix<.5);
 
   await seek(atlasAt);
@@ -129,6 +167,8 @@ try {
   await seek(dissolveAt(.25));
   const reversedDissolve=await readState();
   assert.equal(reversedDissolve.crownMix,dissolveStart.crownMix);
+  assert.deepEqual(reversedDissolve.crownIds,dissolveStart.crownIds);
+  assert.equal(reversedDissolve.anatomy,dissolveStart.anatomy);
   await seek(liftedAt);
   const reversed=await readState();
   expectMeshes(reversed,0,1);

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { addSmileDissolve, prepareJourneyMaterial } from './materials.js';
+import { addSmileDissolve, crownRevealThreshold, prepareJourneyMaterial } from './materials.js';
 import { disposeObject } from './scene.js';
 import { sampleDentalStory } from './dental-story.js';
 import { DENTAL_STORY, STORY_TIMING } from './story-config.js';
@@ -47,8 +47,8 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const proxies = [];
   let disposed=false, assetsReady=false, visibleCount=1;
   let finalView='smile', smileWeight=1, sceneProgress=0, closureCm=0;
-  let floating, smileBounds, smileBacking;
-  const crownMix={value:0};
+  let floating, smileBounds, smileBacking, rootedAtlas;
+  let crownMix=0;
   const crownPosition=new THREE.Vector3(), crownScale=new THREE.Vector3(), crownRotation=new THREE.Quaternion();
   const smileCenter=new THREE.Vector3(), viewFromSmile=new THREE.Vector3();
   for (const entry of manifest.teeth) {
@@ -77,7 +77,14 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     item.finish=prepareJourneyMaterial(mesh,config,profile,renderer,clay);
     // Keep the live molar's program throughout loading. Installing the
     // dissolve when the crowns arrive recompiles its visible surface mid-turn.
-    addSmileDissolve(mesh.material,crownMix,false);
+    if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
+    const {min,max}=mesh.geometry.boundingBox;
+    item.smileExtent={value:new THREE.Vector2(min.y,1/(max.y-min.y))};
+    item.smileMix={value:0};
+    // The back pairs seat first; the incisors finish together near the
+    // centre. Each neighbouring pair substantially overlaps the preceding one.
+    item.smileStart=(7-fdi%10)*.05+(item.upper?0:.025);
+    addSmileDissolve(mesh.material,item.smileMix,item.smileExtent,false);
     item.mesh=mesh; item.seatedMatrix=mesh.matrix.clone(); object.add(mesh); mesh.updateMatrixWorld(true);
     item.finish.setReveal(fdi===config.anatomy.hero?1:0);
     item.reveal=fdi===config.anatomy.hero?1:0;
@@ -127,6 +134,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     sourceObjects.add(upperMolar.object);
     registerAtlas(atlas);
     if (assetsReady) return;
+    rootedAtlas=atlas.meshes;
     sources.set(26,upperMolar.meshes.get('ToothExterior')??[...upperMolar.meshes.values()][0]);
     let batchStart=performance.now();
     for (const [fdi,item] of teeth) {
@@ -156,13 +164,20 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
         if(!mirroredCrowns.has(item.entry.source))mirroredCrowns.set(item.entry.source,mirrorGeometry(geometry));
         geometry=mirroredCrowns.get(item.entry.source);
       }
-      const crown=new THREE.Mesh(geometry,source.material);
+      // The cropped crowns retain the source UVs. Reuse the resident dental
+      // maps for this device instead of uploading a second desktop atlas
+      // as the crowns first enter the picture. The standalone hero 36 has
+      // different UVs, so use the atlas source of its crown here too.
+      const rootSource=rootedAtlas.get('FDI_'+item.entry.source)??sources.get(item.entry.source);
+      const crown=new THREE.Mesh(geometry,rootSource.material);
       item.crownFinish=prepareJourneyMaterial(crown,smileConfig,profile,renderer,clay,item.entry.fdi);
       if(item.entry.fdi===config.anatomy.hero){
         item.crownNeutral=crown.material.color.clone();
         item.crownLocated=item.crownNeutral.clone().multiply(new THREE.Color(.68,.94,1.03));
       }
-      addSmileDissolve(crown.material,crownMix,true);
+      addSmileDissolve(crown.material,item.smileMix,item.smileExtent,true);
+      if(!geometry.boundingBox)geometry.computeBoundingBox();
+      item.crownThreshold=crownRevealThreshold(geometry.boundingBox.min.y,item.smileExtent.value);
       crown.name='Smile crown '+item.entry.fdi;
       crown.userData.smileFdi=item.entry.fdi;
       crown.matrixAutoUpdate=false;
@@ -206,7 +221,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       smooth(...STORY_TIMING.finalClosure,sceneProgress));
     const flying=state.openingFlight&&floating?.update(sceneProgress,closureCm,profile.compact)>0;
     const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
-    crownMix.value=mix;
+    crownMix=mix;
     smileBacking?.setCoverage(mix);
     visibleCount=0;
     for (const [fdi,item] of teeth) {
@@ -218,12 +233,20 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
         item.upper?state.upperReveal:state.lowerReveal,
         assembly);
       item.reveal=reveal;
-      item.finish?.setReveal(mix===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
+      // Sample each overlap from the story, including reversed or interrupted
+      // transitions. At either endpoint every seat is exactly in registration.
+      // The visibility decision must use the same precision as the shader.
+      // At the tail of easing a JS double may still be below a GPU float of 1.
+      const seat=mix===0||mix===1?mix:Math.fround(smooth(item.smileStart,item.smileStart+.675,mix));
+      if(item.mesh)item.smileMix.value=seat;
+      item.finish?.setReveal(seat===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {
         // The rooted representation has its own enamel locator. Carry the
         // same cool cue on the visible crown before and during the handoff.
         if(hero)item.crown.material.color.lerpColors(item.crownNeutral,item.crownLocated,state.locate36);
-        item.crownFinish.setReveal(mix>0?reveal:0);
+        item.crownFinish.setReveal(seat>item.crownThreshold?reveal:0);
+        // Move the complete arch on one easing curve. Only the tissue
+        // handover is staggered, so the fronts never have to catch up.
         if(mix>0) {
           const pose=item.smilePose;
           if(mix===1)item.crown.matrix.copy(pose.matrix);
@@ -240,7 +263,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
           }
           item.crown.updateMatrixWorld(true);
           // Shadow maps use only one surface per tooth during the handover.
-          const crownCasts=mix>0.4+(fdi%10)*0.025;
+          const crownCasts=seat>item.crownThreshold;
           item.mesh.castShadow=!crownCasts&&item.mesh.visible;
           item.crown.castShadow=crownCasts&&item.crown.visible;
         }
@@ -250,7 +273,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   }
   function setProgress(p){setState(sampleDentalStory(p,sampled));}
   function updateView(camera) {
-    if(!smileBacking||crownMix.value===0)return;
+    if(!smileBacking||crownMix===0)return;
     object.worldToLocal(viewFromSmile.copy(camera.position)).sub(smileCenter);
     const forward=viewFromSmile.z/Math.max(viewFromSmile.length(),1e-6);
     smileBacking.setViewFactor(smooth(.08,.5,forward));
@@ -275,8 +298,8 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     const owned=new THREE.Group();owned.add(object,...sourceObjects);
     disposeObject(owned);sourceObjects.clear();
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
-    mirrored.clear(); teeth.clear();
+    rootedAtlas=null;mirrored.clear(); teeth.clear();
   }
   return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,updateView,report,dispose,
-    ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix.value;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
+    ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

@@ -214,6 +214,17 @@ function assertOpeningFlight(frames) {
     'The flight advances towards the seats without replaying the original turn');
   assert.ok(frames.some(p => p.crownMix > 0 && p.crownMix < 1 && p.roots.length && p.crowns),
     'Rendered frames blend the seated roots into the smile crowns');
+  const seating = frames.filter(frame => frame.crownMix > 0 && frame.crownMix < 1);
+  const seatedCamera = seating[0];
+  const fitTolerance = .001 * difference(seatedCamera.camera, seatedCamera.target);
+  assert.ok(seating.every(frame => difference(frame.camera, seatedCamera.camera) < fitTolerance
+    && difference(frame.target, seatedCamera.target) < fitTolerance
+    && Math.abs(frame.zoom / seatedCamera.zoom - 1) < .001),
+  'The actual camera holds its framing while roots recede into the seated smile');
+  const early = seating.find(frame => frame.crownMix >= .1);
+  const late = seating.find(frame => frame.crownMix >= .9);
+  assert.ok(early && late && late.at - early.at >= 450,
+    'The middle of the crown change is readable on screen for at least 450 ms');
   assert.ok(frames.every(p => p.scroll === 0 && p.progress === 0), 'The opening consumes no chapter scroll');
   console.log('Hands-free opening:', spinning.length, 'solo frames,', flight.length,
     'fully rooted flight frames,', Math.round(held.at - first.at), 'ms to the waiting pose.');

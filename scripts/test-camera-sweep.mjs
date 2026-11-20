@@ -55,14 +55,21 @@ for (const compact of [false, true]) {
       'Completing or skipping the introduction and the closing smile all use the same camera');
   }
   const [front, seated] = STORY_TIMING.assemblyCrowns;
-  const turnAt = opening.stops['smile-turn'];
-  assert.ok(front < turnAt && turnAt < seated, 'The oblique camera shows the arch during crown seating');
+  const turnAt = opening.stops['flight-arc'];
+  assert.ok(turnAt > seated, 'The oblique view happens while the rooted teeth are still arriving');
   let lastYaw = yaw(opening.sample(turnAt, aspect));
   assert.ok(lastYaw - yaw(atlas) > MathUtils.degToRad(12), 'The last part of the opening shows the depth of the arch');
   for (let i = 1; i <= 30; i++) {
-    const angle = yaw(opening.sample(MathUtils.lerp(turnAt, front, i / 30), aspect));
+    const angle = yaw(opening.sample(MathUtils.lerp(turnAt, seated, i / 30), aspect));
     assert.ok(angle <= lastYaw && angle >= yaw(atlas) - 1e-8, 'Settle to the atlas without overshooting');
     lastYaw = angle;
+  }
+  for(let i=0;i<=30;i++){
+    const frame=opening.sample(MathUtils.lerp(seated,front,i/30),aspect);
+    for(const key of ['position','target'])assert.ok(frame[key].distanceTo(atlas[key])<1e-8,
+      'Crown handover stays on the settled atlas camera');
+    for(const key of ['screenX','screenY','opticalZoom'])close(frame[key],atlas[key],1e-12,
+      'The crown handover cannot introduce a lens or framing change');
   }
   const locate = sample(chapterAt('assembly'));
   const {identify,identified,lift,reseat,smileTurn,crownLocator,contactHold,followSurface}=STORY_TIMING.teachingSite;

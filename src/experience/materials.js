@@ -68,7 +68,10 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
     material,
     setReveal(value) {
       reveal = value;
-      const fading=value<1;
+      // The first visible flight frame draws roots with alpha. Crowns are
+      // already seated when they appear and enter on the opaque program.
+      // Keep each hidden material on the variant that compileAsync must warm.
+      const fading=value<1&&(crownFdi===null||value>0);
       if(material.transparent!==fading){material.transparent=fading;material.needsUpdate=true;}
       material.opacity=value;
       material.depthWrite=true;
@@ -82,24 +85,38 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
   };
 }
 
-// Both opaque representations sample the same coverage at each screen pixel.
-// A pixel belongs to exactly one representation, even where their surfaces overlap.
-export function addSmileDissolve(material, mix, crown) {
+// Travel from the root tips to the enamel using the full tooth's own axis.
+// Only a narrow feather around the travelling boundary uses pixel coverage.
+// Both representations share the same local coordinates and seating transform.
+const feather=.08;
+export function addSmileDissolve(material, mix, extent, crown) {
   const compile = material.onBeforeCompile;
   const key = material.customProgramCacheKey();
   const reject = crown ? 'coverage >= smileMix' : 'coverage < smileMix';
   material.onBeforeCompile = function (shader, renderer) {
     compile.call(this, shader, renderer);
     shader.uniforms.smileMix = mix;
+    shader.uniforms.smileToothExtent = extent;
+    shader.vertexShader=shader.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform vec2 smileToothExtent; varying float vSmileHeight;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvSmileHeight=(position.y-smileToothExtent.x)*smileToothExtent.y;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float smileMix;')
+      .replace('#include <common>', '#include <common>\nuniform float smileMix; varying float vSmileHeight;')
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+        if (${crown?'smileMix <= 0.0':'smileMix >= 1.0'}) discard;
         if (smileMix > 0.0 && smileMix < 1.0) {
-          float coverage = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+          float grain = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+          float coverage = (clamp(vSmileHeight,0.,1.)+${feather}*grain)/(1.+${feather});
           if (${reject}) discard;
         }
       `);
   };
   material.customProgramCacheKey = () => `${key}-smile-${crown ? 'crown' : 'root'}`;
   material.needsUpdate = true;
+}
+
+// Exact lower bound of coverage above. The crown cannot contribute a
+// fragment before the travelling boundary reaches its lowest point.
+export function crownRevealThreshold(minY,extent) {
+  return Math.max(0,(minY-extent.x)*extent.y)/(1+feather);
 }

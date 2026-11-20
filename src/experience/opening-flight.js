@@ -1,16 +1,30 @@
 import { MathUtils } from 'three';
 import { STORY_TIMING } from './story-config.js';
 
-const growMs = 1150, flightMs = 2750, maxFrameMs = 75;
+const growMs = 1150, gatherMs = 2300, seatingMs = 1350;
 const revolution = 2 * Math.PI;
 const speed = revolution / 3600; // radians per millisecond
 const easeInMs = 290;
 const maxFlightTurn = MathUtils.degToRad(260);
 const minBrakingTurn = MathUtils.degToRad(18);
 
+// The authored positions run backwards from the molar to the atlas. Give
+// seating its own screen time and carry velocity across the join. A slow
+// device then has time to show the shape change after the camera arrives.
+function assemblyProgress(time) {
+  const start=STORY_TIMING.openingTooth, seat=STORY_TIMING.assemblyCrowns[1], end=STORY_TIMING.atlas[1];
+  const velocity=(end-seat)/seatingMs;
+  if(time<gatherMs){
+    const t=time/gatherMs;
+    return MathUtils.lerp(start,seat,t*t*(3-2*t)) + velocity*gatherMs*t*t*(t-1);
+  }
+  const t=Math.min(1,(time-gatherMs)/seatingMs);
+  return MathUtils.lerp(seat,end,t*t*(3-2*t)) + velocity*seatingMs*t*(1-t)**2;
+}
+
 /** Gather the existing rooted teeth from the live loading camera's actual angle. */
 export function createOpeningFlight(initialYaw = 0) {
-  const [atlasStart, atlasEnd] = STORY_TIMING.atlas;
+  const [atlasStart] = STORY_TIMING.atlas;
   const seed = STORY_TIMING.openingTooth;
   const shot = { progress: seed, yaw: initialYaw, growth: 0, phase: 'spin', done: false };
   let previous, elapsed = 0, launch, launchYaw, landingYaw, turnMs;
@@ -30,14 +44,14 @@ export function createOpeningFlight(initialYaw = 0) {
     landingYaw = revolution * Math.ceil((angle + minBrakingTurn) / revolution);
     launch = readyAt + Math.max(0, landingYaw - angle - maxFlightTurn) / speed;
     launchYaw = orbitYaw(launch);
-    turnMs = Math.min(2350, 2 * (landingYaw - launchYaw) / speed);
+    turnMs = Math.min(gatherMs, 2 * (landingYaw - launchYaw) / speed);
   }
 
   return {
     sample(now, crownsReady = true) {
       if (shot.done) return shot;
-      // Keep a compiler stall or a busy first frame from consuming the sequence.
-      if (previous !== undefined) elapsed += MathUtils.clamp(now - previous, 0, maxFrameMs);
+      // A late GPU frame must not jump several tooth poses to catch up.
+      if (previous !== undefined) elapsed += MathUtils.clamp(now - previous, 0, shot.phase==='flight'?40:75);
       previous = now;
       shot.yaw = orbitYaw(elapsed);
       shot.growth = MathUtils.smootherstep(elapsed, 100, growMs);
@@ -59,10 +73,9 @@ export function createOpeningFlight(initialYaw = 0) {
       // front-on at rest. The final crown-only hold is the authored camera.
       shot.yaw = MathUtils.lerp(launchYaw, landingYaw, u * u * (3 - 2 * u))
         + speed * turnMs * u * (1 - u) ** 2;
-      const travel = MathUtils.smoothstep(flightElapsed, 0, flightMs);
-      shot.done = travel === 1;
+      shot.done = flightElapsed >= gatherMs + seatingMs;
       shot.phase = shot.done ? 'done' : 'flight';
-      shot.progress = shot.done ? atlasStart : MathUtils.lerp(seed, atlasEnd, travel);
+      shot.progress = shot.done ? atlasStart : assemblyProgress(flightElapsed);
       return shot;
     },
     pause() { previous = undefined; },
