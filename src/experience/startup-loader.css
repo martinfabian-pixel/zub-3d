@@ -26,11 +26,30 @@ body[data-journey-loading] #journey-startup {
     linear-gradient(155deg, var(--scene-bg, #e6f3fc), var(--scene-bg-deep, #d6edfa));
 }
 
+.startup-portrait { display: block; position: relative; }
 .startup-tooth {
   display: block;
   width: min(35vw, 33svh, 240px);
   height: auto;
   user-select: none;
+}
+
+/* Each fixed-camera cell includes room for the turning roots around the
+   original portrait's optical centre. Keep the still in layout for framing. */
+.startup-turn-window {
+  position: absolute;
+  width: 112.5%;
+  aspect-ratio: 512 / 704;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-size: 400% 400%;
+  background-repeat: no-repeat;
+}
+.startup-portrait.is-turning .startup-tooth { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .startup-portrait.is-turning .startup-tooth { opacity: 1; }
+  .startup-turn-window { display: none; }
 }
 
 body[data-journey-handoff='cinematic'] .startup-prompt {

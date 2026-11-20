@@ -69,15 +69,16 @@ export function createExperience(configuration=experienceConfig) {
   let resumeProgress=!clinicView&&(historyEntry==='reload'||historyEntry==='back_forward')&&Number.isFinite(savedProgress)
     ? THREE.MathUtils.clamp(savedProgress,0,1) : null;
   const playOpening=!clinicView&&historyEntry!=='back_forward'&&(resumeProgress??0)<.002;
+  if(playOpening)startupHandoff.startPosterTurn();
   history.scrollRestoration='manual';
   const dentalState={brushPose:{}};
-  const openingState={brushPose:{}},openingFlight=createOpeningFlight(),openingOffset=new THREE.Vector3();
+  const openingState={brushPose:{}},openingOffset=new THREE.Vector3();
   sampleDentalStory(0,dentalState);
   let frame=0,renderedFrames=0,lastFrame=0,settleTimer,ready=false,disposed=false,shaderError=false,contextLost=false;
   let logicalWidth=0,logicalHeight=0,fittedRig=null;
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
   let renderProgress=0,progressFrame=0;
-  let openingComplete=false,openingSkipped=false,openingShown=false,openingShot=null,openingTimeline;
+  let openingComplete=false,openingSkipped=false,openingShown=false,openingShot=null,openingTimeline,openingFlight;
   applyScrollLimit();
   let navigationMotion=null, openCleaningOnArrival=false;
   const manualCleaning=createManualCleaning(),manualState={brushPose:{}},manualResultPose={};
@@ -684,7 +685,7 @@ export function createExperience(configuration=experienceConfig) {
     }
     const waiting=shot.phase==='waiting'||(openingSkipped&&!crownsReady);
     startupHandoff.setWaiting(waiting);
-    if(!waiting)requestRender();
+    if(!openingSkipped)requestRender();
   }
   function render(now) {
     frame=0;
@@ -692,6 +693,7 @@ export function createExperience(configuration=experienceConfig) {
     if(manual){renderManual(now);return;}
     if(!openingComplete){
       if(playOpening&&!reducedMotion&&(!openingSkipped||!crownsReady)){
+        openingFlight??=createOpeningFlight(startupHandoff.takePosterYaw());
         if(!openingSkipped||!openingShot)openingShot=openingFlight.sample(now,crownsReady);
         if(!openingShot.done){renderOpening(now,openingShot);return;}
       }
@@ -914,7 +916,7 @@ export function createExperience(configuration=experienceConfig) {
   },{signal});
   window.addEventListener('resize',()=>{navigationMotion=null;},{signal});
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){cancelNavigation();if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;openingFlight.pause();anatomyMotion.resetClock();adaptive?.endInteraction();}
+    if(document.hidden){cancelNavigation();if(frame)cancelAnimationFrame(frame);frame=0;lastFrame=0;progressFrame=0;openingFlight?.pause();anatomyMotion.resetClock();adaptive?.endInteraction();}
     else {scroll?.refresh();requestRender();}
   },{signal});
   canvas.addEventListener('webglcontextlost',(e)=>{

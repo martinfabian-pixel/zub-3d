@@ -586,7 +586,11 @@ async function pagesPrefix() {
         else valid&&=selector==='#tooth-canvas'?Number(details.assetTriangles)===388032:Number(details.modelMeshes)===1;
         const modules=await page.locator('script[type="module"][src]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src).pathname));
         const assets=requests.slice(before);valid&&=modules.length>0&&modules.every(x=>x.startsWith(prefix))&&assets.some(x=>x.endsWith('.glb'));
-        if(selector===q)valid&&=assets.filter(x=>/\/startup-molar-[^/]+\.webp$/.test(x)).length===1;
+        if(selector===q){
+          const still=await page.locator('img.startup-tooth').evaluate(image=>new URL(image.currentSrc).pathname);
+          valid&&=assets.filter(path=>path===still).length===1
+            &&assets.some(path=>/\/startup-molar-turn-[^/]+\.webp$/.test(path));
+        }
         check('GitHub Pages prefix loads actual models and script: '+entry,valid,{details,modules,assets});
         routes.push({entry,modules,requests:assets.length,models:assets.filter(x=>x.endsWith('.glb'))});
       }finally{await closeContext(ctx);}

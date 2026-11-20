@@ -1,3 +1,4 @@
+import { assertFirstDraw, observeStartup } from './startup-frame-probe.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { flightEnd, flightStart } from '../src/experience/floating-teeth.js';
@@ -116,48 +117,6 @@ async function openStory(page) {
   await page.waitForFunction(() => window.__dentalExperience?.arch, null, { timeout: 90000 });
 }
 
-// Sample the first WebGL draw in the same microtask as its frame marker. Waiting
-// until a later screenshot can lose the default framebuffer on mobile GPUs.
-async function compareFirstDrawWithPoster(page) {
-  await page.evaluate(async () => {
-    const image = document.querySelector('img.startup-tooth');
-    const canvas = document.querySelector('#journey-canvas');
-    await image.decode();
-    const imageRect = image.getBoundingClientRect();
-    const view = canvas.getBoundingClientRect();
-    const pixels = document.createElement('canvas');
-    pixels.width = Math.round(view.width);
-    pixels.height = Math.round(view.height);
-    const ctx = pixels.getContext('2d', { willReadFrequently: true });
-    const rgba = () => ctx.getImageData(0, 0, pixels.width, pixels.height).data;
-    ctx.drawImage(image, imageRect.left - view.left, imageRect.top - view.top, imageRect.width, imageRect.height);
-    const poster = rgba();
-    const observer = new MutationObserver(() => {
-      observer.disconnect();
-      ctx.clearRect(0, 0, pixels.width, pixels.height);
-      ctx.drawImage(canvas, 0, 0, pixels.width, pixels.height);
-      const live = rgba();
-      const bounds = () => [pixels.width, pixels.height, -1, -1];
-      const posterBounds = bounds(), liveBounds = bounds();
-      let overlap = 0, union = 0;
-      for (let y = 0; y < pixels.height; y++) for (let x = 0; x < pixels.width; x++) {
-        const alpha = (y * pixels.width + x) * 4 + 3;
-        const a = poster[alpha] >= 128, b = live[alpha] >= 128;
-        if (a && b) overlap++;
-        if (a || b) union++;
-        for (const box of [a && posterBounds, b && liveBounds]) if (box) {
-          box[0] = Math.min(box[0], x); box[1] = Math.min(box[1], y);
-          box[2] = Math.max(box[2], x); box[3] = Math.max(box[3], y);
-        }
-      }
-      window.__firstTooth = { posterBounds, liveBounds, overlap: overlap / union,
-        naturalWidth: image.naturalWidth, cssWidth: imageRect.width,
-        bufferWidth: canvas.width, stageWidth: view.width };
-    });
-    observer.observe(canvas, { attributes: true, attributeFilter: ['data-frame-count'] });
-  });
-}
-
 async function waitForOpening(page) {
   await page.locator('body[data-journey-handoff="cinematic"]').waitFor({ timeout: 90000 });
   assert.equal(await page.locator('#journey-canvas').isVisible(), true);
@@ -174,7 +133,7 @@ async function observeOpeningFrames(page) {
       const teeth = [...app.arch.teeth.values()];
       const incisor = app.arch.teeth.get(11)?.mesh;
       frames.push({
-        shot: state.opening, camera: app.rig.camera.position.toArray(), zoom: app.rig.camera.zoom,
+        shot: state.opening, camera: app.rig.camera.position.toArray(), target: state.target, zoom: app.rig.camera.zoom,
         scroll: scrollY, progress: state.progress, at: performance.now(),
         crowns: teeth.filter(item => item.crown?.visible).length, crownMix: state.crownMix,
         roots: teeth.filter(item => item.mesh?.visible).map(item => item.entry.fdi),
@@ -183,6 +142,34 @@ async function observeOpeningFrames(page) {
     });
     observer.observe(canvas, { attributes: true, attributeFilter: ['data-frame-count'] });
   });
+}
+
+async function waitForWaitingTurn(page, direction) {
+  return (await page.waitForFunction(direction => {
+    const shot = window.__openingFrames.at(-1);
+    const prior = window.__openingFrames.at(-2);
+    if (shot?.shot.phase !== 'waiting' || prior?.shot.phase !== 'waiting') return false;
+    const yaw = shot.shot.yaw;
+    return yaw > .16 && yaw < .31 && Math.sign(yaw - prior.shot.yaw) === direction && shot;
+  }, direction, { timeout: 25000 })).jsonValue();
+}
+
+function assertWaitingHandoff(frames) {
+  const waiting = frames.filter(frame => frame.shot.phase === 'waiting');
+  assert.ok(waiting.length >= 3);
+  assert.ok(waiting.every(frame => frame.roots.length === 1 && frame.roots[0] === 36 && frame.crowns === 0));
+  assert.ok(waiting.some(frame => difference(waiting[0].camera, frame.camera) > .2),
+    'The actual view continues around the molar until the arch can depart');
+  const firstFlight = frames.find(frame => frame.shot.phase === 'flight');
+  assert.ok(firstFlight);
+  const previous = waiting.at(-1);
+  const axis = frame => frame.camera.map((x, i) => x - frame.target[i]);
+  const a = axis(previous), b = axis(firstFlight);
+  const dot = a.reduce((sum, n, i) => sum + n * b[i], 0) / (Math.hypot(...a) * Math.hypot(...b));
+  const angle = Math.acos(Math.max(-1, Math.min(1, dot)));
+  assert.ok(angle < .15, 'Camera skipped ' + angle + ' radians between the waiting and flight draws');
+  assert.ok(Math.abs(firstFlight.zoom - previous.zoom) < .02, 'The flight begins at the displayed scale');
+  console.log('Last waiting yaw / first flight yaw:', previous.shot.yaw, firstFlight.shot.yaw);
 }
 
 function assertOpeningFlight(frames) {
@@ -194,6 +181,7 @@ function assertOpeningFlight(frames) {
   assert.ok(spinning.some(p => difference(p.camera, first.camera) > 1), 'The camera circles the first molar');
   const held = frames.find(p => p.shot.phase === 'waiting');
   assert.ok(held && held.zoom > first.zoom * 1.08, 'The tooth grows into the authored composition before waiting');
+  assertWaitingHandoff(frames);
   const flight = frames.filter(p => p.shot.phase === 'flight' && p.crowns === 0 && p.roots.length === 28
     && p.shot.progress > flightStart && p.shot.progress < flightEnd);
   assert.ok(flight.length >= 3, 'Several rendered poses show all 28 rooted teeth in flight');
@@ -234,16 +222,22 @@ async function assertHeroAndFlight(page, gates) {
   assert.equal(await poster.evaluate(el => getComputedStyle(el).animationName), 'none');
   assert.equal(await page.locator('#journey-canvas').isVisible(), false);
   assert.equal(await page.locator('#journey-title').isVisible(), false);
-  await compareFirstDrawWithPoster(page);
+  const sheet = page.locator('.startup-portrait.is-turning .startup-turn-window');
+  await sheet.waitFor({ timeout: 30000 });
+  const cell = await sheet.evaluate(el => getComputedStyle(el).backgroundPosition);
+  await page.waitForFunction(cell => {
+    const el = document.querySelector('.startup-portrait.is-turning .startup-turn-window');
+    return el && getComputedStyle(el).backgroundPosition !== cell;
+  }, cell);
   await observeOpeningFrames(page);
   hero.release();
   await waitForOpening(page);
-  const paint = await (await page.waitForFunction(() => window.__firstTooth)).jsonValue();
-  assert.ok(paint.naturalWidth >= paint.cssWidth * 3, 'The poster supplies Retina detail at this viewport');
-  assert.ok(paint.bufferWidth >= paint.stageWidth, 'The live canvas has at least CSS resolution');
-  assert.ok(paint.overlap > .96 && paint.posterBounds.every((edge, i) => Math.abs(edge - paint.liveBounds[i]) < 4),
-    'The first actual WebGL silhouette must overlay the HTML tooth: ' + JSON.stringify(paint));
-  console.log('First paint, 390×844:', JSON.stringify(paint));
+  await page.waitForFunction(() => window.startupMeasurement?.firstPixels);
+  const metrics = await page.evaluate(() => window.startupMeasurement);
+  assert.ok(metrics.firstPixels.turning, 'The moving HTML cell transfers to WebGL when the primary molar arrives');
+  assert.ok(metrics.buffer[0] >= 2 * 390, 'The first live frame resolves at twice CSS width');
+  assertFirstDraw(metrics);
+  console.log('First paint, 390×844:', JSON.stringify(metrics.firstPixels));
 
   await page.waitForFunction(() => window.__openingFrames.at(-1)?.shot.phase === 'waiting', null, { timeout: 30000 });
   const held = await page.evaluate(() => window.__openingFrames.at(-1));
@@ -255,12 +249,9 @@ async function assertHeroAndFlight(page, gates) {
   teaching.release();
   upper.release();
   await page.waitForFunction(() => window.__dentalExperience.report().readiness.flight, null, { timeout: 90000 });
-  const waiting = await page.evaluate(() => {
-    const app = window.__dentalExperience;
-    return { shot: app.report().opening, camera: app.rig.camera.position.toArray(), zoom: app.rig.camera.zoom };
-  });
+  const waiting = await waitForWaitingTurn(page, 1);
   assert.equal(waiting.shot.phase, 'waiting', 'Ready rooted meshes alone cannot start the crown handover');
-  assert.deepEqual(waiting.camera, held.camera, 'A stage arriving during the wait cannot reset the view');
+  assert.ok(difference(waiting.camera, held.camera) > .2, 'Downloading the next stage leaves the molar turning');
   assert.equal(waiting.zoom, held.zoom);
   crowns.release();
   await waitForLesson(page);
@@ -282,6 +273,7 @@ try {
   const errors = [];
   mobile.on('pageerror', error => errors.push(error.message));
   try {
+    await mobile.addInitScript(observeStartup);
     await assertHeroAndFlight(mobile, { hero, teaching, upper, crowns });
     await atChapter(mobile, 'dentition');
     const first = await mobile.evaluate(readProgress);
@@ -361,6 +353,7 @@ try {
   try {
     await openStory(desktop);
     await waitForOpening(desktop);
+    await observeOpeningFrames(desktop);
     await overshoot(desktop);
     const waiting = await desktop.evaluate(readProgress);
     assert.equal(waiting.scrollY, 0, 'A fling while the opening is loading is discarded');
@@ -380,9 +373,11 @@ try {
         return samples;
       };
     });
+    await waitForWaitingTurn(desktop, -1);
     delayed.release();
     await desktop.waitForFunction(() => window.__dentalExperience.report().readiness.crowns, null, { timeout: 90000 });
     await waitForLesson(desktop);
+    assertWaitingHandoff(await desktop.evaluate(() => window.__openingFrames));
     await atChapter(desktop, 'dentition');
     await desktop.locator('#journey-mobile-next').click();
     await atChapter(desktop, 'assembly');

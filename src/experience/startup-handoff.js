@@ -1,4 +1,5 @@
 import { MathUtils } from 'three';
+import { createPortraitTurn } from './startup-portrait.js';
 
 // Calibration of startup-molar.webp in the original square camera sensor.
 // The tight crop has four transparent output pixels of padding on each side.
@@ -17,6 +18,7 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
   const prompt=stage.querySelector('.startup-prompt');
   const view=stage.querySelector('.view-shell');
   const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const portraitTurn=createPortraitTurn(tooth,reducedMotion);
   let fade=null, skip=null, introListeners=null, viewWasInert=false, framing=null;
 
   function finish() {
@@ -27,6 +29,7 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
     body.removeAttribute('data-journey-handoff');
     fade?.cancel();fade=null;
     loader?.style.removeProperty('visibility');
+    portraitTurn.release();
     if(introListeners){
       introListeners.abort();introListeners=null;
       view?.toggleAttribute('inert',viewWasInert);
@@ -71,6 +74,7 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
     fadeLoader(()=>{
       loader.style.visibility='hidden';
       loader.setAttribute('aria-hidden','true');
+      portraitTurn.release();
     },110);
   }
 
@@ -97,6 +101,8 @@ export function createStartupHandoff(stage, requestRender, onSkip) {
       fadeLoader(finish,140);
     },
     startIntro,frameTooth,finish,
+    startPosterTurn:portraitTurn.start,
+    takePosterYaw:portraitTurn.freeze,
     setWaiting(waiting){
       const text=waiting?'Načítavam zvyšok chrupu…':'';
       if(prompt&&prompt.textContent!==text)prompt.textContent=text;

@@ -27,7 +27,7 @@ assert.ok(Math.abs(Math.sin(beforeLaunch.yaw)-Math.sin(launch.yaw))<.00001,
   'The completed revolution does not rotate abruptly at launch');
 
 let previous=seed, sawFlight=false, sawCrowns=false;
-for(let t=1151;t<3150;t++){
+for(let t=1151;t<3900;t++){
   const shot=intro.sample(start+t);
   assert.ok(shot.progress<=previous && previous-shot.progress<.001);
   const scene=sampleOpeningDentalStory(shot.progress);
@@ -46,7 +46,7 @@ for(let t=1151;t<3150;t++){
 }
 assert.ok(sawFlight&&sawCrowns);
 assert.ok(Math.abs(previous-atlasEnd)<.000001);
-const end=intro.sample(start+3150);
+const end=intro.sample(start+3900);
 assert.deepEqual(end,{progress:atlasStart,yaw:0,growth:1,phase:'done',done:true});
 const settledOpening=sampleOpeningDentalStory(end.progress);
 const settledStory=sampleDentalStory(end.progress);
@@ -69,18 +69,49 @@ sparse.pause();
 assert.deepEqual(sparse.sample(10001),held,'Hiding the tab does not advance the animation');
 assert.ok(sparse.sample(10101).progress<held.progress);
 
-const staged=createOpeningFlight();
-staged.sample(0,false);
-staged.sample(55,false);
-const handoff=staged.sample(110,false);
-assert.ok(handoff.growth<.00001,'The portrait framing holds throughout the 110 ms handoff');
-for(let t=135;t<=1400;t+=25)staged.sample(t,false);
-const waiting={...staged.sample(1420,false)};
-assert.deepEqual(waiting,{progress:seed,yaw:0,growth:1,phase:'waiting',done:false});
-assert.deepEqual(staged.sample(28000,false),waiting,'Only the returned molar is shown while the arch downloads');
-assert.deepEqual(staged.sample(60000,true),{...waiting,phase:'flight'},'The first ready flight frame begins at its actual launch pose');
-assert.ok(staged.sample(60016,true).progress<seed,'Readiness resumes the flight without input');
-for(let t=60032;t<=62000;t+=16)staged.sample(t,true);
-assert.deepEqual(staged.sample(62000),end,'Staged loading and uninterrupted playback reach the same seated smile');
+// The first real frame inherits the exact rendered poster cell. An angle
+// on either side of 2π describes the same motion for the rest of the turn.
+const posterYaw=Math.PI/12;
+const fromPoster=createOpeningFlight(posterYaw);
+const wrapped=createOpeningFlight(posterYaw-2*Math.PI);
+assert.equal(fromPoster.sample(0,false).yaw,posterYaw);
+wrapped.sample(0,false);
+for(let t=10;t<=1150;t+=10){
+  const actual=fromPoster.sample(t,false),other=wrapped.sample(t,false);
+  assert.ok(Math.abs(Math.cos(actual.yaw)-Math.cos(other.yaw))<1e-10);
+  assert.ok(Math.abs(Math.sin(actual.yaw)-Math.sin(other.yaw))<1e-10);
+  if(t===110)assert.ok(actual.growth<.00001,'The framing holds throughout the 110 ms handoff');
+}
 
-console.log('Automatic rotation, sharp handoff, staged flight, paused clock and crown seating passed.');
+// Release the download while the camera moves outward, at its turning point,
+// and on its way back. In each case launch carries both position and speed.
+for(const waitingTime of [1150,2200,3350]){
+  const staged=createOpeningFlight(posterYaw),stillWaiting=createOpeningFlight(posterYaw);
+  const launchTime=1150+waitingTime;
+  let min=Infinity,max=-Infinity;
+  for(let t=0;t<launchTime;t+=10){
+    const shot=staged.sample(t,false);
+    stillWaiting.sample(t,false);
+    if(t>=1150){
+      assert.equal(shot.phase,'waiting');assert.equal(shot.growth,1);
+      assert.equal(shot.progress,seed,'Only the single rooted molar is visible');
+      min=Math.min(min,shot.yaw);max=Math.max(max,shot.yaw);
+    }
+  }
+  assert.ok(max-min>.15&&max<.46,'Long loads keep exploring a bounded three-quarter view');
+  const moving=staged.sample(launchTime,true);
+  assert.equal(moving.phase,'flight');assert.equal(moving.progress,seed);
+  assert.equal(moving.yaw,stillWaiting.sample(launchTime,false).yaw);
+  let lastYaw=moving.yaw;
+  for(let dt=16;dt<2750;dt+=16){
+    const shot=staged.sample(launchTime+dt,true);
+    if(dt===16)assert.ok(Math.abs(shot.yaw-stillWaiting.sample(launchTime+dt,false).yaw)<.0001);
+    assert.ok(Math.abs(shot.yaw-lastYaw)<.025,'No sudden camera turn when the arch arrives');
+    if(dt>=850)assert.equal(shot.yaw,0,'The rest of the flight uses its original camera');
+    assert.equal(shot.done,false);
+    lastYaw=shot.yaw;
+  }
+  assert.deepEqual(staged.sample(launchTime+2750,true),end);
+}
+
+console.log('Poster pose handoff, continuous loading orbit, timed rooted flight and crown seating passed.');
