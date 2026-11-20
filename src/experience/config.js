@@ -90,7 +90,7 @@ export const experienceConfig = {
       spaceDistanceCm: 3.65, cleaningDistanceCm: 2.72, workingAzimuth: 27, workingElevation: -15,
     },
   },
-  smileMaterial: {enamelColor:'#f4f3ef',roughness:.32,occlusionStrength:.33},
+  smileMaterial: {enamelColor:'#f7f7f6',roughness:.29,occlusionStrength:.28},
   plaque: {tint:'#9b647d',warmTint:'#bb868a'},
   brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
   assetsStory: {site:'story-assets/site.json'},

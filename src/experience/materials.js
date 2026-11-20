@@ -20,19 +20,13 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
       compile.call(this,shader,renderer);
       shader.uniforms.crownExtent=extent;shader.uniforms.crownIncisor=incisor;
       shader.vertexShader=shader.vertexShader
-        .replace('#include <common>','#include <common>\nuniform vec2 crownExtent; varying float vCrownHeight; varying float vMesiodistalNormal;')
-        .replace('#include <begin_vertex>','#include <begin_vertex>\nvCrownHeight=(position.y-crownExtent.x)*crownExtent.y;\nvMesiodistalNormal=normal.x;');
+        .replace('#include <common>','#include <common>\nuniform vec2 crownExtent; varying float vCrownHeight;')
+        .replace('#include <begin_vertex>','#include <begin_vertex>\nvCrownHeight=(position.y-crownExtent.x)*crownExtent.y;');
       shader.fragmentShader=shader.fragmentShader
-        .replace('#include <common>','#include <common>\nuniform float crownIncisor; varying float vCrownHeight; varying float vMesiodistalNormal;')
+        .replace('#include <common>','#include <common>\nuniform float crownIncisor; varying float vCrownHeight;')
         .replace('#include <metalnessmap_fragment>',`#include <metalnessmap_fragment>
-          diffuseColor.rgb *= mix(vec3(1.0,.973,.932),vec3(1.),smoothstep(.02,.48,vCrownHeight));`)
+          diffuseColor.rgb *= mix(vec3(1.,.993,.979),vec3(1.),smoothstep(.02,.38,vCrownHeight));`)
         .replace('#include <transmission_fragment>',`#include <transmission_fragment>
-          // A seated neighbour shields part of the studio environment along
-          // each proximal face. Retain the broad labial reflection and the
-          // brighter return of light through the last part of the incisal edge.
-          float flank = smoothstep(.20,.94,abs(vMesiodistalNormal));
-          flank *= mix(1.,.57,smoothstep(.83,.99,vCrownHeight));
-          totalDiffuse -= reflectedLight.indirectDiffuse * flank * mix(.35,.72,crownIncisor);
           #ifdef USE_ENVMAP
           // A diffuse approximation of light entering the thin incisal edge.
           // The enamel still writes a solid, correctly occluding depth surface.
@@ -42,12 +36,23 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
             totalDiffuse=mix(totalDiffuse,reverseLight*vec3(.83,.96,1.03),.13*thin);
           }
           #endif
-          // The smile rig faces +Z. Let light fall away continuously behind
-          // the front teeth as both limbs of the arch recede into the mouth.
-          float depth = max(0., 2.42-vToothPosition.z);
-          float bounce = 1./(1.+depth*(.40+.105*depth));
-          totalDiffuse *= bounce;
-          totalSpecular *= mix(.22,1.,bounce);`);
+          // A broad neutral fill moves with the observer. Use the actual
+          // shaded normal and the crown's baked occlusion to retain relief
+          // around grooves and contacts at every angle of inspection.
+          vec3 eye = normalize(vViewPosition);
+          float facing = saturate(dot(normal,eye));
+          float fillCosine = saturate(dot(normal,normalize(vec3(-.30,.40,1.))));
+          vec3 softFill = diffuseColor.rgb * toothAO * (.50+.34*facing+.41*fillCosine*fillCosine);
+          totalDiffuse = mix(totalDiffuse,softFill,.66);
+          totalDiffuse = mix(vec3(luminance(totalDiffuse)),totalDiffuse,.21);
+          // View-space strip reflections travel across the native normals as
+          // the camera orbits. Keep the physical studio's specular light too.
+          vec3 reflected = reflect(-eye,normal);
+          vec2 spread = vec2(.11,.26)+vec2(.29,.46)*material.roughness;
+          vec2 key = (reflected.xy-vec2(-.53,.12))/spread;
+          vec2 fill = (reflected.xy-vec2(.62,.13))/(spread*vec2(1.08,1.06));
+          float sheen = (exp(-dot(key,key))+exp(-dot(fill,fill)))*smoothstep(.30,.72,reflected.z);
+          totalSpecular += .65*reflectedLight.directSpecular + vec3(2.,2.03,2.06)*sheen;`);
     };
     material.customProgramCacheKey=()=>key+'-cervical-incisal';
   }

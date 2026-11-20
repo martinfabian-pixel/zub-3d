@@ -1,6 +1,7 @@
 export const clinicViews = Object.freeze({
   cleaning: 'cistenie-36-37',
   pulp: 'dren-36',
+  smile: 'usmev',
 });
 
 export function readClinicView(params) {
