@@ -139,6 +139,10 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       }
       const crown=new THREE.Mesh(geometry,source.material);
       item.crownFinish=prepareJourneyMaterial(crown,smileConfig,profile,renderer,clay,item.entry.fdi);
+      if(item.entry.fdi===config.anatomy.hero){
+        item.crownNeutral=crown.material.color.clone();
+        item.crownLocated=item.crownNeutral.clone().multiply(new THREE.Color(.68,.94,1.03));
+      }
       addSmileDissolve(item.mesh.material,crownMix,false);
       addSmileDissolve(crown.material,crownMix,true);
       crown.name='Smile crown '+item.entry.fdi;
@@ -188,6 +192,9 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       item.reveal=reveal;
       item.finish?.setReveal(mix===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {
+        // The rooted representation has its own enamel locator. Carry the
+        // same cool cue on the visible crown before and during the handoff.
+        if(hero)item.crown.material.color.lerpColors(item.crownNeutral,item.crownLocated,state.locate36);
         item.crownFinish.setReveal(mix>0?reveal:0);
         if(mix>0) {
           const pose=item.smilePose;

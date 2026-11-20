@@ -4,7 +4,6 @@ import { sampleToothExtraction } from './dental-story.js';
 import { flightProgress } from './floating-teeth.js';
 
 const spaceAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').at;
-const plaqueAt = DENTAL_CHAPTERS.find(chapter => chapter.id === 'plaque').at;
 const molarOffset = new Vector3(...DENTAL_STORY.extractionOffset);
 
 function followTeachingMolar(target, progress) {
@@ -71,6 +70,17 @@ function siteApproachFrames() {
   ];
 }
 
+// The introduction still finishes front-on. Only subsequent story scroll
+// turns the assembled arch, so its patient-left buccal faces become visible
+// before the camera singles out 36 or moves closer.
+function teachingOpeningFrames(base,settings,roots) {
+  const site=STORY_TIMING.teachingSite;
+  const full=(key,at)=>archFrame(base,settings,{key,at,roots});
+  const oblique={...full('survey-left',site.smileTurn[1]),direction:[.98,.24,.82],distance:8.45,padding:1.22};
+  return [full('atlas-open',0),full('atlas-hold',site.smileTurn[0]),oblique,
+    {...oblique,key:'survey-hold',at:STORY_TIMING.atlas[1]}];
+}
+
 export function createOpeningCameraOptions(base,{compact=false}={}) {
   const settings=compact?{...base.storyCamera,...base.storyCamera.compact}:base.storyCamera;
   // The opening samples these stops in reverse. Hold the three-quarter
@@ -90,7 +100,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const settings = compact ? { ...base.storyCamera, ...base.storyCamera.compact } : base.storyCamera;
   const roots=finalView==='anatomy'||!crownsReady;
   const keyframes=[
-    ...openingFrames(base,settings,roots),...siteApproachFrames(),
+    ...teachingOpeningFrames(base,settings,roots),...siteApproachFrames(),
   ];
   const camera={...base.camera,keyframes,followTarget:followTeachingMolar};
   if(!site)return {landmarks:{},camera};
@@ -102,6 +112,7 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     row[contactKey]?.some(wall=>wall.fdi===fdi && wall.distanceMm<=site.brush.dimensionsMm.bristleRadius)));
   if(!bilateral)throw new Error('The teaching camera requires a measured bilateral brush contact.');
   const contact=new Vector3().fromArray(bilateral.position);
+  const molarWall=new Vector3().fromArray(bilateral[contactKey].find(wall=>wall.fdi===36).nearestWorld);
   const buccal = new Vector3().fromArray(site.basisWorld.buccal);
   const occlusal = new Vector3().fromArray(site.basisWorld.occlusal);
   const distal = new Vector3().fromArray(site.basisWorld['36DistalToward37']);
@@ -111,16 +122,18 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   const spaceDirection=lateral.clone().addScaledVector(occlusal, Math.tan(MathUtils.degToRad(4))).normalize().toArray();
   const brushDirection=lateral.clone().addScaledVector(occlusal, Math.tan(MathUtils.degToRad(settings.workingElevation))).normalize().toArray();
   const landmarks = {
+    molarWall: region(molarWall, new Vector3(.47, .52, .52)),
     space: region(contact, new Vector3(0.35, 0.35, 0.49)),
     cleaning: region(contact, new Vector3(0.19, 0.13, 0.21)),
   };
   const specs = [
-    ['neck-to-contact', .624, 'space', spaceDirection, 4.95],
+    ['follow-proximal-wall', STORY_TIMING.teachingSite.followSurface, 'molarWall', spaceDirection, 5.25],
+    ['first-contact', STORY_TIMING.teachingSite.reseat[1], 'space', spaceDirection, settings.spaceDistanceCm],
     ['space', spaceAt, 'space', spaceDirection, settings.spaceDistanceCm],
     // The countershot is already settled before insertion. A matching
     // pose after withdrawal keeps film, bristle contact and wiped track
     // registered to the same screen pixels in either scroll direction.
-    ['plaque', plaqueAt-.012, 'cleaning', brushDirection, settings.cleaningDistanceCm],
+    ['plaque', STORY_TIMING.teachingSite.contactHold[0], 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['result-hold', STORY_TIMING.return[0], 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['return-opening', .946, 'space', [.66,.23,1], 4.5],
     ['return-arch', .971, 'flight', [.16,.08,1], 8.8],
@@ -130,13 +143,15 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
   // rather than backing the camera away to fit the whole neighboring crowns.
   keyframes.push(...specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
-    centerTarget: landmark === 'space' || landmark === 'cleaning',
+    centerTarget: landmark === 'space' || landmark === 'cleaning' || landmark === 'molarWall',
+    framing: landmark === 'molarWall' ? 'space' : undefined,
     minimumFitAspect: landmark === 'cleaning' ? .72 : undefined,
   })));
   // The final smile is a story beat, independent of the visitor's atlas mode.
-  keyframes.push(
-    archFrame(base,settings,{key:'final-smile',at:STORY_TIMING.finalHold[0],roots:!crownsReady}),
-    archFrame(base,settings,{key:'final-hold',at:STORY_TIMING.finalHold[1],roots:!crownsReady}),
-  );
+  for (const [i,key] of ['final-smile','final-hold'].entries()) {
+    const frame=archFrame(base,settings,{key,at:STORY_TIMING.finalHold[i],roots:!crownsReady});
+    if(crownsReady)frame.framing='final-smile';
+    keyframes.push(frame);
+  }
   return { landmarks, camera };
 }

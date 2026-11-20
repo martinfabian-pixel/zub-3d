@@ -37,8 +37,8 @@ const anatomyIndex=chapters.findIndex(chapter=>chapter.id==='anatomy');
 const brushIndex=chapters.findIndex(chapter=>chapter.id==='brush');
 const brushAt=chapters[brushIndex].at;
 const plaqueAt=chapters.find(chapter=>chapter.id==='plaque').at;
-const requestedTitles=['Celý chrup.','Každý zub má svoje miesto.','Pozrite sa pod povrch.','Stavba zdravého zuba',
-  'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
+const requestedTitles=['Celý chrup.','Šestka v oblúku.','Pozrite sa pod povrch.','Čo je vo vnútri zuba?',
+  'Ktoré miesto práve čistíme?','Nenápadný povlak.','Jemne tam a späť.'];
 if(!chapters.every((chapter,index)=>chapter.title===requestedTitles[index]))throw Error('Slovak story titles do not match the seven chapters.');
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
 const equal = (a,b) => JSON.stringify(a) === JSON.stringify(b);

@@ -6,7 +6,7 @@ import { createOpeningCameraOptions, createStoryCameraConfig } from '../src/expe
 import { createTimeline } from '../src/experience/timeline.js';
 import { createJourneyCamera } from '../src/experience/camera.js';
 import { createCleaningPath } from '../src/experience/cleaning-path.js';
-import { sampleDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
+import { sampleDentalStory, sampleOpeningDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
 import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 
 // Real measured proximal site with small mock landmark boxes. The browser tests
@@ -65,7 +65,15 @@ for (const compact of [false, true]) {
     lastYaw = angle;
   }
   const locate = sample(chapterAt('assembly'));
-  const {identify,identified,lift,reseat}=STORY_TIMING.teachingSite;
+  const {identify,identified,lift,reseat,smileTurn,crownLocator,contactHold,followSurface}=STORY_TIMING.teachingSite;
+  const surveyed=sample(crownLocator[1]);
+  assert.ok(yaw(surveyed)-yaw(atlas)>.78, 'The full smile first turns to expose the molar in its arch');
+  assert.equal(sampleDentalStory(crownLocator[1]).assemblyCrownCoverage,1);
+  assert.equal(sampleDentalStory(crownLocator[1]).toothExtraction,0);
+  assert.equal(sampleDentalStory(crownLocator[1]).locate36,1);
+  assert.equal(sampleOpeningDentalStory(crownLocator[1]).locate36,0,'The opening flight has no survey overlay');
+  assert.ok(surveyed.position.distanceTo(sample(STORY_TIMING.atlas[1]).position)<1e-8,
+    'The registered full-crown location is held before the closer survey');
   assert.ok(yaw(locate) - yaw(atlas) > .65, 'The camera turns towards the patient’s left');
   assert.ok(sample(identify[1]).position.distanceTo(sample(identified[0]).position)<1e-8,
     'The identifying label has a stationary hold before the macro move');
@@ -82,7 +90,9 @@ for (const compact of [false, true]) {
       'The longitudinal cut opens on the same molar with a stationary lens');
     for(const key of ['screenX','screenY','opticalZoom'])close(frame[key],hero[key],1e-12,'The cut retains the full-tooth composition');
   }
-  close(sample(1).opticalZoom, compact ? .298 : .87, 1e-7, 'The smile leaves room at both sides of a phone');
+  const format=compact?'portrait':'desktop';
+  close(atlas.opticalZoom,experienceConfig.camera.framing.smile[format][2],1e-7,'The opening keeps its established optical composition');
+  close(sample(1).opticalZoom,experienceConfig.camera.framing['final-smile'][format][2],1e-7,'The closing smile uses its own responsive composition');
   const nearBoundary = 1e-6;
   for (const { start: boundary } of DENTAL_CHAPTERS.slice(1)) {
     for (const key of ['position', 'target']) {
@@ -99,6 +109,12 @@ for (const compact of [false, true]) {
     wall.distanceMm<=site.brush.dimensionsMm.bristleRadius)), 'The landmark has bilateral bristle contact');
   assert.ok(start.target.distanceTo(contact)<1e-8,
     'The working head and incoming surface approach share one physical focus');
+  const carryingOffset=new Vector3(...DENTAL_STORY.extractionOffset).multiplyScalar(sampleDentalStory(followSurface).toothExtraction);
+  const wall=new Vector3(...contacts.find(w=>w.fdi===36).nearestWorld).add(carryingOffset);
+  assert.ok(sample(followSurface).target.distanceTo(wall)<1e-7, 'The camera tracks the actual distal wall of the moving molar');
+  assert.ok(sample(reseat[1]).target.distanceTo(contact)<1e-8, 'The distal wall leads directly to the measured corridor as the molar seats');
+  assert.ok(sample(reseat[1]).position.distanceTo(sample(chapterAt('space')).position)<1e-8,
+    'The camera holds the physical corridor with both neighbors present');
   if(compact){
     const path=createCleaningPath(site), rig=createJourneyCamera({timeline});
     rig.resize(390,844);
@@ -117,7 +133,7 @@ for (const compact of [false, true]) {
   }
 
   const [resultStart, resultEnd] = STORY_TIMING.result;
-  for (const progress of [chapterAt('plaque'), ...[.48,.515,.62,.68,.72].map(brushProgress), resultStart, resultEnd]) {
+  for (const progress of [...contactHold, chapterAt('plaque'), ...[.48,.515,.62,.68,.72].map(brushProgress), resultStart, resultEnd]) {
     const pose = sample(progress);
     assert.ok(pose.position.distanceTo(start.position) < 1e-7, `Approach, contact and result share one viewing angle at ${progress}`);
     assert.ok(pose.target.distanceTo(start.target) < 1e-7);
@@ -125,7 +141,7 @@ for (const compact of [false, true]) {
   }
 
   // C1 interpolation at every new knot, with deterministic absolute sampling.
-  for (const knot of [identify[1],identified[0],...lift,...reseat,.624,...[.62, .667, .676, .72].map(brushProgress)]) {
+  for (const knot of [...smileTurn,identify[1],identified[0],...lift,...reseat,followSurface,...contactHold,...[.62, .667, .676, .72].map(brushProgress)]) {
     const epsilon = 1e-6, before = sample(knot - epsilon), at = sample(knot), after = sample(knot + epsilon);
     for (const key of ['position', 'target']) {
       const left = at[key].clone().sub(before[key]).divideScalar(epsilon);

@@ -75,7 +75,7 @@ function evaluate(progress, reduced, out, sceneLimit=1, openingFlight=false) {
   out.assemblyCrownCoverage = 1 - ramp(timing.assemblyCrowns,p);
   out.finalCrownCoverage = ramp(timing.finalCrowns,p);
   out.toothExtraction = openingFlight ? 0 : sampleToothExtraction(p);
-  out.locate36 = openingFlight ? 0 : ramp(site.identify,p) * (1 - ramp(site.identified,p));
+  out.locate36 = openingFlight ? 0 : ramp(site.crownLocator,p) * (1 - ramp(site.identified,p));
   out.resultVisibility = smooth(timing.result[0],.903,p) * (1 - smooth(.913,timing.result[1],p));
   out.finalSmile = ramp(timing.finalCopy,p);
   out.plaqueDeposition = ramp(story.deposition, p);

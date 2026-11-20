@@ -173,7 +173,11 @@ export function createTimeline({ landmarks, cameraOptions = {} }) {
       // disappears as the desktop composition takes over.
       const shortWeight=optical.shortPortrait?MathUtils.smoothstep(aspect,.49,.56):0;
       return optical.desktop.map((v,i)=>{
-        const portrait=MathUtils.lerp(optical.portrait[i],optical.shortPortrait?.[i]??optical.portrait[i],shortWeight);
+        let portrait=MathUtils.lerp(optical.portrait[i],optical.shortPortrait?.[i]??optical.portrait[i],shortWeight);
+        // With a fixed orbital distance, a perspective lens normally scales
+        // the subject with screen height. Fit a landscape subject such as
+        // the final arch to portrait width, then blend into the desktop shot.
+        if(i===2 && optical.portraitZoomAspect)portrait*=Math.min(aspect,.67)/optical.portraitZoomAspect;
         return MathUtils.lerp(portrait,v,responsiveWeight);
       });
     });

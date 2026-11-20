@@ -79,12 +79,12 @@ export function createExperience(configuration=experienceConfig) {
   let progress=0,storyProgress=0,reducedMotion=false,exploring=false,interaction=false,scrolling=false,atlasError=false;
   let renderProgress=0,progressFrame=0;
   let openingComplete=false,openingSkipped=false,openingShown=false,openingShot=null,openingTimeline;
-  let navigationMotion=null;
+  let navigationMotion=null, openCleaningOnArrival=false;
   const manualCleaning=createManualCleaning(),manualState={brushPose:{}},manualResultPose={};
   const manualStart=makePathSample(),manualEnd=makePathSample();
   const manualPointA=new THREE.Vector3(),manualPointB=new THREE.Vector3(),manualGripPoint=new THREE.Vector3();
   let manual=null,manualPointer=null,manualClock=0,manualAxis={x:1,y:0,lengthSq:1};
-  let cleaningWindow,windowEnabled=false;
+  let cleaningWindow,windowEnabled=false,windowChoice=null;
   let inspectionProgress=0,manualProgress=0,manualChapter=null,finalView='smile';
   const finalTimelines={};let smileWeight=1,finalViewTransition=null;
   let interiorRequested=false,interiorFdi=null,fullAnatomyWeight=0,fullAnatomyFrame=0,pendingFinalView=null;
@@ -99,10 +99,11 @@ export function createExperience(configuration=experienceConfig) {
   const detailDirection=new THREE.Vector3(),detailCenter=new THREE.Vector3();
   const neutralView={yaw:0,pitch:0,zoom:0,focus:[0,0,0]};
   canvas.dataset.ready='false'; canvas.dataset.assetsReady='false';
-  const ui=createInterface({config,section,stage,signal,navigate,navigationTarget,explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
+  const ui=createInterface({config,section,stage,signal,navigate,navigationTarget,repeatCleaning,
+    explore:toggleExplore,reset:resetView,zoom,finalView:selectFinalView});
   const showClinicShare=createClinicShare(stage,config.assetBaseURL,signal);
   const manualUI=createManualCleaningUI({stage,onStart:startManualCleaning,onExit:exitManualCleaning,
-    onWindowToggle(){if(windowAvailable()){windowEnabled=!windowEnabled;requestRender();}},
+    onWindowToggle(){if(windowAvailable()){windowChoice=!windowEnabled;updateUI();requestRender();}},
     onReset(){manualCleaning.reset();if(manual)manual.resultAt=0;requestRender();},
     onPointerStart(event){
       if(!manual||manual.phase!=='active'||!manualCleaning.beginDrag())return;
@@ -279,8 +280,12 @@ export function createExperience(configuration=experienceConfig) {
     const radius=Math.max(1.1,pose.position.distanceTo(pose.target)*Math.tan(THREE.MathUtils.degToRad(config.camera.fov/2))*.68);
     lighting?.update(pose.target,radius);
   }
-  function startManualCleaning({instant=false}={}) {
+  function startManualCleaning({instant=false,fresh=false}={}) {
     if(!studyReady||manual||dentalState.chapterId!=='brush'||dentalState.sceneProgress>=STORY_TIMING.result[0])return;
+    // An in-story handoff keeps the same view of the working tip. A shared
+    // manual demonstration starts with the whole tooth before the first tap.
+    windowChoice=instant||fresh?false:windowEnabled;
+    windowEnabled=windowChoice;
     cancelNavigation();
     const savedView=view.capture(),wasExploring=exploring;
     const original=exploring?inspectionProgress:renderProgress;
@@ -364,12 +369,13 @@ export function createExperience(configuration=experienceConfig) {
     return Boolean(cleaningWindow&&(manual||(dentalState.chapterId==='brush'&&dentalState.sceneProgress<STORY_TIMING.return[0])));
   }
   function updateCleaningWindow(now){
-    const available=windowAvailable();
-    if(!available)windowEnabled=false;
-    return cleaningWindow?.update(rig.camera,windowEnabled,now,reducedMotion||!available);
+    return cleaningWindow?.update(rig.camera,windowEnabled,now,
+      reducedMotion||dentalState.chapterId!=='brush'||dentalState.sceneProgress>STORY_TIMING.return[1]);
   }
   function updateUI() {
     const complete=crownsReady;
+    if(!windowAvailable()){windowChoice=null;windowEnabled=false;}
+    else windowEnabled=windowChoice??!manual;
     ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,
       atlasFocused:Boolean(focusOrigin),state:dentalState,reducedMotion});
     const sharingCleaning=manual||(dentalState.chapterId==='brush'&&dentalState.sceneProgress<STORY_TIMING.return[0]);
@@ -413,6 +419,7 @@ export function createExperience(configuration=experienceConfig) {
   }
   function cancelNavigation() {
     navigationMotion=null;
+    openCleaningOnArrival=false;
     resumeProgress=null;
     scrollReadiness.cancel();
     if(focusOrigin)focusOrigin.next=null;
@@ -425,9 +432,17 @@ export function createExperience(configuration=experienceConfig) {
   function saveStoryPosition(){
     try{sessionStorage.setItem(resumeKey,String(resumeProgress??progress));}catch{}
   }
+  function repeatCleaning() {
+    if(manual){
+      manualCleaning.reset();manual.resultAt=0;requestRender();
+      return;
+    }
+    navigate(STORY_TIMING.manualReady);
+  }
   function navigate(next) {
     if(manual){exitManualCleaning(next);return;}
     resumeProgress=null;
+    openCleaningOnArrival=next===STORY_TIMING.manualReady;
     storyAnatomy.follow();
     stopFullBrushing();
     leaveExplore();
@@ -535,6 +550,7 @@ export function createExperience(configuration=experienceConfig) {
   function applyState(p,moveCamera) {
     if(reducedMotion)sampleReducedDentalStory(p,dentalState,scrollReadiness.limit);
     else sampleDentalStory(p,dentalState);
+    if(fullArchFocus.engaged||brushingRun)dentalState.locate36=0;
     arch.setFinalView?.(finalView,smileWeight);
     arch.setState(dentalState,fullArchFocus.engaged?fullArchFocus.opacity:null);
     plaque?.setState({visible:dentalState.plaqueVisibility>0,opacity:dentalState.plaqueDeposition*dentalState.plaqueVisibility,progress:dentalState.cleaningProgress});
@@ -733,6 +749,11 @@ export function createExperience(configuration=experienceConfig) {
       canvas.dataset.stage=dentalState.chapterId;
       canvas.dataset.sceneProgress=dentalState.sceneProgress.toFixed(6);
       updateUI();
+      if(openCleaningOnArrival&&studyReady&&!focusOrigin&&!navigationMotion&&
+          Math.abs(renderProgress-STORY_TIMING.manualReady)<.0003){
+        startManualCleaning({fresh:true});
+        if(manual){renderManual(now);return;}
+      }
     }
     else if(atlasWasEngaged)applyState(inspectionProgress,true);
     progressFrame=now;

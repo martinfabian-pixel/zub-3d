@@ -39,7 +39,7 @@ export function createClinicShare(stage, base, signal) {
       if (!signal.aborted && current === view) window.prompt('Skopírujte odkaz na ukážku', destination);
     }
     if (signal.aborted || current !== view || !copied) return;
-    notice.textContent = view === clinicViews.cleaning ? 'Odkaz na čistenie skopírovaný' : 'Odkaz na dreň skopírovaný';
+    notice.textContent = view === clinicViews.cleaning ? 'Odkaz na čistenie skopírovaný' : 'Odkaz na zubnú dreň skopírovaný';
     clearTimeout(timer);
     timer = setTimeout(() => { notice.textContent = ''; }, 2000);
   }, { signal });
@@ -56,7 +56,7 @@ export function createClinicShare(stage, base, signal) {
     url.hash = '';
     url.searchParams.set('pohlad', view);
     link.href = url.href;
-    const label = view === clinicViews.cleaning ? 'Kopírovať odkaz na čistenie medzi 36 a 37' : 'Kopírovať odkaz na rez šestkou s dreňou';
+    const label = view === clinicViews.cleaning ? 'Kopírovať odkaz na čistenie medzi 36 a 37' : 'Kopírovať odkaz na zubnú dreň šestky';
     link.setAttribute('aria-label', label);
     link.title = label;
   };

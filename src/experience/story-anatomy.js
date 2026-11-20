@@ -35,6 +35,7 @@ export function createStoryAnatomy() {
       if (!state.active || index < 0) return;
       inspection = null;
       if (manual?.amount !== index || (!change && state.amount !== index)) takeControl(index, now);
+      if (manual) manual.layer = layer;
     },
     scrub(amount) {
       if (!state.active || !Number.isFinite(amount)) return;
@@ -75,7 +76,8 @@ export function createStoryAnatomy() {
       state.amount = renderedAmount;
       state.cut = renderedCut;
       state.preset = anatomyLayers[Math.round(renderedAmount)];
-      state.highlight = inspection;
+      const selected = manual?.layer;
+      state.highlight = inspection ?? (canRetainInspection(selected, renderedAmount, renderedCut) ? selected : null);
       state.layer = inspection ?? state.preset;
       state.moving = t < 1;
       state.manual = Boolean(manual);

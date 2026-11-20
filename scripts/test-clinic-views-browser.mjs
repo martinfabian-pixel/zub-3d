@@ -50,10 +50,12 @@ async function openClinic(context, view) {
   await page.waitForFunction(() => window.firstClinicFrame);
   const first = await page.evaluate(() => window.firstClinicFrame);
   assert.equal(first.chapter, cleaning || finale ? 'brush' : 'anatomy');
+  const picker=page.locator('#journey-chapter-picker');
+  assert.equal(await picker.innerText(), finale ? 'Záverečný úsmev' : cleaning ? 'Čistenie' : 'Stavba zuba');
   if (finale) {
     assert.equal(first.progress, 1, 'The first visible frame is the settled final smile.');
     assert.equal(await page.locator('#journey-step-number').innerText(), '07 / 07');
-    assert.equal(await page.locator('#journey-title').textContent(), 'Malý návyk. Veľký rozdiel.');
+    assert.equal(await page.locator('#journey-title').textContent(), 'Aj priestor medzi zubami patrí k čisteniu.');
     const state = await page.evaluate(() => window.__dentalExperience.report());
     assert.equal(state.crownMix, 1);
     assert.equal(state.opening, null);
@@ -61,6 +63,10 @@ async function openClinic(context, view) {
     await page.waitForFunction(() => window.__dentalExperience.report().story.brushStoryPhase === 'cleaning');
     await page.locator('#journey-mobile-next').tap();
     await page.waitForFunction(() => window.__dentalExperience.report().story.brushStoryPhase === 'smile');
+    await page.getByRole('button',{name:'Zopakovať čistenie',exact:true}).tap();
+    await page.waitForFunction(() => window.__dentalExperience.report().manualCleaning?.transition === 'active');
+    assert.equal(await picker.innerText(),'Čistenie');
+    assert.equal(await page.locator('.manual-cleaning-grip').getAttribute('aria-valuenow'),'0');
     await page.locator('#journey-show-all').tap();
     await page.locator('#journey-view-anatomy').waitFor({ state:'visible' });
     assert.deepEqual(errors, []);
@@ -74,6 +80,14 @@ async function openClinic(context, view) {
     assert.equal(state.position, 0);
     assert.equal(state.cleaningProgress, 0);
     assert.equal(await page.locator('.manual-cleaning-grip').isEnabled(), true);
+    const caption=page.locator('#cleaning-window-caption');
+    const toggle=page.getByRole('button',{name:'Nahliadnuť medzi zuby'});
+    assert.equal(await caption.isVisible(),false);
+    await toggle.tap();
+    await caption.waitFor({state:'visible'});
+    assert.match(await caption.innerText(),/sedmičky.*priehľadná/);
+    await toggle.tap();
+    await caption.waitFor({state:'hidden'});
   } else {
     assert.equal(first.selected, 'pulp');
     const state = await page.evaluate(() => window.__dentalExperience.report().healthyAnatomy);
@@ -115,6 +129,24 @@ try {
   const home = await context.newPage();
   await home.goto(base.href, { waitUntil:'domcontentloaded' });
   await home.locator('#journey-skip-intro').waitFor({ state:'visible', timeout:90000 });
+  await home.locator('#journey-skip-intro').tap();
+  await home.locator('#journey-startup').waitFor({state:'hidden',timeout:90000});
+  const picker=home.locator('#journey-chapter-picker');
+  await picker.focus();
+  await home.keyboard.press('Enter');
+  const options=home.locator('#journey-chapter-options');
+  assert.equal(await options.isVisible(),true);
+  await home.keyboard.press('Escape');
+  assert.equal(await options.isVisible(),false);
+  assert.equal(await picker.evaluate(button=>button===document.activeElement),true);
+  await picker.tap();
+  await options.getByRole('button',{name:'Čistenie',exact:true}).tap();
+  await home.locator('.manual-cleaning-grip:not(:disabled)').waitFor({state:'visible',timeout:90000});
+  assert.equal(await picker.innerText(),'Čistenie');
+  await picker.tap();
+  await options.getByRole('button',{name:'Stavba zuba',exact:true}).tap();
+  await home.locator('#healthy-anatomy').waitFor({state:'visible'});
+  assert.equal(await picker.innerText(),'Stavba zuba');
   await context.close();
   console.log('Clinic views: cleaning, pulp, final smile, their controls and ordinary cinematic entry passed in fresh tabs at 390×844.');
 } finally {

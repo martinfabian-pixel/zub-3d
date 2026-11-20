@@ -44,7 +44,7 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
           float fillCosine = saturate(dot(normal,normalize(vec3(-.30,.40,1.))));
           vec3 softFill = diffuseColor.rgb * toothAO * (.50+.34*facing+.41*fillCosine*fillCosine);
           totalDiffuse = mix(totalDiffuse,softFill,.66);
-          totalDiffuse = mix(vec3(luminance(totalDiffuse)),totalDiffuse,.21);
+          totalDiffuse = mix(vec3(luminance(totalDiffuse)),totalDiffuse,.16);
           // View-space strip reflections travel across the native normals as
           // the camera orbits. Keep the physical studio's specular light too.
           vec3 reflected = reflect(-eye,normal);
@@ -52,7 +52,10 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
           vec2 key = (reflected.xy-vec2(-.53,.12))/spread;
           vec2 fill = (reflected.xy-vec2(.62,.13))/(spread*vec2(1.08,1.06));
           float sheen = (exp(-dot(key,key))+exp(-dot(fill,fill)))*smoothstep(.30,.72,reflected.z);
-          totalSpecular += .65*reflectedLight.directSpecular + vec3(2.,2.03,2.06)*sheen;`);
+          // Neutral in the broad face of the enamel. Only the reflection
+          // at a grazing angle picks up a trace of the cool surroundings.
+          vec3 pearl = mix(vec3(1.),vec3(.96,.985,1.),1.-facing);
+          totalSpecular = (totalSpecular+.65*reflectedLight.directSpecular+2.06*sheen)*pearl;`);
     };
     material.customProgramCacheKey=()=>key+'-cervical-incisal';
   }

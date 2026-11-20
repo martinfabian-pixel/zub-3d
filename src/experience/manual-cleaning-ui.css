@@ -1,5 +1,6 @@
 .manual-cleaning-launch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
 .manual-cleaning-launch[hidden] { display: none; }
+.cleaning-window-caption { flex-basis: 100%; max-width: 31ch; margin: 0; font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
 .cleaning-window-toggle { min-height: 44px; touch-action: manipulation; }
 .cleaning-window-toggle::before { content: '✓'; width: 1em; margin-right: .35em; visibility: hidden; }
 .cleaning-window-toggle[aria-pressed="true"]::before { visibility: visible; }
@@ -47,7 +48,7 @@
 /* The manual instruction replaces the chapter copy in the same stage. */
 #journey-stage[data-manual-cleaning="true"] .journey-copy { opacity: 1 !important; transform: none !important; }
 #journey-stage[data-manual-cleaning="true"] :is(#journey-title,#journey-description,#journey-instruction,#journey-note) { display: none !important; }
-#journey-stage[data-manual-cleaning="true"] :is(.journey-dock,.chapter-navigation) { visibility: hidden; pointer-events: none; }
+#journey-stage[data-manual-cleaning="true"] .journey-dock { visibility: hidden; pointer-events: none; }
 
 @media (max-width: 700px) {
   .manual-cleaning-launch { margin-top: 12px; gap: 6px; }

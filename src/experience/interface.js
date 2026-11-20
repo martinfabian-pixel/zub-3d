@@ -1,18 +1,68 @@
 import { createStageTypography, getStoryCopy } from './stage-typography.js';
 import { getJourneyScrollMetrics } from './scroll.js';
-import { STORY_TIMING } from './story-config.js';
+import { FINAL_SMILE_COPY, STORY_TIMING } from './story-config.js';
+
+function createChapterPicker(stage, steps, navigate, repeatCleaning, signal) {
+  const trigger=stage.querySelector('#journey-chapter-picker');
+  const label=trigger.querySelector('span');
+  const options=stage.querySelector('#journey-chapter-options');
+  const choices=[...steps,{id:'closing',label:FINAL_SMILE_COPY.label,at:1}];
+  options.replaceChildren();
+  options.hidden=true;
+  trigger.setAttribute('aria-expanded','false');
+  let current;
+  function close(focus=false) {
+    if(options.hidden)return;
+    options.hidden=true;
+    trigger.setAttribute('aria-expanded','false');
+    if(focus)trigger.focus({preventScroll:true});
+  }
+  for(const choice of choices){
+    const button=document.createElement('button');
+    button.type='button';button.textContent=choice.label;button.dataset.chapter=choice.id;
+    button.addEventListener('click',()=>{
+      close(true);
+      if(choice.id==='brush')repeatCleaning();
+      else navigate(choice.at);
+    },{signal});
+    options.append(button);
+  }
+  trigger.addEventListener('click',()=>{
+    if(!options.hidden){close();return;}
+    options.hidden=false;
+    trigger.setAttribute('aria-expanded','true');
+    options.querySelector('[aria-current="true"]')?.focus({preventScroll:true});
+  },{signal});
+  const within=target=>options.contains(target)||trigger.contains(target);
+  document.addEventListener('pointerdown',event=>{if(!within(event.target))close();},{signal});
+  document.addEventListener('focusin',event=>{if(!within(event.target))close();},{signal});
+  stage.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&!options.hidden){event.preventDefault();event.stopPropagation();close(true);}
+  },{signal});
+  return (id,name)=>{
+    if(current===id)return;
+    current=id;label.textContent=name;trigger.setAttribute('aria-label','Vybrať kapitolu · '+name);
+    for(const button of options.children){
+      if(button.dataset.chapter===id)button.setAttribute('aria-current','true');
+      else button.removeAttribute('aria-current');
+    }
+  };
+}
 
 /** Chapter navigation and screen-space type share the story sampler, never the camera. */
-export function createInterface({config,section,stage,signal,navigate,navigationTarget=()=>null,explore,reset,zoom,finalView:chooseFinalView}) {
+export function createInterface({config,section,stage,signal,navigate,repeatCleaning,navigationTarget=()=>null,explore,reset,zoom,finalView:chooseFinalView}) {
   const byId=id=>document.getElementById(id),steps=config.presentation.steps,help=byId('journey-help-dialog');
   const typography=createStageTypography(stage,document.querySelector('.journey-copy'));
   const nav=document.querySelector('.journey-steps'),buttons=[];
+  const updatePicker=createChapterPicker(stage,steps,navigate,repeatCleaning,signal);
   const heroExplore=byId('journey-hero-explore'),freeExplore=byId('journey-explore');
   const closingButton=document.createElement('button');
   closingButton.className='outline-button journey-finale-continue';closingButton.type='button';
   closingButton.textContent='Zobraziť úsmev';closingButton.hidden=true;
   document.querySelector('.journey-copy').append(closingButton);
   closingButton.addEventListener('click',()=>navigate(1),{signal});
+  const repeatButton=byId('journey-repeat-cleaning');
+  repeatButton.addEventListener('click',repeatCleaning,{signal});
   const modelButtons=['journey-hero-explore','journey-explore','journey-reset','journey-zoom-in','journey-zoom-out'].map(byId);
   let index=-1,liveReady=false,smallLayout,lastPhase,lastNavIndex,lastCopy,lastResult,currentProgress=0;
   let lastExploreLabel;
@@ -64,6 +114,9 @@ export function createInterface({config,section,stage,signal,navigate,navigation
         return line;
       });
       byId('journey-title').replaceChildren(...lines.flatMap((line,i)=>i?[' ',line]:[line]));
+      const finale=copy.phase==='closing';
+      updatePicker(finale?'closing':step.id,finale?copy.label:step.label);
+      repeatButton.hidden=!finale;
       byId('journey-step-number').textContent=`${String(index+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       byId('journey-meta').textContent=step.meta;byId('journey-subject').textContent=step.subject;
       byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+copy.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');

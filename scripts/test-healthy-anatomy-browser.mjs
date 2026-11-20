@@ -273,7 +273,7 @@ try {
             return anatomy.layer === 'dentin' && anatomy.preset === 'pulp' && anatomy.highlight === 'dentin';
           });
         }
-        await activate(plate.getByRole('button', { name: 'Preskúmať dreň' }));
+        await activate(plate.getByRole('button', { name: 'Preskúmať zubnú dreň' }));
         await wait(() => window.__dentalExperience.report().healthyAnatomy.highlight === 'pulp');
         assert.equal((await report()).healthyAnatomy.amount, 3);
         await sameCamera(startCamera, 'Clicking a layer label does not move the camera');

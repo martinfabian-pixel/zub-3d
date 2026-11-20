@@ -49,6 +49,10 @@ try {
         });
         assert.ok(errors.every(error=>error<1e-5),'The live shader in this view opens at the registered 3D working corridor');
       }
+      await wait(()=>window.__dentalExperience.report().cleaningWindow.amount===1);
+      assert.ok(await page.locator('#cleaning-window-caption').isVisible(),'The guided view explains the transparent part of tooth 37');
+      if(mobile)await windowToggle.tap();else await windowToggle.click();
+      await wait(()=>window.__dentalExperience.report().cleaningWindow.amount===0);
       const closed=await materialIds();
       if(mobile)await windowToggle.tap();else await windowToggle.click();
       await wait(()=>window.__dentalExperience.report().cleaningWindow.amount===1);
@@ -170,8 +174,8 @@ try {
       assert.equal(await page.evaluate(()=>window.__returnedThroughOpening),false,'Returning from the finished smile does not replay startup');
       await page.locator('.journey-step').nth(brushIndex).click();
       await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='brush'&&Math.abs(s.renderProgress-s.storyProgress)<.00002;});
-      if(mobile)await windowToggle.tap();else await windowToggle.click();
       await wait(()=>window.__dentalExperience.report().cleaningWindow.amount===1);
+      assert.equal(await windowToggle.getAttribute('aria-pressed'),'true','Returning to a new guided demonstration exposes the contact again');
       await nativeJump(page,STORY_TIMING.heroHold[0]);
       await wait(()=>window.__dentalExperience.report().story.chapterId==='hero');
       assert.equal((await state()).cleaningWindow.enabled,false,'Reverse scrolling clears the window');

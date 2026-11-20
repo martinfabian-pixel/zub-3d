@@ -4,8 +4,8 @@ import { anatomyLayers, anatomyMax } from './story-anatomy.js';
 const layers = {
   whole: { name: 'Celý zub', text: 'Korunka a dva korene zdravej dolnej stoličky.' },
   enamel: { name: 'Sklovina', text: 'Tvrdá ochranná vrstva korunky. Na okraji odkrytia vidno jej hrúbku.' },
-  dentin: { name: 'Dentín', text: 'Krémová vrstva pod sklovinou tvorí väčšinu zuba a obklopuje dreň.' },
-  pulp: { name: 'Dreň', text: 'Mäkké tkanivo s cievami a nervami v komore a koreňových kanálikoch.' },
+  dentin: { name: 'Dentín', text: 'Vrstva pod sklovinou obklopuje zubnú dreň.' },
+  pulp: { name: 'Zubná dreň', text: 'Mäkké tkanivo s cievami a nervami v komore a koreňových kanálikoch.' },
 };
 
 export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCount, onSelect, onScrub, onFollow }) {
@@ -18,8 +18,8 @@ export function createHealthyAnatomyUI({ stage, signal, chapterNumber, chapterCo
   const count = [chapterNumber, chapterCount].map(value => String(value).padStart(2, '0')).join(' / ');
   anatomy.innerHTML = `
     <div class="healthy-anatomy-copy">
-      <p class="healthy-anatomy-eyebrow">${count} <span aria-hidden="true">·</span> FDI 36 <span aria-hidden="true">·</span> Ilustračný model</p>
-      <h2 id="healthy-anatomy-title">Stavba zdravého zuba.</h2>
+      <p class="healthy-anatomy-eyebrow">${count} <span aria-hidden="true">·</span> Zub 36 <span aria-hidden="true">·</span> Ilustračný model</p>
+      <h2 id="healthy-anatomy-title">Čo je vo vnútri zuba?</h2>
       <p class="healthy-anatomy-description" aria-live="polite" aria-atomic="true"></p>
       <div class="healthy-anatomy-layers" role="group" aria-label="Vrstvy zuba"></div>
       <div class="healthy-anatomy-scrub">

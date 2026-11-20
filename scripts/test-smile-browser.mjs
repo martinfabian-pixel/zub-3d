@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { mouseDrag, touchDrag, pinchOut, wheelOnCanvas } from './browser-camera-probes.mjs';
+import { mouseDrag, touchDrag, pinchOut, wheelOnCanvas, projectedFootprints, restingRaster } from './browser-camera-probes.mjs';
 import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
@@ -185,6 +185,24 @@ try {
   assert.equal(closing.crownMix,1,'The last smile does not depend on the selected atlas view');
   assert.deepEqual(closing.crownMatrices,smile.crownMatrices,'Both smiles use the same approved crown seating');
   await page.screenshot({path:`${out}/${width}-zaverecny-usmev.png`});
+  if(mobile){
+    for(const finalHeight of [844,690]){
+      await page.setViewportSize({width,height:finalHeight});
+      await page.waitForFunction(h=>window.__dentalExperience.report().composition.fullSensor[1]===h,finalHeight);
+      await seek(1);
+      await restingRaster(page);
+      const {geometry}=await projectedFootprints(page);
+      const room=await page.evaluate(()=>({
+        copy:document.querySelector('.journey-copy').getBoundingClientRect().bottom,
+        dock:document.querySelector('.model-controls').getBoundingClientRect().top,
+      }));
+      assert.equal(geometry.clipped,0);
+      assert.ok(geometry.width>width*.91 && geometry.left>5 && geometry.right<width-5,
+        'The final front view fills the phone width with both ends of the arch in frame');
+      assert.ok(geometry.top>=room.copy+12 && geometry.bottom<=room.dock-12,
+        'The guiding text, replay action and dock leave the full crown silhouette clear');
+    }
+  }
   assert.deepEqual(errors,[]);
   const stages=Object.entries({seated,lifted,dissolveStart,dissolveEnd,smile,anatomy,calmReturn,closing})
    .map(([name,{chapter,crownMix,crowns,anatomy}])=>({name,chapter,crownMix,crowns,anatomy}));

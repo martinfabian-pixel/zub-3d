@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { DENTAL_CHAPTERS, FINAL_SMILE_COPY, STORY_TIMING } from '../src/experience/story-config.js';
 import { getStoryCopy, sampleStageTypography,TYPE_COMPOSITIONS } from '../src/experience/stage-typography.js';
 
-const names=['Celý chrup.','Každý zub má svoje miesto.','Pozrite sa pod povrch.','Stavba zdravého zuba',
-  'Aj medzi zubami.','Nenápadný povlak.','Jemne tam a späť.'];
+const names=['Celý chrup.','Šestka v oblúku.','Pozrite sa pod povrch.','Čo je vo vnútri zuba?',
+  'Ktoré miesto práve čistíme?','Nenápadný povlak.','Jemne tam a späť.'];
 assert.deepEqual(DENTAL_CHAPTERS.map(c=>c.title),names);
 for(const chapter of DENTAL_CHAPTERS){
   assert.ok(chapter.titleLines.length>=1&&chapter.titleLines.length<=2);

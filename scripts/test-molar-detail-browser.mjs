@@ -53,6 +53,24 @@ try{
       await page.locator('#journey-startup').waitFor({state:'hidden'});
       assert.equal((await read()).crownMix,1);
       await capture('01-usmev');
+      await seek(STORY_TIMING.teachingSite.crownLocator[1]+.004);
+      const survey=await read(),surveyPin=survey.annotations.labels.find(label=>label.id==='molar');
+      assert.equal(survey.crownMix,1);
+      assert.equal(survey.visibleTeeth.length,28);
+      assert.ok(surveyPin.visible && surveyPin.anchor.crownSurface, 'The first label binds to the displayed smile crown');
+      const whole=await projectedFootprints(page);
+      assert.ok(whole.geometry.left>=10&&whole.geometry.right<=whole.canvas.width-10&&whole.geometry.clipped===0,
+        'The entire oblique smile sits inside the frame while the crown is identified');
+      const farSide=await page.evaluate(()=>{
+        const app=window.__dentalExperience, live=app.rig.camera, camera=live.clone();
+        const surface=app.annotations.probe('molar',live),point=live.position.clone().fromArray(surface.world);
+        const molar=app.arch.teeth.get(36).crown;
+        const inward=live.position.clone().set(0,0,-1).transformDirection(molar.matrixWorld);
+        camera.position.copy(point).addScaledVector(inward,5);
+        camera.clearViewOffset();camera.lookAt(point);camera.updateMatrixWorld(true);
+        return app.annotations.probe('molar',camera).reason;
+      });
+      assert.equal(farSide,'occluded','A crown on the far side cannot be labelled through the visible smile');
       await seek(stage('assembly'));
       const locating=await read();
       assert.equal(locating.visibleTeeth.length,28);
@@ -87,7 +105,8 @@ try{
       assert.ok(angular(before.quat,turned.quat)>.2,'The partially cut tooth can be examined from the side');
       assert.equal((await read()).healthyAnatomy.amount,partial.healthyAnatomy.amount);
       const workingAt=brushProgress(.62);
-      for(const at of [.53,.56,.581,.60,.624,stage('space'),stage('plaque')])await seek(at);
+      for(const at of [.53,.56,.581,.60,STORY_TIMING.teachingSite.followSurface,STORY_TIMING.teachingSite.reseat[1],
+        stage('space'),STORY_TIMING.teachingSite.contactHold[0],stage('plaque')])await seek(at);
       const film=await read();
       assert.equal(film.story.brush.visible,false);
       assert.ok(film.story.plaque.visible&&film.story.plaqueDeposition>.99);

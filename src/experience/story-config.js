@@ -12,6 +12,8 @@ export const STORY_TIMING = Object.freeze({
   flight: range(.164, .316),
   openingTooth: .322,
   teachingSite: Object.freeze({
+    smileTurn: range(.038, .106),
+    crownLocator: range(.083, .112),
     identify: range(.168, .195),
     identified: range(.233, .276),
     lift: range(.235, .348),
@@ -19,6 +21,8 @@ export const STORY_TIMING = Object.freeze({
     releaseNeighbors: range(.252, .348),
     returnNeighbors: range(.596, .651),
     reseat: range(.590, .655),
+    followSurface: .626,
+    contactHold: range(.733, .780),
   }),
   heroHold: range(.364, .412),
   anatomy: Object.freeze({
@@ -46,32 +50,33 @@ const chapter = (id, label, start, end, at, reducedAt, titleLines, text, extra =
 });
 
 export const FINAL_SMILE_COPY = Object.freeze({
-  title: 'Malý návyk. Veľký rozdiel.',
-  titleLines: Object.freeze(['Malý návyk.', 'Veľký rozdiel.']),
-  text: 'Starostlivosť o celý chrup začína aj medzi zubami.',
+  label: 'Záverečný úsmev',
+  title: 'Aj priestor medzi zubami patrí k čisteniu.',
+  titleLines: Object.freeze(['Aj priestor', 'medzi zubami', 'patrí k čisteniu.']),
+  text: '',
   note: '',
 });
 
 export const DENTAL_CHAPTERS = Object.freeze([
-  chapter('dentition', 'Chrup', 0, STORY_TIMING.atlas[1], 0, 0,
+  chapter('dentition', 'Celý chrup', 0, STORY_TIMING.atlas[1], 0, 0,
     ['Celý chrup.'],
-    'Preskúmajte 28 trvalých zubov. V režime Anatómia si môžete vybrať každý z nich.', {
+    'Kde je dolná ľavá šestka? V režime Anatómia si môžete prezrieť každý z 28 zubov.', {
       note: 'Zobrazenie bez zubov múdrosti.',
     }),
-  chapter('assembly', 'Detail zuba', STORY_TIMING.atlas[1], .33, .216, .216,
-    ['Každý zub má', 'svoje miesto.'],
-    'V dolnom oblúku nájdeme ľavú šestku.'),
-  chapter('hero', 'Zub', .33, .43, .386, .386,
+  chapter('assembly', 'Poloha šestky', STORY_TIMING.atlas[1], .33, .216, .216,
+    ['Šestka v oblúku.'],
+    'Nájdete ju pred sedmičkou na ľavej strane dolného oblúka.'),
+  chapter('hero', 'Detail šestky', .33, .43, .386, .386,
     ['Pozrite sa', 'pod povrch.'],
     'Prezrite si šestku od korunky až po konce oboch koreňov.'),
   chapter('anatomy', 'Stavba zuba', .43, .59, .555, .555,
-    ['Stavba', 'zdravého zuba'],
-    'Preskúmajte, čo sa skrýva pod povrchom zdravej stoličky.', {
-      education: 'Ilustračný model zdravej dolnej stoličky ukazuje sklovinu, dentín, dreň a koreňové kanáliky.',
+    ['Čo je vo vnútri', 'zuba?'],
+    'Posuvníkom postupne odkryjete vrstvy šestky.', {
+      education: 'Ilustračný model zdravej dolnej stoličky ukazuje sklovinu, dentín, zubnú dreň a koreňové kanáliky.',
     }),
   chapter('space', 'Priestor', .59, .69, .680, .680,
-    ['Aj medzi', 'zubami.'],
-    'Pozornosť si zaslúžia aj plochy medzi zubami.', {
+    ['Ktoré miesto', 'práve čistíme?'],
+    'Priestor medzi dolnou ľavou šestkou a sedmičkou.', {
       education: 'Medzi dolnou šestkou a sedmičkou sa pri krčkoch zubov otvára medzizubný priestor.',
     }),
   chapter('plaque', 'Povlak', .69, .78, .765, .765,

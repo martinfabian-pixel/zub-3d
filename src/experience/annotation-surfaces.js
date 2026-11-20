@@ -26,8 +26,7 @@ function bindLocal(mesh, local) {
 /** Register the locator once on the buccal enamel of the actual loaded LOD.
  * FDI 36's source points buccally along local +Z. The ray starts above the
  * measured cervical ring, where the crown stays exposed as the gum seats. */
-export function createMolarAnchor(arch) {
-  const item=arch.teeth.get(36),mesh=item.mesh;
+function molarSurface(item,mesh) {
   mesh.geometry.computeBoundingBox();
   const box=mesh.geometry.boundingBox,center=box.getCenter(new Vector3());
   const neck=item.entry.cervicalRing.reduce((sum,v)=>sum+v[1],0)/item.entry.cervicalRing.length;
@@ -38,6 +37,11 @@ export function createMolarAnchor(arch) {
   if(!hit)return null;
   const {a,b,c}=hit.face;
   return {fdi:36,vertexIndices:[a,b,c],barycentric:hit.barycoord.toArray()};
+}
+
+export function createMolarAnchor(arch) {
+  const item=arch.teeth.get(36),surface=molarSurface(item,item.mesh);
+  return surface && {...surface, locator:true};
 }
 
 /** Fixed source points. A paired air-space landmark has one term on each
@@ -74,7 +78,14 @@ export function createSurfaceAnchors(site, arch, compact) {
 }
 
 function termWorld(term,arch,out) {
-  const mesh=arch.teeth.get(term.fdi).mesh;
+  const item=arch.teeth.get(term.fdi);
+  let mesh=item.mesh;
+  if(term.locator && item.crown?.visible && arch.crownMix>.5){
+    // Crowns load separately. Bind on their actual buccal surface once,
+    // using the displayed crown transform and its own triangle topology.
+    term.crownSurface ??= molarSurface(item,item.crown);
+    if(term.crownSurface){term=term.crownSurface;mesh=item.crown;}
+  }
   out.set(0,0,0);
   for(let i=0;i<3;i++)out.addScaledVector(mesh.getVertexPosition(term.vertexIndices[i],point),term.barycentric[i]);
   return out.applyMatrix4(mesh.matrixWorld);
@@ -116,7 +127,7 @@ export function createVisibilityTest(arch) {
     nearPoint.lerp(world,camera.near/depth);
     start.copy(world).addScaledVector(dir,toleranceCm);
     for(const item of arch.teeth.values()) {
-      const mesh=item.mesh;
+      const mesh=arch.crownMix>.5 && item.crown?.visible ? item.crown : item.mesh;
       if(!mesh?.visible||item.reveal<.01)continue;
       const g=mesh.geometry,index=g.index;
       if(!g.boundingBox)g.computeBoundingBox();
@@ -129,7 +140,9 @@ export function createVisibilityTest(arch) {
       for(const bin of cache.get(g)) {
         if(!ray.intersectsBox(bin.box))continue;
         for(const f of bin.faces) {
-          mesh.getVertexPosition(index.getX(f),a);mesh.getVertexPosition(index.getX(f+1),b);mesh.getVertexPosition(index.getX(f+2),c);
+          mesh.getVertexPosition(index?index.getX(f):f,a);
+          mesh.getVertexPosition(index?index.getX(f+1):f+1,b);
+          mesh.getVertexPosition(index?index.getX(f+2):f+2,c);
           if(ray.intersectTriangle(a,b,c,false,boundHit)&&ray.origin.distanceToSquared(boundHit)<distance)return true;
         }
       }

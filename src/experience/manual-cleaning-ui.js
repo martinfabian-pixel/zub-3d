@@ -22,7 +22,11 @@ export function createManualCleaningUI({stage, onStart, onExit, onReset, onWindo
   windowToggle.textContent='Nahliadnuť medzi zuby';windowToggle.setAttribute('aria-pressed','false');
   windowToggle.setAttribute('aria-label',windowToggle.textContent);
   windowToggle.addEventListener('click',onWindowToggle,{signal});
-  launch.append(entry,windowToggle);
+  const caption=doc.createElement('p');
+  caption.id='cleaning-window-caption';caption.className='cleaning-window-caption';caption.hidden=true;
+  caption.setAttribute('role','status');
+  const windowExplanation='Časť sedmičky je v modeli priehľadná, aby ste videli štetinky medzi zubami.';
+  launch.append(entry,windowToggle,caption);
 
   const content=doc.createElement('div');content.className='manual-cleaning-content';content.hidden=true;
   const instruction=doc.createElement('h2');instruction.id='manual-cleaning-instruction';
@@ -83,16 +87,21 @@ export function createManualCleaningUI({stage, onStart, onExit, onReset, onWindo
       if(launch.hidden===showLaunch)launch.hidden=!showLaunch;
       if(windowToggle.hidden===windowAvailable)windowToggle.hidden=!windowAvailable;
       const pressed=String(windowEnabled);
-      if(windowToggle.getAttribute('aria-pressed')!==pressed)windowToggle.setAttribute('aria-pressed',pressed);
+      if(windowToggle.getAttribute('aria-pressed')!==pressed){
+        windowToggle.setAttribute('aria-pressed',pressed);
+        caption.hidden=!windowEnabled;caption.textContent=windowEnabled?windowExplanation:'';
+      }
       if(lastEnabled!==ready){entry.disabled=!ready;lastEnabled=ready;}
       if(lastActive!==active){
-        if(active)actions.prepend(windowToggle);else launch.append(windowToggle);
+        if(active){actions.prepend(windowToggle);note.after(caption);}
+        else launch.append(windowToggle,caption);
         content.hidden=!active;stage.dataset.manualCleaning=String(active);
         if(active)copy.setAttribute('aria-labelledby',instruction.id);
         else if(originalLabel)copy.setAttribute('aria-labelledby',originalLabel);
         else copy.removeAttribute('aria-labelledby');
         lastActive=active;
       }
+      if(note.hidden!==windowEnabled)note.hidden=windowEnabled;
       const text=INSTRUCTIONS[phase]??INSTRUCTIONS.ready;
       if(lastPhase!==text){instruction.textContent=text;lastPhase=text;}
       const result=phase==='result';

@@ -47,6 +47,8 @@ export const experienceConfig = {
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
       flight:    {desktop:[.55,.50,.76],portrait:[.50,.52,.87]},
       smile:     {desktop:[.67,.51,.87],portrait:[.50,.57,.298]},
+      'final-smile': {desktop:[.67,.445,.88],portrait:[.50,.455,.318],shortPortrait:[.50,.54,.318],
+        portraitZoomAspect:390/844},
     },
   },
   material: {
@@ -90,7 +92,7 @@ export const experienceConfig = {
       spaceDistanceCm: 3.65, cleaningDistanceCm: 2.72, workingAzimuth: 27, workingElevation: -15,
     },
   },
-  smileMaterial: {enamelColor:'#f7f7f6',roughness:.29,occlusionStrength:.28},
+  smileMaterial: {enamelColor:'#f8f8f8',roughness:.305,occlusionStrength:.28},
   plaque: {tint:'#9b647d',warmTint:'#bb868a'},
   brush: {handleColor:'#8450c8',ferruleColor:'#654099'},
   assetsStory: {site:'story-assets/site.json'},

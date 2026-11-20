@@ -8,10 +8,10 @@ export const TYPE_COMPOSITIONS = Object.freeze({
   anatomy:   {desktop:[.067,.16,.30,62],mobile:[.06,.13,.62,32]},
   space:     {desktop:[.067,.22,.28,64],mobile:[.06,.165,.60,34]},
   plaque:    {desktop:[.067,.22,.29,64],mobile:[.06,.125,.64,33]},
-  brush:     {desktop:[.067,.23,.30,64],mobile:[.06,.12,.61,33]},
+  brush:     {desktop:[.067,.28,.30,64],mobile:[.06,.12,.61,33]},
   result:    {desktop:[.067,.15,.32,62],mobile:[.06,.13,.72,31]},
   dentition: {desktop:[.067,.25,.32,64],mobile:[.06,.125,.72,32]},
-  closing:   {desktop:[.067,.25,.32,64],mobile:[.06,.125,.72,32]},
+  closing:   {desktop:[.05,.15,.34,64],mobile:[.06,.125,.86,32]},
 });
 
 const clamp=x=>Math.max(0,Math.min(1,x));

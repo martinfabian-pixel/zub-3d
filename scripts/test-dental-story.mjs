@@ -16,7 +16,7 @@ const [returnStart, returnEnd] = STORY_TIMING.return;
 const [finalDissolveStart, finalDissolveEnd] = STORY_TIMING.finalCrowns;
 const [resultStart, resultEnd] = STORY_TIMING.result;
 assert.deepEqual(DENTAL_CHAPTERS.map(c => c.id), ids);
-assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Chrup', 'Detail zuba', 'Zub', 'Stavba zuba', 'Priestor', 'Povlak', 'Čistenie']);
+assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Celý chrup', 'Poloha šestky', 'Detail šestky', 'Stavba zuba', 'Priestor', 'Povlak', 'Čistenie']);
 for (const [i, c] of DENTAL_CHAPTERS.entries()) {
   assert.strictEqual(getDentalChapter(c.start), c);
   assert.strictEqual(getDentalChapter(c.at), c);
@@ -98,7 +98,7 @@ assert.equal(hero.assemblyCrownCoverage, 0, 'Chapter three uses the original roo
 assert.equal(hero.toothExtraction, 1);
 assert.equal(hero.neighborsReveal, 0);
 const anatomy = sampleDentalStory(chapter('anatomy').at);
-assert.equal(anatomy.chapter.title, 'Stavba zdravého zuba');
+assert.equal(anatomy.chapter.title, 'Čo je vo vnútri zuba?');
 assert.equal(anatomy.cleaningProgress, 0);
 assert.equal(anatomy.brushVisibility, 0);
 assert.equal(anatomy.neighborsReveal, 0);
@@ -160,6 +160,7 @@ anatomyController.select('enamel', 100);
 const midBlend = atLayer(chapter('anatomy').at, 330);
 assert.ok(midBlend.moving && midBlend.manual && midBlend.amount > 1 && midBlend.amount < 3);
 assert.equal(atLayer(chapter('anatomy').at, 800).amount, 1);
+assert.equal(atLayer(chapter('anatomy').at, 800).highlight, 'enamel', 'The preset identifies its own visible surface');
 anatomyController.follow(801);
 assert.equal(atLayer(chapter('anatomy').at, 801, true).amount, 3);
 assert.equal(atLayer(chapter('space').at, 802).manual, false);

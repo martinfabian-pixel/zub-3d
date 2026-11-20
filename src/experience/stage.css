@@ -254,6 +254,29 @@ h1 {
 }
 .journey-footer :is(button, a) { pointer-events: auto; }
 .chapter-navigation { display: flex; justify-content: space-between; align-items: center; }
+.chapter-center { display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; }
+#journey-chapter-picker {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  color: var(--accent); background: transparent; border: 0; padding: 0 6px;
+  font: inherit; font-size: 13px; font-weight: 620;
+}
+#journey-chapter-picker::after {
+  content: ''; width: 6px; height: 6px; border: solid currentColor; border-width: 0 1.5px 1.5px 0;
+  transform: translateY(1px) rotate(225deg);
+}
+#journey-chapter-picker[aria-expanded="true"]::after { transform: translateY(-2px) rotate(45deg); }
+.journey-footer:has(#journey-chapter-options:not([hidden])) { z-index: 9; }
+#journey-chapter-options {
+  position: absolute; left: 50%; bottom: calc(100% + 5px); transform: translateX(-50%);
+  width: max-content; min-width: 165px; max-height: 52svh; overflow: auto; overscroll-behavior: contain;
+  border: 1px solid var(--control-line); border-radius: 18px; padding: 4px;
+  background: #f4fafe; box-shadow: 0 5px 20px #25495d1a; pointer-events: auto;
+}
+#journey-chapter-options button {
+  display: block; width: 100%; min-height: 44px; padding: 0 13px; border: 0; border-radius: 13px;
+  text-align: left; font: inherit; font-size: 13px; background: transparent; color: var(--accent);
+}
+#journey-chapter-options button:is(:hover,:focus-visible,[aria-current="true"]) { background: #dbeaf3; }
 .chapter-arrow {
   width: 44px;
   height: 44px;
@@ -399,7 +422,9 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   .model-controls button { font-size: 11px; padding-inline: 11px; }
   .model-controls .icon-button { width: 40px; }
   .journey-footer { inset-inline: 6%; bottom: calc(5px + env(safe-area-inset-bottom, 0px)); }
-  .journey-step { width: 25px; }
+  .chapter-center { gap: 4px; }
+  #journey-chapter-picker { padding-inline: 2px; font-size: 12px; }
+  .journey-step { width: clamp(12px,4.6vw,25px); }
   .chapter-arrow { font-size: 20px; }
   .footer-meta { font-size: 9px; }
   dialog { padding: 22px; }
@@ -408,7 +433,9 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   h1 { font-size: calc(var(--title-size) - 2px); }
   .header-actions { gap: 11px; }
   .clinic-share svg { display: none; }
-  .journey-step { width: 23px; }
+  .chapter-center { gap: 2px; }
+  .journey-step { width: 12px; }
+  .journey-step::before { width: 6px; height: 6px; }
 }
 @media (max-height: 650px) and (min-width: 701px) {
   .site-header { height: 58px; }

@@ -2,9 +2,9 @@ import { Matrix4, Vector3 } from 'three';
 import { anchorWorld, createMolarAnchor, createSurfaceAnchors, createVisibilityTest } from './annotation-surfaces.js';
 import './annotations.css';
 
-const labels={molar:'Dolná ľavá šestka · 36',space:'Medzizubný priestor',plaque:'Povlak',cleaned:'Vyčistený povrch'};
-const anatomyLabels={enamel:'Sklovina',dentin:'Dentín',pulp:'Dreň'};
-const anatomyActions={enamel:'Preskúmať sklovinu',dentin:'Preskúmať dentín',pulp:'Preskúmať dreň'};
+const labels={molar:'Dolná ľavá šestka · zub 36',space:'Medzizubný priestor',plaque:'Povlak',cleaned:'Vyčistený povrch'};
+const anatomyLabels={enamel:'Sklovina',dentin:'Dentín',pulp:'Zubná dreň'};
+const anatomyActions={enamel:'Preskúmať sklovinu',dentin:'Preskúmať dentín',pulp:'Preskúmať zubnú dreň'};
 const chapterLabels={space:['space'],plaque:['plaque']};
 const namespace='http://www.w3.org/2000/svg';
 const overlaps=(a,b,p=0)=>a.x<b.x+b.width+p&&a.x+a.width>b.x-p&&a.y<b.y+b.height+p&&a.y+a.height>b.y-p;
@@ -204,7 +204,7 @@ export function createAnnotations({layer,canvas,site,arch,compact=false,requestR
     const anatomyActive=state.chapterId==='anatomy'&&anatomy?.active&&anatomy.cut>.001;
     // Progress also drives the copy's small CSS translation at boundaries;
     // that transform can change its exclusion zone without firing resize.
-    const key=[revision,state.chapterId,state.sceneProgress,ready,anatomyActive,anatomy?.amount,anatomy?.cut,anatomy?.layer,anatomy?.highlight,
+    const key=[revision,state.chapterId,state.sceneProgress,ready,locating,locating?arch.crownMix:0,anatomyActive,anatomy?.amount,anatomy?.cut,anatomy?.layer,anatomy?.highlight,
       base.left,base.top,base.width,base.height,
       sensor.left,sensor.top,sensor.width,sensor.height].join('/');
     if(signature===key&&matrix.equals(camera.matrixWorld)&&projection.equals(camera.projectionMatrix))return;
