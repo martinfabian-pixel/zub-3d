@@ -15,7 +15,7 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
     <div class="full-arch-focus-detail" hidden>
       <p class="full-arch-focus-kicker"><span class="full-arch-focus-source">Atlas chrupu</span><span class="full-arch-focus-caption" hidden>Ilustračné vnútro</span><span class="full-arch-focus-type"></span></p>
       <h2 class="full-arch-focus-title"></h2>
-      <p class="full-arch-focus-location"></p>
+      <p class="full-arch-focus-location"><span></span></p>
       <div class="full-arch-focus-topics" role="tablist" aria-label="Informácie o zube">
         <button type="button" role="tab" id="atlas-topic-function" aria-controls="atlas-function" aria-selected="true">Funkcia</button>
         <button type="button" role="tab" id="atlas-topic-landmark" aria-controls="atlas-landmark" aria-selected="false" tabindex="-1">Tvar</button>
@@ -36,8 +36,8 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
     </div>
     <div class="full-arch-focus-nav" hidden>
       <div class="full-arch-focus-steps" role="group" aria-label="Prepínanie zubov">
-        <button type="button" class="full-arch-focus-previous"><span aria-hidden="true">‹</span> Predchádzajúci</button>
-        <button type="button" class="full-arch-focus-next">Ďalší <span aria-hidden="true">›</span></button>
+        <button type="button" class="full-arch-focus-previous"><span aria-hidden="true">‹</span><span class="step-text"> Predchádzajúci</span></button>
+        <button type="button" class="full-arch-focus-next"><span class="step-text">Ďalší </span><span aria-hidden="true">›</span></button>
       </div>
       <button type="button" class="text-button full-arch-focus-continue">Pokračovať v príbehu</button>
     </div>
@@ -47,6 +47,10 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   const type = container.querySelector('.full-arch-focus-type');
   const title = container.querySelector('.full-arch-focus-title');
   const location = container.querySelector('.full-arch-focus-location');
+  const locationText = location.firstElementChild;
+  const topics = container.querySelector('.full-arch-focus-topics');
+  const actions = container.querySelector('.full-arch-focus-actions');
+  const steps = container.querySelector('.full-arch-focus-steps');
   const tabs = [...container.querySelectorAll('[role="tab"]')];
   const [purpose, landmark, fact] = container.querySelectorAll('[role="tabpanel"]');
   const note = container.querySelector('.full-arch-anatomy-note');
@@ -79,7 +83,29 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   let lastMode;
   let lastEnabled;
   let lastReturning;
-  let lastFromMap;
+  let lastFromMap = false;
+  // Move the existing controls on entering or leaving a map detail so that
+  // visual order, keyboard order and the native FDI picker agree.
+  function arrangeControls(fromMap) {
+    container.toggleAttribute('data-from-map', fromMap);
+    back.textContent = fromMap ? '← Späť na mapu' : 'Späť k chrupu';
+    if (fromMap) back.setAttribute('aria-label', 'Späť na mapu');
+    else back.removeAttribute('aria-label');
+    continueButton.hidden = fromMap;
+    if (fromMap) {
+      container.insertBefore(back, detail);
+      detail.insertBefore(actions, topics);
+      actions.prepend(steps);
+      steps.insertBefore(select, next);
+      location.append(caption);
+    } else {
+      detail.after(actions);
+      actions.prepend(select);
+      actions.append(back);
+      navigation.prepend(steps);
+      type.before(caption);
+    }
+  }
   function showTopic(tab) {
     for (const item of tabs) {
       const selected = item === tab;
@@ -120,11 +146,7 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
     update({ visible, enabled, active, focused = false, selectedFdi = null, returning = false, fromMap = false }) {
       const tooth = focused ? DENTAL_ATLAS_TEETH.get(selectedFdi) : null;
       const mode = visible ? (tooth ? 'detail' : 'overview') : null;
-      if (fromMap !== lastFromMap) {
-        back.textContent = fromMap ? 'Späť na mapu' : 'Späť k chrupu';
-        continueButton.hidden = fromMap;
-        lastFromMap = fromMap;
-      }
+      if (fromMap !== lastFromMap) arrangeControls(fromMap);
       if (mode !== lastMode) {
         const returnFocus = mode === 'overview' && container.contains(doc.activeElement);
         container.hidden = !mode;
@@ -159,20 +181,21 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
         caption.hidden = !pressed;
         source.hidden = pressed;
       }
-      if (currentTooth !== tooth) {
+      if (currentTooth !== tooth || fromMap !== lastFromMap) {
         currentTooth = tooth;
         onDetailChange?.(tooth);
         if (tooth) {
           type.textContent = tooth.type;
-          title.textContent = `${tooth.fdi} — ${tooth.name}`;
-          location.textContent = tooth.patientName;
+          title.textContent = fromMap ? tooth.patientName : `${tooth.fdi} — ${tooth.name}`;
+          locationText.textContent = fromMap ? `${tooth.type} · FDI ${tooth.fdi}` : tooth.patientName;
           location.title = `${tooth.jaw} · ${tooth.side}`;
           purpose.textContent = tooth.purpose;
           landmark.textContent = tooth.landmark;
           fact.textContent = tooth.fact;
         }
-        announcement.textContent = tooth ? `${title.textContent}. ${tooth.patientName}. ${tooth.side}.` : '';
+        announcement.textContent = tooth ? `${tooth.patientName}. ${tooth.name}. FDI ${tooth.fdi}.` : '';
       }
+      lastFromMap = fromMap;
       const selectedValue = tooth ? String(tooth.fdi) : '';
       if (select.value !== selectedValue) select.value = selectedValue;
     },

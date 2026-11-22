@@ -27,7 +27,8 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender, onSelect
         <label class="dental-map-picker">
           <span id="dental-map-name" aria-hidden="true"></span>
           <select id="dental-map-selected" aria-label="Vybrať zub na mape chrupu">
-            <option value="">Všetky zuby</option>
+            <option value="" disabled>Vybrať zub</option>
+            <option value="all" hidden>Všetky zuby</option>
           </select>
         </label>
       </div>
@@ -80,20 +81,26 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender, onSelect
     description.textContent = text
       ? `${selected} · ${text.group.charAt(0).toLocaleUpperCase('sk') + text.group.slice(1)}`
       : 'Druhá číslica FDI';
-    picker.value = tooth ? String(selected) : '';
+    // The picker opens a detail. Its current-value row is distinct from the
+    // 28 actions, so choosing the last inspected FDI again fires change on iOS.
+    picker.options[0].textContent = tooth ? `${selected} · ${text.name}` : 'Vybrať zub';
+    picker.options[1].hidden = !tooth;
+    picker.value = '';
     for (const {item, type} of groupItems) item.toggleAttribute('data-selected', type === tooth?.type);
   }
 
   function select(fdi) {
-    if (!active || selected === fdi || (fdi !== null && !anchors.has(fdi))) return;
-    selected = fdi;
-    displaySelection();
-    if (fdi !== null) onSelect(fdi);
-    requestRender();
+    if (active && anchors.has(fdi)) onSelect(fdi);
   }
-  picker.addEventListener('change', () => select(picker.value === '' ? null : Number(picker.value)));
+  picker.addEventListener('change', () => {
+    if (picker.value === 'all') {
+      selected = null;
+      displaySelection();
+      requestRender();
+    } else select(Number(picker.value));
+  });
 
-  function update({active: show, unfolded = false, camera, width, height}) {
+  function update({active: show, inMapChapter = false, camera, width, height}) {
     if (active !== show) {
       active = show;
       map.hidden = !active;
@@ -106,7 +113,7 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender, onSelect
       }
     }
     if (!active) {
-      if (!unfolded) selected = null;
+      if (!inMapChapter) selected = null;
       return;
     }
     for (const point of points) {
@@ -157,6 +164,7 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender, onSelect
 
   return {
     update, pick,
+    remember(fdi) { selected = fdi; },
     focusPicker() { picker.focus({preventScroll:true}); },
     get active() { return active; },
     get selected() { return selected; },

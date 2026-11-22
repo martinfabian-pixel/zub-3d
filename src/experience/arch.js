@@ -224,7 +224,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     finalView=view;
     smileWeight=THREE.MathUtils.clamp(weight,0,1);
   }
-  function setState(state, focusOpacity, mapDetail = 0) {
+  function setState(state, focusOpacity, mapDetail = 0, selectedMapFdi = null) {
     sceneProgress=state.sceneProgress??0;
     // A map pick unfolds the same rooted mesh used by the atlas. Release the
     // crown arrangement and jaw hinge on the focus camera's reversible clock.
@@ -259,11 +259,12 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       if(item.mesh)item.smileMix.value=seat;
       if(item.siteNeutral&&updateSite){
         item.finish.material.color.lerpColors(item.siteNeutral,siteTint,siteEmphasis*.18);
-        item.crownFinish?.setMapEmphasis(siteEmphasis*.14);
       }
       const opacity=focusOpacity?.(fdi,sceneProgress)??1;
       item.finish?.setReveal(seat===1?0:reveal*opacity);
       if(item.crown) {
+        const reviewed=state.chapterId==='map'&&fdi===selectedMapFdi ? upper*.72 : 0;
+        item.crownFinish.setMapEmphasis(Math.max(reviewed,item.siteNeutral?siteEmphasis*.14:0));
         // The rooted representation has its own enamel locator. Carry the
         // same cool cue on the visible crown before and during the handoff.
         if(hero)item.crown.material.color.lerpColors(item.crownNeutral,item.crownLocated,state.locate36);

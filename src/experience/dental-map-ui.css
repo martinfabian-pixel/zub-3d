@@ -101,6 +101,10 @@
   .dental-map-picker { min-height: 30px; font-size: 13px; }
   #dental-map-description { font-size: 12px; }
 }
+@media (orientation: portrait) and (max-width: 370px) and (max-height: 670px) {
+  .dental-map-key { margin-top: 4px; line-height: 1.1; }
+  .dental-map-key strong { font-size: 13px; }
+}
 @media (min-width: 701px) and (orientation: landscape) {
   #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-dock { left: 37%; }
 }

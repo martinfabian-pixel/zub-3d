@@ -132,6 +132,29 @@ try {
   const context = await browser.newContext({ viewport:{ width:390,height:844 }, deviceScaleFactor:2, isMobile:true, hasTouch:true });
   await context.grantPermissions(['clipboard-read','clipboard-write'], { origin:base.origin });
   for (const view of Object.values(clinicViews)) await openClinic(context, view);
+  for (const [fdi, name] of [[13,'Horná pravá trojka'],[36,'Dolná ľavá šestka']]) {
+    const detail = await context.newPage();
+    const link = new URL(base);
+    link.searchParams.set('pohlad',clinicViews.map);
+    link.searchParams.set('zub',String(fdi));
+    await detail.goto(link.href);
+    await detail.locator('body[data-journey-loading]').waitFor({state:'hidden',timeout:90000});
+    await detail.getByRole('heading',{name,exact:true}).waitFor({timeout:90000});
+    const share = detail.getByRole('link',{name:`Kopírovať odkaz na zub ${fdi}`});
+    assert.equal(new URL(await share.getAttribute('href')).search,link.search);
+    // A real screen tap does not scroll the underlying story to the button.
+    const back = detail.getByRole('button',{name:'Späť na mapu',exact:true});
+    const point = await back.evaluate(button => {
+      const rect = button.getBoundingClientRect();
+      const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+      return {x,y,available:!button.disabled && button.contains(document.elementFromPoint(x,y))};
+    });
+    assert.ok(point.available,'The visible return control must receive a direct screen tap.');
+    await detail.touchscreen.tap(point.x,point.y);
+    await detail.locator(`[data-map-fdi="${fdi}"][data-selected]`).waitFor();
+    assert.equal(await detail.locator('#dental-map [data-map-fdi]:visible').count(),28);
+    await detail.close();
+  }
   const home = await context.newPage();
   await home.goto(base.href, { waitUntil:'domcontentloaded' });
   await home.locator('#journey-skip-intro').waitFor({ state:'visible', timeout:90000 });

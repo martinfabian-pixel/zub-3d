@@ -16,6 +16,7 @@ const copyPose = ({ position, target, screenX = .5, screenY = .5, opticalZoom = 
 export function createFullArchFocus() {
   const records = new Map();
   const bounds = new Box3(), point = new Vector3(), right = new Vector3(), up = new Vector3();
+  const toothWorld = new Matrix4();
   const basisUp = new Vector3(0, 1, 0);
   const a = new Spherical(), b = new Spherical(), orbit = new Spherical();
   const pose = { position: new Vector3(), target: new Vector3(), screenX: .5, screenY: .5, opticalZoom: 1 };
@@ -36,7 +37,32 @@ export function createFullArchFocus() {
     }
   }
 
-  function destination(record, rig, { compact, short }) {
+  // Fit the two opposing camera planes to the actual enamel and root tips.
+  // The midpoint of their supports centres an asymmetric silhouette, even
+  // when the buccal root is closer to the camera than the lingual one.
+  function fitMapTooth(record, target, direction, horizontalSlope, verticalSlope) {
+    const { mesh, seatedMatrix } = record.item;
+    toothWorld.copy(seatedMatrix).setPosition(
+      seatedMatrix.elements[12] + record.offset.x,
+      seatedMatrix.elements[13] + record.offset.y,
+      seatedMatrix.elements[14] + record.offset.z);
+    toothWorld.premultiply(mesh.parent.matrixWorld);
+    const vertices = mesh.geometry.attributes.position;
+    let left = Infinity, bottom = Infinity, rightEdge = -Infinity, top = -Infinity;
+    for (let i = 0; i < vertices.count; i++) {
+      point.fromBufferAttribute(vertices, i).applyMatrix4(toothWorld).sub(target);
+      const depth = point.dot(direction), x = point.dot(right), y = point.dot(up);
+      left = Math.min(left, x - horizontalSlope * depth);
+      rightEdge = Math.max(rightEdge, x + horizontalSlope * depth);
+      bottom = Math.min(bottom, y - verticalSlope * depth);
+      top = Math.max(top, y + verticalSlope * depth);
+    }
+    target.addScaledVector(right, (left + rightEdge) / 2);
+    target.addScaledVector(up, (bottom + top) / 2);
+    return Math.max((rightEdge - left) / (2 * horizontalSlope), (top - bottom) / (2 * verticalSlope));
+  }
+
+  function destination(record, rig, { compact, short, mapSpace }) {
     const { mesh, seatedMatrix } = record.item;
     bounds.copy(mesh.geometry.boundingBox).applyMatrix4(seatedMatrix).translate(record.offset);
     bounds.applyMatrix4(mesh.parent.matrixWorld);
@@ -47,6 +73,17 @@ export function createFullArchFocus() {
     up.crossVectors(direction, right);
     const opticalZoom = rig.pose.opticalZoom ?? 1;
     const lens = Math.tan(MathUtils.degToRad(rig.camera.fov / 2)) / opticalZoom;
+    if (fromMap && mapSpace) {
+      const { height, top, bottom } = mapSpace;
+      const available = Math.max(1, bottom - top);
+      const heightFraction = lerp(.237, .335, smoothstep(height, 660, 780));
+      const toothHeight = Math.min(height * heightFraction, available);
+      const centreY = top + (available - toothHeight) * .25 + toothHeight / 2;
+      const distance = fitMapTooth(record, target, direction,
+        lens * rig.camera.aspect * .84, lens * toothHeight / height);
+      return { position: direction.multiplyScalar(distance).add(target), target, opticalZoom,
+        screenX: .5, screenY: centreY / height };
+    }
     const height = lens * (compact ? short ? .26 : .37 : .61);
     const width = lens * rig.camera.aspect * (compact ? .77 : .46);
     let distance = 0;

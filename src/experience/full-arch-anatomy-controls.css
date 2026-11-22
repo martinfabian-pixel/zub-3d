@@ -86,7 +86,8 @@
   pointer-events: auto;
 }
 
-.full-arch-focus-actions > .full-arch-focus-select {
+.full-arch-focus-actions > .full-arch-focus-select,
+.full-arch-focus-steps > .full-arch-focus-select {
   appearance: none;
   width: 122px;
   border: 1px solid var(--control-line);
@@ -138,7 +139,7 @@
 }
 .full-arch-focus-steps button:hover:not(:disabled) { background: #f9fdff; }
 .full-arch-focus-steps button:disabled { opacity: .48; cursor: default; }
-.full-arch-focus-steps span { font-size: 15px; line-height: 0; }
+.full-arch-focus-steps [aria-hidden] { font-size: 15px; line-height: 0; }
 .full-arch-focus-continue { line-height: 1.2; text-align: left; }
 .full-arch-focus-continue:hover:not(:disabled) { text-decoration: underline; }
 
@@ -253,4 +254,76 @@
   .full-arch-focus-detail + .full-arch-focus-actions { margin-top: 3px; }
   .full-arch-focus-nav { margin-top: 2px; }
   .full-arch-focus-nav button { min-height: 38px; }
+}
+
+/* The map opens directly on one tooth. Keep the native picker between its
+   two neighbours and let the text below it expand into a reserved row. */
+.full-arch-anatomy-control[data-from-map] {
+  margin-top: 0;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-detail { display: block; }
+.full-arch-anatomy-control[data-from-map] :is(.full-arch-focus-kicker, .full-arch-focus-nav, .step-text) {
+  display: none;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-return {
+  display: block;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-return:hover { color: var(--accent); text-decoration: underline; }
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-title { margin-bottom: 3px; }
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-location { text-align: left; }
+.full-arch-focus-location .full-arch-focus-caption::before { content: ' · '; }
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-actions {
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin: 9px 0 2px;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-steps {
+  align-items: stretch;
+  pointer-events: auto;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-steps button {
+  width: 42px;
+  min-height: 42px;
+  padding: 0;
+  color: var(--accent);
+  touch-action: manipulation;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-steps button [aria-hidden] {
+  font-size: 22px;
+  line-height: 1;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-steps .full-arch-focus-select {
+  width: 71px;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  padding: 0 16px 0 7px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: auto;
+}
+.full-arch-anatomy-control[data-from-map] .full-arch-focus-topics { margin: 2px 0 5px; }
+@media (max-width: 700px) and (orientation: portrait) {
+  #journey-stage[data-chapter="map"][data-dental-atlas="detail"] .journey-copy {
+    top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  }
+  .full-arch-anatomy-control[data-from-map] .full-arch-focus-title { font-size: clamp(24px, 7.2vw, 31px); }
+  /* Let Safari open the native picker without zooming the page into the field. */
+  .full-arch-anatomy-control[data-from-map] .full-arch-focus-steps .full-arch-focus-select {
+    width: 78px;
+    font-size: 16px;
+  }
+}
+@media (max-height: 650px) and (max-width: 700px) {
+  .full-arch-anatomy-control[data-from-map] .full-arch-focus-return { min-height: 28px; }
+  .full-arch-anatomy-control[data-from-map] .full-arch-focus-actions { margin-top: 6px; }
+  .full-arch-anatomy-control[data-from-map] .full-arch-focus-steps button { min-height: 35px; }
 }

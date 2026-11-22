@@ -4,10 +4,12 @@
  */
 export function createModelGestures({canvas,view,config,signal,onChange,onStart,onEnd,getTapMode,onTap}) {
   const pointers=new Map();let free=false,pinching=false,pinchDistance=0,enabled=true;
+  let mapTap = null;
   const tapSlop=9;
   function firstTwo(){const a=[...pointers.values()];return a.length<2?null:a;}
   const distance=pair=>Math.hypot(pair[0].x-pair[1].x,pair[0].y-pair[1].y);
   function down(e){
+    mapTap = null;
     if(!enabled||(e.pointerType==='mouse'&&e.button!==0))return;
     const tapMode=e.isPrimary&&!pointers.size&&e.button===0?getTapMode?.():null;
     for(const pointer of pointers.values())pointer.tapMode=null;
@@ -44,7 +46,10 @@ export function createModelGestures({canvas,view,config,signal,onChange,onStart,
     pinchDistance=0;pinching=pointers.size>1;
     if(!pointers.size){canvas.style.cursor='grab';onEnd();}
     if(enabled&&e.type==='pointerup'&&pointer.tapMode&&Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)<=tapSlop){
-      onTap?.(e,pointer.tapMode);
+      // Opening the map detail lays out buttons where the finger was. Wait
+      // for the browser's click on the canvas before exposing those buttons.
+      if (pointer.tapMode === 'map') mapTap = e;
+      else onTap?.(e,pointer.tapMode);
     }
   }
   canvas.style.touchAction='pan-y';canvas.style.cursor='grab';
@@ -54,6 +59,13 @@ export function createModelGestures({canvas,view,config,signal,onChange,onStart,
   canvas.addEventListener('pointerdown',down,{signal});canvas.addEventListener('pointermove',move,{signal,passive:false});
   canvas.addEventListener('pointerup',up,{signal});canvas.addEventListener('pointercancel',up,{signal});
   canvas.addEventListener('lostpointercapture',up,{signal});
+  canvas.addEventListener('click', e => {
+    const tap = mapTap;
+    mapTap = null;
+    if (enabled && tap && e.detail && Math.hypot(e.clientX-tap.clientX,e.clientY-tap.clientY) <= tapSlop) {
+      onTap?.(tap,'map');
+    }
+  }, {signal});
   canvas.addEventListener('wheel',e=>{
     if(!enabled||!free)return;
     e.preventDefault();view.zoomBy(Math.exp(MathUtilsClamp(e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?canvas.clientHeight:1)*.0012,-.3,.3)));onChange();

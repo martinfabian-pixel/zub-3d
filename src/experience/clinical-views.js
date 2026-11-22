@@ -25,11 +25,11 @@ export function createClinicShare(stage, base, signal) {
   notice.setAttribute('role', 'status');
   group.append(link, notice);
   stage.querySelector('.header-actions').prepend(group);
-  let current = null, timer;
+  let current = null, currentTooth = null, timer;
   link.addEventListener('click', async event => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    const destination = link.href, view = current;
+    const destination = link.href;
     let copied = false;
     try {
       await navigator.clipboard.writeText(destination);
@@ -37,17 +37,19 @@ export function createClinicShare(stage, base, signal) {
     } catch {
       // Older browsers and denied clipboard permission can still use native
       // copy via the prompt, or the link's own context menu.
-      if (!signal.aborted && current === view) window.prompt('Skopírujte odkaz na ukážku', destination);
+      if (!signal.aborted && !group.hidden && link.href === destination) window.prompt('Skopírujte odkaz na ukážku', destination);
     }
-    if (signal.aborted || current !== view || !copied) return;
+    if (signal.aborted || group.hidden || link.href !== destination || !copied) return;
     notice.textContent = 'Odkaz na ukážku bol skopírovaný.';
     clearTimeout(timer);
     timer = setTimeout(() => { notice.textContent = ''; }, 2000);
   }, { signal });
   signal.addEventListener('abort', () => { clearTimeout(timer); group.remove(); }, { once: true });
-  return view => {
-    if (view === current) return;
+  return (view, fdi = null) => {
+    const tooth = view === clinicViews.map ? fdi : null;
+    if (view === current && tooth === currentTooth) return;
     current = view;
+    currentTooth = tooth;
     clearTimeout(timer);
     notice.textContent = '';
     group.hidden = !view;
@@ -56,8 +58,9 @@ export function createClinicShare(stage, base, signal) {
     url.search = '';
     url.hash = '';
     url.searchParams.set('pohlad', view);
+    if (tooth) url.searchParams.set('zub', String(tooth));
     link.href = url.href;
-    const label = view === clinicViews.cleaning ? 'Kopírovať odkaz na čistenie medzi 36 a 37'
+    const label = tooth ? `Kopírovať odkaz na zub ${tooth}` : view === clinicViews.cleaning ? 'Kopírovať odkaz na čistenie medzi 36 a 37'
       : view === clinicViews.map ? 'Kopírovať odkaz na mapu chrupu' : 'Kopírovať odkaz na zubnú dreň šestky';
     link.setAttribute('aria-label', label);
     link.title = label;

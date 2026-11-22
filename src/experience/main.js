@@ -55,6 +55,7 @@ export function createExperience(configuration=experienceConfig) {
   const query=new URLSearchParams(location.search), qa=query.has('qa'), clay=query.get('material')==='clay';
   const clinicView=readClinicView(query);
   let pendingClinicView=clinicView;
+  let linkedTooth=clinicView===clinicViews.map ? query.get('zub') : null;
   let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
   let site,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy,mapUI;
   let studyReady=false,flightReady=false,crownsReady=false,storyReady=false;
@@ -231,7 +232,16 @@ export function createExperience(configuration=experienceConfig) {
   }
   function atlasFraming() {
     const compact=logicalWidth<=700&&logicalWidth<logicalHeight*1.5;
-    return {compact,short:compact&&logicalHeight<680};
+    const framing={compact,short:compact&&logicalHeight<680};
+    const detail=compact&&stage.querySelector('.full-arch-anatomy-control[data-from-map]:not([hidden])');
+    if(detail){
+      const stageTop=canvas.getBoundingClientRect().top;
+      framing.mapSpace={
+        height:logicalHeight,top:detail.getBoundingClientRect().bottom-stageTop+14,
+        bottom:stage.querySelector('.journey-dock').getBoundingClientRect().top-stageTop-16,
+      };
+    }
+    return framing;
   }
   function captureAtlasPose() {
     const {camera}=rig, sensor=camera.view;
@@ -244,7 +254,16 @@ export function createExperience(configuration=experienceConfig) {
     if(!available)return;
     const firstFocus=!focusOrigin;
     const from=captureAtlasPose();
-    if(!fullArchFocus.select(Number(fdi),{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant:reducedMotion,map}))return;
+    // Lay out the new tooth's reading slot before fitting its roots. All three
+    // topics reserve their space together, so switching tabs never moves the lens.
+    const id=Number(fdi);
+    if((map||fullArchFocus.fromMap)&&arch.teeth.get(id)?.mesh){
+      fullAnatomyControls.update({visible:true,enabled:true,fromMap:true,focused:true,selectedFdi:id,
+        active:fullArchFocus.selected===id&&interiorRequested});
+    }
+    if(!fullArchFocus.select(id,{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant:reducedMotion,map}))return;
+    if(fullArchFocus.fromMap)mapUI.remember(fullArchFocus.selected);
+    updateClinicShare();
     restoreMapPicker=false;
     cancelNavigation();
     if(firstFocus){
@@ -276,6 +295,7 @@ export function createExperience(configuration=experienceConfig) {
   function finishAtlasFocus() {
     const {view:previousView,next}=focusOrigin;
     fullArchFocus.clear();
+    updateClinicShare();
     view.setStoryPose(rig.pose);
     view.restore(focusLeavesStory?neutralView:previousView,{instant:true});
     manualChapter=!focusLeavesStory&&view.modified?dentalState.chapterId:null;
@@ -391,15 +411,18 @@ export function createExperience(configuration=experienceConfig) {
     return cleaningWindow?.update(rig.camera,windowEnabled,now,
       reducedMotion||dentalState.chapterId!=='brush'||dentalState.sceneProgress>STORY_TIMING.return[1]);
   }
+  function updateClinicShare() {
+    const sharingCleaning=manual||(dentalState.chapterId==='brush'&&dentalState.sceneProgress<STORY_TIMING.return[0]);
+    showClinicShare(sharingCleaning?clinicViews.cleaning:dentalState.chapterId==='anatomy'?clinicViews.pulp:
+      dentalState.chapterId==='map'?clinicViews.map:null,fullArchFocus.fromMap?fullArchFocus.selected:null);
+  }
   function updateUI() {
     const complete=crownsReady;
     if(!windowAvailable()){windowChoice=null;windowEnabled=false;}
     else windowEnabled=windowChoice??!manual;
     ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,
       atlasFocused:Boolean(focusOrigin),state:dentalState,reducedMotion});
-    const sharingCleaning=manual||(dentalState.chapterId==='brush'&&dentalState.sceneProgress<STORY_TIMING.return[0]);
-    showClinicShare(sharingCleaning?clinicViews.cleaning:dentalState.chapterId==='anatomy'?clinicViews.pulp:
-      dentalState.chapterId==='map'?clinicViews.map:null);
+    updateClinicShare();
     if(ready){
       const atBoundary=scrollReadiness.limit<1&&progress>=scrollReadiness.limit-.002;
       status.hidden=!atBoundary;
@@ -580,7 +603,7 @@ export function createExperience(configuration=experienceConfig) {
     else sampleDentalStory(p,dentalState);
     if(fullArchFocus.engaged||brushingRun)dentalState.locate36=0;
     arch.setFinalView?.(finalView,smileWeight);
-    arch.setState(dentalState,fullArchFocus.engaged?fullArchFocus.opacity:null,fullArchFocus.mapDetail);
+    arch.setState(dentalState,fullArchFocus.engaged?fullArchFocus.opacity:null,fullArchFocus.mapDetail,mapUI?.selected);
     plaque?.setState({visible:dentalState.plaqueVisibility>0,opacity:dentalState.plaqueDeposition*dentalState.plaqueVisibility,progress:dentalState.cleaningProgress});
     brush?.setPose(dentalState.brushPose);
     if(!moveCamera)return null;
@@ -859,9 +882,14 @@ export function createExperience(configuration=experienceConfig) {
     arch.updateView(rig.camera);
     const windowMoving=updateCleaningWindow(now);
     mapUI.update({active:!fullArchFocus.fromMap&&dentalState.chapterId==='map'&&dentalState.mapUpper===1,
-      unfolded:!fullArchFocus.fromMap&&(dentalState.mapLower>0||dentalState.mapUpper>0),
+      inMapChapter:dentalState.chapterId==='map',
       camera:rig.camera,width:logicalWidth,height:logicalHeight});
     if(restoreMapPicker&&mapUI.active){mapUI.focusPicker();restoreMapPicker=false;}
+    if(linkedTooth && mapUI.active) {
+      const fdi=Number(linkedTooth);
+      linkedTooth=null;
+      if(arch.teeth.has(fdi))focusTooth(fdi,{map:true});
+    }
     annotations?.update({state:dentalState,camera:rig.camera,brush,anatomy:anatomyState});
     if(smileBacking&&brushingRun?.demo?.jawOpening>.01)smileBacking.visible=false;
     if(lastFrame&&(interaction||changing||scrolling||fullArchFocus.moving))adaptive.recordFrame(now-lastFrame);

@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
 import { DENTAL_ATLAS_TEETH } from '../src/experience/dental-atlas-data.js';
-import { enterStory, nativeJump } from './browser-camera-probes.mjs';
+import { angular, cameraProbe, enterStory, nativeJump, touchDrag } from './browser-camera-probes.mjs';
 import { recordBrowserInteraction } from './record-molar-transition.mjs';
 
 const { chromium, webkit } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
@@ -56,7 +56,12 @@ async function measure(page) {
 async function tapTooth(page, target, mobile) {
   if (mobile) await page.touchscreen.tap(target.x, target.y);
   else await page.mouse.click(target.x, target.y);
-  await checkDetail(page, target.fdi);
+  try {
+    await checkDetail(page, target.fdi);
+  } catch (cause) {
+    const actual = await page.evaluate(() => window.__dentalExperience.report().focusedTooth);
+    throw new Error(`Tap at (${target.x.toFixed(1)}, ${target.y.toFixed(1)}) expected FDI ${target.fdi}, got ${actual}`, {cause});
+  }
 }
 
 async function checkDetail(page, fdi) {
@@ -68,9 +73,9 @@ async function checkDetail(page, fdi) {
       && [...app.arch.teeth].every(([fdi,item]) => !item.crown.visible && (fdi === id || !item.mesh.visible));
   }, fdi, {timeout:10000});
   assert.equal(await page.locator('.full-arch-focus-select').inputValue(), String(fdi));
-  assert.ok((await page.locator('.full-arch-focus-title').innerText()).includes(tooth.name));
+  assert.equal((await page.locator('.full-arch-focus-title').innerText()).trim(), tooth.patientName);
   assert.ok((await page.locator('#journey-canvas').getAttribute('aria-label')).includes(tooth.patientName));
-  assert.ok((await page.locator('.full-arch-focus-location').innerText()).includes(tooth.patientName));
+  assert.equal((await page.locator('.full-arch-focus-location').innerText()).trim(), `${tooth.type} · FDI ${fdi}`);
   assert.ok((await page.locator('.full-arch-focus-function').textContent()).includes(tooth.purpose));
   assert.ok((await page.locator('.full-arch-focus-landmark').textContent()).includes(tooth.landmark));
   assert.ok((await page.locator('.full-arch-focus-fact').textContent()).includes(tooth.fact));
@@ -78,6 +83,7 @@ async function checkDetail(page, fdi) {
 }
 
 async function backToMap(page) {
+  const fdi = Number(await page.locator('.full-arch-focus-select').inputValue());
   await page.getByRole('button', {name:'Späť na mapu',exact:true}).click();
   await page.waitForFunction(() => {
     const state = window.__dentalExperience.report();
@@ -85,7 +91,70 @@ async function backToMap(page) {
       document.querySelectorAll('.dental-map-labels [data-map-fdi]:not([display="none"])').length === 28;
   });
   await page.locator('.dental-map-labels').waitFor({state:'visible'});
+  assert.equal(await page.evaluate(()=>window.__dentalExperience.report().map.selectedFdi), fdi);
+  assert.equal(await page.locator('.dental-map-labels [data-selected]').getAttribute('data-map-fdi'), String(fdi));
+  assert.equal(await page.locator('#dental-map-name').innerText(), DENTAL_ATLAS_TEETH.get(fdi).patientName);
   assert.match(await page.locator('#journey-canvas').getAttribute('aria-label'),/Mapa horného a dolného zubného oblúka/);
+}
+
+async function focusedBounds(page, fdi) {
+  return page.evaluate(fdi => {
+    const app = window.__dentalExperience, camera = app.rig.camera;
+    const mesh = app.arch.teeth.get(fdi).mesh, point = camera.position.clone();
+    const rect = document.querySelector('#journey-canvas').getBoundingClientRect();
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+    for (let i = 0; i < mesh.geometry.attributes.position.count; i++) {
+      mesh.getVertexPosition(i,point).applyMatrix4(mesh.matrixWorld).project(camera);
+      const x = rect.left + (1 + point.x) * rect.width / 2;
+      const y = rect.top + (1 - point.y) * rect.height / 2;
+      left = Math.min(left,x); right = Math.max(right,x);
+      top = Math.min(top,y); bottom = Math.max(bottom,y);
+    }
+    return {left,right,top,bottom};
+  }, fdi);
+}
+
+async function inspectPhoneDetail(page, fdi, reviewDir) {
+  const ui = page.locator('.full-arch-anatomy-control[data-from-map]');
+  const box = async selector => (await ui.locator(selector).boundingBox());
+  const actions = ['.full-arch-focus-previous','.full-arch-focus-select','.full-arch-focus-next','.full-arch-anatomy-toggle'];
+  const row = await Promise.all(actions.map(box));
+  assert.ok(row.every(r=>r && r.height>=36), 'The arrows, picker and interior button have touch-sized targets');
+  assert.ok(row.slice(1).every((r,i)=>r.x>=row[i].x+row[i].width-1 && Math.abs(r.y+r.height/2-row[i].y-row[i].height/2)<3),
+    'Previous, native picker, next and interior fit on a single row');
+  const title = await box('.full-arch-focus-title'), back = await box('.full-arch-focus-return');
+  assert.ok(back.y+back.height<=title.y+1, 'Return to map sits above the title');
+  const initial = await focusedBounds(page,fdi), width = page.viewportSize().width;
+  for (const topic of ['Tvar','Zaujímavosť']) {
+    await page.getByRole('tab',{name:topic,exact:true}).click();
+    assert.deepEqual(await focusedBounds(page,fdi),initial,'Changing the description leaves the model in place');
+  }
+  const bottomOfCopy = await ui.evaluate(el=>el.getBoundingClientRect().bottom);
+  const dock = await page.locator('.model-controls').boundingBox();
+  assert.ok(initial.top>bottomOfCopy+4 && initial.bottom<dock.y-5 && initial.left>6 && initial.right<width-6,
+    'Every vertex of crown and roots fits between the text, the dock and the screen edges');
+  if (fdi === 13) {
+    // Measured on the same cameras and viewports in the published ee8d2e1 reference.
+    const referenceHeight = width===390 ? 225.3 : 216.8;
+    const enlargement = (initial.bottom-initial.top) / referenceHeight;
+    assert.ok(enlargement>=1.20 && enlargement<=1.35,'The whole canine opens about 25% larger');
+  } else {
+    assert.ok(initial.right-initial.left>width*.4, 'The full first molar retains a readable crown width');
+  }
+  if (reviewDir) {
+    await page.screenshot({path:join(reviewDir,`detail-${fdi}-${width}.png`),scale:'css'});
+    console.log('FDI',fdi,'at',width,'CSS px',initial);
+  }
+  if (!webkitRun) {
+    const start = await cameraProbe(page);
+    await touchDrag(page.context(),page,60,8);
+    assert.ok(angular(start.quat,(await cameraProbe(page)).quat)>.05,'Touch drag rotates the focused tooth');
+  }
+  await page.getByRole('button',{name:'Zobraziť vnútro',exact:true}).click();
+  await page.waitForFunction(id=>{
+    const {fullAnatomy} = window.__dentalExperience.report();
+    return fullAnatomy.fdi===id && fullAnatomy.weight>.98;
+  },fdi);
 }
 
 // Compare rendered text rectangles in CSS pixels. This also catches SVG
@@ -241,21 +310,7 @@ async function reviewMap(mobile) {
       assert.ok(centre.x < badge.x || centre.x > badge.x + badge.width
         || centre.y < badge.y || centre.y > badge.y + badge.height, 'FDI badge leaves the chewing surface clear');
       await tapTooth(page, centre, mobile);
-      if (fdi === 13) {
-        assert.match(await page.locator('.full-arch-focus-type').innerText(),/očný zub/i);
-        await page.getByRole('tab',{name:'Tvar',exact:true}).click();
-        await page.locator('.full-arch-focus-landmark').waitFor({state:'visible'});
-        await page.getByRole('tab',{name:'Zaujímavosť',exact:true}).click();
-        await page.locator('.full-arch-focus-fact').waitFor({state:'visible'});
-        if (review && mobile && !webkitRun) {
-          await page.screenshot({path:join(review,'ocny-zub-13.png'),scale:'css'});
-        }
-        await page.getByRole('button',{name:'Zobraziť vnútro',exact:true}).click();
-        await page.waitForFunction(() => {
-          const {fullAnatomy} = window.__dentalExperience.report();
-          return fullAnatomy.fdi === 13 && fullAnatomy.weight > .98;
-        });
-      }
+      if (mobile && [13,36].includes(fdi)) await inspectPhoneDetail(page,fdi,review);
       await backToMap(page);
     }
     const selected = await measure(page);
@@ -294,6 +349,22 @@ async function reviewMap(mobile) {
       assert.ok(near(inward.teeth[i].x,outward.teeth[i].x,.05) && near(inward.teeth[i].y,outward.teeth[i].y,.05), 'Crown positions reverse on the same path');
     }
     if (mobile) {
+      await settleAt(page,map.at);
+      await page.setViewportSize({width:375,height:812});
+      await page.waitForFunction(() => {
+        const state = window.__dentalExperience.report();
+        const [width,height] = state.composition.fullSensor;
+        return width===375 && height===812 && state.map.active;
+      });
+      for (const fdi of [13,36]) {
+        await picker.selectOption(String(fdi));
+        await checkDetail(page,fdi);
+        await inspectPhoneDetail(page,fdi,review);
+        await page.locator('.full-arch-focus-next').click();
+        await checkDetail(page,fdi===13?12:37);
+        assert.equal(await page.getByRole('tab',{name:'Zaujímavosť'}).getAttribute('aria-selected'),'true');
+        await backToMap(page);
+      }
       await page.setViewportSize({width:320, height:568});
       await page.waitForFunction(() => {
         const [width, height] = window.__dentalExperience.report().composition.fullSensor;
