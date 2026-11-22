@@ -130,7 +130,7 @@ try{
       assert.equal(actual.progress,frozen,'Touch exploration preserves the seated smile');
       const teeth=await page.evaluate(measureVisibleCrowns);
       assert.ok(teeth.length>=6,'ID pass sees the individual seated crowns');
-      const chapter=progress===0?'01':'07';
+      const chapter=progress===0?'01':'09';
       results.push({chapter,name,degrees,teeth});
       console.log(chapter,name,teeth.map(t=>t.fdi+'='+t.median).join(' '));
       if(out && chapter==='01' && ['three-quarter-left','left','back-right'].includes(name)){

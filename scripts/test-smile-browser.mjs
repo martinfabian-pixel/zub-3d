@@ -30,7 +30,7 @@ try {
   await enterStory(page);
   await page.waitForFunction(()=>window.__dentalExperience?.report().assetsReady,null,{timeout:90000});
   await page.locator('#journey-startup').waitFor({state:'hidden'});
-  assert.equal(await page.locator('#journey-step-number').innerText(),'01 / 07');
+  assert.equal(await page.locator('#journey-step-number').innerText(),'01 / 09');
   assert.equal(await page.evaluate(()=>window.__dentalExperience.report().story.chapterId),'dentition');
   assert.equal(await page.locator('#journey-title').innerText(),'Celý chrup.');
   assert.equal(await page.locator('#journey-hero-explore').isVisible(),false);
@@ -115,7 +115,7 @@ try {
    if(mobile)await button.tap();else await button.click();
    await page.waitForFunction(({id,at})=>{const r=window.__dentalExperience.report();
     return r.story.chapterId===id&&Math.abs(r.progress-at)<.002&&Math.abs(r.renderProgress-r.storyProgress)<.00002;},chapter);
-   assert.equal(await page.locator('#journey-step-number').innerText(),`0${index} / 07`);
+   assert.equal(await page.locator('#journey-step-number').innerText(),`0${index} / 09`);
   }
 
   await seek(seatedAt);
@@ -210,19 +210,19 @@ try {
   expectMeshes(await readState(),28,0);
   await page.locator('#journey-view-anatomy').click();await page.waitForTimeout(700);
   expectMeshes(await readState(),0,28);
-  await seek(.965);
-  const calmReturn=await readState();
-  assert.equal(calmReturn.crowns,0);
-  assert.ok(calmReturn.anatomy>3,'The closing reveal progressively brings back the rooted arch');
-  for(let i=0;i<calmReturn.matrices.length;i++) {
-    const seated=anatomy.matrices[i], current=calmReturn.matrices[i];
-    assert.ok(current.every((value,index)=>index===13||Math.abs(value-seated[index])<1e-5),
-      'Closing uses the rooted seats with only the vertical jaw adjustment');
-  }
+  await seek((STORY_TIMING.map.lower[0]+STORY_TIMING.finalCrowns[0])/2);
+  const lower=await readState();
+  assert.equal(lower.crowns,0);
+  assert.ok(lower.anatomy>3&&lower.anatomy<=14,'The lower arch appears before the upper arch');
+  await seek(STORY_TIMING.map.at);
+  const map=await readState();
+  expectMeshes(map,28,0);
+  assert.ok(map.crownMatrices.every((matrix,i)=>matrix.some((value,j)=>Math.abs(value-smile.crownMatrices[i][j])>.1)),
+    'All 28 smile crowns turn to show their occlusal surfaces');
   await seek(1);
   const closing=await readState();
   expectMeshes(closing,28,0);
-  assert.equal(closing.chapter,'brush');
+  assert.equal(closing.chapter,'closing');
   assert.equal(closing.crownMix,1,'The last smile does not depend on the selected atlas view');
   assert.deepEqual(closing.crownMatrices,smile.crownMatrices,'Both smiles use the same approved crown seating');
   await page.screenshot({path:`${out}/${width}-zaverecny-usmev.png`});
@@ -245,7 +245,7 @@ try {
     }
   }
   assert.deepEqual(errors,[]);
-  const stages=Object.entries({seated,lifted,dissolveStart,dissolveEnd,smile,anatomy,calmReturn,closing})
+  const stages=Object.entries({seated,lifted,dissolveStart,dissolveEnd,smile,anatomy,lower,map,closing})
    .map(([name,{chapter,crownMix,crowns,anatomy}])=>({name,chapter,crownMix,crowns,anatomy}));
   results.push({width,height,motion,stages,errors});
   console.log(width, 'passed');

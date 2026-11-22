@@ -6,6 +6,7 @@ import { DENTAL_STORY, STORY_TIMING } from './story-config.js';
 import { createFloatingTeeth, flightReveal } from './floating-teeth.js';
 import { createSmileLayout, measureSmileBounds } from './smile-layout.js';
 import { createSmileBacking } from './smile-backing.js';
+import { createOcclusalMap } from './occlusal-map.js';
 
 const smooth = (a,b,value) => { const t=THREE.MathUtils.clamp((value-a)/(b-a),0,1); return t*t*(3-2*t); };
 
@@ -47,7 +48,9 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   const proxies = [];
   let disposed=false, assetsReady=false, visibleCount=1;
   let finalView='smile', smileWeight=1, sceneProgress=0, closureCm=0;
-  let floating, smileBounds, smileBacking, rootedAtlas;
+  let floating, smileBounds, smileBacking, rootedAtlas, occlusalMap;
+  let mapSelection=config.anatomy.hero, mapOpening=0, siteEmphasis=0;
+  const siteTint = new THREE.Color(.46, .86, .94);
   let crownMix=0;
   const crownPosition=new THREE.Vector3(), crownScale=new THREE.Vector3(), crownRotation=new THREE.Quaternion();
   const smileCenter=new THREE.Vector3(), viewFromSmile=new THREE.Vector3();
@@ -75,6 +78,8 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       mesh.geometry=mirrored.get(item.entry.source); mesh.matrix.multiply(mirror);
     }
     item.finish=prepareJourneyMaterial(mesh,config,profile,renderer,clay);
+    if(fdi===DENTAL_STORY.fdi.hero||fdi===DENTAL_STORY.fdi.distalNeighbor)
+      item.siteNeutral=mesh.material.color.clone();
     // Keep the live molar's program throughout loading. Installing the
     // dissolve when the crowns arrive recompiles its visible surface mid-turn.
     if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
@@ -206,8 +211,24 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     }
     smileBounds=bounds;
     smileBounds.getCenter(smileCenter);
+    occlusalMap=createOcclusalMap(teeth,layout);
   }
   const sampled={brushPose:{}};
+  function updateMapTint(fdi,item) {
+    item?.crownFinish?.setMapEmphasis(Math.max(item.siteNeutral?siteEmphasis*.53:0,fdi===mapSelection?mapOpening:0));
+  }
+  function setMapSelection(fdi) {
+    const previous=mapSelection;
+    mapSelection=teeth.has(fdi)?fdi:config.anatomy.hero;
+    if(mapOpening&&mapSelection!==previous) {
+      updateMapTint(previous,teeth.get(previous));
+      updateMapTint(mapSelection,teeth.get(mapSelection));
+    }
+  }
+  function mapAnchor(fdi, out) {
+    const anchor=occlusalMap?.anchors.get(fdi), crown=teeth.get(fdi)?.crown;
+    return anchor&&crown ? out.copy(anchor).applyMatrix4(crown.matrixWorld) : null;
+  }
   function setFinalView(view, weight=view==='smile'?1:0) {
     if(view!=='smile'&&view!=='anatomy')throw new RangeError('Unknown final dental view.');
     if(!Number.isFinite(weight))throw new RangeError('Final smile weight must be finite.');
@@ -222,7 +243,12 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     const flying=state.openingFlight&&floating?.update(sceneProgress,closureCm,profile.compact)>0;
     const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
     crownMix=mix;
-    smileBacking?.setCoverage(mix);
+    const lower=state.mapLower??0, upper=state.mapUpper??0;
+    mapOpening=Math.max(lower,upper);
+    const updateSite=siteEmphasis!==(state.mapSite??0);
+    siteEmphasis=state.mapSite??0;
+    if(mapOpening)occlusalMap?.sample(lower,upper);
+    smileBacking?.setCoverage(mix*(1-mapOpening));
     visibleCount=0;
     for (const [fdi,item] of teeth) {
       const hero=fdi===config.anatomy.hero;
@@ -239,11 +265,13 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       // At the tail of easing a JS double may still be below a GPU float of 1.
       const seat=mix===0||mix===1?mix:Math.fround(smooth(item.smileStart,item.smileStart+.675,mix));
       if(item.mesh)item.smileMix.value=seat;
+      if(item.siteNeutral&&updateSite)item.finish.material.color.lerpColors(item.siteNeutral,siteTint,siteEmphasis);
       item.finish?.setReveal(seat===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {
         // The rooted representation has its own enamel locator. Carry the
         // same cool cue on the visible crown before and during the handoff.
         if(hero)item.crown.material.color.lerpColors(item.crownNeutral,item.crownLocated,state.locate36);
+        updateMapTint(fdi,item);
         item.crownFinish.setReveal(seat>item.crownThreshold?reveal:0);
         // Move the complete arch on one easing curve. Only the tissue
         // handover is staggered, so the fronts never have to catch up.
@@ -268,6 +296,14 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
           item.crown.castShadow=crownCasts&&item.crown.visible;
         }
       }
+      if(occlusalMap && (item.upper?upper:lower)>0) {
+        const turn=item.upper?occlusalMap.upper:occlusalMap.lower;
+        // Apply after the root-to-crown handover has registered both meshes.
+        // The rooted teeth stay continuous even when the map starts unfolding
+        // before their crown representations have fully taken over.
+        if(item.mesh.visible){item.mesh.matrix.premultiply(turn);item.mesh.updateMatrixWorld(true);}
+        if(item.crown.visible){item.crown.matrix.premultiply(turn);item.crown.updateMatrixWorld(true);}
+      }
       if(item.mesh&&reveal>.00001)visibleCount++;
     }
   }
@@ -288,6 +324,8 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     full:()=>selection(()=>true),
     flight:()=>selection(()=>true),
     smile:()=>smileBounds,
+    map:()=>occlusalMap?.bounds??selection(()=>true),
+    mapLower:()=>occlusalMap?.lowerBounds??selection(i=>!i.upper),
   };
   function report() {
     return [...teeth].map(([fdi,item])=>({fdi,source:item.entry.source,loaded:Boolean(item.mesh),reveal:item.mesh?item.reveal:0,worldMatrix:(item.mesh?.matrixWorld??item.matrix).toArray(),triangles:item.mesh?(item.mesh.geometry.index?.count??item.mesh.geometry.attributes.position.count)/3:0}));
@@ -300,6 +338,6 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
     rootedAtlas=null;mirrored.clear(); teeth.clear();
   }
-  return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,updateView,report,dispose,
+  return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,setMapSelection,mapAnchor,updateView,report,dispose,
     ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

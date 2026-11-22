@@ -3,19 +3,20 @@ import { DENTAL_CHAPTERS, FINAL_SMILE_COPY, STORY_TIMING } from '../src/experien
 import { getStoryCopy, sampleStageTypography,TYPE_COMPOSITIONS } from '../src/experience/stage-typography.js';
 
 const names=['Celý chrup.','Šestka v oblúku.','Pozrite sa pod povrch.','Čo je vo vnútri zuba?',
-  'Ktoré miesto práve čistíme?','Nenápadný povlak.','Jemne tam a späť.'];
+  'Ktoré miesto práve čistíme?','Nenápadný povlak.','Jemne tam a späť.','Mapa chrupu.',FINAL_SMILE_COPY.title];
 assert.deepEqual(DENTAL_CHAPTERS.map(c=>c.title),names);
 for(const chapter of DENTAL_CHAPTERS){
-  assert.ok(chapter.titleLines.length>=1&&chapter.titleLines.length<=2);
+  assert.ok(chapter.titleLines.length>=1&&chapter.titleLines.length<=(chapter.id==='closing'?3:2));
   assert.equal(chapter.titleLines.join(' '),chapter.title);
   assert.ok(chapter.titleLines.every(line=>line.trim()===line&&line.length>2));
 }
 assert.deepEqual(new Set(Object.keys(TYPE_COMPOSITIONS)),new Set([...DENTAL_CHAPTERS.map(c=>c.id),'result','closing']));
-const brush=DENTAL_CHAPTERS.at(-1);
+const brush=DENTAL_CHAPTERS.find(ch=>ch.id==='brush');
+const closing=DENTAL_CHAPTERS.at(-1);
 assert.equal(getStoryCopy(brush,STORY_TIMING.resultAt).phase,'result');
-assert.equal(getStoryCopy(brush,1).phase,'closing');
-assert.equal(getStoryCopy(brush,1).title,FINAL_SMILE_COPY.title);
-assert.equal(getStoryCopy(brush,1).text,FINAL_SMILE_COPY.text);
+assert.equal(getStoryCopy(closing,1).id,'closing');
+assert.equal(getStoryCopy(closing,1).title,FINAL_SMILE_COPY.title);
+assert.equal(getStoryCopy(closing,1).text,FINAL_SMILE_COPY.text);
 const progress=Array.from({length:2001},(_,i)=>i/2000);
 const chapterAt=p=>DENTAL_CHAPTERS.findLast(c=>p>=c.start);
 for(const mobile of [false,true]){
@@ -45,4 +46,4 @@ for(const mobile of [false,true]){
     assert.ok(out.opacity>0&&out.opacity<1&&into.opacity>0&&into.opacity<1);
   }
 }
-console.log('Stage typography: seven exact titles, six two-sided boundaries, deterministic reverse/jumps and reduced motion passed on both profiles.');
+console.log('Stage typography: nine exact titles, eight two-sided boundaries, deterministic reverse/jumps and reduced motion passed on both profiles.');

@@ -27,6 +27,9 @@ function windowMaterial(source, uniforms, veil) {
   const borrowed=Object.create(source);
   borrowed.userData={};
   const material=new source.constructor().copy(borrowed), compile=source.onBeforeCompile, key=source.customProgramCacheKey();
+  // The two passes are the same enamel. The map locator can tint the host
+  // while this temporary material is installed, including on reverse scroll.
+  material.color=source.color;
   material.transparent=veil;
   material.depthWrite=!veil;
   material.opacity=1;

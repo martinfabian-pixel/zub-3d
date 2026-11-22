@@ -65,7 +65,11 @@ export async function measureSharedStage(page) {
     } else if(chapter==='brush'&&brushPhase==='cleaning'){
       point.fromArray(app.site.brush.centerline[0].position);sample('buccal shaft entry');
       if(state.story.brush.tipWorld){point.fromArray(state.story.brush.tipWorld);sample('brush tip');}
-    } else if(chapter==='dentition'||chapter==='brush'){
+    } else if(chapter==='map'){
+      for (const fdi of app.arch.teeth.keys()) {
+        if (app.arch.mapAnchor(fdi, point)) sample('occlusal surface '+fdi);
+      }
+    } else if(chapter==='dentition'||chapter==='closing'){
       for(const fdi of [11,12,13,21,22,23,31,32,33,41,42,43]){
         const item=app.arch.teeth.get(fdi),m=item.crown?.visible?item.crown:item.mesh;
         if(!m?.visible)continue;

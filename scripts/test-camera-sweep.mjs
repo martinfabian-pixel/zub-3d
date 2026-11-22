@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { Box3, Vector3, MathUtils } from 'three';
+import { Box3, BufferGeometry, Float32BufferAttribute, Matrix4, Mesh, Vector3, MathUtils } from 'three';
 import { experienceConfig } from '../src/experience/config.js';
 import { createOpeningCameraOptions, createStoryCameraConfig } from '../src/experience/story-camera.js';
 import { createTimeline } from '../src/experience/timeline.js';
 import { createJourneyCamera } from '../src/experience/camera.js';
+import { createSmileLayout } from '../src/experience/smile-layout.js';
+import { createOcclusalMap } from '../src/experience/occlusal-map.js';
 import { createCleaningPath } from '../src/experience/cleaning-path.js';
 import { sampleDentalStory, sampleOpeningDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
 import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
@@ -14,6 +16,35 @@ import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from '../s
 const site = JSON.parse(readFileSync(new URL('../public/story-assets/site.json', import.meta.url)));
 const chapterAt = id => DENTAL_CHAPTERS.find(chapter => chapter.id === id).at;
 const region = (center, size) => new Box3().setFromCenterAndSize(new Vector3(...center), new Vector3(...size));
+
+// Exercise the same crown seats and pivots as the renderer, using the
+// project GLB's actual position accessors (the camera needs no textures).
+const crowns = readFileSync(new URL('../public/dentition-assets/crowns.glb', import.meta.url));
+const jsonSize = crowns.readUInt32LE(12), doc = JSON.parse(crowns.subarray(20,20+jsonSize));
+const manifest = JSON.parse(readFileSync(new URL('../public/dentition-assets/manifest.json',import.meta.url)));
+const teeth = new Map();
+for (const tooth of manifest.teeth) {
+  const mesh = doc.meshes.find(mesh=>mesh.name===tooth.node);
+  const pos = doc.accessors[mesh.primitives[0].attributes.POSITION], view = doc.bufferViews[pos.bufferView];
+  assert.equal(pos.componentType,5126);
+  assert.ok(!view.byteStride);
+  const offset = crowns.byteOffset + 28 + jsonSize + (view.byteOffset??0) + (pos.byteOffset??0);
+  const geometry = new BufferGeometry().setAttribute('position',new Float32BufferAttribute(new Float32Array(crowns.buffer,offset,3*pos.count),3));
+  if(tooth.reflected)geometry.scale(-1,1,1);
+  geometry.computeBoundingBox();
+  teeth.set(tooth.fdi,{upper:tooth.fdi<30,crown:new Mesh(geometry),matrix:new Matrix4().fromArray(tooth.matrix)});
+}
+const layout = createSmileLayout(teeth);
+const map = createOcclusalMap(teeth,layout);
+const poseProgress = (STORY_TIMING.map.lower[1]+STORY_TIMING.map.upper[0])/2;
+const middle = sampleDentalStory(poseProgress);
+map.sample(middle.mapLower,middle.mapUpper);
+const lowerPartial=map.lower.clone(),upperPartial=map.upper.clone();
+map.sample(0,0);
+assert.ok(map.upper.equals(new Matrix4())&&map.lower.equals(new Matrix4()),'A closed map precisely restores both smile seats');
+map.sample(middle.mapLower,middle.mapUpper);
+assert.ok(map.lower.equals(lowerPartial)&&map.upper.equals(upperPartial),'Re-entering reproduces the two intermediate jaw poses');
+map.sample(1,1);
 const landmarks = {
   hero: region([2.86, -.68, -.63], [1.4, 2.1, 1.4]),
   neighbors: region([2.7, -.68, -1], [2.5, 2.1, 2.3]),
@@ -21,6 +52,7 @@ const landmarks = {
   full: region([0, 0, 0], [6.5, 4.5, 4.5]),
   flight: region([0, 0, 0], [6.5, 4.5, 4.5]),
   smile: region([0, 0, 0], [6.5, 2, 4]),
+  map: map.bounds, mapLower: map.lowerBounds,
 };
 
 function yaw(pose) {
@@ -158,6 +190,7 @@ for (const compact of [false, true]) {
     close(sample(knot).opticalZoom, at.opticalZoom, 1e-12, 'Repeated samples match');
   }
   const sequence = [.62, .635, .65, .667, .676, .69, .705, .72].map(brushProgress);
+  sequence.push(...STORY_TIMING.map.lower,...STORY_TIMING.map.hold,...STORY_TIMING.map.close,1);
   const forward = sequence.map(sample), reverse = sequence.toReversed().map(sample).reverse();
   for (let i = 0; i < forward.length; i++) {
     assert.ok(forward[i].position.distanceTo(reverse[i].position) < 1e-12, 'Reverse reproduces camera position');
@@ -173,6 +206,24 @@ for (const compact of [false, true]) {
     assert.equal(reduced.sceneProgress, (resultStart + resultEnd) / 2);
     assert.ok(sample(reduced.sceneProgress).position.distanceTo(start.position) < 1e-7, 'Reduced motion result keeps the working angle');
   }
-  assert.equal(sampleReducedDentalStory(resultEnd).sceneProgress, 1, 'Reduced motion uses a settled final smile');
+  assert.equal(sampleReducedDentalStory(resultEnd).sceneProgress, STORY_TIMING.map.at, 'Reduced motion enters the settled map after cleaning');
+  assert.equal(sampleReducedDentalStory(1).sceneProgress, 1, 'Reduced motion ends on the settled smile');
+  const rig=createJourneyCamera({timeline});
+  rig.resize(compact?390:1440,compact?844:900);
+  rig.setProgress(STORY_TIMING.map.at);
+  const projected=new Box3(), centres=new Map(), point=new Vector3();
+  for(const [fdi,item] of teeth) {
+    const transform=new Matrix4().multiplyMatrices(item.upper?map.upper:map.lower,layout.get(fdi));
+    assert.ok(new Vector3(0,1,0).transformDirection(transform).z>.92,'The biting face of FDI '+fdi+' faces the map camera');
+    const positions=item.crown.geometry.attributes.position;
+    for(let i=0;i<positions.count;i++)
+      projected.expandByPoint(point.fromBufferAttribute(positions,i).applyMatrix4(transform).project(rig.camera));
+    centres.set(fdi,map.anchors.get(fdi).clone().applyMatrix4(transform).project(rig.camera));
+  }
+  assert.ok(centres.get(11).x<centres.get(21).x && centres.get(41).x<centres.get(31).x,'Patient-right incisors project on the left in both arches');
+  assert.ok(centres.get(11).y>centres.get(17).y && centres.get(41).y<centres.get(47).y,'Both rows present their occlusal surfaces, with incisors at opposite outer edges');
+  assert.ok(projected.min.x>-1&&projected.max.x<1&&projected.min.y>-1&&projected.max.y<1,'Every crown stays in the viewport');
+  if(compact)assert.ok(projected.max.x-projected.min.x>1.5,'Map fills at least three quarters of phone width');
+  rig.dispose();
 }
 console.log('Camera: molar follow, registered brush/contact hold, C1 continuity, reverse and reduced motion passed on desktop and portrait.');

@@ -147,7 +147,9 @@ try {
         s=await state();
         assert.ok(Math.abs(s.storyProgress-STORY_TIMING.resultAt)<.004,'Finishing manual cleaning lands on the clean contact');
         assert.equal(s.story.cleaningProgress,1);
-        await page.getByRole('button',{name:'Zobraziť úsmev'}).tap();
+        await page.getByRole('button',{name:'Zobraziť mapu chrupu'}).tap();
+        await wait(()=>window.__dentalExperience.report().map.active);
+        await page.locator('#journey-mobile-next').tap();
       }else{
         await page.locator('.manual-cleaning-repeat').click();
         await wait(()=>window.__dentalExperience.report().manualCleaning?.phase==='ready');
@@ -160,7 +162,7 @@ try {
         assert.ok(distance(s.target,before.target)<.04,'The camera returns to its previous orientation');
         await nativeJump(page,1);
       }
-      await wait(()=>{const s=window.__dentalExperience.report();return s.story.brushStoryPhase==='smile'&&s.crownMix===1;});
+      await wait(()=>{const s=window.__dentalExperience.report();return s.story.chapterId==='closing'&&s.story.finalSmile===1&&s.crownMix===1;});
       assert.equal(await windowToggle.isVisible(),false,'The optical window belongs only to the working site');
       await page.evaluate(()=>{
         window.__returnedThroughOpening=false;

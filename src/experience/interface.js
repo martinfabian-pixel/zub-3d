@@ -1,12 +1,11 @@
 import { createStageTypography, getStoryCopy } from './stage-typography.js';
 import { getJourneyScrollMetrics } from './scroll.js';
-import { FINAL_SMILE_COPY, STORY_TIMING } from './story-config.js';
+import { STORY_TIMING } from './story-config.js';
 
 function createChapterPicker(stage, steps, navigate, repeatCleaning, signal) {
   const trigger=stage.querySelector('#journey-chapter-picker');
   const label=trigger.querySelector('span');
   const options=stage.querySelector('#journey-chapter-options');
-  const choices=[...steps,{id:'closing',label:FINAL_SMILE_COPY.label,at:1}];
   options.replaceChildren();
   options.hidden=true;
   trigger.setAttribute('aria-expanded','false');
@@ -17,7 +16,7 @@ function createChapterPicker(stage, steps, navigate, repeatCleaning, signal) {
     trigger.setAttribute('aria-expanded','false');
     if(focus)trigger.focus({preventScroll:true});
   }
-  for(const choice of choices){
+  for(const choice of steps){
     const button=document.createElement('button');
     button.type='button';button.textContent=choice.label;button.dataset.chapter=choice.id;
     button.addEventListener('click',()=>{
@@ -58,13 +57,13 @@ export function createInterface({config,section,stage,signal,navigate,repeatClea
   const heroExplore=byId('journey-hero-explore'),freeExplore=byId('journey-explore');
   const closingButton=document.createElement('button');
   closingButton.className='outline-button journey-finale-continue';closingButton.type='button';
-  closingButton.textContent='Zobraziť úsmev';closingButton.hidden=true;
+  closingButton.textContent='Zobraziť mapu chrupu';closingButton.hidden=true;
   document.querySelector('.journey-copy').append(closingButton);
-  closingButton.addEventListener('click',()=>navigate(1),{signal});
+  closingButton.addEventListener('click',()=>navigate(STORY_TIMING.map.at),{signal});
   const repeatButton=byId('journey-repeat-cleaning');
   repeatButton.addEventListener('click',repeatCleaning,{signal});
   const modelButtons=['journey-hero-explore','journey-explore','journey-reset','journey-zoom-in','journey-zoom-out'].map(byId);
-  let index=-1,liveReady=false,smallLayout,lastPhase,lastNavIndex,lastCopy,lastResult,currentProgress=0;
+  let index=-1,liveReady=false,smallLayout,lastPhase,lastNavIndex,lastCopy,lastResult;
   let lastExploreLabel;
   nav.replaceChildren();
   for(const [i,step] of steps.entries()) {
@@ -77,10 +76,6 @@ export function createInterface({config,section,stage,signal,navigate,repeatClea
     const target=navigationTarget();
     const requested=target==null?-1:steps.findIndex(step=>step.at===target);
     const current=requested<0?index:requested, last=steps.length-1;
-    if(delta>0&&current===last){navigate(1);return;}
-    if(delta<0&&(target===1||(index===last&&currentProgress>=STORY_TIMING.result[0]))){
-      navigate(steps[last].at);return;
-    }
     navigate(steps[Math.max(0,Math.min(last,current+delta))].at);
   };
   byId('journey-mobile-previous').addEventListener('click',()=>move(-1),{signal});
@@ -104,7 +99,6 @@ export function createInterface({config,section,stage,signal,navigate,repeatClea
     // Delayed assets and reduced-motion states use the actually rendered chapter.
     const active=state?.chapterIndex??0;
     const step=steps[active],phase=state?.brushPose?.phase??'hidden',sceneProgress=state?.sceneProgress??0;
-    currentProgress=sceneProgress;
     const copy=getStoryCopy(step,sceneProgress),changedChapter=index!==active;
     if(changedChapter||smallLayout!==small||lastCopy!==copy) {
       index=active;smallLayout=small;lastPhase=undefined;lastCopy=copy;
@@ -114,9 +108,8 @@ export function createInterface({config,section,stage,signal,navigate,repeatClea
         return line;
       });
       byId('journey-title').replaceChildren(...lines.flatMap((line,i)=>i?[' ',line]:[line]));
-      const finale=copy.phase==='closing';
-      updatePicker(finale?'closing':step.id,finale?copy.label:step.label);
-      repeatButton.hidden=!finale;
+      updatePicker(step.id,step.label);
+      repeatButton.hidden=step.id!=='closing';
       byId('journey-step-number').textContent=`${String(index+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       byId('journey-meta').textContent=step.meta;byId('journey-subject').textContent=step.subject;
       byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+copy.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');

@@ -28,6 +28,7 @@ import { createHeroAnatomyControls } from './hero-anatomy-controls.js';
 import { createFullArchAnatomy } from './full-arch-anatomy.js';
 import { createFullArchAnatomyControls } from './full-arch-anatomy-controls.js';
 import { atlasCoverage, createFullArchFocus } from './full-arch-focus.js';
+import { createDentalMapUI } from './dental-map-ui.js';
 import { createFullArchBrushing } from './full-arch-brushing.js';
 import { createFullArchBrushingControls } from './full-arch-brushing-controls.js';
 import { createStartupHandoff } from './startup-handoff.js';
@@ -55,7 +56,7 @@ export function createExperience(configuration=experienceConfig) {
   const clinicView=readClinicView(query);
   let pendingClinicView=clinicView;
   let renderer,scene,arch,lighting,rig,controls,scroll,adaptive,observer,hero,atlas,upperMolar;
-  let site,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy;
+  let site,plaque,brush,path,view,annotations,heroAnatomy,fullArchAnatomy,mapUI;
   let studyReady=false,flightReady=false,crownsReady=false,storyReady=false;
   const studyLimit=config.presentation.steps.find(step=>step.id==='space').start-.001;
   const scrollReadiness=createScrollReadiness(0);
@@ -207,12 +208,16 @@ export function createExperience(configuration=experienceConfig) {
     storyAnatomy.inspect(layer);
     requestRender();
   }
-  function selectionMode(){return canInspectStoryLayer()?'layer':canUseAtlas()?'atlas':null;}
+  function selectionMode(){return mapUI?.active?'map':canInspectStoryLayer()?'layer':canUseAtlas()?'atlas':null;}
   function pickInCanvas(event,mode){
     if(mode!==selectionMode())return;
     const box=canvas.getBoundingClientRect();
     pointerNdc.set((event.clientX-box.left)/box.width*2-1,1-(event.clientY-box.top)/box.height*2);
     raycaster.setFromCamera(pointerNdc,rig.camera);
+    if(mode==='map'){
+      mapUI.pick(raycaster,event);
+      return;
+    }
     if(mode==='layer'){
       inspectStoryLayer(fullArchAnatomy.pickStoryLayer(raycaster));
       return;
@@ -283,6 +288,7 @@ export function createExperience(configuration=experienceConfig) {
   }
   function startManualCleaning({instant=false,fresh=false}={}) {
     if(!studyReady||manual||dentalState.chapterId!=='brush'||dentalState.sceneProgress>=STORY_TIMING.result[0])return;
+    mapUI.update({active:false});
     // An in-story handoff keeps the same view of the working tip. A shared
     // manual demonstration starts with the whole tooth before the first tap.
     windowChoice=instant||fresh?false:windowEnabled;
@@ -381,7 +387,8 @@ export function createExperience(configuration=experienceConfig) {
     ui.update({progress:exploring?inspectionProgress:storyProgress,ready,complete,exploring,finalView,compact:profile.compact,
       atlasFocused:Boolean(focusOrigin),state:dentalState,reducedMotion});
     const sharingCleaning=manual||(dentalState.chapterId==='brush'&&dentalState.sceneProgress<STORY_TIMING.return[0]);
-    showClinicShare(sharingCleaning?clinicViews.cleaning:dentalState.chapterId==='anatomy'?clinicViews.pulp:null);
+    showClinicShare(sharingCleaning?clinicViews.cleaning:dentalState.chapterId==='anatomy'?clinicViews.pulp:
+      dentalState.chapterId==='map'?clinicViews.map:null);
     if(ready){
       const atBoundary=scrollReadiness.limit<1&&progress>=scrollReadiness.limit-.002;
       status.hidden=!atBoundary;
@@ -593,7 +600,7 @@ export function createExperience(configuration=experienceConfig) {
       focusedTooth:fullArchFocus.selected,focusMoving:fullArchFocus.moving,focusReturning:fullArchFocus.returning,focusHasOrigin:Boolean(focusOrigin),
       ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,crownMix:arch?.crownMix,reducedMotion,view:view?.report(),
       composition:rig?{focus:[rig.pose.screenX,rig.pose.screenY],opticalZoom:rig.pose.opticalZoom,fullSensor:[rig.camera.view?.fullWidth,rig.camera.view?.fullHeight]}:null,
-      typography:ui.report(),annotations:annotations?.report(),
+      typography:ui.report(),annotations:annotations?.report(),map:mapUI?.report(),
       profile:profile.name,frames:renderedFrames,teeth,
       visibleTeeth:teeth.filter((t)=>t.loaded&&t.reveal>.00001).map((t)=>t.fdi),
       fullyVisibleTeeth:teeth.filter((t)=>t.loaded&&t.reveal>.99999).map((t)=>t.fdi),
@@ -604,8 +611,8 @@ export function createExperience(configuration=experienceConfig) {
       environment:lighting?.label,heroBytes:hero?.bytes,atlasBytes:atlas?.bytes,upperMolarBytes:upperMolar?.bytes,
       story:{chapterId:dentalState.chapterId,sceneProgress:dentalState.sceneProgress,
         locate36:dentalState.locate36,toothExtraction:dentalState.toothExtraction,
-        brushStoryPhase:dentalState.chapterId!=='brush'?null:dentalState.sceneProgress>=STORY_TIMING.finalHold[0]?'smile':
-          dentalState.sceneProgress>=STORY_TIMING.return[0]?'return':dentalState.sceneProgress>=STORY_TIMING.result[0]?'result':'cleaning',
+        mapLower:dentalState.mapLower,mapUpper:dentalState.mapUpper,mapSite:dentalState.mapSite,
+        brushStoryPhase:dentalState.chapterId!=='brush'?null:dentalState.sceneProgress>=STORY_TIMING.result[0]?'result':'cleaning',
         finalSmile:dentalState.finalSmile,cleaningProgress:dentalState.cleaningProgress,plaqueDeposition:dentalState.plaqueDeposition,
         plaqueCoverage:dentalState.plaqueCoverage,brushPose:{...dentalState.brushPose},plaque:plaque?.report(),brush:brush?.report()},
     };
@@ -711,11 +718,12 @@ export function createExperience(configuration=experienceConfig) {
     // No cinematic or intermediate chapter is exposed on a clinic link.
     if(pendingClinicView){
       const finale=pendingClinicView===clinicViews.smile;
+      const map=pendingClinicView===clinicViews.map;
       const cleaning=pendingClinicView===clinicViews.cleaning;
-      if(!openingComplete||((cleaning||finale)&&!studyReady))return;
+      if(!openingComplete||((cleaning||finale||map)&&!studyReady))return;
       pendingClinicView=null;
-      if(finale){
-        restoreStoryPosition(STORY_TIMING.finalHold[1]);
+      if(finale||map){
+        restoreStoryPosition(map?STORY_TIMING.map.at:STORY_TIMING.finalHold[1]);
       }else if(cleaning){
         restoreStoryPosition(STORY_TIMING.manualReady);
         applyState(renderProgress,true);
@@ -773,7 +781,7 @@ export function createExperience(configuration=experienceConfig) {
         if(manual){renderManual(now);return;}
       }
     }
-    else if(atlasWasEngaged)applyState(inspectionProgress,true);
+    else if(atlasWasEngaged||mapUI?.active)applyState(inspectionProgress,true);
     progressFrame=now;
     // ResizeObserver owns stage changes. Reading layout after UI writes in
     // every moving frame forces synchronous layout on mobile browsers.
@@ -837,6 +845,9 @@ export function createExperience(configuration=experienceConfig) {
     }
     arch.updateView(rig.camera);
     const windowMoving=updateCleaningWindow(now);
+    mapUI.update({active:dentalState.chapterId==='map'&&dentalState.mapUpper===1,
+      unfolded:dentalState.mapLower>0||dentalState.mapUpper>0,
+      camera:rig.camera,width:logicalWidth,height:logicalHeight});
     annotations?.update({state:dentalState,camera:rig.camera,brush,anatomy:anatomyState});
     if(smileBacking&&brushingRun?.demo?.jawOpening>.01)smileBacking.visible=false;
     if(lastFrame&&(interaction||changing||scrolling||fullArchFocus.moving))adaptive.recordFrame(now-lastFrame);
@@ -884,6 +895,7 @@ export function createExperience(configuration=experienceConfig) {
     releaseRendererLuts(renderer,scene);
     observer?.disconnect();scroll?.dispose();controls?.dispose();view?.dispose();annotations?.dispose();rig?.dispose();adaptive?.dispose();lighting?.dispose();healthyAnatomyUI.dispose();anatomyControls.dispose();fullAnatomyControls.dispose();brushingControls.dispose();manualUI.dispose();ui.dispose();
     fullBrushing?.dispose();
+    mapUI?.dispose();
     cleaningWindow?.dispose();
     fullArchAnatomy?.dispose();
     heroAnatomy?.dispose();
@@ -1065,6 +1077,7 @@ export function createExperience(configuration=experienceConfig) {
       if(disposed||contextLost){disposeObject(hero?.object);lighting?.dispose();hero=undefined;lighting=undefined;return controller;}
       for(const result of results)if(result.status==='rejected')throw result.reason;
       arch=createArch({manifest,hero,config,renderer,profile,clay});scene.add(arch.object);
+      mapUI=createDentalMapUI({stage,canvas,arch,requestRender});
       annotations=createAnnotations({layer:document.querySelector('#journey-annotations'),canvas,arch,compact:profile.compact,requestRender,
         onAnatomySelect:inspectStoryLayer,getAnatomyAnchors:(camera,layer)=>fullArchAnatomy?.getStoryLayerAnchors(camera,layer)??[]});
       const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:createIntroCameraOptions(config)});
@@ -1103,7 +1116,7 @@ export function createExperience(configuration=experienceConfig) {
       if(shaderError)throw new Error('Dental surface shader failed to compile.');
       ready=true;canvas.dataset.ready='true';canvas.dataset.profile=profile.name;canvas.dataset.revision=config.revision;
       resize();scroll=createScrollDriver({section,stage,onProgress:setProgress});
-      Object.assign(controller,{scene,renderer,rig,controls,view,arch,profile,adaptive});
+      Object.assign(controller,{scene,renderer,rig,controls,view,arch,profile,adaptive,mapUI});
       if(resumeProgress!==null)restoreStoryPosition(scrollReadiness.plan(resumeProgress));
       requestRender();
       void loadStoryStages(siteRequest);

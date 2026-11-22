@@ -1,4 +1,4 @@
-import { FINAL_SMILE_COPY, STORY_TIMING } from './story-config.js';
+import { STORY_TIMING } from './story-config.js';
 
 // Screen-space art direction, sampled by the same progress as the WebGL scene.
 // These are positions within the entire stage, never a separate text column.
@@ -11,22 +11,17 @@ export const TYPE_COMPOSITIONS = Object.freeze({
   brush:     {desktop:[.067,.28,.30,64],mobile:[.06,.12,.61,33]},
   result:    {desktop:[.067,.15,.32,62],mobile:[.06,.13,.72,31]},
   dentition: {desktop:[.067,.25,.32,64],mobile:[.06,.125,.72,32]},
+  map:       {desktop:[.067,.19,.32,60],mobile:[.06,.09,.88,32]},
   closing:   {desktop:[.05,.15,.34,64],mobile:[.06,.125,.86,32]},
 });
 
 const clamp=x=>Math.max(0,Math.min(1,x));
 const smooth=x=>{const t=clamp(x);return t*t*(3-2*t);};
 const resultCopy={title:'Čistý priestor. Zdravý zub.',titleLines:['Čistý priestor.','Zdravý zub.'],
-  text:'Kefka odstránila časť povlaku.'};
-const brushPhases={
-  result:{...resultCopy,phase:'result',start:STORY_TIMING.result[0],end:STORY_TIMING.finalCopy[0]},
-  closing:{...FINAL_SMILE_COPY,phase:'closing',start:STORY_TIMING.finalCopy[0],end:1},
-};
+  text:'Kefka odstránila časť povlaku.',phase:'result',start:STORY_TIMING.result[0],end:STORY_TIMING.result[1]};
 
 export function getStoryCopy(chapter,progress) {
-  if(chapter.id!=='brush')return chapter;
-  if(progress>=brushPhases.closing.start)return brushPhases.closing;
-  if(progress>=brushPhases.result.start)return brushPhases.result;
+  if(chapter.id==='brush'&&progress>=resultCopy.start)return resultCopy;
   return chapter;
 }
 
@@ -40,7 +35,6 @@ export function sampleStageTypography(chapter,progress,{mobile=false,reducedMoti
   let opacity=reducedMotion?1:Math.min(incoming,outgoing);
   if(!reducedMotion){
     if(chapter.id==='brush'&&copy===chapter)opacity*=smooth((STORY_TIMING.result[0]-progress)/.009);
-    if(copy.phase==='result')opacity*=1-.75*smooth((progress-STORY_TIMING.result[1])/.018);
   }
   return {x,y,width,font,opacity:opacity*(free ? .58 : 1),shift:reducedMotion?0:(1-opacity)*8};
 }

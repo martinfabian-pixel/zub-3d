@@ -10,6 +10,7 @@ const browser = await chromium.launch({ channel:'chrome', headless:true });
 async function openClinic(context, view) {
   const cleaning = view === clinicViews.cleaning;
   const finale = view === clinicViews.smile;
+  const map = view === clinicViews.map;
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -49,20 +50,20 @@ async function openClinic(context, view) {
   await page.locator('#journey-startup').waitFor({ state:'hidden', timeout:90000 });
   await page.waitForFunction(() => window.firstClinicFrame);
   const first = await page.evaluate(() => window.firstClinicFrame);
-  assert.equal(first.chapter, cleaning || finale ? 'brush' : 'anatomy');
+  assert.equal(first.chapter, cleaning ? 'brush' : finale ? 'closing' : map ? 'map' : 'anatomy');
   const picker=page.locator('#journey-chapter-picker');
-  assert.equal(await picker.innerText(), finale ? 'Záverečný úsmev' : cleaning ? 'Čistenie' : 'Stavba zuba');
+  assert.equal(await picker.innerText(), finale ? 'Záverečný úsmev' : cleaning ? 'Čistenie' : map ? 'Mapa chrupu' : 'Stavba zuba');
   if (finale) {
     assert.equal(first.progress, 1, 'The first visible frame is the settled final smile.');
-    assert.equal(await page.locator('#journey-step-number').innerText(), '07 / 07');
+    assert.equal(await page.locator('#journey-step-number').innerText(), '09 / 09');
     assert.equal(await page.locator('#journey-title').textContent(), 'Aj priestor medzi zubami patrí k čisteniu.');
     const state = await page.evaluate(() => window.__dentalExperience.report());
     assert.equal(state.crownMix, 1);
     assert.equal(state.opening, null);
     await page.locator('#journey-mobile-previous').tap();
-    await page.waitForFunction(() => window.__dentalExperience.report().story.brushStoryPhase === 'cleaning');
+    await page.waitForFunction(() => window.__dentalExperience.report().map.active);
     await page.locator('#journey-mobile-next').tap();
-    await page.waitForFunction(() => window.__dentalExperience.report().story.brushStoryPhase === 'smile');
+    await page.waitForFunction(() => window.__dentalExperience.report().story.finalSmile === 1);
     await page.getByRole('button',{name:'Zopakovať čistenie',exact:true}).tap();
     await page.waitForFunction(() => window.__dentalExperience.report().manualCleaning?.transition === 'active');
     assert.equal(await picker.innerText(),'Čistenie');
@@ -88,6 +89,9 @@ async function openClinic(context, view) {
     assert.match(await caption.innerText(),/sedmičky.*priehľadná/);
     await toggle.tap();
     await caption.waitFor({state:'hidden'});
+  } else if (map) {
+    assert.equal(await page.locator('#dental-map-selected').inputValue(), '36');
+    assert.equal(await page.locator('#journey-step-number').innerText(), '08 / 09');
   } else {
     assert.equal(first.selected, 'pulp');
     const state = await page.evaluate(() => window.__dentalExperience.report().healthyAnatomy);
@@ -116,7 +120,7 @@ async function openClinic(context, view) {
   await fresh.goto(copied, { waitUntil:'domcontentloaded' });
   await fresh.locator('#journey-startup').waitFor({ state:'hidden', timeout:90000 });
   assert.equal(await fresh.locator('#journey-canvas').getAttribute('data-stage'), first.chapter);
-  assert.ok(await fresh.locator(cleaning ? '.manual-cleaning-grip' : '.healthy-anatomy-layer[data-layer="pulp"][aria-pressed="true"]').isVisible());
+  assert.ok(await fresh.locator(cleaning ? '.manual-cleaning-grip' : map ? '#dental-map-selected' : '.healthy-anatomy-layer[data-layer="pulp"][aria-pressed="true"]').isVisible());
   await fresh.close();
   assert.deepEqual(errors, []);
   await page.close();
@@ -148,7 +152,7 @@ try {
   await home.locator('#healthy-anatomy').waitFor({state:'visible'});
   assert.equal(await picker.innerText(),'Stavba zuba');
   await context.close();
-  console.log('Clinic views: cleaning, pulp, final smile, their controls and ordinary cinematic entry passed in fresh tabs at 390×844.');
+  console.log('Fresh tabs at 390×844: cleaning, pulp, map, closing smile, clipboard links and cinematic entry passed.');
 } finally {
   await browser.close();
 }

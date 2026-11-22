@@ -168,15 +168,30 @@ export function createPlaque({site,path,arch,compact=false,profile,options={}}) 
       if(options.retainSourceIndices)layer.userData.hostVertexIndices=raw.sourceVertexIndices;
       layer.matrixAutoUpdate=false;layer.matrix.copy(world);layer.matrixWorldNeedsUpdate=true;layer.renderOrder=4;
       layer.receiveShadow=true;layer.castShadow=false;object.add(layer);
-      patches.push({fdi,geometry:g,sweep,edge,reachable,unreachable,reachableWeight,outsideWeight,maxRegistrationErrorMm,vertices:n,triangles:raw.indices.length/3});
+      patches.push({fdi,host:mesh,layer,geometry:g,sweep,edge,reachable,unreachable,reachableWeight,outsideWeight,maxRegistrationErrorMm,vertices:n,triangles:raw.indices.length/3});
     }
   } catch(error){for(const patch of patches)patch.geometry.dispose();material.dispose();throw error;}
   object.visible=false;
+  const worldToFilm=new Matrix4(), livePose=new Matrix4();
   function setState({visible=true,opacity=1,progress=0}={}) {
     if(disposed)return;
     uniforms.deposit.value=saturate(opacity);
     uniforms.cleaned.value=saturate(progress);
     object.visible=Boolean(visible)&&uniforms.deposit.value>.0001;
+    if(object.visible){
+      // The swept brush mask is fixed in the measured cleaning pose. Only
+      // its already surface-bound result moves as the jaw begins to open.
+      object.updateWorldMatrix(true,false);
+      worldToFilm.copy(object.matrixWorld).invert();
+      for(const {host,layer} of patches){
+        if(!host)continue;
+        livePose.multiplyMatrices(worldToFilm,host.matrixWorld);
+        if(!layer.matrix.equals(livePose)){
+          layer.matrix.copy(livePose);
+          layer.matrixWorldNeedsUpdate=true;
+        }
+      }
+    }
   }
   function report() {
     const cleaned=uniforms.cleaned.value;

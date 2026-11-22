@@ -1,0 +1,102 @@
+#dental-map {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  color: var(--text-primary);
+}
+
+#dental-map-number {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 25px;
+  padding: 3px 5px;
+  border: 1px solid #9ab8c4;
+  border-radius: 7px;
+  background: #f3fbff;
+  color: #204c58;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.dental-map-caption {
+  position: absolute;
+  left: 68%;
+  top: var(--map-caption-top, 74%);
+  transform: translateX(-50%);
+  width: min(39%, 400px);
+  text-align: center;
+}
+
+.dental-map-picker {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 6px;
+  color: var(--accent);
+  font-size: clamp(17px, 1.5vw, 22px);
+  font-weight: 650;
+  letter-spacing: -.025em;
+  pointer-events: auto;
+}
+.dental-map-picker::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: translateY(-2px) rotate(45deg);
+}
+.dental-map-picker select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  font-size: 16px;
+  cursor: pointer;
+}
+.dental-map-picker:focus-within {
+  border-radius: 6px;
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+#dental-map-description {
+  margin: -3px 0 0;
+  min-height: 2.7em;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+@media (max-width: 700px) {
+  .dental-map-caption {
+    left: 50%;
+    top: auto;
+    width: min(88%, 370px);
+    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+  #dental-map-description { font-size: 13px; }
+}
+@media (max-width: 700px) and (max-height: 670px) {
+  .dental-map-caption { bottom: calc(126px + env(safe-area-inset-bottom, 0px)); }
+  .dental-map-picker { min-height: 36px; }
+  #dental-map-description { font-size: 12px; }
+  #journey-stage[data-chapter="map"] .journey-dock { bottom: calc(73px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 701px) and (max-height: 670px) {
+  .dental-map-picker { min-height: 30px; font-size: 16px; }
+  #dental-map-description { font-size: 12px; }
+}
+@media (min-width: 701px) and (max-width: 1100px) and (max-height: 530px) {
+  #journey-stage[data-chapter="map"] .journey-dock { left: 24%; }
+  #journey-stage[data-chapter="map"] .chapter-navigation { position: relative; }
+  #journey-stage[data-chapter="map"] .chapter-center { position: absolute; left: 50px; }
+  #journey-stage[data-chapter="map"] .journey-step { width: 16px; }
+}

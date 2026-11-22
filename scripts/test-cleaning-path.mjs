@@ -2,7 +2,7 @@
 // invented coordinate fixture. Run: node scripts/test-cleaning-path.mjs
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {BufferGeometry, Float32BufferAttribute, Mesh, MeshBasicMaterial, Vector3} from 'three';
+import {BufferGeometry, Float32BufferAttribute, Matrix4, Mesh, MeshBasicMaterial, Vector3} from 'three';
 import {createCleaningPath,makePathSample,MM_TO_WORLD} from '../src/experience/cleaning-path.js';
 import {createInterdentalBrush} from '../src/experience/interdental-brush.js';
 import {createPlaque} from '../src/experience/plaque.js';
@@ -81,6 +81,21 @@ for(const compact of [false,true]){
     }
   }
   assert.ok(residual>0 && reached>0);
+  // During the departure into the map, residual film follows both actual
+  // molars while the measured cleaning path and removal mask stay fixed.
+  const departing=new Matrix4().makeRotationX(.18);
+  for(const {mesh} of teeth.values()){
+    mesh.matrix.premultiply(departing);mesh.updateMatrixWorld(true);
+  }
+  film.setState({visible:true,opacity:.55,progress:1});
+  for(const layer of film.object.children){
+    const host=teeth.get(layer.userData.hostFDI).mesh;
+    assert.ok(layer.matrix.equals(host.matrixWorld),'The visible residue stays on its rotating host');
+    host.matrix.fromArray(site.displayedMatrixColumnMajor[layer.userData.hostFDI]);host.updateMatrixWorld(true);
+  }
+  film.setState({visible:true,opacity:1,progress:1});
+  for(const layer of film.object.children)
+    assert.deepEqual(layer.matrix.elements,site.displayedMatrixColumnMajor[layer.userData.hostFDI],'Reverse returns the deposit to the exact brushed surface');
   let prevRemoved=0,maxBent=0,minimumFibrePlaneGap=Infinity;
   const saved=new Map(),out={};let spin=null;
   for(let i=0;i<=500;i++){

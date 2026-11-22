@@ -52,10 +52,7 @@ function sampleBrush(p, pose) {
 function evaluate(progress, reduced, out, sceneLimit=1, openingFlight=false) {
   const raw = unit(progress), index = indexAt(raw), ch = DENTAL_CHAPTERS[index];
   let still = ch.reducedAt;
-  if (ch.id === 'brush') {
-    if (raw >= timing.return[0]) still = 1;
-    else if (raw >= timing.result[0]) still = timing.resultAt;
-  }
+  if (ch.id === 'brush' && raw >= timing.result[0]) still = timing.resultAt;
   const p = reduced ? Math.min(still,sceneLimit) : raw;
   out.progress = raw;
   out.sceneProgress = p;
@@ -74,9 +71,15 @@ function evaluate(progress, reduced, out, sceneLimit=1, openingFlight=false) {
   out.assemblyReveal = openingFlight ? flightReveal(p) : 1 - ramp(timing.teachingSite.background,p);
   out.assemblyCrownCoverage = 1 - ramp(timing.assemblyCrowns,p);
   out.finalCrownCoverage = ramp(timing.finalCrowns,p);
+  const unfold = 1 - ramp(timing.map.close, p);
+  out.mapLower = ramp(timing.map.lower, p) * unfold;
+  out.mapUpper = ramp(timing.map.upper, p) * unfold;
+  out.mapSite = smooth(timing.resultAt,timing.map.lower[0],p) * (1-ramp(timing.map.upper,p));
   out.toothExtraction = openingFlight ? 0 : sampleToothExtraction(p);
   out.locate36 = openingFlight ? 0 : ramp(site.crownLocator,p) * (1 - ramp(site.identified,p));
-  out.resultVisibility = smooth(timing.result[0],.903,p) * (1 - smooth(.913,timing.result[1],p));
+  const [resultStart,resultEnd] = timing.result;
+  const fade = (resultEnd-resultStart)*.25;
+  out.resultVisibility = smooth(resultStart,resultStart+fade,p) * (1-smooth(resultEnd-fade,resultEnd,p));
   out.finalSmile = ramp(timing.finalCopy,p);
   out.plaqueDeposition = ramp(story.deposition, p);
   out.plaqueVisibility = 1 - ramp(story.plaqueExit, p);
@@ -97,5 +100,5 @@ export function sampleDentalStory(progress, out = {}) { return evaluate(progress
 /** The opening reuses its authored flight independently of the teaching-molar lift. */
 export function sampleOpeningDentalStory(progress, out = {}) { return evaluate(progress, false, out, 1, true); }
 
-/** Seven still scenes; raw scroll still selects the chapter without playing intermediate poses. */
+/** Raw scroll selects a settled view for each reduced-motion chapter. */
 export function sampleReducedDentalStory(progress, out = {}, sceneLimit=1) { return evaluate(progress, true, out, sceneLimit); }

@@ -38,8 +38,8 @@ const brushIndex=chapters.findIndex(chapter=>chapter.id==='brush');
 const brushAt=chapters[brushIndex].at;
 const plaqueAt=chapters.find(chapter=>chapter.id==='plaque').at;
 const requestedTitles=['Celý chrup.','Šestka v oblúku.','Pozrite sa pod povrch.','Čo je vo vnútri zuba?',
-  'Ktoré miesto práve čistíme?','Nenápadný povlak.','Jemne tam a späť.'];
-if(!chapters.every((chapter,index)=>chapter.title===requestedTitles[index]))throw Error('Slovak story titles do not match the seven chapters.');
+  'Ktoré miesto práve čistíme?','Nenápadný povlak.','Jemne tam a späť.','Mapa chrupu.','Aj priestor medzi zubami patrí k čisteniu.'];
+if(!chapters.every((chapter,index)=>chapter.title===requestedTitles[index]))throw Error('Slovak story titles do not match the nine chapters.');
 const near = (a,b,tol=1e-6) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b) <= tol;
 const equal = (a,b) => JSON.stringify(a) === JSON.stringify(b);
 const dist = (a,b) => Math.hypot(...a.map((n,i)=>n-b[i]));
@@ -150,10 +150,10 @@ async function saveView(page,label,p,index,expected,base) {
   if(copy.phase==='result')check(label+' healthy example labels the cleaned surface',chapter.resultLabels.every(x=>s.resultLabels?.includes(x)),s.resultLabels);
   check(label+' actual tooth mesh visibility',equal(s.visible,expected),s.visible);
   const a=s.stageAudit;
-  check(label+' seven real chapter dots, current counter and persistent arrows stay synchronized',
-    a.navigation.dots.length===7&&a.navigation.dots.every(d=>d.visible&&d.name&&d.tag==='BUTTON')&&
+  check(label+' nine real chapter dots, current counter and persistent arrows stay synchronized',
+    a.navigation.dots.length===9&&a.navigation.dots.every(d=>d.visible&&d.name&&d.tag==='BUTTON')&&
     a.navigation.dots.filter(d=>d.current).length===1&&a.navigation.dots[index].current&&
-    a.navigation.counter===`${String(index+1).padStart(2,'0')} / 07`&&a.navigation.arrows.length===2&&a.navigation.arrows.every(d=>d.visible),a.navigation);
+    a.navigation.counter===`${String(index+1).padStart(2,'0')} / 09`&&a.navigation.arrows.length===2&&a.navigation.arrows.every(d=>d.visible),a.navigation);
   check(label+' title uses the approved block lines',a.titleLines.length===copy.titleLines.length&&
     a.titleLines.every((line,i)=>line.text===copy.titleLines[i]&&line.display==='block'),a.titleLines);
   check(label+' transparent WebGL sits over the common ice-blue stage',a.surface.webglAlpha&&a.surface.clearAlpha===0&&
@@ -174,22 +174,22 @@ async function saveView(page,label,p,index,expected,base) {
   DENTAL_STORY.extractionOffset.forEach((offset,axis)=>expectedPose[12+axis]+=offset*sampleToothExtraction(s.sceneProgress));
   check(label+' healthy source geometry and teaching-site pose',
     s.healthy&&s.geometry36!==s.geometry46&&
-    (chapter.id==='dentition'||copy.phase==='closing'||s.pose36.every((value,i)=>near(value,expectedPose[i]))));
+    (['dentition','map','closing'].includes(chapter.id)||s.pose36.every((value,i)=>near(value,expectedPose[i]))));
   if(chapter.id==='space')check(label+' contact established before deposits',s.deposit===0&&!s.plaque.visible&&!s.brush.visible);
   if(chapter.id==='plaque')check(label+' attached deposits on actual 36 and 37',s.plaque.visible&&s.plaque.deposition>.99&&equal(s.plaque.patches.map(x=>x.fdi).sort(),[36,37])&&s.plaque.patches.every(x=>x.triangles>0&&x.maxRegistrationErrorMm<=.04));
   if(chapter.id==='brush'&&!copy.phase)check(label+' brush visibly engaged or aligning as sampled',s.brush.visible&&s.brush.filamentInstances>0&&near(s.brush.insertion,s.brushPose.insertion,.0001),s.brush);
   if(copy.phase==='result')check(label+' contact-only removal leaves out-of-reach deposit',s.clean===1&&!s.brush.visible&&s.plaque.patches.some(x=>x.currentWeightedRemoval>0)&&s.plaque.patches.some(x=>x.unreachableVertices>0&&x.currentWeightedRemoval<.999999)&&s.plaque.patches.every(x=>x.outsideRemovedWeight===0),s.plaque);
-  if(copy.phase==='closing'&&p>=STORY_TIMING.finalHold[0])check(label+' 28 distinct teeth, no brush in the closing arch',equal(s.meshFDIs,allFDI)&&!s.brush.visible&&equal(s.visible,allFDI));
+  if(chapter.id==='closing'&&p>=STORY_TIMING.finalHold[0])check(label+' 28 distinct teeth, no brush in the closing arch',equal(s.meshFDIs,allFDI)&&!s.brush.visible&&equal(s.visible,allFDI));
   return s;
 }
 const three=[35,36,37];
 const standard=chapters.map(({id,at},index)=>{
-  const visible=id==='dentition'||id==='assembly'?allFDI:id==='hero'||id==='anatomy'?[36]:three;
+  const visible=['dentition','assembly','map','closing'].includes(id)?allFDI:id==='hero'||id==='anatomy'?[36]:three;
   return [id==='dentition'?'full':id,at,index,visible];
-}).concat([['result',STORY_TIMING.resultAt,brushIndex,three],['closing',finaleAt,brushIndex,allFDI]]);
+}).concat([['result',STORY_TIMING.resultAt,brushIndex,three]]);
 const extra=[['brush-align',.51],['brush-entry',.542],['brush-insert',.58],['brush-stroke',.64]]
   .map(([label,p])=>[label,brushProgress(p),brushIndex,three])
-  .concat([['calm-return',.965,brushIndex,allFDI]]);
+  .concat([['calm-return',STORY_TIMING.map.close[0]+.018,chapters.findIndex(c=>c.id==='closing'),allFDI]]);
 const stamp=s=>({p:s.progress,chapter:s.chapter,visible:s.visible,healthyAnatomy:s.healthyAnatomy,deposit:s.deposit,clean:s.clean,brush:s.brushPose,insertion:s.brush.insertion,tip:s.brush.tipWorld,removed:s.plaque.patches.map(x=>x.currentWeightedRemoval),camera:s.camera,pose36:s.pose36,lights:s.lights});
 
 const drift=(a,b)=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
@@ -238,15 +238,12 @@ async function storyboardNavigation(page,label){
   await page.locator('#journey-explore').click();await page.waitForTimeout(650);
   check(label+' hero CTA returns through the common continue action',guided(await cameraProbe(page)));
   await scroll(page,0);
-  for(let i=1;i<7;i++){
+  for(let i=1;i<chapters.length;i++){
     await page.locator('#journey-mobile-next').click();await at(page,chapters[i].at);
     check(label+' persistent forward arrow lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);
   }
-  check(label+' closing smile is reachable without adding an eighth chapter',await page.locator('#journey-mobile-next').isEnabled());
-  await page.locator('#journey-mobile-next').click();await at(page,1);
   check(label+' final forward arrow is disabled',await page.locator('#journey-mobile-next').isDisabled());
-  await page.locator('#journey-mobile-previous').click();await at(page,brushAt);
-  for(let i=5;i>=0;i--){
+  for(let i=chapters.length-2;i>=0;i--){
     await page.locator('#journey-mobile-previous').click();await at(page,chapters[i].at);
     check(label+' persistent backward arrow lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);
   }
@@ -371,13 +368,13 @@ async function desktop() {
       for(let i=0;i<=70;i++){window.scrollTo({top:base+len*i/70,behavior:'instant'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const a=app.report();seen.add(a.story.chapterId);samples.push([a.progress,a.healthyAnatomy.active,a.story.plaque.cleaningProgress]);}
       await new Promise(r=>setTimeout(r,800));seen.add(app.report().story.chapterId);
       return {seen:[...seen],samples};});report.forwardScroll=track;
-    check('Native gradual scrolling visits seven chapters',equal(track.seen,chapters.map(c=>c.id)),track.seen);
+    check('Native gradual scrolling visits all nine chapters',equal(track.seen,chapters.map(c=>c.id)),track.seen);
     for(const name of ['result','brush','anatomy','space','full','hero','brush','result']){
       const p=standard.find(x=>x[0]===name)[1];await scroll(page,p);const s=await read(page);
       check('Reverse/jump reproduces '+name,equal(stamp(s),stamp(states[name])),{before:stamp(states[name]),after:stamp(s)});
     }
     // Navigation, semantics, help and manual camera return through real inputs.
-    const buttons=page.locator('.journey-step');check('Seven focusable desktop chapters',await buttons.count()===7);
+    const buttons=page.locator('.journey-step');check('Nine focusable desktop chapters',await buttons.count()===9);
     for(let i=0;i<chapters.length;i++){await buttons.nth(i).click();await at(page,chapters[i].at);const a=await read(page);check('Direct chapter '+chapters[i].label,a.chapter===chapters[i].id&&a.activeCount===1&&(await buttons.nth(i).getAttribute('aria-current'))==='step');}
     await page.locator('#journey-home').click();await at(page,0);await buttons.nth(1).click();await at(page,chapters[1].at);
     await buttons.first().click();await at(page,chapters[0].at);
@@ -425,7 +422,7 @@ async function mobile() {
     await goto(page);await ready(page);const base=await read(page);
     await adaptiveBuffers(page);
     for(const [n,p,i,f]of standard)await saveView(page,'mobile-'+n,p,i,f,base);
-    const dots=page.locator('.journey-step');check('Seven focusable mobile chapter dots replace the select',await dots.count()===7&&await page.locator('#journey-chapter-select').count()===0);
+    const dots=page.locator('.journey-step');check('Nine focusable mobile chapter dots',await dots.count()===9&&await page.locator('#journey-chapter-select').count()===0);
     for(const i of [0,4,5,6]){await dots.nth(i).tap();await at(page,chapters[i].at);check('Mobile chapter dot lands on '+chapters[i].id,(await read(page)).chapter===chapters[i].id);}
     await storyboardNavigation(page,'mobile');await dragFromText(page,'mobile');await annotationScenario(page,'mobile');
     await macroZoom(page,'mobile');await mobileInputs(ctx,page);
@@ -446,9 +443,9 @@ async function reduced() {
     const still=s=>({camera:s.camera,opticalZoom:s.opticalZoom,visible:s.visible,healthyAnatomy:s.healthyAnatomy,clean:s.clean,deposit:s.deposit,brush:s.brushPose,tip:s.brush.tipWorld});
     for(const c of chapters){const span=(c.id==='brush'?STORY_TIMING.result[0]:c.end)-c.start;await scroll(page,c.start+.10*span);const a=await read(page);await scroll(page,c.start+.86*span);const b=await read(page);
       check('Reduced motion keeps one pose and material state within '+c.id,equal(still(a),still(b)),{a:still(a),b:still(b)});poses.push(still(a));}
-    check('Seven meaningfully different reduced-motion scenes',new Set(poses.map(x=>JSON.stringify(x))).size===7);
+    check('Nine meaningfully different reduced-motion scenes',new Set(poses.map(x=>JSON.stringify(x))).size===9);
     await scroll(page,brushAt);const brush=await read(page);check('Reduced brush depicts a fixed contact on the healthy example',brush.brush.visible&&brush.brush.insertion>.1&&brush.healthy&&brush.clean>0&&brush.clean<1);
-    await scroll(page,1);const closing=await read(page);check('Reduced motion closes on the settled smile in chapter seven',closing.chapter==='brush'&&equal(closing.visible,allFDI)&&!closing.brush.visible&&closing.clean===1);
+    await scroll(page,1);const closing=await read(page);check('Reduced motion closes on the settled smile in chapter nine',closing.chapter==='closing'&&equal(closing.visible,allFDI)&&!closing.brush.visible&&closing.clean===1);
     report.reducedMotion=poses;
     const copyTransition=await sampleCopyTransition(page);report.reducedCopyTransition=copyTransition;
     check('Reduced-motion chapter copy remains legible at the sampled transition positions',
@@ -458,7 +455,7 @@ async function reduced() {
 async function aliases() {
   for(const [entry,selector]of [['experience/?qa=1',q],['legacy/','#tooth-canvas'],['prototype/','#prototype-canvas']]){
     const {ctx,page}=await open();try{await goto(page,entry);await page.waitForSelector(selector+'[data-ready="true"]',{timeout:60000});
-      if(entry.startsWith('experience')){await ready(page);check('/experience/ alias opens on the same seven-chapter atlas',(await read(page)).chapter==='dentition'&&await page.locator('.journey-step').count()===7);}
+      if(entry.startsWith('experience')){await ready(page);check('/experience/ alias opens the same nine chapters',(await read(page)).chapter==='dentition'&&await page.locator('.journey-step').count()===9);}
       else{const d=await page.locator(selector).evaluate(el=>({...el.dataset}));check('Preserved '+entry+' loads original model',d.ready==='true'&&(entry==='legacy/'?Number(d.assetTriangles)===388032:Number(d.modelMeshes)===1),d);}
     }finally{await closeContext(ctx);}
   }
@@ -582,7 +579,7 @@ async function pagesPrefix() {
         await goto(page,entry,base);await page.waitForSelector(selector+'[data-ready="true"]',{timeout:60000});
         const details=await page.locator(selector).evaluate(el=>({...el.dataset}));
         let valid=details.ready==='true';
-        if(selector===q){await ready(page);await scroll(page,finaleAt);const s=await read(page);valid&&=s.chapter==='brush'&&equal(s.visible,allFDI)&&s.shaderErrors===0;}
+        if(selector===q){await ready(page);await scroll(page,finaleAt);const s=await read(page);valid&&=s.chapter==='closing'&&equal(s.visible,allFDI)&&s.shaderErrors===0;}
         else valid&&=selector==='#tooth-canvas'?Number(details.assetTriangles)===388032:Number(details.modelMeshes)===1;
         const modules=await page.locator('script[type="module"][src]').evaluateAll(nodes=>nodes.map(n=>new URL(n.src).pathname));
         const assets=requests.slice(before);valid&&=modules.length>0&&modules.every(x=>x.startsWith(prefix))&&assets.some(x=>x.endsWith('.glb'));
@@ -633,7 +630,7 @@ try {
   if(!perfOnly&&!prefixOnly){
     await scenario('desktop medical sequence / navigation / native scroll',desktop);
     await scenario('touch portrait, short landscape, 320px layouts',mobile);
-    await scenario('reduced motion seven meaningful still scenes',reduced);
+    await scenario('reduced motion nine meaningful still scenes',reduced);
     await scenario('historical viewer routes and narrative alias',aliases);
     await scenario('late malformed story data / retained geometry ownership / idempotent GPU cleanup',malformedStoryOwnership);
     await scenario('initial asset gate + actual WebGL context loss',lostContextDuringInitialLoad);

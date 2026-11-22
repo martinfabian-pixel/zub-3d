@@ -383,9 +383,9 @@ try {
         await wait(() => window.__dentalExperience.report().manualCleaning?.position > .9);
         await activate(page.locator('.manual-cleaning-exit'));
         await wait(() => !window.__dentalExperience.report().manualCleaning);
-        await seek(1, 'brush');
+        await seek(1, 'closing');
         const finish = await report();
-        assert.equal(finish.story.brushStoryPhase, 'smile');
+        assert.equal(finish.story.finalSmile, 1);
         assert.equal(finish.crownMix, 1);
         assert.equal(finish.healthyAnatomy.active, false);
         await seek(anatomy.at, anatomy.id);

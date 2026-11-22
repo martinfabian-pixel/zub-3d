@@ -30,7 +30,7 @@ button:disabled { cursor: default; opacity: .38; }
 #journey-canvas[data-pointer-focus]:focus-visible { outline: none; }
 
 #dental-journey {
-  --journey-screens: 7.6;
+  --journey-screens: 9.6;
   position: relative;
   height: calc(100svh * (1 + var(--journey-screens) * var(--journey-ready-limit, 1)));
   overflow-anchor: none;
@@ -400,7 +400,7 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
 
 @media (max-width: 700px) {
   html { scrollbar-gutter: auto; }
-  #dental-journey { --journey-screens: 7.4; }
+  #dental-journey { --journey-screens: 9.4; }
   .site-header { height: 60px; inset-inline: 6%; }
   .brand { font-size: 23px; }
   .header-actions { gap: 15px; }
@@ -423,8 +423,8 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   .model-controls .icon-button { width: 40px; }
   .journey-footer { inset-inline: 6%; bottom: calc(5px + env(safe-area-inset-bottom, 0px)); }
   .chapter-center { gap: 4px; }
-  #journey-chapter-picker { padding-inline: 2px; font-size: 12px; }
-  .journey-step { width: clamp(12px,4.6vw,25px); }
+  #journey-chapter-picker { padding-inline: 2px; font-size: 12px; white-space: nowrap; }
+  .journey-step { width: clamp(11px,3.45vw,24px); }
   .chapter-arrow { font-size: 20px; }
   .footer-meta { font-size: 9px; }
   dialog { padding: 22px; }
@@ -434,7 +434,7 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   .header-actions { gap: 11px; }
   .clinic-share svg { display: none; }
   .chapter-center { gap: 2px; }
-  .journey-step { width: 12px; }
+  .journey-step { width: 10px; }
   .journey-step::before { width: 6px; height: 6px; }
 }
 @media (max-height: 650px) and (min-width: 701px) {
@@ -452,5 +452,5 @@ dialog h2 { font-size: 26px; line-height: 1.2; margin: 16px 0; }
   #journey-final-views { margin-top: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #dental-journey { --journey-screens: 4; }
+  #dental-journey { --journey-screens: 5; }
 }

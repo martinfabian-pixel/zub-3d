@@ -319,7 +319,7 @@ try {
     assert.equal(first.roots, 0);
     openingCamera = first.camera;
     assert.equal(await mobile.locator('#journey-title').innerText(), 'Celý chrup.');
-    assert.equal(await mobile.locator('#journey-step-number').innerText(), '01 / 07');
+    assert.equal(await mobile.locator('#journey-step-number').innerText(), '01 / 09');
 
     const checkpoints = [.182, .216, .248, .280, .316, .348];
     const forward = new Map();
@@ -346,7 +346,7 @@ try {
     await mobile.locator('#journey-mobile-next').tap();
     await atChapter(mobile, 'assembly');
     const second = await mobile.evaluate(readProgress);
-    assert.equal(await mobile.locator('#journey-step-number').innerText(), '02 / 07');
+    assert.equal(await mobile.locator('#journey-step-number').innerText(), '02 / 09');
     assert.equal(second.teeth.length, 28, 'The second chapter identifies the tooth in the rooted arch');
     assert.equal(second.roots, 28);
     assert.equal(second.crowns, 0);

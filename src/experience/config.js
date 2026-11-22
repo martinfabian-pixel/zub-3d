@@ -46,6 +46,8 @@ export const experienceConfig = {
       arch:      {desktop:[.71,.55,.70],portrait:[.51,.58,.91]},
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
       flight:    {desktop:[.55,.50,.76],portrait:[.50,.52,.87]},
+      mapLower:  {desktop:[.67,.56,.77],portrait:[.50,.55,.93],shortPortrait:[.50,.54,.83]},
+      map:       {desktop:[.68,.45,.66],portrait:[.50,.47,.96],shortPortrait:[.50,.432,.68]},
       smile:     {desktop:[.67,.51,.87],portrait:[.50,.57,.298]},
       'final-smile': {desktop:[.67,.445,.88],portrait:[.50,.455,.318],shortPortrait:[.50,.54,.318],
         portraitZoomAspect:390/844},
@@ -98,7 +100,7 @@ export const experienceConfig = {
   assetsStory: {site:'story-assets/site.json'},
   presentation: { steps:DENTAL_CHAPTERS.map(ch=>{
     const tooth=ch.id==='assembly'||ch.id==='hero'||ch.id==='anatomy';
-    const arch=ch.id==='dentition';
+    const arch=['dentition','map','closing'].includes(ch.id);
     return {...ch,eyebrow:ch.label.toUpperCase(),mobileTitle:ch.title,mobileDescription:ch.text,
       meta:tooth?'FDI 36 · dolná ľavá · 2 korene':arch?'28 trvalých zubov · bez osmičiek':'Priestor medzi 36 a 37',
       next:'Pokračovať',subject:tooth?'Dolná ľavá prvá stolička':arch?'Horný a dolný zubný oblúk':'Medzizubný priestor 36–37'};

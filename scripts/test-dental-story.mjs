@@ -5,10 +5,10 @@ import { getDentalChapter, sampleDentalStory, sampleReducedDentalStory } from '.
 import { createStoryAnatomy } from '../src/experience/story-anatomy.js';
 
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
-const ids = ['dentition', 'assembly', 'hero', 'anatomy', 'space', 'plaque', 'brush'];
+const ids = ['dentition', 'assembly', 'hero', 'anatomy', 'space', 'plaque', 'brush', 'map', 'closing'];
 const visual = s => [s.sceneProgress, s.neighborsReveal, s.gapFocus, s.lowerReveal, s.upperReveal,
   s.assemblyReveal, s.locate36, s.toothExtraction, s.finaleReveal, s.assemblyCrownCoverage, s.finalCrownCoverage,
-  s.plaqueDeposition, s.plaqueCoverage, s.cleaningProgress, { ...s.brushPose }];
+  s.mapLower, s.mapUpper, s.mapSite, s.plaqueDeposition, s.plaqueCoverage, s.cleaningProgress, { ...s.brushPose }];
 const chapter = id => DENTAL_CHAPTERS.find(c => c.id === id);
 const { identify, identified, background, lift, releaseNeighbors, returnNeighbors, reseat } = STORY_TIMING.teachingSite;
 const [dissolveStart, dissolveEnd] = STORY_TIMING.assemblyCrowns;
@@ -16,7 +16,7 @@ const [returnStart, returnEnd] = STORY_TIMING.return;
 const [finalDissolveStart, finalDissolveEnd] = STORY_TIMING.finalCrowns;
 const [resultStart, resultEnd] = STORY_TIMING.result;
 assert.deepEqual(DENTAL_CHAPTERS.map(c => c.id), ids);
-assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Celý chrup', 'Poloha šestky', 'Detail šestky', 'Stavba zuba', 'Priestor', 'Povlak', 'Čistenie']);
+assert.deepEqual(DENTAL_CHAPTERS.map(c => c.label), ['Celý chrup', 'Poloha šestky', 'Detail šestky', 'Stavba zuba', 'Priestor', 'Povlak', 'Čistenie', 'Mapa chrupu', 'Záverečný úsmev']);
 for (const [i, c] of DENTAL_CHAPTERS.entries()) {
   assert.strictEqual(getDentalChapter(c.start), c);
   assert.strictEqual(getDentalChapter(c.at), c);
@@ -25,7 +25,7 @@ for (const [i, c] of DENTAL_CHAPTERS.entries()) {
     const p = c.start + fraction * (c.end - c.start);
     const still = sampleReducedDentalStory(p);
     const staticAt = c.id === 'brush' && p >= resultStart
-      ? p < resultEnd ? (resultStart + resultEnd) / 2 : 1 : c.reducedAt;
+      ? STORY_TIMING.resultAt : c.reducedAt;
     assert.deepEqual(visual(still), visual(sampleDentalStory(staticAt)), `Stable reduced-motion ${c.id}`);
     assert.equal(still.chapterId, c.id);
     eq(still.progress, p, 'Raw navigation remains available in reduced motion');
@@ -34,7 +34,18 @@ for (const [i, c] of DENTAL_CHAPTERS.entries()) {
 assert.equal(sampleDentalStory(-2).progress, 0);
 assert.equal(sampleDentalStory(4).progress, 1);
 assert.equal(sampleDentalStory(NaN).chapterId, 'dentition');
-assert.equal(getDentalChapter(1).id, 'brush');
+assert.equal(getDentalChapter(1).id, 'closing');
+const {map} = STORY_TIMING;
+const lowerFirst = sampleDentalStory(map.upper[0]);
+assert.ok(lowerFirst.mapLower > 0 && lowerFirst.lowerReveal > 0 && lowerFirst.mapSite > .95);
+assert.equal(lowerFirst.mapUpper,0);
+for (const at of [map.hold[0],map.at,map.hold[1]]) {
+  const state=sampleDentalStory(at);
+  assert.deepEqual([state.mapLower,state.mapUpper,state.finalCrownCoverage,state.brushVisibility],[1,1,1,0]);
+}
+const folding=sampleDentalStory((map.close[0]+map.close[1])/2);
+assert.ok(folding.mapLower>0 && folding.mapLower<1 && folding.mapUpper===folding.mapLower);
+assert.deepEqual([sampleDentalStory(1).mapLower,sampleDentalStory(1).mapUpper],[0,0]);
 
 // Inspect the actual sampled axial path independently of its keyframe table.
 // A retained maximum here is a test oracle; the sampler itself has no history.
@@ -202,4 +213,4 @@ const afterChapter = atLayer(chapter('brush').at, 1500);
 assert.deepEqual([afterChapter.amount, afterChapter.cut, afterChapter.highlight, afterChapter.manual], [0, 0, null, false]);
 assert.equal(atLayer(anatomyAt, 1510).manual, false, 'A direct return reconstructs the guided section');
 
-console.log('Dental story: seven chapters, independent opening and closing smiles, anatomy layers and reverse/jump checks passed.');
+console.log('Dental story: nine chapters, reversible occlusal map, anatomy layers and opening/closing smiles passed.');

@@ -98,7 +98,7 @@ export function createOpeningCameraOptions(base,{compact=false}={}) {
 
 /** Measured site coordinates and a minimum viewing distance frame the macro
  * work. On narrow viewports the timeline can back up to fit the region's
- * projected width. Both final-view timelines share all seven teaching poses.
+ * projected width. Both atlas modes share the teaching and map camera path.
  */
 export function createStoryCameraConfig(site, base, { finalView = 'smile', compact = false, crownsReady = true } = {}) {
   const settings = compact ? { ...base.storyCamera, ...base.storyCamera.compact } : base.storyCamera;
@@ -139,14 +139,18 @@ export function createStoryCameraConfig(site, base, { finalView = 'smile', compa
     // registered to the same screen pixels in either scroll direction.
     ['plaque', STORY_TIMING.teachingSite.contactHold[0], 'cleaning', brushDirection, settings.cleaningDistanceCm],
     ['result-hold', STORY_TIMING.return[0], 'cleaning', brushDirection, settings.cleaningDistanceCm],
-    ['return-opening', .946, 'space', [.66,.23,1], 4.5],
-    ['return-arch', .971, 'flight', [.16,.08,1], 8.8],
+    ['return-opening', MathUtils.lerp(...STORY_TIMING.map.lower,.33), 'space', [.68,.29,1], 4.6],
+    ['map-lower-first', STORY_TIMING.map.lower[1], 'mapLower', [.14,.12,1]],
+    ['map-open', STORY_TIMING.map.hold[0], 'map', [0,0,1]],
+    ['map-hold', STORY_TIMING.map.hold[1], 'map', [0,0,1]],
   ];
   // The macro sightlines were checked at the original working distances.
   // On a narrow full-stage display use an off-axis lens to compose them
   // rather than backing the camera away to fit the whole neighboring crowns.
   keyframes.push(...specs.map(([key, at, landmark, direction, distance]) => ({
     key, at, landmark, direction, distance,
+    // Keep space above the lower row as the upper incisors rotate into view.
+    targetOffset: landmark === 'mapLower' ? [0,.84,0] : undefined,
     centerTarget: landmark === 'space' || landmark === 'cleaning' || landmark === 'molarWall',
     framing: landmark === 'molarWall' ? 'space' : undefined,
     minimumFitAspect: landmark === 'cleaning' ? .72 : undefined,

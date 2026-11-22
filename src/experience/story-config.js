@@ -2,7 +2,7 @@
 const range = (a, b) => Object.freeze([a, b]);
 
 export function brushProgress(workingProgress) {
-  return .78 + (workingProgress - .48) / (.72 - .48) * (.898 - .78);
+  return .78 + (workingProgress - .48) / (.72 - .48) * (.854 - .78);
 }
 
 export const STORY_TIMING = Object.freeze({
@@ -31,14 +31,21 @@ export const STORY_TIMING = Object.freeze({
     pulp: range(.523, .540),
     close: range(.568, .590),
   }),
-  result: range(.898, .918),
-  resultAt: .908,
-  return: range(.918, .980),
-  finalClosure: range(.957, .975),
-  finalCrowns: range(.971, .991),
-  finalHold: range(.991, 1),
-  finalCopy: range(.950, .989),
-  manualReady: .792,
+  result: range(.854, .868),
+  resultAt: .861,
+  return: range(.868, .922),
+  map: Object.freeze({
+    lower: range(.868, .903),
+    upper: range(.888, .922),
+    hold: range(.922, .967),
+    close: range(.967, .993),
+    at: .941,
+  }),
+  finalClosure: range(.885, .903),
+  finalCrowns: range(.882, .911),
+  finalHold: range(.993, 1),
+  finalCopy: range(.967, .993),
+  manualReady: brushProgress(.504),
   manualAt: brushProgress(.62),
   manualCamera: brushProgress(.645),
 });
@@ -85,7 +92,7 @@ export const DENTAL_CHAPTERS = Object.freeze([
       note: 'Farebne zvýraznený pre názornosť.',
       education: 'Baktérie v povlaku vytvárajú z cukrov kyseliny, ktoré môžu postupne poškodzovať sklovinu. Farba zvýrazňuje tenkú vrstvu povlaku.',
     }),
-  chapter('brush', 'Čistenie', .78, 1, STORY_TIMING.manualAt, STORY_TIMING.manualAt,
+  chapter('brush', 'Čistenie', .78, STORY_TIMING.map.lower[0], STORY_TIMING.manualAt, STORY_TIMING.manualAt,
     ['Jemne tam', 'a späť.'],
     'Na zdravom zube ukazujeme, ako kefka odstraňuje povlak.', {
       instructions: Object.freeze(['Vhodná veľkosť.', 'Jemné zasunutie.', 'Pohyb tam a späť.']),
@@ -93,6 +100,10 @@ export const DENTAL_CHAPTERS = Object.freeze([
       resultLabels: Object.freeze(['Vyčistený povrch']),
       education: 'S výberom vhodnej veľkosti pomôže zubný lekár alebo dentálna hygienička. Zasúvajte jemne, bez násilia. Medzizubná kefka odstraňuje povlak v dosahu štetiniek a dopĺňa bežné čistenie.',
     }),
+  chapter('map', 'Mapa chrupu', STORY_TIMING.map.lower[0], STORY_TIMING.map.close[0],
+    STORY_TIMING.map.at, STORY_TIMING.map.at, ['Mapa chrupu.'], ''),
+  chapter('closing', FINAL_SMILE_COPY.label, STORY_TIMING.map.close[0], 1, 1, 1,
+    FINAL_SMILE_COPY.titleLines, FINAL_SMILE_COPY.text),
 ]);
 
 const brushRange = (a, b) => range(brushProgress(a), brushProgress(b));
@@ -103,7 +114,7 @@ export const DENTAL_STORY = Object.freeze({
   extractionOffset: Object.freeze([1.07, .63, .47]),
   gapFocus: range(.594, .680), gapRelease: STORY_TIMING.return,
   deposition: range(.690, .765),
-  plaqueExit: range(.922, .947),
+  plaqueExit: range(.868, .879),
   brush: Object.freeze({
     appear: brushRange(.48, .502), align: brushRange(.48, .515), enter: brushRange(.515, .56),
     work: brushRange(.56, .68), withdraw: brushRange(.68, .714), fade: brushRange(.708, .72),
@@ -114,5 +125,5 @@ export const DENTAL_STORY = Object.freeze({
       [.62, .70, 1], [.64, .35, 0], [.68, 1, 1], [.714, 0, 0],
     ].map(([at, travel, stroke]) => Object.freeze([brushProgress(at), travel, stroke]))),
   }),
-  lower: range(.923, .968), upper: range(.933, .971), fullHold: STORY_TIMING.finalHold,
+  lower: range(.868, .894), upper: range(.885, .910), fullHold: STORY_TIMING.finalHold,
 });

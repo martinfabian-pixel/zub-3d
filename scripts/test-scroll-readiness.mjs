@@ -4,7 +4,7 @@ import { DENTAL_CHAPTERS } from '../src/experience/story-config.js';
 
 const openingStop = 0;
 const studyStop = DENTAL_CHAPTERS.find(chapter => chapter.id === 'space').start - .001;
-const brushAt = DENTAL_CHAPTERS.at(-1).at;
+const brushAt = DENTAL_CHAPTERS.find(c => c.id==='brush').at;
 const gate = createScrollReadiness(openingStop);
 assert.deepEqual(gate.sample(.9), { progress: openingStop, blocked: true });
 assert.deepEqual(gate.sample(openingStop), { progress: openingStop, blocked: false });

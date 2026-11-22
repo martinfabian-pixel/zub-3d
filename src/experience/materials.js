@@ -11,6 +11,7 @@ import { prepareMaterial } from '../prototype/materials.js';
 export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = false, crownFdi = null) {
   prepareMaterial(mesh, config, profile, renderer, clay);
   const material = mesh.material;
+  const mapEmphasis={value:0};
   if(crownFdi!==null&&!clay) {
     mesh.geometry.computeBoundingBox();
     const {min,max}=mesh.geometry.boundingBox;
@@ -18,12 +19,12 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
     const compile=material.onBeforeCompile, key=material.customProgramCacheKey();
     material.onBeforeCompile=function(shader,renderer) {
       compile.call(this,shader,renderer);
-      shader.uniforms.crownExtent=extent;shader.uniforms.crownIncisor=incisor;
+      shader.uniforms.crownExtent=extent;shader.uniforms.crownIncisor=incisor;shader.uniforms.mapEmphasis=mapEmphasis;
       shader.vertexShader=shader.vertexShader
         .replace('#include <common>','#include <common>\nuniform vec2 crownExtent; varying float vCrownHeight;')
         .replace('#include <begin_vertex>','#include <begin_vertex>\nvCrownHeight=(position.y-crownExtent.x)*crownExtent.y;');
       shader.fragmentShader=shader.fragmentShader
-        .replace('#include <common>','#include <common>\nuniform float crownIncisor; varying float vCrownHeight;')
+        .replace('#include <common>','#include <common>\nuniform float crownIncisor, mapEmphasis; varying float vCrownHeight;')
         .replace('#include <metalnessmap_fragment>',`#include <metalnessmap_fragment>
           diffuseColor.rgb *= mix(vec3(1.,.993,.979),vec3(1.),smoothstep(.02,.38,vCrownHeight));`)
         .replace('#include <transmission_fragment>',`#include <transmission_fragment>
@@ -45,6 +46,7 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
           vec3 softFill = diffuseColor.rgb * toothAO * (.50+.34*facing+.41*fillCosine*fillCosine);
           totalDiffuse = mix(totalDiffuse,softFill,.66);
           totalDiffuse = mix(vec3(luminance(totalDiffuse)),totalDiffuse,.16);
+          totalDiffuse *= mix(vec3(1.),vec3(.31,.76,.83),mapEmphasis);
           // View-space strip reflections travel across the native normals as
           // the camera orbits. Keep the physical studio's specular light too.
           vec3 reflected = reflect(-eye,normal);
@@ -66,6 +68,7 @@ export function prepareJourneyMaterial(mesh, config, profile, renderer, clay = f
   let reveal = 0;
   return {
     material,
+    setMapEmphasis(value) {mapEmphasis.value=value;},
     setReveal(value) {
       reveal = value;
       // The first visible flight frame draws roots with alpha. Crowns are

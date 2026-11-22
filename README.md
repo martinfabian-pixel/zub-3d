@@ -2,9 +2,9 @@
 
 **[Otvoriť interaktívnu prezentáciu](https://martinfabian-pixel.github.io/zub-3d/)**
 
-Začnite pri dolnej ľavej šestke **FDI 36 s dvoma koreňmi**. V druhej kapitole môžete tlačidlami **Rozložiť zub** a **Zložiť zub** preskúmať päť označených častí 3D ilustrácie. Nasleduje ukážka medzizubného priestoru, povlaku a jeho čistenia v dosahu štetín.
+Príbeh vedie od celého chrupu k dolnej ľavej šestke **36**, jej rezu a čisteniu medzi šestkou a sedmičkou. Potom sa oba oblúky otvoria do **Mapy chrupu**. Ťuknutím na ktorúkoľvek z 28 koruniek zobrazíte číslo a slovenské pomenovanie zuba. [Otvoriť mapu chrupu](https://martinfabian-pixel.github.io/zub-3d/?pohlad=mapa-chrupu)
 
-Sedem kapitol **Zub / Stavba zuba / Priestor / Povlak / Čistenie / Výsledok / Chrup** ovláda prirodzený zvislý posun stránky alebo priama navigácia. **Model môžete rovno chytiť a otočiť**, už od prvého zuba. Na mobile vodorovne otáčate a zvislo posúvate príbeh. **Voľné 3D** pozastaví ukážku, umožní obe osi a zoom kolieskom alebo dvoma prstami. **Pokračovať v príbehu** sa plynulo vráti do pripravenej kompozície. Záver ponúka **Úsmev** s korunkami a **Anatómiu** s celými zubami vrátane koreňov.
+Medzi deviatimi kapitolami sa pohybujete zvislým posunom alebo výberom názvu kapitoly. Na mobile vodorovným ťahom otáčate model. **Voľné 3D** pozastaví príbeh a umožní otáčanie v oboch osiach aj priblíženie dvoma prstami. Z mapy sa ďalším posunom vrátite k čelnému úsmevu.
 
 ## Spustenie
 
@@ -26,7 +26,7 @@ Otvorte **http://127.0.0.1:5173/**. Produkčná zostava: `pnpm build`; lokálny 
 
 [Aktuálne korunkové finále, pôvod assetu a zábery](docs/CROWN_FINALE.md).
 
-Text, 3D model a popisky patria do jednej plochy na ľadovomodrom pozadí. Sedem navigačných bodiek, šípky a počítadlo kapitoly fungujú na počítači aj mobile. Pri otočení ostávajú popisky pripojené k označeným miestam zubov; zakryté sa skryjú. Podrobné vysvetlenia otvára tlačidlo **Výučbová ukážka · poznámky**. [Snímky všetkých kapitol a kontroly](docs/SHARED_STAGE_QA.md) · [Príbeh a architektúra](docs/DENTAL_STORY.md) · [Geometria dutiny a dráha kefky](docs/PROXIMAL_SITE.md) · [Odborné zdroje a hranice ilustrácie](docs/DENTAL_STORY_SOURCES.md) · [Dolná šestka a jej export](docs/LOWER_HERO.md) · [Pôvod anatomických predlôh](docs/DENTITION_SOURCES.md) · [Licencie a atribúcia](ATTRIBUTION.md).
+Text, 3D model a popisky patria do jednej plochy na ľadovomodrom pozadí. Podrobné vysvetlenia otvára tlačidlo **Výučbová ukážka · poznámky**. [Snímky a kontroly](docs/SHARED_STAGE_QA.md) · [Príbeh a architektúra](docs/DENTAL_STORY.md) · [Geometria dutiny a dráha kefky](docs/PROXIMAL_SITE.md) · [Odborné zdroje a hranice ilustrácie](docs/DENTAL_STORY_SOURCES.md) · [Dolná šestka a jej export](docs/LOWER_HERO.md) · [Pôvod anatomických predlôh](docs/DENTITION_SOURCES.md) · [Licencie a atribúcia](ATTRIBUTION.md).
 
 Geometria vychádza zo 14 odlišných anatomických modelov **University of Dundee, School of Dentistry**, pod licenciou **CC BY 4.0**. Opačné strany používajú zrkadlené predlohy s vlastnými polohami. Horné a dolné zuby majú rozdielnu pôvodnú geometriu. HDR **Studio Small 09**, Sergej Majboroda / Poly Haven: **CC0**. Kód: MIT. Bez platených assetov a služieb.
 
