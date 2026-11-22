@@ -3,6 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { DENTAL_STORY, STORY_TIMING } from '../src/experience/story-config.js';
+import { DENTAL_ATLAS_TEETH } from '../src/experience/dental-atlas-data.js';
 import { enterStory, nativeJump } from './browser-camera-probes.mjs';
 import { recordBrowserInteraction } from './record-molar-transition.mjs';
 
@@ -55,11 +56,36 @@ async function measure(page) {
 async function tapTooth(page, target, mobile) {
   if (mobile) await page.touchscreen.tap(target.x, target.y);
   else await page.mouse.click(target.x, target.y);
-  await page.waitForFunction(fdi => Number(document.querySelector('#dental-map-selected').value) === fdi, target.fdi, {timeout:3000})
-    .catch(() => { throw new Error('The tap on crown ' + target.fdi + ' at ' + target.x.toFixed(1) + ', ' + target.y.toFixed(1) + ' did not select it'); });
-  const selectedNumber = page.locator(`.dental-map-labels g[data-map-fdi="${target.fdi}"][data-selected]`);
-  await selectedNumber.waitFor({state:'visible'});
-  assert.equal(await page.locator('.dental-map-labels g[data-selected]').count(), 1);
+  await checkDetail(page, target.fdi);
+}
+
+async function checkDetail(page, fdi) {
+  const tooth = DENTAL_ATLAS_TEETH.get(fdi);
+  await page.waitForFunction(id => {
+    const app = window.__dentalExperience, state = app.report();
+    return state.story.chapterId === 'map' && state.focusFromMap && state.focusedTooth === id && !state.focusMoving
+      && !state.focusReturning && state.crownMix === 0 && app.arch.teeth.get(id).mesh.visible
+      && [...app.arch.teeth].every(([fdi,item]) => !item.crown.visible && (fdi === id || !item.mesh.visible));
+  }, fdi, {timeout:10000});
+  assert.equal(await page.locator('.full-arch-focus-select').inputValue(), String(fdi));
+  assert.ok((await page.locator('.full-arch-focus-title').innerText()).includes(tooth.name));
+  assert.ok((await page.locator('#journey-canvas').getAttribute('aria-label')).includes(tooth.patientName));
+  assert.ok((await page.locator('.full-arch-focus-location').innerText()).includes(tooth.patientName));
+  assert.ok((await page.locator('.full-arch-focus-function').textContent()).includes(tooth.purpose));
+  assert.ok((await page.locator('.full-arch-focus-landmark').textContent()).includes(tooth.landmark));
+  assert.ok((await page.locator('.full-arch-focus-fact').textContent()).includes(tooth.fact));
+  await page.getByRole('button', {name:'Späť na mapu',exact:true}).waitFor();
+}
+
+async function backToMap(page) {
+  await page.getByRole('button', {name:'Späť na mapu',exact:true}).click();
+  await page.waitForFunction(() => {
+    const state = window.__dentalExperience.report();
+    return state.map.active && state.focusedTooth === null && !state.focusReturning &&
+      document.querySelectorAll('.dental-map-labels [data-map-fdi]:not([display="none"])').length === 28;
+  });
+  await page.locator('.dental-map-labels').waitFor({state:'visible'});
+  assert.match(await page.locator('#journey-canvas').getAttribute('aria-label'),/Mapa horného a dolného zubného oblúka/);
 }
 
 // Compare rendered text rectangles in CSS pixels. This also catches SVG
@@ -137,6 +163,30 @@ async function scrub(page, from, to, duration) {
   }, {from,to,duration});
 }
 
+async function recordMapDetail(page, target) {
+  const working = DENTAL_STORY.brush.work[0];
+  await settleAt(page, working);
+  await recordBrowserInteraction(page,join(review,'od-kefky-k-usmevu.mp4'),process.env.FFMPEG_PATH,async()=>{
+    await page.waitForTimeout(500);
+    await scrub(page,working,STORY_TIMING.resultAt,1800);
+    await page.waitForTimeout(300);
+    await scrub(page,STORY_TIMING.resultAt,map.lower[1],2600);
+    await page.waitForTimeout(350);
+    await scrub(page,map.lower[1],map.at,1250);
+    await page.waitForTimeout(1500);
+    await tapTooth(page,target,true);
+    await page.getByRole('tab',{name:'Zaujímavosť',exact:true}).tap();
+    await page.waitForTimeout(1250);
+    await page.getByRole('button',{name:'Zobraziť vnútro',exact:true}).tap();
+    await page.waitForTimeout(1400);
+    await backToMap(page);
+    await scrub(page,map.at,1,2800);
+    await page.waitForFunction(()=>window.__dentalExperience.report().story.chapterId==='closing');
+    await page.waitForTimeout(900);
+  },{minFrames:60});
+  await settleAt(page,map.at);
+}
+
 async function reviewMap(mobile) {
   const viewport = mobile ? {width:390,height:844} : {width:1366,height:860};
   const context = await browser.newContext({viewport, isMobile:mobile, hasTouch:mobile, deviceScaleFactor:mobile?2:1});
@@ -174,34 +224,50 @@ async function reviewMap(mobile) {
       await mkdir(review, {recursive:true});
       await page.screenshot({path:join(review, (mobile?'mobil':'desktop') + '-mapa.png'), scale:'css'});
     }
+    // Capture the first opening of a rooted model, before any selection warms it.
+    if (mobile && review && process.env.FFMPEG_PATH && !webkitRun) {
+      await recordMapDetail(page, teeth.get(13));
+    }
     for (const fdi of [11,21]) {
       const box = await page.locator(`g[data-map-fdi="${fdi}"] text`).evaluate(el=>el.getBoundingClientRect().toJSON());
       await tapTooth(page, {fdi, x:box.x+box.width/2, y:box.y+box.height/2}, mobile);
+      await backToMap(page);
       assert.equal(await page.locator('g[data-map-fdi] text:visible').count(), 28);
     }
     const order = [11,21,12,22,41,31,42,32, ...teeth.keys()];
     for (const fdi of new Set(order)) {
-      await tapTooth(page, teeth.get(fdi), mobile);
       const badge = await page.locator('.dental-map-labels g[data-map-fdi="'+fdi+'"] text').boundingBox();
       const centre = teeth.get(fdi);
       assert.ok(centre.x < badge.x || centre.x > badge.x + badge.width
         || centre.y < badge.y || centre.y > badge.y + badge.height, 'FDI badge leaves the chewing surface clear');
-      if (fdi === 11) {
-        assert.equal((await page.locator('#dental-map-name').innerText()).trim(), 'Horná pravá jednotka');
-        assert.match(await page.locator('#dental-map-description').innerText(), /stredný rezák/i);
-        assert.match(await page.locator('.dental-map-key li[data-selected]').innerText(), /Rezáky/);
+      await tapTooth(page, centre, mobile);
+      if (fdi === 13) {
+        assert.match(await page.locator('.full-arch-focus-type').innerText(),/očný zub/i);
+        await page.getByRole('tab',{name:'Tvar',exact:true}).click();
+        await page.locator('.full-arch-focus-landmark').waitFor({state:'visible'});
+        await page.getByRole('tab',{name:'Zaujímavosť',exact:true}).click();
+        await page.locator('.full-arch-focus-fact').waitFor({state:'visible'});
+        if (review && mobile && !webkitRun) {
+          await page.screenshot({path:join(review,'ocny-zub-13.png'),scale:'css'});
+        }
+        await page.getByRole('button',{name:'Zobraziť vnútro',exact:true}).click();
+        await page.waitForFunction(() => {
+          const {fullAnatomy} = window.__dentalExperience.report();
+          return fullAnatomy.fdi === 13 && fullAnatomy.weight > .98;
+        });
       }
+      await backToMap(page);
     }
     const selected = await measure(page);
-    assert.deepEqual(selected.pose,shape.pose,'Changing a tooth must not move the camera');
-    assert.deepEqual(selected.teeth,shape.teeth,'Changing a caption must not move either arch');
+    assert.ok(selected.pose.every((n,i)=>near(n,shape.pose[i],1e-5)),'Returning restores the original map camera');
+    for (const tooth of selected.teeth) {
+      assert.ok(near(tooth.x,teeth.get(tooth.fdi).x,.05) && near(tooth.y,teeth.get(tooth.fdi).y,.05),'Each crown returns to its original seat');
+    }
     const picker = page.getByRole('combobox',{name:'Vybrať zub na mape chrupu'});
     await picker.selectOption('46');
-    await page.locator('g[data-map-fdi="46"][data-selected]').waitFor({state:'visible'});
-    assert.equal(await page.locator('#dental-map-name').innerText(),'Dolná pravá šestka');
-    await picker.selectOption('');
-    await page.locator('g[data-map-fdi][data-selected]').waitFor({state:'hidden'});
-    assert.equal(await page.locator('#dental-map-name').innerText(),'Vybrať zub');
+    await checkDetail(page,46);
+    await page.locator('.full-arch-focus-select').selectOption('23');
+    await checkDetail(page,23);
 
     const working = DENTAL_STORY.brush.work[0], halfLower = (map.lower[0]+map.upper[0])*.5;
     await settleAt(page, working);
@@ -227,24 +293,6 @@ async function reviewMap(mobile) {
     for (let i=0;i<inward.teeth.length;i++) {
       assert.ok(near(inward.teeth[i].x,outward.teeth[i].x,.05) && near(inward.teeth[i].y,outward.teeth[i].y,.05), 'Crown positions reverse on the same path');
     }
-    if (mobile && review && process.env.FFMPEG_PATH && !webkitRun) {
-      await settleAt(page,working);
-      await recordBrowserInteraction(page,join(review,'od-kefky-k-usmevu.mp4'),process.env.FFMPEG_PATH,async()=>{
-        await page.waitForTimeout(500);
-        await scrub(page,working,STORY_TIMING.resultAt,1800);
-        await page.waitForTimeout(300);
-        const lowerView = map.lower[1];
-        await scrub(page,STORY_TIMING.resultAt,lowerView,2600);
-        await page.waitForTimeout(350);
-        await scrub(page,lowerView,map.at,1250);
-        await page.waitForTimeout(1800);
-        await tapTooth(page,teeth.get(11),true);
-        await page.waitForTimeout(1400);
-        await scrub(page,map.at,1,2800);
-        await page.waitForFunction(()=>window.__dentalExperience.report().story.chapterId==='closing');
-        await page.waitForTimeout(900);
-      },{minFrames:60});
-    }
     if (mobile) {
       await page.setViewportSize({width:320, height:568});
       await page.waitForFunction(() => {
@@ -256,6 +304,7 @@ async function reviewMap(mobile) {
       await checkDiagram(page, new Map(narrow.teeth.map(t=>[t.fdi,t])));
       for (const fdi of [11,21,41,31]) {
         await tapTooth(page,narrow.teeth.find(tooth=>tooth.fdi===fdi),true);
+        await backToMap(page);
       }
       const name = await page.locator('#dental-map-name').boundingBox();
       assert.ok(narrow.bounds.bottom < name.y,'Small phones keep both arches above their caption');

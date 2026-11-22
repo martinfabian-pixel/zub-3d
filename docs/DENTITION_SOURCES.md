@@ -6,6 +6,10 @@ Oblúky obsahujú 14 horných a 14 dolných zubov bez tretích stoličiek. Vych�
 
 **Licencia pôvodných modelov a ich úprav: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).** Pri každom použitom tvare bola overená licencia v autorských údajoch Sketchfab aj vo vložených údajoch glTF. Licencia umožňuje ďalšie úpravy a redistribúciu vrátane komerčného webu pri zachovaní uvedenia autora, licencie a popisu zmien. Trinásť ďalších predlôh poskytuje verejná distribúcia [TeethAtlas](https://www.teethatlas.com/); schválená horná prvá stolička pochádza z [VAMO / inVisu](https://vamo.invisu.ca/vamo/dentaire/molaire_maxillaire.html).
 
+## Pacientske popisy v mape a atlase
+
+Popisy párových zubov rozlišujú stranu pacienta a opisujú spoločné anatomické znaky. Tvar korunky, počet koreňov aj vek prerezávania sa u jednotlivých ľudí líšia. Podkladom pre atlas boli učebné materiály k anatómii predných a zadných zubov a prehľad prerezávania trvalého chrupu. [Predné zuby](https://ecampusontario.pressbooks.pub/oralfacialonline/chapter/tooth-morphology/) · [Črenové zuby a stoličky](https://ecampusontario.pressbooks.pub/oralfacialonline/chapter/tooth-morphology-part-a/) · [Woelfel’s Dental Anatomy, rezáky](https://samples.jblearning.com/9781284218244/9781284218251_CH02_Scheid_Secured.pdf) · [American Dental Association, prerezávanie trvalých zubov](https://www.ada.org/-/media/project/ada-organization/ada/ada-org/files/resources/public-programs/give-kids-a-smile/ada_primary_permanent_toothdev_eng.pdf).
+
 ## Jednotlivé predlohy
 
 Číslovanie FDI sa vzťahuje na stranu **pacienta**. V tabuľke sa uvádza najprv ľavý zub a potom jeho pravý náprotivok. Odkaz na číslo vedie k autorskému záznamu; odkaz „súbor“ vedie k získanej distribúcii. Počet koreňov sa vzťahuje na zobrazenú sieť, nie na všetky možné anatomické varianty človeka.

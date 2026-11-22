@@ -2,7 +2,7 @@
 
 **[Otvoriť interaktívnu prezentáciu](https://martinfabian-pixel.github.io/zub-3d/)**
 
-Príbeh vedie od celého chrupu k dolnej ľavej šestke **36**, jej rezu a čisteniu medzi šestkou a sedmičkou. V **Mape chrupu** nájdete čísla FDI pri všetkých 28 zuboch horného a dolného oblúka. Legenda vysvetľuje, ktoré čísla patria rezákom, očným zubom, črenovým zubom a stoličkám. Ťuknutím na zub zobrazíte jeho slovenské pomenovanie. [Otvoriť mapu chrupu](https://martinfabian-pixel.github.io/zub-3d/?pohlad=mapa-chrupu)
+Príbeh vedie od celého chrupu k dolnej ľavej šestke **36**, jej rezu a čisteniu medzi šestkou a sedmičkou. V **Mape chrupu** nájdete čísla FDI pri všetkých 28 zuboch horného a dolného oblúka. Ťuknutím na korunku alebo jej číslo otvoríte anatomický model daného zuba aj s koreňmi. Môžete si ho otočiť, pozrieť jeho ilustračné vnútro a prečítať si, ako ho spoznáte a na čo slúži. Tlačidlo **Späť na mapu** vás vráti k obom oblúkom. [Otvoriť mapu chrupu](https://martinfabian-pixel.github.io/zub-3d/?pohlad=mapa-chrupu)
 
 Medzi deviatimi kapitolami sa pohybujete zvislým posunom alebo výberom názvu kapitoly. Na mobile vodorovným ťahom otáčate model. **Voľné 3D** pozastaví príbeh a umožní otáčanie v oboch osiach aj priblíženie dvoma prstami. Z mapy sa ďalším posunom vrátite k čelnému úsmevu.
 

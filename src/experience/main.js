@@ -92,7 +92,7 @@ export function createExperience(configuration=experienceConfig) {
   let interiorRequested=false,interiorFdi=null,fullAnatomyWeight=0,fullAnatomyFrame=0,pendingFinalView=null;
   let fullBrushing,brushingRun=null,smileBacking,brushingFraming=0;
   const brushingFocus=new THREE.Vector3();
-  let focusOrigin=null,focusLeavesStory=false;
+  let focusOrigin=null,focusLeavesStory=false,restoreMapPicker=false;
   const anatomyMotion=createHeroAnatomyMotion();
   const storyAnatomy=createStoryAnatomy();
   let anatomyState={active:false,layer:'whole',preset:'whole',amount:0,cut:0,highlight:null,moving:false,manual:false};
@@ -133,7 +133,10 @@ export function createExperience(configuration=experienceConfig) {
     if(!fullArchFocus.engaged||fullArchFocus.returning)return;
     interiorRequested=active;
     requestRender();
-  },onSelect:focusTooth,onReturn:()=>returnToArch(),onContinue:continueFromAtlas});
+  },onSelect:focusTooth,onDetailChange:tooth=>ui.setAtlasTooth(tooth),onReturn:()=>{
+    restoreMapPicker=fullArchFocus.fromMap;
+    returnToArch();
+  },onContinue:continueFromAtlas});
   const brushingControls=createFullArchBrushingControls({stage,signal,onToggle:toggleFullBrushing,onNext:nextBrushingPhase});
 
   function canBrushFullArch() {
@@ -199,8 +202,8 @@ export function createExperience(configuration=experienceConfig) {
   }
 
   function canUseAtlas() {
-    return crownsReady&&dentalState.chapterId==='dentition'&&finalView==='anatomy'&&
-      !finalViewTransition&&!pendingFinalView&&!focusLeavesStory&&atlasCoverage(dentalState.sceneProgress)===1;
+    return crownsReady&&!finalViewTransition&&!pendingFinalView&&!focusLeavesStory&&
+      (fullArchFocus.fromMap||(dentalState.chapterId==='dentition'&&finalView==='anatomy'&&atlasCoverage(dentalState.sceneProgress)===1));
   }
   function canInspectStoryLayer(){return ready&&!manual&&!startupHandoff.active&&fullArchAnatomy&&anatomyState.active;}
   function inspectStoryLayer(layer){
@@ -227,7 +230,7 @@ export function createExperience(configuration=experienceConfig) {
     if(hit?.object.userData.fdi)focusTooth(hit.object.userData.fdi);
   }
   function atlasFraming() {
-    const compact=logicalWidth<=700;
+    const compact=logicalWidth<=700&&logicalWidth<logicalHeight*1.5;
     return {compact,short:compact&&logicalHeight<680};
   }
   function captureAtlasPose() {
@@ -236,11 +239,13 @@ export function createExperience(configuration=experienceConfig) {
       screenX:sensor?.enabled ? .5-sensor.offsetX/sensor.fullWidth : .5,
       screenY:sensor?.enabled ? .5-sensor.offsetY/sensor.fullHeight : .5,opticalZoom:camera.zoom};
   }
-  function focusTooth(fdi) {
-    if(!canUseAtlas())return;
+  function focusTooth(fdi,{map=false}={}) {
+    const available=map?mapUI.active:canUseAtlas();
+    if(!available)return;
     const firstFocus=!focusOrigin;
     const from=captureAtlasPose();
-    if(!fullArchFocus.select(Number(fdi),{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant:reducedMotion}))return;
+    if(!fullArchFocus.select(Number(fdi),{arch,rig,framing:atlasFraming(),from,now:performance.now(),instant:reducedMotion,map}))return;
+    restoreMapPicker=false;
     cancelNavigation();
     if(firstFocus){
       focusOrigin={view:view.captureDisplayed(),progress:renderProgress,next:null};
@@ -251,11 +256,17 @@ export function createExperience(configuration=experienceConfig) {
     requestRender();
   }
   function continueFromAtlas(){navigate(STORY_TIMING.anatomy.enamel[0]);}
+  function beyondFocusedOverview(at) {
+    if(!fullArchFocus.fromMap)return at>STORY_TIMING.atlas[1];
+    const start=reducedMotion?STORY_TIMING.map.lower[0]:STORY_TIMING.map.hold[0];
+    return at<start||at>=STORY_TIMING.map.close[0];
+  }
   function atlasOverviewPose(){return focusLeavesStory?rig.pose:view.poseWithOffsets(rig.pose,focusOrigin.view);}
   function returnToArch({story=false}={}) {
     if(!focusOrigin)return;
     const retarget=story&&!focusLeavesStory;
     focusLeavesStory||=story;
+    if(story)restoreMapPicker=false;
     interiorRequested=false;
     if(fullArchFocus.returnToArch(captureAtlasPose(),atlasOverviewPose(),performance.now(),reducedMotion,{retarget})){
       view.restore(neutralView,{instant:true});
@@ -267,7 +278,7 @@ export function createExperience(configuration=experienceConfig) {
     fullArchFocus.clear();
     view.setStoryPose(rig.pose);
     view.restore(focusLeavesStory?neutralView:previousView,{instant:true});
-    manualChapter=!focusLeavesStory&&view.modified?'dentition':null;
+    manualChapter=!focusLeavesStory&&view.modified?dentalState.chapterId:null;
     manualProgress=progress;
     interiorRequested=false;
     focusOrigin=null;focusLeavesStory=false;
@@ -459,7 +470,7 @@ export function createExperience(configuration=experienceConfig) {
     manualChapter=null;
     if(focusOrigin){
       focusOrigin.next=next;
-      returnToArch({story:next>STORY_TIMING.atlas[1]});
+      returnToArch({story:beyondFocusedOverview(next)});
       updateUI();
       return;
     }
@@ -543,7 +554,7 @@ export function createExperience(configuration=experienceConfig) {
     if(sample.blocked&&next-sample.progress>.00025)ui.scrollTo(sample.progress,true);
     progress=sample.progress;reducedMotion=Boolean(motion);
     if(brushingRun&&(progress<STORY_TIMING.atlas[0]||progress>STORY_TIMING.atlas[1]))stopFullBrushing();
-    if(focusOrigin&&!focusLeavesStory&&progress>STORY_TIMING.atlas[1]){
+    if(focusOrigin&&!focusLeavesStory&&beyondFocusedOverview(progress)){
       leaveExplore();
       returnToArch({story:true});
     }
@@ -569,7 +580,7 @@ export function createExperience(configuration=experienceConfig) {
     else sampleDentalStory(p,dentalState);
     if(fullArchFocus.engaged||brushingRun)dentalState.locate36=0;
     arch.setFinalView?.(finalView,smileWeight);
-    arch.setState(dentalState,fullArchFocus.engaged?fullArchFocus.opacity:null);
+    arch.setState(dentalState,fullArchFocus.engaged?fullArchFocus.opacity:null,fullArchFocus.mapDetail);
     plaque?.setState({visible:dentalState.plaqueVisibility>0,opacity:dentalState.plaqueDeposition*dentalState.plaqueVisibility,progress:dentalState.cleaningProgress});
     brush?.setPose(dentalState.brushPose);
     if(!moveCamera)return null;
@@ -598,6 +609,7 @@ export function createExperience(configuration=experienceConfig) {
       heroAnatomy:{weight:heroAnatomy?.weight??0},
       fullAnatomy:fullArchAnatomy?.report()??{weight:0,teeth:0},
       focusedTooth:fullArchFocus.selected,focusMoving:fullArchFocus.moving,focusReturning:fullArchFocus.returning,focusHasOrigin:Boolean(focusOrigin),
+      focusFromMap:fullArchFocus.fromMap,
       ready,assetsReady:storyReady,anatomyReady:arch?.assetsReady??false,disposed,exploring,mode:exploring?'free':'presentation',finalView,closureCm:arch?.closureCm,crownMix:arch?.crownMix,reducedMotion,view:view?.report(),
       composition:rig?{focus:[rig.pose.screenX,rig.pose.screenY],opticalZoom:rig.pose.opticalZoom,fullSensor:[rig.camera.view?.fullWidth,rig.camera.view?.fullHeight]}:null,
       typography:ui.report(),annotations:annotations?.report(),map:mapUI?.report(),
@@ -804,7 +816,8 @@ export function createExperience(configuration=experienceConfig) {
     const fullTarget=interiorFdi!==null&&interiorFdi===interiorTarget?1:0;
     const fullDt=fullAnatomyFrame?Math.min(50,Math.max(0,now-fullAnatomyFrame)):16.67;
     fullAnatomyFrame=now;
-    fullAnatomyWeight=reducedMotion||!finale?fullTarget:THREE.MathUtils.damp(fullAnatomyWeight,fullTarget,11,fullDt*.001);
+    const atlasWeight=fullArchFocus.fromMap?1:atlasCoverage(dentalState.sceneProgress);
+    fullAnatomyWeight=reducedMotion||(!finale&&!fullArchFocus.fromMap)?fullTarget:THREE.MathUtils.damp(fullAnatomyWeight,fullTarget,11,fullDt*.001);
     if(Math.abs(fullTarget-fullAnatomyWeight)<.004)fullAnatomyWeight=fullTarget;
     if(fullAnatomyWeight===0&&fullTarget===0)interiorFdi=null;
     anatomyState=storyAnatomy.update({progress:dentalState.sceneProgress,now,reducedMotion});
@@ -812,11 +825,11 @@ export function createExperience(configuration=experienceConfig) {
     if(anatomyState.active&&fullArchAnatomy){
       fullArchAnatomy.setStoryLayer(anatomyState);
     }else{
-      fullArchAnatomy?.setDetail(interiorFdi,fullAnatomyWeight*atlasCoverage(dentalState.sceneProgress),detailDirection);
+      fullArchAnatomy?.setDetail(interiorFdi,fullAnatomyWeight*atlasWeight,detailDirection);
     }
     healthyAnatomyUI.update(anatomyState);
     anatomyControls.update({chapterId:dentalState.chapterId,enabled:ready&&heroReady,active:heroAnatomyState.active,weight:heroAnatomyState.weight,archWeight:fullAnatomyWeight});
-    fullAnatomyControls.update({visible:finale&&finalView==='anatomy'&&atlasCoverage(dentalState.sceneProgress)===1,
+    fullAnatomyControls.update({visible:fullArchFocus.fromMap||(finale&&finalView==='anatomy'&&atlasWeight===1),fromMap:fullArchFocus.fromMap,
       enabled:canUseAtlas(),active:interiorRequested,focused:selected!==null,selectedFdi:selected,returning:fullArchFocus.returning});
     if(pendingFinalView&&!focusOrigin&&fullAnatomyWeight===0){const next=pendingFinalView;pendingFinalView=null;selectFinalView(next);}
     const fullAnatomyMoving=fullAnatomyWeight!==fullTarget||(interiorTarget!==null&&interiorTarget!==interiorFdi);
@@ -845,9 +858,10 @@ export function createExperience(configuration=experienceConfig) {
     }
     arch.updateView(rig.camera);
     const windowMoving=updateCleaningWindow(now);
-    mapUI.update({active:dentalState.chapterId==='map'&&dentalState.mapUpper===1,
-      unfolded:dentalState.mapLower>0||dentalState.mapUpper>0,
+    mapUI.update({active:!fullArchFocus.fromMap&&dentalState.chapterId==='map'&&dentalState.mapUpper===1,
+      unfolded:!fullArchFocus.fromMap&&(dentalState.mapLower>0||dentalState.mapUpper>0),
       camera:rig.camera,width:logicalWidth,height:logicalHeight});
+    if(restoreMapPicker&&mapUI.active){mapUI.focusPicker();restoreMapPicker=false;}
     annotations?.update({state:dentalState,camera:rig.camera,brush,anatomy:anatomyState});
     if(smileBacking&&brushingRun?.demo?.jawOpening>.01)smileBacking.visible=false;
     if(lastFrame&&(interaction||changing||scrolling||fullArchFocus.moving))adaptive.recordFrame(now-lastFrame);
@@ -1077,7 +1091,7 @@ export function createExperience(configuration=experienceConfig) {
       if(disposed||contextLost){disposeObject(hero?.object);lighting?.dispose();hero=undefined;lighting=undefined;return controller;}
       for(const result of results)if(result.status==='rejected')throw result.reason;
       arch=createArch({manifest,hero,config,renderer,profile,clay});scene.add(arch.object);
-      mapUI=createDentalMapUI({stage,canvas,arch,requestRender});
+      mapUI=createDentalMapUI({stage,canvas,arch,requestRender,onSelect:fdi=>focusTooth(fdi,{map:true})});
       annotations=createAnnotations({layer:document.querySelector('#journey-annotations'),canvas,arch,compact:profile.compact,requestRender,
         onAnatomySelect:inspectStoryLayer,getAnatomyAnchors:(camera,layer)=>fullArchAnatomy?.getStoryLayerAnchors(camera,layer)??[]});
       const timeline=createTimeline({landmarks:arch.landmarks,cameraOptions:createIntroCameraOptions(config)});

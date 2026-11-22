@@ -52,6 +52,13 @@ function createChapterPicker(stage, steps, navigate, repeatCleaning, signal) {
 export function createInterface({config,section,stage,signal,navigate,repeatCleaning,navigationTarget=()=>null,explore,reset,zoom,finalView:chooseFinalView}) {
   const byId=id=>document.getElementById(id),steps=config.presentation.steps,help=byId('journey-help-dialog');
   const typography=createStageTypography(stage,document.querySelector('.journey-copy'));
+  const canvas=byId('journey-canvas');
+  const initialCanvasLabel=canvas.getAttribute('aria-label');
+  let chapterCanvasLabel=initialCanvasLabel, atlasTooth=null;
+  function updateCanvasLabel() {
+    const subject=atlasTooth ? `${atlasTooth.patientName} · zub ${atlasTooth.fdi}. ${atlasTooth.name}.` : chapterCanvasLabel;
+    canvas.setAttribute('aria-label',subject+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');
+  }
   const nav=document.querySelector('.journey-steps'),buttons=[];
   const updatePicker=createChapterPicker(stage,steps,navigate,repeatCleaning,signal);
   const heroExplore=byId('journey-hero-explore'),freeExplore=byId('journey-explore');
@@ -112,7 +119,8 @@ export function createInterface({config,section,stage,signal,navigate,repeatClea
       repeatButton.hidden=step.id!=='closing';
       byId('journey-step-number').textContent=`${String(index+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
       byId('journey-meta').textContent=step.meta;byId('journey-subject').textContent=step.subject;
-      byId('journey-canvas').setAttribute('aria-label','3D výučbová scéna: '+copy.title+' Ťahaním otáčate. Šípky, + a − upravia pohľad.');
+      chapterCanvasLabel=step.id==='map'?'Mapa horného a dolného zubného oblúka.':'3D výučbová scéna. '+copy.title;
+      updateCanvasLabel();
       buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
       if(liveReady)byId('journey-stage-live').textContent='Kapitola '+(index+1)+' zo '+steps.length+'. '+copy.title;
       byId('journey-education-current').textContent=step.education??step.text;
@@ -167,5 +175,7 @@ export function createInterface({config,section,stage,signal,navigate,repeatClea
     const {base,travel}=getJourneyScrollMetrics(section,stage);
     window.scrollTo({top:base+progress*Math.max(0,travel),behavior:reducedMotion?'instant':'smooth'});
   }
-  return {update,scrollTo,report:()=>typography.report(),get index(){return index;},dispose(){closingButton.remove();if(help.open)help.close();}};
+  return {update,scrollTo,report:()=>typography.report(),get index(){return index;},
+    setAtlasTooth(tooth){atlasTooth=tooth;updateCanvasLabel();},
+    dispose(){closingButton.remove();if(help.open)help.close();canvas.setAttribute('aria-label',initialCanvasLabel);}};
 }

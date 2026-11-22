@@ -1,7 +1,7 @@
 import './full-arch-anatomy-controls.css';
 import { adjacentAtlasTooth, DENTAL_ATLAS_GROUPS, DENTAL_ATLAS_TEETH } from './dental-atlas-data.js';
 
-export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onReturn, onContinue }) {
+export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onReturn, onContinue, onDetailChange }) {
   const doc = stage.ownerDocument;
   const copy = stage.querySelector('.journey-copy');
   const abort = new AbortController();
@@ -13,10 +13,19 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   container.innerHTML = `
     <p class="full-arch-anatomy-note">Vyberte zub v modeli alebo podľa čísla FDI.</p>
     <div class="full-arch-focus-detail" hidden>
-      <p class="full-arch-focus-kicker"><span>Atlas chrupu</span><span class="full-arch-focus-type"></span></p>
+      <p class="full-arch-focus-kicker"><span class="full-arch-focus-source">Atlas chrupu</span><span class="full-arch-focus-caption" hidden>Ilustračné vnútro</span><span class="full-arch-focus-type"></span></p>
       <h2 class="full-arch-focus-title"></h2>
       <p class="full-arch-focus-location"></p>
-      <p class="full-arch-focus-function"><strong>Funkcia:</strong> <span></span></p>
+      <div class="full-arch-focus-topics" role="tablist" aria-label="Informácie o zube">
+        <button type="button" role="tab" id="atlas-topic-function" aria-controls="atlas-function" aria-selected="true">Funkcia</button>
+        <button type="button" role="tab" id="atlas-topic-landmark" aria-controls="atlas-landmark" aria-selected="false" tabindex="-1">Tvar</button>
+        <button type="button" role="tab" id="atlas-topic-fact" aria-controls="atlas-fact" aria-selected="false" tabindex="-1">Zaujímavosť</button>
+      </div>
+      <div class="full-arch-focus-reading">
+        <p class="full-arch-focus-function" id="atlas-function" role="tabpanel" aria-labelledby="atlas-topic-function" tabindex="0"></p>
+        <p class="full-arch-focus-landmark" id="atlas-landmark" role="tabpanel" aria-labelledby="atlas-topic-landmark" aria-hidden="true" tabindex="-1"></p>
+        <p class="full-arch-focus-fact" id="atlas-fact" role="tabpanel" aria-labelledby="atlas-topic-fact" aria-hidden="true" tabindex="-1"></p>
+      </div>
     </div>
     <div class="full-arch-focus-actions">
       <select class="full-arch-focus-select" aria-label="Vybrať zub podľa čísla FDI">
@@ -32,14 +41,14 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
       </div>
       <button type="button" class="text-button full-arch-focus-continue">Pokračovať v príbehu</button>
     </div>
-    <p class="full-arch-focus-caption" hidden>Vnútro zuba · ilustračná schéma.</p>
     <p class="sr-only full-arch-focus-live" role="status"></p>`;
 
   const detail = container.querySelector('.full-arch-focus-detail');
   const type = container.querySelector('.full-arch-focus-type');
   const title = container.querySelector('.full-arch-focus-title');
   const location = container.querySelector('.full-arch-focus-location');
-  const purpose = container.querySelector('.full-arch-focus-function span');
+  const tabs = [...container.querySelectorAll('[role="tab"]')];
+  const [purpose, landmark, fact] = container.querySelectorAll('[role="tabpanel"]');
   const note = container.querySelector('.full-arch-anatomy-note');
   const select = container.querySelector('.full-arch-focus-select');
   const button = container.querySelector('.full-arch-anatomy-toggle');
@@ -49,6 +58,7 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   const next = container.querySelector('.full-arch-focus-next');
   const continueButton = container.querySelector('.full-arch-focus-continue');
   const caption = container.querySelector('.full-arch-focus-caption');
+  const source = container.querySelector('.full-arch-focus-source');
   const announcement = container.querySelector('.full-arch-focus-live');
   for (const { label, teeth } of DENTAL_ATLAS_GROUPS) {
     const group = doc.createElement('optgroup');
@@ -69,6 +79,30 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   let lastMode;
   let lastEnabled;
   let lastReturning;
+  let lastFromMap;
+  function showTopic(tab) {
+    for (const item of tabs) {
+      const selected = item === tab;
+      item.tabIndex = selected ? 0 : -1;
+      item.setAttribute('aria-selected', String(selected));
+      const panel = doc.getElementById(item.getAttribute('aria-controls'));
+      panel.tabIndex = selected ? 0 : -1;
+      panel.setAttribute('aria-hidden', String(!selected));
+    }
+  }
+  for (const [index, tab] of tabs.entries()) {
+    tab.addEventListener('click', () => showTopic(tab), {signal});
+    tab.addEventListener('keydown', event => {
+      const targets = { ArrowLeft: (index + tabs.length - 1) % tabs.length, ArrowRight: (index + 1) % tabs.length,
+        Home: 0, End: tabs.length - 1 };
+      if (!Object.hasOwn(targets, event.key)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const target = tabs[targets[event.key]];
+      showTopic(target);
+      target.focus({preventScroll: true});
+    }, {signal});
+  }
   const selectAdjacent = direction => {
     const fdi = adjacentAtlasTooth(Number(select.value), direction);
     if (!fdi) return;
@@ -83,16 +117,22 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
   continueButton.addEventListener('click', () => onContinue?.(), { signal });
 
   return {
-    update({ visible, enabled, active, focused = false, selectedFdi = null, returning = false }) {
+    update({ visible, enabled, active, focused = false, selectedFdi = null, returning = false, fromMap = false }) {
       const tooth = focused ? DENTAL_ATLAS_TEETH.get(selectedFdi) : null;
       const mode = visible ? (tooth ? 'detail' : 'overview') : null;
+      if (fromMap !== lastFromMap) {
+        back.textContent = fromMap ? 'Späť na mapu' : 'Späť k chrupu';
+        continueButton.hidden = fromMap;
+        lastFromMap = fromMap;
+      }
       if (mode !== lastMode) {
-        const returnFocus = mode === 'overview' && (doc.activeElement === back || doc.activeElement === button || navigation.contains(doc.activeElement));
+        const returnFocus = mode === 'overview' && container.contains(doc.activeElement);
         container.hidden = !mode;
         if (mode) stage.dataset.dentalAtlas = mode;
         else delete stage.dataset.dentalAtlas;
         note.hidden = mode === 'detail';
         detail.hidden = button.hidden = back.hidden = navigation.hidden = mode !== 'detail';
+        if (lastMode === 'detail') showTopic(tabs[0]);
         if (returnFocus) select.focus({ preventScroll: true });
         lastMode = mode;
       }
@@ -117,16 +157,21 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
         button.textContent = pressed ? 'Skryť vnútro' : 'Zobraziť vnútro';
         button.setAttribute('aria-pressed', String(pressed));
         caption.hidden = !pressed;
+        source.hidden = pressed;
       }
       if (currentTooth !== tooth) {
         currentTooth = tooth;
+        onDetailChange?.(tooth);
         if (tooth) {
           type.textContent = tooth.type;
           title.textContent = `${tooth.fdi} — ${tooth.name}`;
-          location.textContent = `${tooth.jaw} · ${tooth.side}`;
+          location.textContent = tooth.patientName;
+          location.title = `${tooth.jaw} · ${tooth.side}`;
           purpose.textContent = tooth.purpose;
+          landmark.textContent = tooth.landmark;
+          fact.textContent = tooth.fact;
         }
-        announcement.textContent = tooth ? `${title.textContent}. ${location.textContent}. ${tooth.purpose}` : '';
+        announcement.textContent = tooth ? `${title.textContent}. ${tooth.patientName}. ${tooth.side}.` : '';
       }
       const selectedValue = tooth ? String(tooth.fdi) : '';
       if (select.value !== selectedValue) select.value = selectedValue;
@@ -134,6 +179,7 @@ export function createFullArchAnatomyControls({ stage, onToggle, onSelect, onRet
     dispose() {
       abort.abort();
       container.remove();
+      onDetailChange?.(null);
       delete stage.dataset.dentalAtlas;
     },
   };

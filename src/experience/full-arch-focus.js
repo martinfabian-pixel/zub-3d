@@ -21,6 +21,7 @@ export function createFullArchFocus() {
   const pose = { position: new Vector3(), target: new Vector3(), screenX: .5, screenY: .5, opticalZoom: 1 };
   const fadedPose = copyPose(pose);
   let selected = null, motion = null, current = null, moving = false, returning = false;
+  let fromMap = false, mapDetail = 0;
 
   function initialize(arch) {
     if (records.size) return;
@@ -65,7 +66,7 @@ export function createFullArchFocus() {
       record.toOpacity = Number(returning || fdi === selected);
     }
     current = copyPose(from);
-    motion = { from: current, to: copyPose(to), now, duration, clearance };
+    motion = { from: current, to: copyPose(to), now, duration, clearance, mapStart: mapDetail };
     moving = true;
   }
 
@@ -103,12 +104,14 @@ export function createFullArchFocus() {
       record.opacity = 1;
     }
     selected = null; motion = null; current = null; moving = false; returning = false;
+    fromMap = false; mapDetail = 0;
   }
 
   return {
-    select(fdi, { arch, rig, framing, from, now, instant }) {
+    select(fdi, { arch, rig, framing, from, now, instant, map = false }) {
       if (!arch.teeth.get(fdi)?.mesh || (fdi === selected && !returning)) return false;
       initialize(arch);
+      if (selected === null) fromMap = map;
       // `current` is the guide applied on the last displayed frame. The view
       // controller keeps the visitor's orbit and zoom relative to this guide.
       const origin = current ?? from;
@@ -135,6 +138,7 @@ export function createFullArchFocus() {
       const { from, to, now: began, duration, clearance } = motion;
       const t = duration ? clamp((now - began) / duration, 0, 1) : 1;
       const travel = smootherstep(t, 0, 1);
+      if (fromMap) mapDetail = lerp(motion.mapStart, returning ? 0 : 1, travel);
       for (const record of records.values()) {
         record.amount = lerp(record.fromAmount, record.toAmount, travel);
         const timing = returning ? smoothstep(t, .21, .96)
@@ -146,31 +150,40 @@ export function createFullArchFocus() {
     },
     apply(basePose, progress) {
       if (selected === null || !current) return null;
-      const coverage = atlasCoverage(progress);
+      const coverage = fromMap ? 1 : atlasCoverage(progress);
       for (const record of records.values()) {
         const travel = record.amount * coverage;
         record.applied = travel > 0;
         if (!record.applied) continue;
-        const { mesh } = record.item;
+        const { mesh, crown } = record.item;
         // The arch writes its current story matrices before this overlay.
         record.baseMatrix.copy(mesh.matrix);
         const translation = mesh.matrix.elements;
         const bow = Math.sin(Math.PI * travel) * .36;
-        translation[12] += record.offset.x * travel + record.outward.x * bow;
-        translation[13] += record.offset.y * travel + record.outward.y * bow;
-        translation[14] += record.offset.z * travel + record.outward.z * bow;
+        const dx = record.offset.x * travel + record.outward.x * bow;
+        const dy = record.offset.y * travel + record.outward.y * bow;
+        const dz = record.offset.z * travel + record.outward.z * bow;
+        translation[12] += dx; translation[13] += dy; translation[14] += dz;
         mesh.updateMatrixWorld(true);
+        // The cropped and rooted enamel share the same motion during the handoff.
+        if (fromMap && crown.visible) {
+          const position = crown.matrix.elements;
+          position[12] += dx; position[13] += dy; position[14] += dz;
+          crown.updateMatrixWorld(true);
+        }
       }
       if (coverage === 1) return current;
       return interpolate(basePose, current, coverage, fadedPose);
     },
     opacity(fdi, progress) {
-      return lerp(1, records.get(fdi)?.opacity ?? 1, atlasCoverage(progress));
+      return lerp(1, records.get(fdi)?.opacity ?? 1, fromMap ? 1 : atlasCoverage(progress));
     },
     clear,
     get selected() { return selected; },
     get moving() { return moving; },
     get returning() { return returning; },
     get engaged() { return selected !== null; },
+    get fromMap() { return fromMap; },
+    get mapDetail() { return mapDetail; },
   };
 }

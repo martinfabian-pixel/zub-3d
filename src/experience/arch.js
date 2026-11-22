@@ -224,20 +224,23 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     finalView=view;
     smileWeight=THREE.MathUtils.clamp(weight,0,1);
   }
-  function setState(state, rootOpacity) {
+  function setState(state, focusOpacity, mapDetail = 0) {
     sceneProgress=state.sceneProgress??0;
-    closureCm=config.anatomy.smileClosureCm*Math.max(
+    // A map pick unfolds the same rooted mesh used by the atlas. Release the
+    // crown arrangement and jaw hinge on the focus camera's reversible clock.
+    const diagram=1-mapDetail;
+    closureCm=diagram*config.anatomy.smileClosureCm*Math.max(
       (1-smooth(...STORY_TIMING.assemblyClosure,sceneProgress))*smileWeight,
       smooth(...STORY_TIMING.finalClosure,sceneProgress));
     const flying=state.openingFlight&&floating?.update(sceneProgress,closureCm,profile.compact)>0;
-    const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
+    const mix=smileBounds?diagram*Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
     crownMix=mix;
-    const lower=state.mapLower??0, upper=state.mapUpper??0;
+    const lower=(state.mapLower??0)*diagram, upper=(state.mapUpper??0)*diagram;
     const mapOpening=Math.max(lower,upper);
     const updateSite=siteEmphasis!==(state.mapSite??0);
     siteEmphasis=state.mapSite??0;
     if(mapOpening)occlusalMap?.sample(lower,upper);
-    smileBacking?.setCoverage(mix*(1-mapOpening));
+    smileBacking?.setCoverage(mapDetail>0?0:mix*(1-mapOpening));
     visibleCount=0;
     for (const [fdi,item] of teeth) {
       const hero=fdi===config.anatomy.hero;
@@ -258,11 +261,14 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
         item.finish.material.color.lerpColors(item.siteNeutral,siteTint,siteEmphasis*.18);
         item.crownFinish?.setMapEmphasis(siteEmphasis*.14);
       }
-      item.finish?.setReveal(seat===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
+      const opacity=focusOpacity?.(fdi,sceneProgress)??1;
+      item.finish?.setReveal(seat===1?0:reveal*opacity);
       if(item.crown) {
         // The rooted representation has its own enamel locator. Carry the
         // same cool cue on the visible crown before and during the handoff.
         if(hero)item.crown.material.color.lerpColors(item.crownNeutral,item.crownLocated,state.locate36);
+        // Cropped enamel dissolves against the fading root using smileMix.
+        // Keeping its opaque shader also avoids a compile on the first map tap.
         item.crownFinish.setReveal(seat>item.crownThreshold?reveal:0);
         // Move the complete arch on one easing curve. Only the tissue
         // handover is staggered, so the fronts never have to catch up.

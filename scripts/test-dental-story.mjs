@@ -3,6 +3,24 @@ import assert from 'node:assert/strict';
 import { DENTAL_CHAPTERS, DENTAL_STORY, STORY_TIMING, brushProgress } from '../src/experience/story-config.js';
 import { getDentalChapter, sampleDentalStory, sampleReducedDentalStory } from '../src/experience/dental-story.js';
 import { createStoryAnatomy } from '../src/experience/story-anatomy.js';
+import { DENTAL_ATLAS_TEETH } from '../src/experience/dental-atlas-data.js';
+
+const atlas = [...DENTAL_ATLAS_TEETH.values()];
+assert.equal(atlas.length, 28);
+assert.equal(new Set(atlas.map(tooth => tooth.patientName)).size, 28);
+const sourceTeeth = atlas.filter(tooth => tooth.fdi >= 21 && tooth.fdi <= 37);
+assert.equal(new Set(sourceTeeth.map(tooth => tooth.landmark)).size, 14, 'Each anatomical model has its own identifying features');
+assert.equal(new Set(sourceTeeth.map(tooth => tooth.fact)).size, 14);
+const toothTypes = ['Rezák', 'Rezák', 'Očný zub', 'Črenový zub', 'Črenový zub', 'Stolička', 'Stolička'];
+for (const [quadrant, location] of [[1, 'Horná pravá'], [2, 'Horná ľavá'], [3, 'Dolná ľavá'], [4, 'Dolná pravá']]) {
+  for (const [index, type] of toothTypes.entries()) {
+    const tooth = DENTAL_ATLAS_TEETH.get(quadrant * 10 + index + 1);
+    assert.ok(tooth.patientName.startsWith(location + ' '));
+    assert.equal(tooth.type, type);
+    for (const field of ['name', 'landmark', 'fact', 'purpose']) assert.ok(tooth[field]?.trim());
+    if (type === 'Očný zub') assert.ok(tooth.patientName.endsWith('trojka'));
+  }
+}
 
 const eq = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} ≠ ${b}`);
 const ids = ['dentition', 'assembly', 'hero', 'anatomy', 'space', 'plaque', 'brush', 'map', 'closing'];

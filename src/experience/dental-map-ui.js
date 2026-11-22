@@ -3,22 +3,18 @@ import { DENTAL_ATLAS_GROUPS, DENTAL_ATLAS_TEETH } from './dental-atlas-data.js'
 import { createDentalMapLabels } from './dental-map-labels.js';
 import './dental-map-ui.css';
 
-const ordinals = ['jednotka', 'dvojka', 'trojka', 'štvorka', 'päťka', 'šestka', 'sedmička'];
 const toothGroups = [
   ['1–2', 'Rezáky', 'Rezák'], ['3', 'Očné zuby', 'Očný zub'],
   ['4–5', 'Črenové zuby', 'Črenový zub'], ['6–7', 'Stoličky', 'Stolička'],
 ];
 
 function toothCopy(tooth) {
-  const jaw = tooth.jaw.split(' ')[0];
-  const side = tooth.side.split(' ')[0];
-  const name = [jaw, side, ordinals[tooth.fdi % 10 - 1]].join(' ');
   // The atlas already distinguishes central/lateral incisors and first/second molars.
   const group = tooth.name.toLocaleLowerCase('sk').replace(/\b(?:horný|dolný) |(?:horná|dolná) /u, '');
-  return { name, group };
+  return { name: tooth.patientName, group };
 }
 
-export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
+export function createDentalMapUI({ stage, canvas, arch, requestRender, onSelect }) {
   const doc = stage.ownerDocument;
   const map = doc.createElement('section');
   map.id = 'dental-map';
@@ -92,6 +88,7 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
     if (!active || selected === fdi || (fdi !== null && !anchors.has(fdi))) return;
     selected = fdi;
     displaySelection();
+    if (fdi !== null) onSelect(fdi);
     requestRender();
   }
   picker.addEventListener('change', () => select(picker.value === '' ? null : Number(picker.value)));
@@ -160,6 +157,7 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
 
   return {
     update, pick,
+    focusPicker() { picker.focus({preventScroll:true}); },
     get active() { return active; },
     get selected() { return selected; },
     report: () => ({active, selectedFdi: selected,

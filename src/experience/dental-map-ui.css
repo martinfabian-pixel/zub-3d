@@ -95,49 +95,49 @@
   .dental-map-caption { bottom: calc(126px + env(safe-area-inset-bottom, 0px)); }
   .dental-map-picker { min-height: 36px; }
   #dental-map-description { font-size: 12px; }
-  #journey-stage[data-chapter="map"] .journey-dock { bottom: calc(73px + env(safe-area-inset-bottom, 0px)); }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-dock { bottom: calc(73px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (min-width: 701px) and (max-height: 670px) {
   .dental-map-picker { min-height: 30px; font-size: 13px; }
   #dental-map-description { font-size: 12px; }
 }
 @media (min-width: 701px) and (orientation: landscape) {
-  #journey-stage[data-chapter="map"] .journey-dock { left: 37%; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-dock { left: 37%; }
 }
 @media (orientation: portrait) and (max-width: 700px) and (max-height: 780px),
        (orientation: portrait) and (min-width: 701px) and (max-width: 1000px) {
-  #journey-stage[data-chapter="map"] .journey-copy {
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-copy {
     top: clamp(48px, 8.2vh, 67px) !important;
     width: 88% !important;
     display: flex;
     align-items: baseline;
     gap: 10px;
   }
-  #journey-stage[data-chapter="map"] :is(#journey-title, #journey-step-number) { margin: 0; }
-  #journey-stage[data-chapter="map"] #journey-title { font-size: 22px; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) :is(#journey-title, #journey-step-number) { margin: 0; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) #journey-title { font-size: 22px; }
 }
 @media (orientation: portrait) and (min-width: 701px) and (max-width: 1000px) {
   .dental-map-caption { left: 50%; width: min(62%, 420px); }
 }
 @media (min-width: 701px) and (max-width: 1100px) and (max-height: 530px) {
-  #journey-stage[data-chapter="map"] .journey-dock { left: 24%; }
-  #journey-stage[data-chapter="map"] .chapter-navigation { position: relative; }
-  #journey-stage[data-chapter="map"] .chapter-center { position: absolute; left: 50px; }
-  #journey-stage[data-chapter="map"] .journey-step { width: 16px; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-dock { left: 24%; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .chapter-navigation { position: relative; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .chapter-center { position: absolute; left: 50px; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-step { width: 16px; }
 }
 @media (max-width: 700px) and (min-aspect-ratio: 3/2) {
-  #journey-stage[data-chapter="map"] .journey-copy { top: 49px !important; width: 33% !important; }
-  #journey-stage[data-chapter="map"] #journey-title { font-size: 21px; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-copy { top: 49px !important; width: 33% !important; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) #journey-title { font-size: 21px; }
   .dental-map-caption { left: 6%; top: 108px; bottom: auto; width: 32%; transform: none; }
   .dental-map-reading { flex-wrap: wrap; gap: 0 4px; }
   .dental-map-picker { min-height: 28px; }
   .dental-map-key { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-  #journey-stage[data-chapter="map"] .journey-dock { left: 21%; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-dock { left: 21%; }
 }
 @media (max-width: 700px) and (max-height: 360px) and (orientation: landscape) {
-  #journey-stage[data-chapter="map"] .journey-copy { display: flex; align-items: baseline; gap: 6px; }
-  #journey-stage[data-chapter="map"] #journey-title { font-size: 19px; }
-  #journey-stage[data-chapter="map"] .journey-steps { display: none; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-copy { display: flex; align-items: baseline; gap: 6px; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) #journey-title { font-size: 19px; }
+  #journey-stage[data-chapter="map"]:not([data-dental-atlas]) .journey-steps { display: none; }
   .dental-map-caption { top: 80px; }
   .dental-map-key { gap: 4px; }
   .dental-map-key strong { display: inline; font-size: inherit; }
