@@ -49,7 +49,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
   let disposed=false, assetsReady=false, visibleCount=1;
   let finalView='smile', smileWeight=1, sceneProgress=0, closureCm=0;
   let floating, smileBounds, smileBacking, rootedAtlas, occlusalMap;
-  let mapSelection=config.anatomy.hero, mapOpening=0, siteEmphasis=0;
+  let siteEmphasis=0;
   const siteTint = new THREE.Color(.46, .86, .94);
   let crownMix=0;
   const crownPosition=new THREE.Vector3(), crownScale=new THREE.Vector3(), crownRotation=new THREE.Quaternion();
@@ -214,17 +214,6 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     occlusalMap=createOcclusalMap(teeth,layout);
   }
   const sampled={brushPose:{}};
-  function updateMapTint(fdi,item) {
-    item?.crownFinish?.setMapEmphasis(Math.max(item.siteNeutral?siteEmphasis*.53:0,fdi===mapSelection?mapOpening:0));
-  }
-  function setMapSelection(fdi) {
-    const previous=mapSelection;
-    mapSelection=teeth.has(fdi)?fdi:config.anatomy.hero;
-    if(mapOpening&&mapSelection!==previous) {
-      updateMapTint(previous,teeth.get(previous));
-      updateMapTint(mapSelection,teeth.get(mapSelection));
-    }
-  }
   function mapAnchor(fdi, out) {
     const anchor=occlusalMap?.anchors.get(fdi), crown=teeth.get(fdi)?.crown;
     return anchor&&crown ? out.copy(anchor).applyMatrix4(crown.matrixWorld) : null;
@@ -244,7 +233,7 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     const mix=smileBounds?Math.max(state.assemblyCrownCoverage*smileWeight,state.finalCrownCoverage):0;
     crownMix=mix;
     const lower=state.mapLower??0, upper=state.mapUpper??0;
-    mapOpening=Math.max(lower,upper);
+    const mapOpening=Math.max(lower,upper);
     const updateSite=siteEmphasis!==(state.mapSite??0);
     siteEmphasis=state.mapSite??0;
     if(mapOpening)occlusalMap?.sample(lower,upper);
@@ -265,13 +254,15 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
       // At the tail of easing a JS double may still be below a GPU float of 1.
       const seat=mix===0||mix===1?mix:Math.fround(smooth(item.smileStart,item.smileStart+.675,mix));
       if(item.mesh)item.smileMix.value=seat;
-      if(item.siteNeutral&&updateSite)item.finish.material.color.lerpColors(item.siteNeutral,siteTint,siteEmphasis);
+      if(item.siteNeutral&&updateSite){
+        item.finish.material.color.lerpColors(item.siteNeutral,siteTint,siteEmphasis*.18);
+        item.crownFinish?.setMapEmphasis(siteEmphasis*.14);
+      }
       item.finish?.setReveal(seat===1?0:reveal*(rootOpacity?.(fdi,sceneProgress)??1));
       if(item.crown) {
         // The rooted representation has its own enamel locator. Carry the
         // same cool cue on the visible crown before and during the handoff.
         if(hero)item.crown.material.color.lerpColors(item.crownNeutral,item.crownLocated,state.locate36);
-        updateMapTint(fdi,item);
         item.crownFinish.setReveal(seat>item.crownThreshold?reveal:0);
         // Move the complete arch on one easing curve. Only the tissue
         // handover is staggered, so the fronts never have to catch up.
@@ -338,6 +329,6 @@ export function createArch({ manifest, hero, config, renderer, profile, clay=fal
     for(const proxy of proxies) {proxy.geometry.dispose();proxy.material.dispose();}
     rootedAtlas=null;mirrored.clear(); teeth.clear();
   }
-  return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,setMapSelection,mapAnchor,updateView,report,dispose,
+  return { object,teeth,landmarks,attachNeighbors,attachAtlas,attachCrowns,setState,setProgress,setFinalView,mapAnchor,updateView,report,dispose,
     ownsSource(source){return sourceObjects.has(source?.object);},get finalView(){return finalView;},get closureCm(){return closureCm;},get crownMix(){return crownMix;},get assetsReady(){return assetsReady;},get visibleCount(){return visibleCount;} };
 }

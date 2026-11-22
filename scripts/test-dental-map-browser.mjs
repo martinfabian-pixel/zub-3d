@@ -57,7 +57,70 @@ async function tapTooth(page, target, mobile) {
   else await page.mouse.click(target.x, target.y);
   await page.waitForFunction(fdi => Number(document.querySelector('#dental-map-selected').value) === fdi, target.fdi, {timeout:3000})
     .catch(() => { throw new Error('The tap on crown ' + target.fdi + ' at ' + target.x.toFixed(1) + ', ' + target.y.toFixed(1) + ' did not select it'); });
-  assert.equal((await page.locator('#dental-map-number').textContent()).trim(), String(target.fdi));
+  const selectedNumber = page.locator(`.dental-map-labels g[data-map-fdi="${target.fdi}"][data-selected]`);
+  await selectedNumber.waitFor({state:'visible'});
+  assert.equal(await page.locator('.dental-map-labels g[data-selected]').count(), 1);
+}
+
+// Compare rendered text rectangles in CSS pixels. This also catches SVG
+// labels whose local viewBox looks fine but scales incorrectly on a phone.
+async function checkDiagram(page, teeth) {
+  const numbers = await page.locator('.dental-map-labels g[data-map-fdi] text').evaluateAll(nodes =>
+    nodes.map(node => {
+      const {x,y,width,height} = node.getBoundingClientRect();
+      const tick = node.parentNode.querySelector('line').getBoundingClientRect();
+      return { fdi:Number(node.textContent), x,y,width,height,
+        tickX:tick.x+tick.width/2, tickY:tick.y+tick.height/2 };
+    }));
+  assert.deepEqual(numbers.map(n=>n.fdi).sort(), [...teeth.keys()].sort(), 'Exactly the present permanent teeth have FDI labels');
+  const obstacles = await page.evaluate(() => {
+    const visible = element => element.getClientRects().length && !element.closest('[hidden], .sr-only');
+    const areas = [...document.querySelectorAll('#journey-stage button, .dental-map-caption select')]
+      .filter(visible).map(el=>({name:el.textContent.trim()||el.id,box:el.getBoundingClientRect().toJSON()}));
+    for (const node of document.querySelectorAll('#journey-title span, #journey-step-number, .dental-map-key li, #dental-map-description')) {
+      if (!visible(node)) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const rect of range.getClientRects()) {
+        areas.push({name:node.textContent,box:rect.toJSON()});
+      }
+    }
+    return areas;
+  });
+  const viewport = page.viewportSize();
+  for (const [i, label] of numbers.entries()) {
+    assert.ok(label.width>=8 && label.height>=9, 'FDI '+label.fdi+' renders legibly');
+    assert.ok(label.x>=0 && label.x+label.width<=viewport.width && label.y>=0 && label.y+label.height<=viewport.height,
+      'FDI '+label.fdi+' fits on the stage');
+    const tooth = teeth.get(label.fdi);
+    const cx = label.x+label.width/2, cy = label.y+label.height/2;
+    assert.ok(Math.hypot(cx-tooth.x,cy-tooth.y) < 100, 'FDI '+label.fdi+' stays beside its own crown');
+    assert.ok(Math.hypot(label.tickX-tooth.x,label.tickY-tooth.y)<Math.hypot(cx-tooth.x,cy-tooth.y),
+      'FDI '+label.fdi+' has a leader between the crown and its label');
+    for (const other of numbers.slice(i+1)) {
+      const dx=Math.min(label.x+label.width,other.x+other.width)-Math.max(label.x,other.x);
+      const dy=Math.min(label.y+label.height,other.y+other.height)-Math.max(label.y,other.y);
+      assert.ok(dx<=0||dy<=0,'Clear separation of FDI '+label.fdi+' and '+other.fdi);
+    }
+    for (const t of teeth.values()) {
+      assert.ok(t.x < label.x || t.x > label.x+label.width || t.y < label.y || t.y > label.y+label.height,
+        'Label '+label.fdi+' leaves crown '+t.fdi+' visible');
+    }
+    for (const {name,box} of obstacles) {
+      assert.ok(label.x+label.width<=box.left || label.x>=box.right || label.y+label.height<=box.top || label.y>=box.bottom,
+        'FDI '+label.fdi+' clears '+name);
+    }
+  }
+  const jaws = page.locator('.dental-map-jaw');
+  assert.deepEqual((await jaws.allTextContents()).map(name=>name.trim()),['Horná čeľusť','Dolná čeľusť']);
+  for (const [i,fdis] of [[0,[11,17]],[1,[41,47]]]) {
+    const box=await jaws.nth(i).evaluate(el=>el.getBoundingClientRect().toJSON());
+    const y=box.y+box.height/2, limits=fdis.map(n=>teeth.get(n).y);
+    assert.ok(y>Math.min(...limits)&&y<Math.max(...limits),`Jaw caption at ${y} belongs between ${limits.join(' and ')}`);
+  }
+  const legend = await page.locator('.dental-map-key li').allTextContents();
+  assert.deepEqual(legend.map(s=>s.replace(/\s+/g,'').toLocaleLowerCase('sk')),[
+    '1–2rezáky','3očnézuby','4–5črenovézuby','6–7stoličky']);
 }
 
 async function scrub(page, from, to, duration) {
@@ -85,14 +148,16 @@ async function reviewMap(mobile) {
     link.searchParams.set('qa', '1');
     await page.goto(link.href);
     await enterStory(page);
-    await page.locator('#dental-map-number').waitFor({state:'visible'});
+    await page.locator('.dental-map-labels g[data-map-fdi="36"] text').waitFor({state:'visible'});
     assert.equal(await page.locator('#journey-step-number').innerText(), '08 / 09');
     assert.equal((await page.locator('#journey-chapter-picker').innerText()).trim(), 'Mapa chrupu');
-    assert.match(await page.locator('#dental-map-name').innerText(), /Dolná ľavá šestka/);
-    assert.equal(await page.locator('#dental-map-description').innerText(), 'Medzi týmto zubom a susednou sedmičkou ste si práve pozreli ukážku čistenia.');
+    assert.equal(await page.locator('#dental-map-selected').inputValue(), '');
+    assert.equal(await page.evaluate(()=>window.__dentalExperience.report().map.selectedFdi),null);
+    assert.equal(await page.locator('.dental-map-labels [data-selected]').count(),0);
     const shape = await measure(page);
     const teeth = new Map(shape.teeth.map(tooth => [tooth.fdi,tooth]));
     assert.equal(teeth.size, 28);
+    await checkDiagram(page, teeth);
     for (let i=1;i<=7;i++) {
       assert.ok(teeth.get(10+i).x < teeth.get(20+i).x && teeth.get(40+i).x < teeth.get(30+i).x, 'Patient right is screen left for position ' + i);
       assert.ok(teeth.get(10+i).y < teeth.get(40+i).y && teeth.get(20+i).y < teeth.get(30+i).y, 'Upper arch must stay above lower arch');
@@ -109,25 +174,38 @@ async function reviewMap(mobile) {
       await mkdir(review, {recursive:true});
       await page.screenshot({path:join(review, (mobile?'mobil':'desktop') + '-mapa.png'), scale:'css'});
     }
+    for (const fdi of [11,21]) {
+      const box = await page.locator(`g[data-map-fdi="${fdi}"] text`).evaluate(el=>el.getBoundingClientRect().toJSON());
+      await tapTooth(page, {fdi, x:box.x+box.width/2, y:box.y+box.height/2}, mobile);
+      assert.equal(await page.locator('g[data-map-fdi] text:visible').count(), 28);
+    }
     const order = [11,21,12,22,41,31,42,32, ...teeth.keys()];
     for (const fdi of new Set(order)) {
       await tapTooth(page, teeth.get(fdi), mobile);
-      const badge = await page.locator('#dental-map-number').boundingBox();
+      const badge = await page.locator('.dental-map-labels g[data-map-fdi="'+fdi+'"] text').boundingBox();
       const centre = teeth.get(fdi);
       assert.ok(centre.x < badge.x || centre.x > badge.x + badge.width
         || centre.y < badge.y || centre.y > badge.y + badge.height, 'FDI badge leaves the chewing surface clear');
       if (fdi === 11) {
         assert.equal((await page.locator('#dental-map-name').innerText()).trim(), 'Horná pravá jednotka');
         assert.match(await page.locator('#dental-map-description').innerText(), /stredný rezák/i);
+        assert.match(await page.locator('.dental-map-key li[data-selected]').innerText(), /Rezáky/);
       }
     }
     const selected = await measure(page);
     assert.deepEqual(selected.pose,shape.pose,'Changing a tooth must not move the camera');
     assert.deepEqual(selected.teeth,shape.teeth,'Changing a caption must not move either arch');
+    const picker = page.getByRole('combobox',{name:'Vybrať zub na mape chrupu'});
+    await picker.selectOption('46');
+    await page.locator('g[data-map-fdi="46"][data-selected]').waitFor({state:'visible'});
+    assert.equal(await page.locator('#dental-map-name').innerText(),'Dolná pravá šestka');
+    await picker.selectOption('');
+    await page.locator('g[data-map-fdi][data-selected]').waitFor({state:'hidden'});
+    assert.equal(await page.locator('#dental-map-name').innerText(),'Vybrať zub');
 
     const working = DENTAL_STORY.brush.work[0], halfLower = (map.lower[0]+map.upper[0])*.5;
     await settleAt(page, working);
-    await page.locator('#dental-map-number').waitFor({state:'hidden'});
+    await page.locator('.dental-map-labels').waitFor({state:'hidden'});
     const before = await page.evaluate(() => window.__dentalExperience.report().story);
     assert.equal(before.chapterId,'brush');
     assert.ok(before.brushPose.visibility > .9);
@@ -138,7 +216,7 @@ async function reviewMap(mobile) {
     assert.ok(unfolding.story.mapSite > .5, '36 and 37 stay highlighted while the lower arch opens');
     assert.ok(unfolding.visibleTeeth.includes(36) && unfolding.visibleTeeth.includes(37));
     await settleAt(page,map.at);
-    assert.equal(await page.locator('#dental-map-selected').inputValue(),'36');
+    assert.equal(await page.locator('#dental-map-selected').inputValue(),'');
     await settleAt(page,1);
     assert.equal(await page.locator('#journey-step-number').innerText(),'09 / 09');
     await page.getByRole('button',{name:'Zopakovať čistenie'}).waitFor();
@@ -159,7 +237,7 @@ async function reviewMap(mobile) {
         await scrub(page,STORY_TIMING.resultAt,lowerView,2600);
         await page.waitForTimeout(350);
         await scrub(page,lowerView,map.at,1250);
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(1800);
         await tapTooth(page,teeth.get(11),true);
         await page.waitForTimeout(1400);
         await scrub(page,map.at,1,2800);
@@ -175,6 +253,7 @@ async function reviewMap(mobile) {
       });
       await settleAt(page,map.at);
       const narrow = await measure(page);
+      await checkDiagram(page, new Map(narrow.teeth.map(t=>[t.fdi,t])));
       for (const fdi of [11,21,41,31]) {
         await tapTooth(page,narrow.teeth.find(tooth=>tooth.fdi===fdi),true);
       }

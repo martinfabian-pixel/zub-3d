@@ -6,41 +6,49 @@
   color: var(--text-primary);
 }
 
-#dental-map-number {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  min-width: 25px;
-  padding: 3px 5px;
-  border: 1px solid #9ab8c4;
-  border-radius: 7px;
-  background: #f3fbff;
-  color: #204c58;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
 .dental-map-caption {
   position: absolute;
   left: 68%;
   top: var(--map-caption-top, 74%);
   transform: translateX(-50%);
-  width: min(39%, 400px);
-  text-align: center;
+  width: min(40%, 360px);
 }
 
+.dental-map-reading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--control-line);
+}
+.dental-map-key {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+.dental-map-key strong {
+  display: block;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.dental-map-key [data-selected] { color: var(--accent); font-weight: 650; }
 .dental-map-picker {
   display: inline-flex;
   position: relative;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
-  padding-inline: 6px;
+  min-height: 36px;
+  padding-inline: 3px;
   color: var(--accent);
-  font-size: clamp(17px, 1.5vw, 22px);
+  font-size: 14px;
   font-weight: 650;
   letter-spacing: -.025em;
   pointer-events: auto;
@@ -67,12 +75,10 @@
   outline-offset: 1px;
 }
 #dental-map-description {
-  margin: -3px 0 0;
-  min-height: 2.7em;
-  font-size: 14px;
+  margin: 0;
+  font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.35;
-  text-wrap: balance;
 }
 
 @media (max-width: 700px) {
@@ -82,7 +88,8 @@
     width: min(88%, 370px);
     bottom: calc(132px + env(safe-area-inset-bottom, 0px));
   }
-  #dental-map-description { font-size: 13px; }
+  .dental-map-key { font-size: 12px; }
+  .dental-map-picker { min-height: 40px; }
 }
 @media (max-width: 700px) and (max-height: 670px) {
   .dental-map-caption { bottom: calc(126px + env(safe-area-inset-bottom, 0px)); }
@@ -91,12 +98,47 @@
   #journey-stage[data-chapter="map"] .journey-dock { bottom: calc(73px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (min-width: 701px) and (max-height: 670px) {
-  .dental-map-picker { min-height: 30px; font-size: 16px; }
+  .dental-map-picker { min-height: 30px; font-size: 13px; }
   #dental-map-description { font-size: 12px; }
+}
+@media (min-width: 701px) and (orientation: landscape) {
+  #journey-stage[data-chapter="map"] .journey-dock { left: 37%; }
+}
+@media (orientation: portrait) and (max-width: 700px) and (max-height: 780px),
+       (orientation: portrait) and (min-width: 701px) and (max-width: 1000px) {
+  #journey-stage[data-chapter="map"] .journey-copy {
+    top: clamp(48px, 8.2vh, 67px) !important;
+    width: 88% !important;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  #journey-stage[data-chapter="map"] :is(#journey-title, #journey-step-number) { margin: 0; }
+  #journey-stage[data-chapter="map"] #journey-title { font-size: 22px; }
+}
+@media (orientation: portrait) and (min-width: 701px) and (max-width: 1000px) {
+  .dental-map-caption { left: 50%; width: min(62%, 420px); }
 }
 @media (min-width: 701px) and (max-width: 1100px) and (max-height: 530px) {
   #journey-stage[data-chapter="map"] .journey-dock { left: 24%; }
   #journey-stage[data-chapter="map"] .chapter-navigation { position: relative; }
   #journey-stage[data-chapter="map"] .chapter-center { position: absolute; left: 50px; }
   #journey-stage[data-chapter="map"] .journey-step { width: 16px; }
+}
+@media (max-width: 700px) and (min-aspect-ratio: 3/2) {
+  #journey-stage[data-chapter="map"] .journey-copy { top: 49px !important; width: 33% !important; }
+  #journey-stage[data-chapter="map"] #journey-title { font-size: 21px; }
+  .dental-map-caption { left: 6%; top: 108px; bottom: auto; width: 32%; transform: none; }
+  .dental-map-reading { flex-wrap: wrap; gap: 0 4px; }
+  .dental-map-picker { min-height: 28px; }
+  .dental-map-key { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  #journey-stage[data-chapter="map"] .journey-dock { left: 21%; }
+}
+@media (max-width: 700px) and (max-height: 360px) and (orientation: landscape) {
+  #journey-stage[data-chapter="map"] .journey-copy { display: flex; align-items: baseline; gap: 6px; }
+  #journey-stage[data-chapter="map"] #journey-title { font-size: 19px; }
+  #journey-stage[data-chapter="map"] .journey-steps { display: none; }
+  .dental-map-caption { top: 80px; }
+  .dental-map-key { gap: 4px; }
+  .dental-map-key strong { display: inline; font-size: inherit; }
 }

@@ -223,7 +223,13 @@ for (const compact of [false, true]) {
   assert.ok(centres.get(11).x<centres.get(21).x && centres.get(41).x<centres.get(31).x,'Patient-right incisors project on the left in both arches');
   assert.ok(centres.get(11).y>centres.get(17).y && centres.get(41).y<centres.get(47).y,'Both rows present their occlusal surfaces, with incisors at opposite outer edges');
   assert.ok(projected.min.x>-1&&projected.max.x<1&&projected.min.y>-1&&projected.max.y<1,'Every crown stays in the viewport');
-  if(compact)assert.ok(projected.max.x-projected.min.x>1.5,'Map fills at least three quarters of phone width');
+  if (compact) {
+    const leftGutter = (1 + projected.min.x) * 390 / 2;
+    const rightGutter = (1 - projected.max.x) * 390 / 2;
+    assert.ok(Math.min(leftGutter, rightGutter) >= 33,
+      'Exterior FDI numbers have room for a leader, two digits and an 8px edge margin');
+    assert.ok(projected.max.x-projected.min.x>1.5,'Map fills at least three quarters of phone width');
+  }
   rig.dispose();
 }
 console.log('Camera: molar follow, registered brush/contact hold, C1 continuity, reverse and reduced motion passed on desktop and portrait.');

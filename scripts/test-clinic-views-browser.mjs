@@ -90,7 +90,9 @@ async function openClinic(context, view) {
     await toggle.tap();
     await caption.waitFor({state:'hidden'});
   } else if (map) {
-    assert.equal(await page.locator('#dental-map-selected').inputValue(), '36');
+    assert.equal(await page.locator('#dental-map-selected').inputValue(), '');
+    assert.equal(await page.locator('#dental-map [data-map-fdi]:visible').count(), 28);
+    assert.equal(await page.locator('#dental-map .dental-map-jaw:visible').count(), 2);
     assert.equal(await page.locator('#journey-step-number').innerText(), '08 / 09');
   } else {
     assert.equal(first.selected, 'pulp');

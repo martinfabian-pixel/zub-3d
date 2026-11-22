@@ -1,10 +1,13 @@
 import { Vector3 } from 'three';
 import { DENTAL_ATLAS_GROUPS, DENTAL_ATLAS_TEETH } from './dental-atlas-data.js';
+import { createDentalMapLabels } from './dental-map-labels.js';
 import './dental-map-ui.css';
 
 const ordinals = ['jednotka', 'dvojka', 'trojka', 'štvorka', 'päťka', 'šestka', 'sedmička'];
-const oppositeQuadrant = { 1: 2, 2: 1, 3: 4, 4: 3 };
-const cleaningNote = 'Medzi týmto zubom a susednou sedmičkou ste si práve pozreli ukážku čistenia.';
+const toothGroups = [
+  ['1–2', 'Rezáky', 'Rezák'], ['3', 'Očné zuby', 'Očný zub'],
+  ['4–5', 'Črenové zuby', 'Črenový zub'], ['6–7', 'Stoličky', 'Stolička'],
+];
 
 function toothCopy(tooth) {
   const jaw = tooth.jaw.split(' ')[0];
@@ -20,27 +23,39 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
   const map = doc.createElement('section');
   map.id = 'dental-map';
   map.hidden = true;
-  map.setAttribute('aria-label', 'Vybraný zub na mape chrupu');
+  map.setAttribute('aria-label', 'Číslovanie a skupiny zubov');
   map.innerHTML = `
-    <span id="dental-map-number" aria-hidden="true" hidden></span>
     <div class="dental-map-caption">
-      <label class="dental-map-picker">
-        <span id="dental-map-name" aria-hidden="true"></span>
-        <select id="dental-map-selected" aria-label="Vybrať zub na mape chrupu"></select>
-      </label>
-      <p id="dental-map-description" aria-live="polite" aria-atomic="true"></p>
+      <div class="dental-map-reading">
+        <p id="dental-map-description" aria-live="polite" aria-atomic="true"></p>
+        <label class="dental-map-picker">
+          <span id="dental-map-name" aria-hidden="true"></span>
+          <select id="dental-map-selected" aria-label="Vybrať zub na mape chrupu">
+            <option value="">Všetky zuby</option>
+          </select>
+        </label>
+      </div>
+      <ul class="dental-map-key" aria-label="Skupiny zubov podľa druhej číslice FDI"></ul>
     </div>`;
   stage.append(map);
-  const number = map.querySelector('#dental-map-number');
+  const labels = createDentalMapLabels(map);
   const picker = map.querySelector('select');
   const name = map.querySelector('#dental-map-name');
   const description = map.querySelector('#dental-map-description');
   const world = new Vector3();
-  const corner = new Vector3();
+  const key = map.querySelector('.dental-map-key');
+  const groupItems = toothGroups.map(([digits, label, type]) => {
+    const item = doc.createElement('li');
+    const range = doc.createElement('strong');
+    range.textContent = digits;
+    item.append(range, ' ', label);
+    key.append(item);
+    return {item, type};
+  });
   const points = [];
   const candidates = [];
   const anchors = new Map();
-  let active = false, selected = 36, marker = null, layoutWidth = 0, layoutHeight = 0;
+  let active = false, selected = null, layoutWidth = 0, layoutHeight = 0;
 
   function populate() {
     // The staged loader may have installed only the teaching molar at construction.
@@ -64,68 +79,22 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
 
   function displaySelection() {
     const tooth = DENTAL_ATLAS_TEETH.get(selected);
-    if (!tooth) return;
-    const text = toothCopy(tooth);
-    name.textContent = text.name;
-    description.textContent = selected === 36 ? cleaningNote
-      : text.group.charAt(0).toLocaleUpperCase('sk') + text.group.slice(1);
-    picker.value = String(selected);
-    number.textContent = String(selected);
-    arch.setMapSelection(selected);
+    const text = tooth && toothCopy(tooth);
+    name.textContent = text ? text.name : 'Vybrať zub';
+    description.textContent = text
+      ? `${selected} · ${text.group.charAt(0).toLocaleUpperCase('sk') + text.group.slice(1)}`
+      : 'Druhá číslica FDI';
+    picker.value = tooth ? String(selected) : '';
+    for (const {item, type} of groupItems) item.toggleAttribute('data-selected', type === tooth?.type);
   }
 
   function select(fdi) {
-    if (!active || selected === fdi || !anchors.has(fdi)) return;
+    if (!active || selected === fdi || (fdi !== null && !anchors.has(fdi))) return;
     selected = fdi;
     displaySelection();
     requestRender();
   }
-  picker.addEventListener('change', () => select(Number(picker.value)));
-
-  function updateBadge(camera, width, height) {
-    const target = anchors.get(selected);
-    marker = null;
-    if (!target?.visible) { number.hidden = true; return; }
-    const mesh = target.crown;
-    const {min, max} = mesh.geometry.boundingBox;
-    let left = width, right = 0, top = height, bottom = 0;
-    for (let i = 0; i < 8; i++) {
-      corner.set(i & 1 ? max.x : min.x, i & 2 ? max.y : min.y, i & 4 ? max.z : min.z)
-        .applyMatrix4(mesh.matrixWorld).project(camera);
-      const x = (corner.x + 1) * .5 * width, y = (1 - corner.y) * .5 * height;
-      left = Math.min(left, x); right = Math.max(right, x);
-      top = Math.min(top, y); bottom = Math.max(bottom, y);
-    }
-    // Put the number just off the crown, toward the open palate. Try the
-    // opposite edge too when the visitor rotates the arches or zooms in.
-    const quadrant = Math.floor(selected / 10);
-    const midline = anchors.get(quadrant * 10 + 1);
-    const counterpart = anchors.get(oppositeQuadrant[quadrant] * 10 + 1);
-    const inwardX = midline && counterpart ? (midline.x + counterpart.x) / 2 - target.x : 0;
-    const front = selected % 10 < 4;
-    const positions = [
-      { x: left - 16, y: target.y, bias: !front && inwardX < 0 ? 0 : 10 },
-      { x: right + 16, y: target.y, bias: !front && inwardX >= 0 ? 0 : 10 },
-      { x: target.x, y: top - 14, bias: front && selected > 30 ? 0 : 11 },
-      { x: target.x, y: bottom + 14, bias: front && selected < 30 ? 0 : 11 },
-    ];
-    let best, bestScore = Infinity;
-    for (const pos of positions) {
-      if (pos.x < 18 || pos.x > width - 18 || pos.y < 16 || pos.y > height - 16) continue;
-      let score = pos.bias + Math.hypot(pos.x - target.x, pos.y - target.y) * .12;
-      for (const other of points) {
-        if (other === target || !other.visible) continue;
-        score += Math.max(0, 30 - Math.hypot(other.x - pos.x, other.y - pos.y));
-      }
-      if (score < bestScore) { best = pos; bestScore = score; }
-    }
-    if (!best) { number.hidden = true; return; }
-    marker = {x: best.x, y: best.y};
-    const leftPx = best.x.toFixed(1) + 'px', topPx = best.y.toFixed(1) + 'px';
-    if (number.style.left !== leftPx) number.style.left = leftPx;
-    if (number.style.top !== topPx) number.style.top = topPx;
-    number.hidden = false;
-  }
+  picker.addEventListener('change', () => select(picker.value === '' ? null : Number(picker.value)));
 
   function update({active: show, unfolded = false, camera, width, height}) {
     if (active !== show) {
@@ -135,14 +104,12 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
         populate();
         displaySelection();
       } else {
-        marker = null; layoutWidth = 0;
+        layoutWidth = 0;
         if (picker === doc.activeElement) canvas.focus({preventScroll: true});
       }
     }
     if (!active) {
-      // The selected enamel tint follows its own crown while the jaw closes.
-      // A reversal keeps that tooth until the arches have completely reseated.
-      if (!unfolded && selected !== 36) { selected = 36; arch.setMapSelection(36); }
+      if (!unfolded) selected = null;
       return;
     }
     for (const point of points) {
@@ -159,11 +126,11 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
     if (width > 700 && (width !== layoutWidth || height !== layoutHeight)) {
       const bottom = Math.max(...points.filter(point => point.visible).map(point => point.y));
       if (Number.isFinite(bottom)) {
-        map.style.setProperty('--map-caption-top', Math.min(bottom + 20, height - 94) + 'px');
+        map.style.setProperty('--map-caption-top', Math.min(bottom + 44, height - 100) + 'px');
       }
     }
     layoutWidth = width; layoutHeight = height;
-    updateBadge(camera, width, height);
+    labels.update({points,width,height,selected,camera});
   }
 
   function pick(raycaster, event) {
@@ -173,11 +140,15 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
       select(hit.object.userData.smileFdi);
       return;
     }
-    if (event.pointerType === 'mouse') return;
-    // A touch just outside a thin incisal edge uses the nearest crown centre.
-    // A surface hit always wins, even near the shared edge of two incisors.
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left, y = event.clientY - rect.top;
+    const number = labels.hitTest(x, y);
+    if (number !== null) {
+      select(number);
+      return;
+    }
+    if (event.pointerType === 'mouse') return;
+    // A touch just outside a thin incisal edge uses the nearest crown centre.
     let closest, nearest = 20;
     for (const point of points) {
       if (!point.visible) continue;
@@ -191,7 +162,7 @@ export function createDentalMapUI({ stage, canvas, arch, requestRender }) {
     update, pick,
     get active() { return active; },
     get selected() { return selected; },
-    report: () => ({active, selectedFdi: selected, marker,
+    report: () => ({active, selectedFdi: selected,
       teeth: active ? points.filter(p => p.visible).map(({fdi,x,y}) => ({fdi,x,y})) : []}),
     dispose() { map.remove(); },
   };

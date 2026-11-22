@@ -47,7 +47,8 @@ export const experienceConfig = {
       full:      {desktop:[.70,.54,.74],portrait:[.51,.58,.91]},
       flight:    {desktop:[.55,.50,.76],portrait:[.50,.52,.87]},
       mapLower:  {desktop:[.67,.56,.77],portrait:[.50,.55,.93],shortPortrait:[.50,.54,.83]},
-      map:       {desktop:[.68,.45,.66],portrait:[.50,.47,.96],shortPortrait:[.50,.432,.68]},
+      // Reserve the perimeter for FDI numbers outside the crown silhouettes.
+      map:       {desktop:[.68,.45,.66],portrait:[.50,.465,.90],shortPortrait:[.50,.39,.65]},
       smile:     {desktop:[.67,.51,.87],portrait:[.50,.57,.298]},
       'final-smile': {desktop:[.67,.445,.88],portrait:[.50,.455,.318],shortPortrait:[.50,.54,.318],
         portraitZoomAspect:390/844},
